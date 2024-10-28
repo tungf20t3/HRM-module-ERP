@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY TransferID "rptInterpretationFinancial">
+  <!ENTITY FileName "case when @@language = 'V' then 'rptInterpretationFinancial_01BC' else 'rptInterpretationFinancial_01FC' end + case @chon_tt when '3' then '_A06133' when '2' then '_A03200' else '' end + case @mau_bc when '20' then '_02' when '30' then '_03' else '' end">
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\Circular\A06133\ReportCircularTypeField.xml">
+
+  <!ENTITY CreateTicket "declare @ticket varchar(32), @filename varchar(128)
+select @ticket = lower(replace(newid(),'-','')), @filename = &FileName; + '.xlsx'
+insert into @@sysDatabaseName..ticket values(@ticket, @@userID, '&TransferID;', @filename, case when @@language = 'v' then N'Thuyết minh tài chính' else N'Interpretation of Financial' end, '@@appDatabaseName', getdate());">
+
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+  <!ENTITY defaultTable "V30GLTCTM">
+  <!ENTITY defaultForm "V30GLTCTM">
+]>
+
+<dir id="3" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ky_nay_tu" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Kỳ này từ ngày" e="This Period Date from"></header>
+      <footer v="Kỳ này từ/đến ngày" e="This Period from/to"></footer>
+    </field>
+    <field name="ky_nay_den" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Kỳ này đến ngày" e="This Period Date to"></header>
+    </field>
+    <field name="ky_truoc_tu" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Kỳ trước từ ngày" e="Prev. Period Date from"></header>
+      <footer v="Kỳ trước từ/đến ngày" e="Prev. Period from/to"></footer>
+    </field>
+    <field name="ky_truoc_den" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Kỳ trước đến ngày" e="Prev. Period Date to"></header>
+    </field>
+    <field name="type" clientDefault="10">
+      <header v="Hiển thị" e="Display"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Chỉ tiêu đơn" e="Normal"/>
+        </item>
+        <item value="20">
+          <text v="Chỉ tiêu dựng cột" e="Crosstab"/>
+        </item>
+        <item value="30">
+          <text v="Chỉ tiêu tăng giảm" e="Balance"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    &ReportCircularTypeField;
+
+    <field name="form" allowNulls="false">
+      <header v="Chọn báo cáo" e="Select Report"/>
+      <items style="DropDownList">
+        <item value="">
+          <text v="" e=""/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="mau_bc" clientDefault="10">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList" >
+        <item value="10">
+          <text v="Mẫu chuẩn - năm" e="Standard Form - Year"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu chuẩn - giữa niên độ" e="Standard Form - Mid-Year"/>
+        </item>
+        <item value="30">
+          <text v="Mẫu chuẩn - bán niên" e="Standard Form - Half-Year"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="11001--: [ky_nay_tu].Description, [ky_nay_tu], [ky_nay_den]"/>
+      <item value="11001--: [ky_truoc_tu].Description, [ky_truoc_tu], [ky_truoc_den]"/>
+      <item value="110000-: [type].Label, [type]"/>
+      <item value="110000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110000-: [chon_tt].Label, [chon_tt]"/>
+      <item value="110000-: [form].Label, [form]"/>
+      <item value="110000-: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @form nvarchar(4000), @name nvarchar(4000), @defaultForm varchar(33), @reportType char(1)
+select @form = '', @name = ''
+select @reportType = rtrim(val) from options where name = 'm_kieu_bc'
+select top 1 @defaultForm = rtrim(upper(form)) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA[' and (kieu_bc = 0 or kieu_bc = @reportType) and nd_yn = 1
+if @defaultForm is null select top 1 @defaultForm = rtrim(upper(form)) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA[' and (kieu_bc = 0 or kieu_bc = @reportType)
+
+select @form = @form + rtrim(form) + char(255), @name = @name + case when lower(@@language) = 'v' then rtrim(ten_maubc) else rtrim(ten_maubc2) end + char(255) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA['and (kieu_bc = 0 or kieu_bc = @reportType)
+select @form = left(@form, len(@form) - 1), @name = left(@name, len(@name) - 1)
+select 'this._itemValue=''' + rtrim(@form) + ''';this._itemText=''' + dbo.AI_ERP$Function$EncodeScript(@name) + '''; this._defaultForm = ''' + @defaultForm + '''; this._reportType = ''' + @reportType + ''';initForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Inserting">
+      <text>
+        &CreateTicket;
+        <![CDATA[
+select '' as field, '' as message, 'this.grid._key = ''' + @ticket + '''' as script
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_rptInterpretationFinancial @ky_truoc_tu, @ky_truoc_den, @ky_nay_tu, @ky_nay_den, @type, @ma_dvcs, @form, @@language, @@userID, @@admin
+select ]]>&FileName;<![CDATA[ as templateFile
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");!a.getItemValue("ky_truoc_tu")&&setDefaultDate(a.getItem("ky_nay_tu"))}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(k,d){var a=d.object,g=d.type.Context,j=d.type.Result;switch(g){case"Checking":var b=a.grid,h=a.getItem("ky_nay_tu").value,i=a.getItem("ky_nay_den").value,c=a.getItemValue("type"),e=a._language=="v";t=a.getItem("form").selectedIndex,z=a.getItem("form").options;var f=z[t].text;b._form=a.getItemValue("chon_tt");b._reportForm=a.getItemValue("mau_bc");b._alterTitle=[null,[["%f1",f,true],["%d1",h,true],["%d2",i,true]]];b._hiddenFields=[{Fields:"du_dau, tang, giam, du_cuoi, du_dau_nt, tang_nt, giam_nt, du_cuoi_nt",Value:c=="10"||c=="20"},{Fields:"ps, ps0, ps_nt, ps_nt0",Value:c=="20"||c=="30"},{Fields:"ps01, ps02, ps03, ps04, ps05, ps06, ps07, ps08, ps09, ps10, ps11, ps12, ps_nt01, ps_nt02, ps_nt03, ps_nt04, ps_nt05, ps_nt06, ps_nt07, ps_nt08, ps_nt09, ps_nt10, ps_nt11, ps_nt12",Value:c=="10"||c=="30"}];b._hiddenForms=[{Form:[0],Value:!e},{Form:[1],Value:e}];b._$unit=a.getItemValue("ma_dvcs"),b._$formId=a.getItemValue("form"),b._$type=c,b._dFrom=a.getItemValue("ky_nay_tu"),b._dTo=a.getItemValue("ky_nay_den"),b._dFrom0=a.getItemValue("ky_truoc_tu"),b._dTo0=a.getItemValue("ky_truoc_den");remove$GridReport$Filter(b)}}function setDefaultDate(f){var a=f.parentForm,b=a.getItemValue("ky_nay_tu",null,null,true),c=a.getItemValue("ky_nay_den",null,null,true),d=new Date(b.getFullYear()-1,b.getMonth(),b.getDate());a.setItemValue("ky_truoc_tu",d);var e=new Date(c.getFullYear()-1,c.getMonth(),c.getDate());a.setItemValue("ky_truoc_den",e)}function initForm(b){for(var f=b.getItem("form"),g=b.getItem("chon_tt"),d=b._itemValue.split(String.fromCharCode(255)),h=b._itemText.split(String.fromCharCode(255)),c,e,a=0;a<d.length;a++){f.options[a]=new Option(h[a],d[a]);if(!c&&b._defaultForm==d[a])c=a}if(!c)c=0;f.options[c].selected=true;e=b._reportType==1?2:1;g.remove(e);g.options[1].selected=true}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

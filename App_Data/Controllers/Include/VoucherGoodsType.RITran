@@ -1,0 +1,44 @@
+﻿<!ENTITY % Conditional.VoucherGoodsType.RITran SYSTEM "..\Include\VoucherGoodsType.txt">
+
+<![%Conditional.VoucherGoodsType.RITran;[
+  <!ENTITY VoucherGoodsTypeFindingExt "
+if @vcCode not in ('HDA', 'HD7') select @f = replace(replace(@f, 'a.km_yn', '''0'''), 'a.readonly_yn', 'case when a.loai &lt;&gt; ''90'' then 1 else 0 end')
+else begin
+  if not exists(select 1 from syscolumns a where a.name = 'km_yn' and a.id = object_id('d81$000000')) select @f = replace(replace(@f, 'a.km_yn', '''0'''), 'a.readonly_yn', 'case when a.loai &lt;&gt; ''90'' then 1 else 0 end')
+  else select @f = replace(@f, 'a.readonly_yn', 'case when a.km_yn &lt;&gt; ''1'' and a.loai &lt;&gt; ''90'' then 1 else 0 end')
+end
+">
+  <!ENTITY VoucherGoodsTypePromotionChange "g.setItemGridBehavior(o, [['readonly_yn', ((o.value != '1' &amp;&amp; g._getItemValue(o.row, g._getColumnOrder('loai')) != '90') ? true : false), '', null]]);">
+  <!ENTITY VoucherGoodsTypeCurrencyFields.ForeignCurrency "(([loai] == &quot;90&quot; ? (-1) : (1)) * [tien_nt2])">
+  <!ENTITY VoucherGoodsTypeCurrencyFields.BaseCurrency "(([loai] == &quot;90&quot; ? (-1) : (1)) * [tien2])">
+
+  <!ENTITY VoucherGoodsTypeHandleFields "ma_vt,km_yn,so_luong,gia_nt,gia,tien_nt2,tien2,tl_ck,ck_nt,ck,ma_thue">
+
+  <!ENTITY VoucherGoodsTypeResponseComplete "
+    case 'GoodsType':
+      if (result[0].Value != '') {
+        g.setItemGridBehavior(o, [
+          ['km_yn', result[1].Value, '', true], ['readonly_yn', false, '', null], ['so_luong', 0, null, null], ['gia_nt', 0, null, null],
+          ['tl_ck', 0, null, null], ['ck_nt', '', '', null], ['tk_ck', '', '', null],
+          ['ma_thue', '', '', null], ['thue_suat', 0, null, null], ['thue_nt', 0, null, null], ['ma_kh2', '', '', null]
+        ]);
+      } else {
+        g.setItemGridBehavior(o, [['readonly_yn', ((g._getItemValue(o.row, g._getColumnOrder('km_yn')) != '1' &amp;&amp; g._getItemValue(o.row, g._getColumnOrder('loai')) != '90') ? true : false), '', null]]);
+      }
+      g.validExpression(o, [g.$a.gia_nt_sl, g.$a.gia_tg, g.$a.tien2, g.$a.ck_nt, g.$a.ck_tg]);
+      on$GridVoucherDetail$AmountChange(o, g, f);
+      on$GridVoucherDetail$TaxChange(o, g, f);
+      g.live(o, 'tien_nt2');
+      break;
+">
+]]>
+
+<!ENTITY VoucherGoodsTypeCurrencyFields.ForeignCurrency "[tien_nt2]">
+<!ENTITY VoucherGoodsTypeCurrencyFields.BaseCurrency "[tien2]">
+<!ENTITY VoucherGoodsTypeFindingExt "
+if @vcCode not in ('HDA', 'HD7') select @f = replace(replace(@f, 'a.km_yn', '''0'''), 'a.readonly_yn', '1')
+else begin
+  if not exists(select 1 from syscolumns a where a.name = 'km_yn' and a.id = object_id('d81$000000')) select @f = replace(replace(@f, 'a.km_yn', '''0'''), 'a.readonly_yn', '1')
+  else select @f = replace(@f, 'a.readonly_yn', 'case when a.km_yn &lt;&gt; ''1'' then 1 else 0 end')
+end
+">

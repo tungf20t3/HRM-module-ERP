@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_bc" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Ngày báo cáo" e="Report Date"/>
+    </field>
+    <field name="type" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Loại" e="Type"></header>
+      <footer v="1 - Thông tin lương, 2 - Thông tin phụ cấp" e="1 - Salary, 2 - Allowances"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange=onChange$Item(this);]]></clientScript>
+    </field>
+    <field name="ma_pc">
+      <header v="Mã phụ cấp" e="Allowance"></header>
+      <items style="Lookup" controller="hrAllowance" reference="ten_pc%l" key="status = '1'" check="1=1" information="ma_pc$hrdmpc.ten_pc%l"/>
+      <handle key="[type] == 2" field ="type" source="" reference=""/>
+    </field>
+    <field name="ten_pc%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" onDemand="true">
+      <header v="Nhân viên" e="Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_nv" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_nv" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vtr" onDemand="true">
+      <header v="Vị trí công việc" e="Position"></header>
+      <items style="AutoComplete" controller="hrPosition" reference="ten_vtr%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vtr%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bac" onDemand="true">
+      <header v="Bậc quản lý" e="Job Grade"></header>
+      <items style="AutoComplete" controller="hrManagerLevel" reference="ten_bac%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bac%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="mau_bc">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="282">
+      <item value="120, 30, 10, 60, 100, 100, 130, 0, 0, 0"/>
+      <item value="1100------: [ngay_bc].Label, [ngay_bc]"/>
+      <item value="11100000--: [type].Label, [type], [type].Description"/>
+      <item value="110000----: [ma_pc].Label, [ma_pc]"/>
+      <item value="11001000--: [ma_nv].Label, [ma_nv], [ten_nv]"/>
+      <item value="11001000--: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="11001000--: [ma_vtr].Label, [ma_vtr], [ten_vtr%l]"/>
+      <item value="11001000--: [ma_bac].Label, [ma_bac], [ten_bac%l]"/>
+      <item value="110000----: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[exec hs_rptPayroll013 @ngay_bc, @type, @ma_pc, @ma_nv, @ma_bp, @ma_vtr, @ma_bac, @@language, @@userID, @@admin, '@@sysDatabaseName']]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);onChange$CalculateType(a);if(!a.getItemValue("ngay_bc")){a.setItemValue("ngay_bc",new Date);a.live(a.getItem("ngay_bc"))}changeLookupReadonly(a,"ma_pc",true)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(h,c){var d=c.object,e=c.type.Context,g=c.type.Result;switch(e){case"Checking":var a=d.grid,f=d.getItem("ngay_bc").value,b=d.getItem("type").value;a._alterTitle=[null,[["%d",f,true]]];a._hiddenFields=[{Fields:"ma_pc, ten_pc, ty_le, tien_pc, ngay_hl_tu_pc, ngay_hl_den_pc",Value:b=="1"},{Fields:"tk_nh, ngan_hang, loai_luong, kieu_tinh, ma_ngach_m, ma_bac_m, he_so_luong_m, tien_khoan_m, phu_cap, tro_cap, he_so1, he_so2, he_so3, tien1, tien2, tien3, ma_nt, ma_ngach_ct, ma_bac_ct, he_so_luong_ct, tien_khoan_ct, ngay_hl_ct, he_so_luong_bh, tien_bh, tien_cl, ngay_hl_bh",Value:b=="2"}];a._hiddenForms=[{Form:[1],Value:b=="1"},{Form:[0],Value:b=="2"}];remove$GridReport$Filter(a)}}function onChange$Item(a){var c=a.parentForm,b=a.field.Name;switch(b){case"type":onChange$CalculateType(c,true)}}function onChange$CalculateType(b,a){window.setTimeout(String.format("onFocus$CalculateType('{0}', {1});",b._id,a?1:0),2)}function onFocus$CalculateType(d,c){var a=$find(d),b=a.getItemValue("type")=="2",e=a.getItem("ma_pc"),f=a.getItem("ma_nv");setFieldsEmpty(a,"ma_pc",b);setItemDisable(a,"ma_pc",!b);c&&setItemLive(a,e,f,b)}function setItemLive(c,a,b,d){if(d){a.disabled=false;a.focus();c.live(a)}else{b.disabled=false;b.focus();c.live(b)}}function setItemDisable(f,e,d){for(var c=e.split(","),a=0;a<c.length;a++){var b=f.getItem($func.trim(c[a]));b.a&&$common.setVisible(b.a,!d);b.disabled=d}}function setFieldsEmpty(d,c,f){for(var b=c.split(","),a=0;a<b.length;a++){var e=d.getItem($func.trim(b[a]));if(!f)e.value=""}}
+]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

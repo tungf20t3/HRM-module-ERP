@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tạo phiếu xuất kho tự động" e="Auto-Generation of Issue"></title>
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày từ" e="Date from"></header>
+      <footer v="Ngày từ/đến" e="Date from/to"></footer>
+      <clientScript><![CDATA[onchange="onChangeDateFrom(this);"]]></clientScript>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày đến" e="Date to"></header>
+      <clientScript><![CDATA[onchange="onChangeDateTo(this);"]]></clientScript>
+    </field>
+
+    <field name="ma_dvcs" allowNulls="false">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1) and status = '1'" check="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)"/>
+      <clientScript><![CDATA[onchange="onChangeUnit(this);"]]></clientScript>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_kh" allowNulls="false">
+      <header v="Mã khách" e="Customer"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_nk" allowNulls="false">
+      <header v="Quyển chứng từ" e="Book"></header>
+      <items style="AutoComplete" controller="VoucherBook" reference="ten_nk%l" key="(ma_dvcs = '' or ma_dvcs = '{$%c[ma_dvcs]}') and (ngay_hl_tu is null or ngay_hl_tu &lt;= '{$%c[ngay_tu_s]}') and (ngay_hl_den is null or ngay_hl_den &gt;= '{$%c[ngay_den_s]}') and exists(select 1 from v20dmctnk b where b.ma_ct = 'PXA' and b.ma_nk = v20dmnk.ma_nk) and status = '1'" check="(ma_dvcs = '' or ma_dvcs = '{$%c[ma_dvcs]}') and (ngay_hl_tu is null or ngay_hl_tu &lt;= '{$%c[ngay_tu_s]}') and (ngay_hl_den is null or ngay_hl_den &gt;= '{$%c[ngay_den_s]}') and exists(select 1 from v20dmctnk b where b.ma_ct = 'PXA' and b.ma_nk = v20dmnk.ma_nk)"/>
+    </field>
+    <field name="ten_nk%l" readOnly="true" external="true" defaultValue="''" hidden="false" >
+      <header v="" e=""></header>
+    </field>
+
+    <field name="loai" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Xử lý" e="Process"></header>
+      <footer v="1 - Tạo tự động, 2 - Xóa" e="1 - Auto-Generation, 2 - Delete"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="chep_de" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Chép đè" e="Overwrite"></header>
+      <footer v="1 - Có, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="ngay_tu_s" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_den_s" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="1101: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="110100: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="110100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="1101001: [ma_nk].Label, [ma_nk],[ten_nk%l], [ngay_tu_s]"/>
+      <item value="1110001: [loai].Label, [loai], [loai].Description, [ngay_den_s]"/>
+      <item value="111000: [chep_de].Label, [chep_de], [chep_de].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000), @dayLimit varchar(16), @inputSiteGroup nvarchar(256), @differentAccount nvarchar(256), @unitName nvarchar(1023)
+select @unitName = case when @@language = 'v' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit
+select @dayLimit = rtrim(val) from options where name = 'm_xknvl_gh'
+select @message = 'this._unitCode=''' + @@unit + ''';this._unitName=''' + replace(replace(isnull(@unitName, ''), '\', '\\'), '''', '\''') + ''';this._dayLimit=' + @dayLimit  + ';active$FormFilter$(this);'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var d1 = this.getItemValue('ngay_tu'), d2 = this.getItemValue('ngay_den'), e = 'ngay_den', v = parseInt((d2-d1)/(24*3600*1000)) + 1;
+if (v > this._dayLimit) {
+  this._checked = false;
+  $func.hideWait(this.get_id());
+  var err = this._language == 'v' ? 'Ngày từ và ngày đến vượt quá số ngày giới hạn.' : 'The range of day is over the limit.';
+  $message.show(err, String.format('$find(\'{0}\').getItem(\'{1}\').focus()', this.get_id(), e));
+}
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @field varchar(64), @message nvarchar(512)
+exec rs_AutoCreateMaterialsIssueChecking @ngay_tu, @ngay_den, @ma_dvcs, @ma_kh, @ma_nk, @loai, @chep_de, @@language, @@userID, @@admin, '@@sysDatabaseName', @field out, @message out
+if @message <> '' begin
+  select @field as field, @message as message, '' as script
+  return
+end
+]]>
+        <![CDATA[
+exec rs_AutoCreateMaterialsIssue @ngay_tu, @ngay_den, @ma_dvcs, @ma_kh, @ma_nk, @loai, @@language, @@userID, @@admin, '@@sysDatabaseName', @message out
+if @message <> '' begin
+  select 'ma_nk' as field, @message as message, '' as script
+  return
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$FormFilter$(f) {
+  f.setItemValues('ma_dvcs, ten_dvcs%l', [f._unitCode, f._unitName]);
+  f.setItemValues('ngay_tu_s, ngay_den_s', [$func.formatDateOrder(f.getItemValue('ngay_tu')), $func.formatDateOrder(f.getItemValue('ngay_den'))]);
+  f.setReferenceKeyFilter('ma_nk');
+}
+function onChangeUnit(o) {o.parentForm.setReferenceKeyFilter('ma_nk');}
+function onChangeDateFrom(o) {
+  var f = o.parentForm;
+  f.setItemValue('ngay_tu_s', $func.formatDateOrder(f.getItemValue('ngay_tu')));
+  f.setReferenceKeyFilter('ma_nk');
+}
+function onChangeDateTo(o) {
+  var f = o.parentForm;
+  f.setItemValue('ngay_den_s', $func.formatDateOrder(f.getItemValue('ngay_den')));
+  f.setReferenceKeyFilter('ma_nk');
+}
+]]>
+    </text>
+  </script>
+</dir>

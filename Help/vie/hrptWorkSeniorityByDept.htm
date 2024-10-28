@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Báo cáo thống kê thâm niên làm việc theo bộ phận</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Báo cáo thống kê thâm niên làm việc theo bộ phận</p>
+<p id="p2">
+- Thống kê số lượng nhân viên thỏa mãn điều kiện lọc, có “Ngày bắt đầu” (trong phần “Quá trình làm việc/ Quá trình làm việc tại công ty”, 
+tính chất là công việc chính) trước và gần ngày báo cáo nhất.
+<br/>
+ Trường hợp không nhập “Quá trình làm việc” thì dựa vào “Ngày vào công ty”,
+ “Bộ phận”, “Vị trí công việc”, “Bậc quản lý”, “Người quản lý” ở thông tin chung để lấy lên số liệu.<br/>
+- Thống kê số lượng nhân viên theo thâm niên công tác (tính theo năm).</p>
+
+<p class="e">
+Ví dụ :<br/>
++ Thâm niên nhỏ nhất: 1;<br/>
++	Khoảng cách năm thâm niên: 2;<br>
++	Màn hình kết quả thể hiện các cột: thâm niên &lt; 1 năm, thâm niên từ 1 đến 3 năm, thâm niên từ 3 đến 5 năm, thâm niên &gt;=5 năm.
+</p>
+<p id="p2">
+- Thâm niên của nhân viên được tính=(“Ngày báo cáo” – “Ngày vào chính thức”) / 365.</p>
+
+<p id="td2">Màn hình điều kiện lọc</p>
+<p id="pic"><img src="Vie\hrptWorkSeniorityByDept.png"/></p>
+<p id="td2">Giải thích cách thực hiện báo cáo</p>
+<p class="node">Ngày báo cáo</p>
+<p class="node_d">
+Lọc lên những nhân viên có ngày vào công ty trước ngày báo cáo.</p>
+<p class="node">Khoảng cách năm thâm niên</p>
+<p class="node_d">
+Cho phép người dùng tuỳ chọn khoảng cách thâm niên theo yêu cầu.</p>
+
+<p class="node">Bộ phận</p>
+<p class="node_d">
+Lọc lên những nhân viên có "Bộ phận" thỏa mãn Bộ phận cần lọc. “Bộ phận” được cập nhật trực tiếp ở màn hình cập nhật thông tin nhân
+ viên hoặc gián tiếp thông qua điều chuyển bộ phận trong quá trình công tác.</p>
+
+<p class="node">Nhóm bộ phận 1/2/3</p>
+<p class="node_d">
+Lọc lên những nhân viên có Nhóm bộ phận 1, 2, 3 thỏa mãn điều kiện lọc. Nhóm được phân loại cho từng bộ phận trong Danh mục bộ phận.
+</p>
+<p class="node">Bậc bộ phận</p>
+<p class="node_d">Người dùng phải tự nhớ bậc của cấu trúc bộ phận để khai thác tốt báo cáo này. 
+Bậc bộ phận được dùng để lọc số liệu báo cáo theo các lập luận sau: </p>
+
+<ul class="lo_2">
+- Nếu không nhập mã bộ phận và bậc, chương trình sẽ hiểu là cấp cao nhất. Kết quả sẽ thể hiện số liệu của tất cả các bộ 
+phận được quyền; <br/>
+- Nếu không nhập mã bộ phận và có nhập bậc (n), chương trình sẽ lấy số liệu từ cấp cao nhất đến bậc n. 
+Kết quả sẽ thể hiện số liệu của tất cả các bộ phận đến bậc n được quyền; <br/>
+- Nếu có nhập mã bộ phận và có nhập bậc (n), chương trình sẽ lấy số liệu từ bậc yêu cầu đến bậc n (với n > bậc của bộ phận nhập vào, 
+người dùng phải tự nhớ bậc của cấu trúc bộ phận). 
+Kết quả sẽ thể hiện số liệu của các bộ nhập vào đến bậc n được quyền; <br/>
+</ul>
+
+<p class="node">Vị trí công việc</p>
+<p class="node_d">
+Thể hiện lên báo cáo những nhân viên có “Vị trí công việc” trong phần “Quá trình làm việc/Quá trình làm việc tại công ty” có loại
+công việc hiện tại và tính chất công việc chính thỏa mãn “Vị trí công việc” cần tìm.
+</p>
+ <p class="node">Nhóm vị trí công việc 1/2/3</p>
+<p class="node_d">
+Lọc lên những nhân viên có Nhóm vị trí 1, 2, 3 thỏa mãn điều kiện lọc. Nhóm được phân loại cho từng vị trí công việc trong danh mục vị
+ trí công việc.</p>
+<p class="node">Bậc quản lý</p>
+<p class="node_d">
+ Lọc lên nhân viên có “Bậc quản lý” trong phần “Quá trình làm việc/Quá trình làm việc tại công ty” có loại 
+công việc hiện tại và tính chất công việc chính thỏa mãn điều kiện lọc.
+</p>
+<p class="node">Tình trạng nhân viên</p>
+<p class="node_d">
+Thể hiện theo “Tình trạng hiện tại” đã được cập nhật trong Thông tin nhân viên/ Ngăn
+ khác. Trường hợp để trắng thì chỉ thể hiện những nhân viên đang làm việc.</p>
+
+ <p class="note">Chú ý:<br/>
+Báo cáo chỉ thể hiện các nhân viên nghỉ việc nếu có chọn tình trạng đã nghỉ và ngày thực hiện báo cáo trước ngày nghỉ. 
+</p>
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

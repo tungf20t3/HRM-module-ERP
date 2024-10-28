@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY Identity "PRSaleOrder">
+]>
+
+<dir table="mrctyc" code="ma_vt" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Kế hoạch đặt hàng" e="Select Planned Order"></title>
+  <fields>
+    <field name="ma_bp"  external="true"  defaultValue="''" >
+      <header v="Bộ phận" e="Department"></header>
+    </field>
+    <field name="ten_bp" external="true"  defaultValue="''" readOnly ="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_vt" isPrimaryKey="true" hidden ="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="xac_nhan" isPrimaryKey="true" hidden ="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="sap_xep"  external="true"  defaultValue="0" hidden ="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_dat1" external="true" defaultValue="null" hidden ="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_dat2" external="true" defaultValue="null" hidden ="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_nhan1" external="true" defaultValue="null" hidden ="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_nhan2" external="true" defaultValue="null" hidden ="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="d2" external="true" clientDefault="0" defaultValue="0" rows="220" filterSource="Tidy" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chọn đơn hàng" e="Select Order"></label >
+      <items style="Grid" controller="PRSaleOrderGrid" row="1">
+
+        <item value="ForeignKey">
+          <text v="String: ma_vt, ma_vt" e="String: ma_vt, ma_vt"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v="String: xac_nhan, xac_nhan" e="String: xac_nhan, xac_nhan"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v="String: sap_xep, sap_xep" e="String: sap_xep, sap_xep"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v="String: ngay_dat1, ngay_dat1" e="String: ngay_dat1, ngay_dat1"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v="String: ngay_dat2, ngay_dat2" e="String: ngay_dat2, ngay_dat2"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v="String: ngay_nhan1, ngay_nhan1" e="String: ngay_nhan1, ngay_nhan1"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v="String: ngay_nhan2, ngay_nhan2" e="String: ngay_nhan2, ngay_nhan2"></text>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="280" anchor="3">
+      <item value="100, 100, 553, 0, 0, 0, 0"/>
+      <item value ="111111: [ma_bp].Label, [ma_bp], [ten_bp], [ma_vt], [xac_nhan], [sap_xep]"/>
+      <item value ="---1111:[ngay_dat1], [ngay_dat2], [ngay_nhan1], [ngay_nhan2]"/>
+      <item value="1: [d2]"/>
+      <categories>
+        <category index="1" columns="769, 0" anchor="1">
+          <header v="Đơn hàng" e="Information"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid;
+  f.setItemValues('ma_bp, ten_bp, ma_vt, xac_nhan, sap_xep,ngay_dat1, ngay_dat2, ngay_nhan1, ngay_nhan2', [g._$deptID, g._$deptName, g._$item, g._$firm, g._$order, g._$d1, g._$d2, g._$n1, g._$n2]);
+  f.setReadOnlyFields('ma_vt');
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      set$]]>&Identity;<![CDATA[Form$FlowScript(f);
+      break;
+    default:
+      break;
+  }
+}
+
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d2')._controlBehavior;
+  var z = f.grid, w = z.get_element().parentForm, l = g._getColumnOrder('tag'), k = g._getColumnOrder('sl_dh0');
+  var f1 = 'ten_vt, sl_dh0, stt_rec', f2 = 'ten_vt%l, so_luong, stt_rec_kh', fields = 'ma_vt, dvt, he_so, ngay_yc';
+  var first = true;
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l) > 0 && g._getItemValue(r, k) > 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      var row = z._rowCount;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong]);
+}
+]]>
+    </text>
+  </script>
+</dir>

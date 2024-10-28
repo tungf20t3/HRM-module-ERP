@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY CostingUnitFilterSetReadOnly SYSTEM "..\Include\Javascript\CostingUnitFilterSetReadOnly.txt">
+
+  <!ENTITY Control ",@$control = '1110'">
+  <!ENTITY CostingUnitFilterRespone SYSTEM "..\Include\Command\CostingUnitFilterRespone.txt">
+  <!ENTITY CostingUnitFilter SYSTEM "..\Include\Javascript\CostingUnitFilter.txt">
+  <!ENTITY CostingRequireFilterInitialize SYSTEM "..\Include\Command\CostingRequireFilterInitialize.txt">
+  <!ENTITY CostingRequireFilterShowing SYSTEM "..\Include\Command\CostingRequireFilterShowing.txt">
+
+  <!ENTITY LineCounter "5">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.Cost SYSTEM "..\Include\ReportMargin.Cost">
+  %ReportMargin.Cost;
+  <!ENTITY % ReportMargin.Tiny SYSTEM "..\Include\ReportMargin.Tiny">
+  %ReportMargin.Tiny;
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY ReportMarginViewValue "110000">
+
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tu_ky" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <footer v="Từ kỳ/Năm" e="From Period/Year"></footer>
+      <header v="Từ kỳ" e="From Period"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="tu_nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Từ năm" e="From Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="den_ky" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <footer v="Đến kỳ/Năm" e="To Period/Year"></footer>
+      <header v="Đến kỳ" e="To Period"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="den_nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Đến năm" e="To Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_sp" allowNulls="false" categoryIndex="1">
+      <header v="Sản phẩm" e="Product"></header>
+      <items style="AutoComplete" controller="Product" reference="ten_sp%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_sp%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" allowNulls="false" categoryIndex="1">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="Department" reference="ten_bp%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_bp%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_lsx" allowNulls="false" align="right" maxLength="-109" categoryIndex="1">
+      <header v="Số lệnh sản xuất" e="Manufacturing Order"></header>
+      <items style="AutoComplete" controller="MO" reference="dien_giai" key="1=1" check="1=1"/>
+    </field>
+    <field name="dien_giai" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" allowNulls="false" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" reference="ten_dvcs%l" controller="Unit" key="status = '1'" check="1=1"/>
+      <clientScript><![CDATA[onchange=onChange$Filter$ReportForm(this);]]></clientScript>
+    </field>
+    <field name="ten_dvcs%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="111: [tu_ky].Description, [tu_ky], [tu_nam]"/>
+      <item value="111: [den_ky].Description, [den_ky], [den_nam]"/>
+      <item value="1100100: [ma_sp].Label, [ma_sp], [ten_sp%l]"/>
+      <item value="1100100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="1100100: [so_lsx].Label, [so_lsx], [dien_giai]"/>
+      <item value="1100100: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="110000: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginViewExtend;
+      <categories>
+        <category index="1" columns="120, 30, 40, 30, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&CostingRequireFilterInitialize;&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &CostingRequireFilterShowing;
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @Product nvarchar(1024), @Product2 nvarchar(1024), @bpName nvarchar(1024), @bpName2 nvarchar(1024), @dg nvarchar(1024)
+, @h_line1 as nvarchar(128), @h_line2 as nvarchar(128), @h_line3 as nvarchar(128), @h_line4 as nvarchar(128)
+
+select @Product = ten_vt, @Product2 = ten_vt2 from vdmsp where ma_vt = @ma_sp
+select @bpName = ten_bp, @bpName2 = ten_bp2 from dmbp where ma_bp = @ma_bp
+select @dg = dien_giai from phlsx where so_lsx = @so_lsx
+
+select @h_line1 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC097'
+select @h_line2 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC098'
+select @h_line3 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC099'
+select @h_line4 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC100'
+
+select dbo.ff_GetStartDateOfCycle(@tu_ky, @tu_nam) as date_from, dbo.ff_GetEndDateOfCycle(@den_ky, @den_nam) as date_to,
+  @ma_sp as ma_vt, @Product as ten_vt, @Product2 as ten_vt2, @ma_bp as ma_bp, @bpName as ten_bp, @bpName2 as ten_bp2,
+  @so_lsx as so_lsx, @dg as dien_giai, case when @ma_bp <> '' then 1 else 0 end as dk1, case when @so_lsx <> '' then 1 else 0 end as dk2,
+  @h_line1 as h_line1, @h_line2 as h_line2, @h_line3 as h_line3, @h_line4 as h_line4
+
+exec rs_rptCOCardPrint @tu_ky, @tu_nam, @den_ky, @den_nam, @ma_sp, @ma_bp, @so_lsx, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &CostingUnitFilterSetReadOnly;
+      &ScriptFilterInit;
+      &ScriptAdjustTabSize;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  var l = (f.getItemValue('den_nam') == 0);
+  if (l) {
+    f.getItem('tu_ky').value = (new Date()).getMonth() + 1;
+    f.getItem('den_ky').value = (new Date()).getMonth() + 1;
+    f.getItem('tu_nam').value = (new Date()).getFullYear();
+    f.getItem('den_nam').value = (new Date()).getFullYear();
+  }
+  f.live(f.getItem('tu_ky'));
+  if (!l) onChange$Filter$ReportForm(f.getItem('ma_dvcs'));
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(n,f){var a=f.object,i=f.type.Context,h=f.type.Result;switch(i){case"Checking":var g=a.grid;g._hiddenFields=[{Fields:"dd_dk_nt, ps_tk_nt, dd_ck_nt, tong_gt_nt, gia_nt",Value:a.getItemValue("mau_bc")=="10"},{Fields:"dd_dk, ps_tk, dd_ck, tong_gt, gia",Value:a.getItemValue("mau_bc")=="20"}];var j=a.getItemValue("tu_ky"),k=a.getItemValue("tu_nam"),l=a.getItemValue("den_ky"),m=a.getItemValue("den_nam"),b=a.getItemValue("ma_sp"),c="",e="",d="";if(a._language=="v"){c="sản phẩm: ";e=", bộ phận: ";d=", lệnh sản xuất: "}else{c="Product: ";e=", Department: ";d=", MO: "}a.getItemValue("ten_sp%l")==""?b=c+b:b=c+b+" - "+a.getItemValue("ten_sp%l");if(a.getItemValue("ma_bp")!="")b=b+e+a.getItemValue("ma_bp");if(a.getItemValue("so_lsx")!="")b=b+d+a.getItemValue("so_lsx");g._alterTitle=[null,[["%d1",j,true],["%d2",k,true],["%d3",l,true],["%d4",m,true],["%s1",b,true]]];remove$GridReport$Filter(g);break;case"SetReadOnlyField":setItemReadOnly(a,"ma_bp",h[0].Value,true);setItemReadOnly(a,"so_lsx",h[1].Value,true)}}function onChange$Filter$ReportForm(a){a.parentForm._objectUnit=="1"&&a.parentForm.request("GetResponse","SetReadOnlyField",["ma_dvcs"])}]]>
+      &CostingUnitFilter;
+    </text>
+  </script>
+  &CostingUnitFilterRespone;
+  &OutlineCss;
+</dir>

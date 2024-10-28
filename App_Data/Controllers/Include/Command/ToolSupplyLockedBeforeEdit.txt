@@ -1,0 +1,23 @@
+<![CDATA[
+if @@view = 0 begin
+  if @@action = 'Edit' begin
+    declare @$lockedDate nvarchar(512), @$checkLockedDate smalldatetime
+    select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+    select @$checkLockedDate = ]]>&FieldDate;<![CDATA[ from @@table where ]]>&ToolSupplyField;<![CDATA[ = @]]>&ToolSupplyField;&ExternalKey;<![CDATA[
+    if @$checkLockedDate is not null begin
+      if not exists(select 1 from dmstt where @$checkLockedDate between ngay_gh1 and ngay_gh2) begin
+        select '' as field, @$lockedDate as message
+        return
+      end
+      if exists(select 1 from dmstt where @$checkLockedDate <= ngay_ks) begin
+        select '' as field, @$lockedDate as message
+        return
+      end
+      if exists(select 1 from dmdvcsks where @$checkLockedDate <= ngay_ks and ma_dvcs = (select top 1 ma_dvcs from ]]>&ToolSupplyTable;<![CDATA[ where ]]>&ToolSupplyField;<![CDATA[ = @]]>&ToolSupplyField;<![CDATA[)) begin
+        select '' as field, @$lockedDate as message
+        return
+      end
+    end
+  end
+end
+]]>

@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="vhrrmhs" code="ma_hs" order="ma_hs" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_dot">
+      <header v="Mã đợt" e="Period Code"></header>
+      <items style="AutoComplete" controller="hrRMPeriodInfoInput" reference="ten_dot%l" key="(@@admin = 1 or exists(select 1 from sysunitrights r where r.user_id = @@userID and r.ma_dvcs = hrrmdot.ma_dvcs and r.r_access=1)) and status = '1'" check="(@@admin = 1 or exists(select 1 from sysunitrights r where r.user_id = @@userID and r.ma_dvcs = hrrmdot.ma_dvcs and r.r_access=1))"/>
+    </field>
+    <field name="ten_dot%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_hs">
+      <header v="Mã ứng viên" e="Applicant ID"></header>
+      <items style="AutoComplete" controller="hrRMApplicantProfileInput" reference="ten_uv%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_uv%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten">
+      <header v="Tên ứng viên" e="Applicant Name"></header>
+    </field>
+
+
+    <field name="ma_tt">
+      <header v="Trạng thái hồ sơ" e="Status"></header>
+      <items style="AutoComplete" controller="hrRMAppFormStatus" reference="ten_tt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_tt%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_vtr" onDemand="true" categoryIndex="1">
+      <header v="Vị trí ứng tuyển" e="Vacancy"></header>
+      <items style="AutoComplete" controller="hrPosition" reference="ten_vtr%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vtr%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" onDemand="true" categoryIndex="1">
+      <header v="Bộ phận ứng tuyển" e="Department Applied"></header>
+      <items style="AutoComplete" controller="hreDepartment" reference="ten_bp%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_nop1" type="DateTime" dataFormatString="@datetimeFormat" align="left" categoryIndex="1">
+      <header v="Ngày nộp hs từ" e="Date Applied from"></header>
+      <footer v="Ngày nộp hs từ/đến" e="Date Applied from/to"></footer>
+    </field>
+    <field name="ngay_nop2" type="DateTime" dataFormatString="@datetimeFormat" align="left" categoryIndex="1">
+      <header v="Ngày nộp hs đến" e="Date Applied to"></header>
+    </field>
+    <field name="cmnd_so" categoryIndex="1">
+      <header v="Số CMND" e="ID Card No."></header>
+    </field>
+    <field name="gioi_tinh" dataFormatString="*, 1, 2" clientDefault="*" align="right" categoryIndex="1">
+      <header v="Giới tính" e="Gender"></header>
+      <footer v="1 - Nam, 2 - Nữ, * - Cả hai" e="1 - Male, 2 - Female, 3 - All"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="quoc_tich" categoryIndex="1">
+      <header v="Quốc tịch" e="Nationality"></header>
+      <items style="AutoComplete" controller="hrNationality" reference="ten_qt%l" key="status ='1'" check="1 = 1"/>
+    </field>
+    <field name="ten_qt%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="hon_nhan" categoryIndex="1">
+      <header v="Tình trạng hôn nhân" e="Marital Status"></header>
+      <items style="AutoComplete" controller="hrMaritalStatus" reference="ten_tthn%l" key="status ='1'" check="1 = 1"/>
+    </field>
+    <field name="ten_tthn%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_kenh" categoryIndex="2">
+      <header v="Kênh tuyển dụng" e="Recruitment Channel"></header>
+      <items style="AutoComplete" controller="hrRMChannel" reference="ten_kenh%l" key="status ='1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kenh%l" readOnly="true" external="true" categoryIndex="2">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nguon" categoryIndex="2">
+      <header v="Nguồn tuyển dụng" e="Recruitment Source"></header>
+      <items style="AutoComplete" controller="hrRMSource" reference="ten_nguon%l" key="status ='1'" check="1 = 1"/>
+    </field>
+    <field name="ten_nguon%l" readOnly="true" external="true" categoryIndex="2">
+      <header v="" e=""></header>
+    </field>
+    <field name="status" dataFormatString="*, 0, 1" clientDefault="0" align="right" inactivate="true" categoryIndex="2">
+      <header v="Trạng thái" e="Status"></header>
+      <footer v="0 - Chưa tuyển dụng, 1 - Đã tuyển dụng, * - Tất cả" e="0 - Unhired, 1 - Hired, * - All"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="184">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="110100: [ma_dot].Label, [ma_dot], [ten_dot%l]"/>
+      <item value="110100: [ma_hs].Label, [ma_hs], [ten_uv%l]"/>
+      <item value="11000: [ten].Label, [ten]"/>
+      <item value="110100: [ma_tt].Label, [ma_tt], [ten_tt%l]"/>
+
+      <item value="110100: [ma_vtr].Label, [ma_vtr], [ten_vtr%l]"/>
+      <item value="110100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+
+      <item value="1101: [ngay_nop1].Description, [ngay_nop1], [ngay_nop2]"/>
+      <item value="110: [cmnd_so].Label, [cmnd_so]"/>
+      <item value="111000: [gioi_tinh].Label, [gioi_tinh], [gioi_tinh].Description"/>
+      <item value="110100: [quoc_tich].Label, [quoc_tich], [ten_qt%l]"/>
+      <item value="110100: [hon_nhan].Label, [hon_nhan], [ten_tthn%l]"/>
+
+      <item value="110100: [ma_kenh].Label, [ma_kenh], [ten_kenh%l]"/>
+      <item value="110100: [ma_nguon].Label, [ma_nguon], [ten_nguon%l]"/>
+      <item value="111000: [status].Label, [status], [status].Description"/>
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        <category index="2" columns="120, 30, 70, 100, 100, 130">
+          <header v="Khác" e="Other"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);a._tabContainer.add_activeTabChanged(onTabChanged);a._tabContainer._loaded=true}function close$VoucherFilter$(a){try{a.remove_activeTabChanged(onTabChanged)}catch(b){}try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function onTabChanged(a){a.parentForm.focusWhenTabChanged(["ma_vtr","ma_kenh"])}function on$Filter$ResponseComplete(g,d){var b=d.object,e=d.type.Context,f=d.type.Result;switch(e){case"Checking":var a=b.grid,c=[];a._refreshMemvars=true;a._dot=b.getItemValue("ma_dot");a._hs=b.getItemValue("ma_hs");a._ten=b.getItemValue("ten");a._vtr=b.getItemValue("ma_vtr");a._bp=b.getItemValue("ma_bp");a._tths=b.getItemValue("ma_tt");a._d1=b.getItemValue("ngay_nop1");a._d2=b.getItemValue("ngay_nop2");a._gt=b.getItemValue("gioi_tinh");a._cmnd=b.getItemValue("cmnd_so");a._qt=b.getItemValue("quoc_tich");a._hn=b.getItemValue("hon_nhan");a._kenh=b.getItemValue("ma_kenh");a._nguon=b.getItemValue("ma_nguon");a._tt=b.getItemValue("status");a._dot&&Array.add(c,{Name:"ma_dot",Opr:"like",Value:a._dot+="%",Type:"String",Ignore:false});a._hs&&Array.add(c,{Name:"ma_hs",Opr:"like",Value:a._hs+="%",Type:"String",Ignore:false});a._ten&&Array.add(c,{Name:"ten",Opr:"like",Value:"%"+a._ten+"%",Type:"String",Ignore:false});a._vtr&&Array.add(c,{Name:"ma_vtr",Opr:"=",Value:a._vtr,Type:"String",Ignore:false});a._bp&&Array.add(c,{Name:"ma_bp",Opr:"=",Value:a._bp,Type:"String",Ignore:false});a._tths&&Array.add(c,{Name:"ma_tt",Opr:"like",Value:a._tths+="%",Type:"String",Ignore:false});a._d1&&Array.add(c,{Name:"ngay_nop",Opr:">=",Value:a._d1,Type:"DateTime",Ignore:false});a._d2&&Array.add(c,{Name:"ngay_nop",Opr:"<=",Value:a._d2,Type:"DateTime",Ignore:false});a._gt!="*"&&Array.add(c,{Name:"gioi_tinh",Opr:"=",Value:a._gt,Type:"String",Ignore:false});a._cmnd&&Array.add(c,{Name:"cmnd_so",Opr:"like",Value:a._cmnd+="%",Type:"String",Ignore:false});a._qt&&Array.add(c,{Name:"quoc_tich",Opr:"like",Value:a._qt+="%",Type:"String",Ignore:false});a._hn&&Array.add(c,{Name:"ma_tthn",Opr:"like",Value:a._hn+="%",Type:"String",Ignore:false});a._kenh&&Array.add(c,{Name:"ma_kenh",Opr:"like",Value:a._kenh+="%",Type:"String",Ignore:false});a._nguon&&Array.add(c,{Name:"ma_nguon",Opr:"like",Value:a._nguon+="%",Type:"String",Ignore:false});a._tt!="*"&&Array.add(c,{Name:"status",Opr:"=",Value:a._tt,Type:"String",Ignore:false});a.set_externalKey(c)}}]]>
+    </text>
+  </script>
+</dir>

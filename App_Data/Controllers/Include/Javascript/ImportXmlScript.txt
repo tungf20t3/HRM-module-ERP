@@ -1,0 +1,198 @@
+﻿<![CDATA[
+function set$]]>&ImportXmlIdentity;<![CDATA[FileName(id) {
+  var f = $find(id), g = f.grid, w = g.get_element().parentForm, k = f.getItem('ticket').value, importMemvars = [];
+  var fileName = get$]]>&ImportXmlIdentity;<![CDATA[FileName($get('fileuploadXml').value), allowExt = 'xml';
+  var err = (f._language == 'v' ? 'Định dạng tệp không đúng.' : 'Invalid file type.');
+  if (fileName != '') {
+    var ext = fileName.split('.').pop();
+    if (allowExt.indexOf(ext.toLowerCase()) < 0) {
+      f._checked = false;
+      $message.show(err, String.format('$find(\'{0}\')._findButton("Cancel").focus();', f.get_id()));
+    }
+    else {
+      init$]]>&ImportXmlIdentity;<![CDATA[IFrame(f);
+      var importMemvars = [], unit = (f._action == 'New') ? f._unit : f.getItem('ma_dvcs').value;
+      create$]]>&ImportXmlIdentity;<![CDATA[Memvar(importMemvars, 'ma_dvcs', [unit]);
+      var form = $get('uploadFormXml'), query = {Type: '1', TemplateFile: 'Invoice', Language: f._language, Controller: ']]>&ImportXmlIdentity;<![CDATA[Xml', Key: k, Memvars: importMemvars, Time: new Date().getTime().toString()};
+      $get('query', form).value = Sys.Serialization.JavaScriptSerializer.serialize(query);
+      form.action = $func.resolveClientUrl('~/AppHandler/Import.ashx', g._baseUrl);
+      form.target = ']]>&ImportXmlIdentity;<![CDATA[' + '_IFrame';
+      form.submit();
+      f.request('GetTicket', 'GetTicket', []);
+      f._checked = false;
+      window.setTimeout(function() {f._busy = true; $func.showWait(f.get_id());}, 50);
+    }
+  }
+}
+function get$]]>&ImportXmlIdentity;<![CDATA[FileName(s) {
+  var p = s.lastIndexOf('\\');
+  if (p != -1) {return s.substring(p + 1);}
+  else {return s;}
+}
+function create$]]>&ImportXmlIdentity;<![CDATA[Memvar(a, n, v) {
+  var k = n.split(',');
+  for (var i = 0; i < k.length; i++) {
+    Array.add(a, {Name: String.fromCharCode(253) + $func.trim(k[i]), OldValue: null, NewValue: v[i]});
+  }
+}
+function set$]]>&ImportXmlIdentity;<![CDATA[Memvar(f, a, s) {
+  var k = s.split(',');
+  for (var i = 0; i < k.length; i++) {
+    var b = true, m = $func.trim(k[i]), n = String.fromCharCode(253) + m, v = f.getItem(m).value;
+    for (var j = 0; j < a.length; j++) {
+      if (a[j].Name == n) {
+        a[j].NewValue = v;
+        b = false;
+        break;
+      }
+    }
+    if (b) Array.add(a, {Name: n, OldValue: null, NewValue: v});
+  }
+}
+function init$]]>&ImportXmlIdentity;<![CDATA[IFrame(f) {
+  var g = f.grid, frameName = ']]>&ImportXmlIdentity;<![CDATA[' + '_IFrame', z = $get(frameName);
+  if (!z) {
+    z = document.createElement('iframe');
+    z.src = 'about:blank';
+    z.id = z.name = frameName;
+    z.grid = g;
+    z.form = f;
+    z.setAttribute('style', 'display:none;width:0;height:0');
+    document.body.appendChild(z);
+  }
+}
+function on$]]>&ImportXmlIdentity;<![CDATA[Xml$Complete(z) {
+  var f = z.form, g = f.grid;
+  f._busy = false;
+  clear$]]>&ImportXmlIdentity;<![CDATA[FileInput();
+  $func.hideWait(f.get_id());
+  f.completion(true);
+  g.goToPage(-1);
+}
+function on$]]>&ImportXmlIdentity;<![CDATA[Xml$Fail(z) {
+  var f = z.form;
+  var e = (f._language == 'v' ? 'Dữ liệu trong tệp không có hoặc không hợp lệ.' : 'The content of the data file is empty or invalid.');
+  $message.show(e, String.format('$find(\'{0}\')._findButton("Cancel").focus();', f.get_id()));
+  clear$]]>&ImportXmlIdentity;<![CDATA[FileInput();
+  f._busy = false;
+  $func.hideWait(f.get_id());
+}
+function set$Grid$ImportXmlResult(z) {
+  var f = z.form, g = f.getItem('d]]>&TagXml;<![CDATA[')._controlBehavior, result = z.result, fc;
+  if (result.length > 0) fc = result[0][5];
+  if (f.getItemValue('ma_nt') == fc) {
+    g._result = result;
+    g.showForm(']]>&ImportXmlIdentity;<![CDATA[Form');
+  } else $message.show(f._language == 'v' ? 'Trường <span class="Highlight">Mã ngoại tệ</span> không hợp lệ.' : 'Field <span class="Highlight">Currency</span> is invalid.', String.format('$find(\'{0}\').getItem(\'ty_gia\').focus();', f.get_id()));
+  f._busy = false;
+  $func.hideWait(f.get_id());
+  clear$]]>&ImportXmlIdentity;<![CDATA[FileInput();
+}
+function ]]>&ImportXmlIdentity;<![CDATA[Loading(f) {
+  f.request('GetTicket', 'GetTicket', []);
+  if (f._action == 'New') {
+    if (!f._dImportXml) {
+      if (!]]>&InputInvoiceImport;<![CDATA[ && !]]>&EIImport;<![CDATA[) ]]>&ImportXmlIdentity;<![CDATA[Loading$Xml(f);
+      else ]]>&ImportXmlIdentity;<![CDATA[Loading$Invoice(f);
+    }
+  } else ]]>&ImportXmlIdentity;<![CDATA[RemoveChild(f);
+}
+function ]]>&ImportXmlIdentity;<![CDATA[Loading$Xml(f) {
+  var dImportXml = document.createElement('div'), v = f._language == 'v', s, t;
+  s = v ? 'Lấy dữ liệu...' : 'Retrieve Data...';
+  t = v ? 'Chọn tệp ký hóa đơn...' : 'Choose signed invoice file...';
+  dImportXml.innerHTML = '<div style="max-height:12px;overflow:hidden;vertical-align:middle;" class="FormContainer "><form id="uploadFormXml" method="post" target="" enctype="multipart/form-data"><input type="hidden" name="query" id="query"><div class="divXmlUpload"><div align="center" class="divXmlButton">' + s + '</div><input type="file" title="' + t + '" name="fileuploadXml" id="fileuploadXml" accept=".xml" tabindex="999" class="divXmlInput" onclick="var check = ]]>&ImportXmlIdentity;<![CDATA[$(\'' + f._id + '\');return !check;" onchange="set$]]>&ImportXmlIdentity;<![CDATA[FileName(\'' + f._id + '\');"></div></form></div>'
+  Sys.UI.DomElement.addCssClass(dImportXml, ']]>&ImportXmlIdentity;<![CDATA[');
+  dImportXml.setAttribute('id', ']]>&ImportXmlIdentity;<![CDATA[');
+  f._dImportXml = dImportXml;
+  $get(f._id + '_Tabs_header').appendChild(dImportXml);
+  dImportXml.parentForm = f;
+}
+function ]]>&ImportXmlIdentity;<![CDATA[Loading$Invoice(f) {
+  var dImportXml = document.createElement('div'), id = f.get_id(), v = f._language == 'v';
+  var s = v ? 'Lấy dữ liệu...' : 'Retrieve Data...',
+     t1 = v ? 'Chọn tệp ký hóa đơn' : 'Choose signed invoice file',
+     t2 = v ? 'Hóa đơn đầu vào' : 'Input Invoice',
+     t3 = v ? 'Hệ thống hóa đơn điện tử' : 'Service Provider''s e-Invoice Portal',
+     html2 = ]]>&InputInvoiceImport;<![CDATA[ == 0 ? '' : '<a href="#" onclick="return setShowHiddenMenu(this, 2),false" class="MenuExtenderContextItem UploadDetailGroup"><div class="Title">' + t2 + '</div><div class="Description"></div></a>',
+     html3 = ]]>&EIImport;<![CDATA[ == 0 ? '' : '<a href="#" onclick="return setShowHiddenMenu(this, 3),false" class="MenuExtenderContextItem UploadDetailGroup"><div class="Title">' + t3 + '</div><div class="Description"></div></a>';
+  dImportXml.innerHTML = '<div style="max-height: 38px; overflow: hidden; vertical-align: middle;" class="FormContainer "><div style="height: 38px; border-width: 0px; max-width: 120px; margin-top:-3px; padding: 16px 0px 0px 4px; float: right;" title="' + s + '"><span class="ToolbarGroupSpan" style="color: #344054; font-size: 14px;">' + s + '</span></div></div>';
+
+  Sys.UI.DomElement.addCssClass(dImportXml, ']]>&ImportXmlIdentity;<![CDATA[');
+  dImportXml.setAttribute('id', ']]>&ImportXmlIdentity;<![CDATA[');
+  f._dImportXml = dImportXml;
+  $get(f._id + '_Tabs_header').appendChild(dImportXml);
+  dImportXml.parentForm = f;
+
+  var menu = document.createElement('div'), form = document.getElementById('aspnetForm'), backgroundElement = document.getElementById(id + '_dlgModalPopupBehavior_backgroundElement'), updateDlgPanel = document.getElementById(id + '_updateDlgPanel');
+  Sys.UI.DomElement.addCssClass(menu, 'MenuExtenderContextPanel MenuExtenderContextBarPanel');
+  menu.setAttribute('id', 'divViewUpload_ToolbarGroupPanelUploadDetailGroup');
+  menu.setAttribute('style', 'visibility: hidden; position: absolute; left: 0px; top: 0px; z-index: 3000100;');
+  menu.innerHTML = '<a href="#" class="MenuExtenderContextItem UploadDetailGroup"><form id="uploadFormXml" method="post" target="" enctype="multipart/form-data"><input type="hidden" name="query" id="query"><div class="divXmlUpload"><div class="divXmlButton" style="color: #039;">' + t1 + '</div><input type="file" name="fileuploadXml" id="fileuploadXml" accept=".xml" tabindex="999" class="divXmlInput" onclick="var check = setShowHiddenMenu(this, 1);return check" onchange="set$]]>&ImportXmlIdentity;<![CDATA[FileName(\'' + f._id + '\');"></div></form></a>' + html2 + html3;
+
+  menu.parentForm = f;
+  f._dImportXmlMenu = menu;
+  form.appendChild(menu);
+
+  backgroundElement.visibility = 'hidden';
+  backgroundElement.menu = menu;
+  updateDlgPanel.visibility = 'hidden';
+  updateDlgPanel.menu = menu;
+  dImportXml.visibility = 'visible';
+  dImportXml.menu = menu;
+
+  backgroundElement.addEventListener('click', setShowHiddenMenu);
+  updateDlgPanel.addEventListener('click', setShowHiddenMenu);
+  dImportXml.addEventListener('click', setShowHiddenMenu);
+}
+function ]]>&ImportXmlIdentity;<![CDATA[RemoveChild(f) {
+  if (f._dImportXml) {
+    f._dImportXml.parentNode.removeChild(f._dImportXml);
+    f._dImportXml = null;
+  }
+  if (f._dImportXmlMenu) {
+    f._dImportXmlMenu.parentNode.removeChild(f._dImportXmlMenu);
+    f._dImportXmlMenu = null;
+  }
+}
+function setShowHiddenMenu(e, v) {
+  if (v) {
+    event.stopPropagation();
+    var menu = $get('divViewUpload_ToolbarGroupPanelUploadDetailGroup'), f = menu.parentForm;
+    menu.style.visibility = 'hidden';
+    var check = ]]>&ImportXmlIdentity;<![CDATA[$(f._id);
+
+    switch (v) {
+      case 1:
+        return !check;
+        break;
+      case 2:
+        if (check) return;
+        var g = f.getItem('d]]>&TagXml;<![CDATA[')._controlBehavior;
+        g.showForm('InputInvoiceRetrieveFilter');
+        break;
+      case 3:
+        if (check) return;
+        var g = f.getItem('d]]>&TagXml;<![CDATA[')._controlBehavior;
+        g.showForm('InputInvoicePortalFilter');
+        break;
+      default:
+        break;
+    }
+  } else {
+    var menu = this.menu, visibility = this.visibility;
+    if (visibility == 'visible') {
+      event.stopPropagation();
+      var pos = Sys.UI.DomElement.getLocation(this), posContainer = Sys.UI.DomElement.getLocation($get(']]>&ImportXmlIdentity;<![CDATA['));
+      var top = (pos.y + 21 + 21) + "px", left = (posContainer.x + 104 - menu.offsetWidth) + "px";
+      menu.style.top = top;
+      menu.style.left = left;
+    }
+    menu.style.visibility = visibility;
+  }
+}
+function clear$]]>&ImportXmlIdentity;<![CDATA[FileInput() {
+  var input = $get('fileuploadXml');
+  if (input) input.value = '';
+}
+]]>

@@ -1,0 +1,21 @@
+﻿<![CDATA[
+if (this._checked) {
+  var k$ = this._g$._getColumnOrder('stt_rec_dn'), id$ = this.get_id();
+  var message$ = ((this._language == 'v') ? ']]>&PaymentRequestCheckingTitle.v;<![CDATA[' : ']]>&PaymentRequestCheckingTitle.e;<![CDATA[');
+  var t$ = this.getItemValue('ma_kh');
+  for (var i$ = 1; i$ <= this._g$._rowCount; i$++) {
+    var y$ = (this._g$._getItemValue(i$, k$) != '');
+    if (y$) {
+      var u$ = this._g$._getItem(i$, 1)._customerIdentity;
+      if (!u$) u$ = (this._action == 'Edit') ? this._customerIdentity : t$;
+
+      if (t$ != u$) {
+        $func.hideWait(id$);
+        $message.show(message$, String.format('$find(\'{0}\').getItem(\'ma_kh\').focus()', id$));
+        this._checked = false;
+        break;
+      }
+    }
+  }
+}
+]]>

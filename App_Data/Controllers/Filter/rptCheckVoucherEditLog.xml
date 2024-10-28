@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Chứng từ từ ngày" e="Date From"></header>
+      <footer v="Ngày chứng từ từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Chứng từ đến ngày" e="Date to"></header>
+    </field>
+    <field name="so_ct1" align="right" dataFormatString="@upperCaseFormat" maxLength="-100">
+      <header v="Chứng từ từ/đến số" e="Voucher No. from/to"/>
+      <items style="Mask"/>
+    </field>
+    <field name="so_ct2" align="right" dataFormatString="@upperCaseFormat" maxLength="-100">
+      <header v="" e=""/>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_ct" dataFormatString="@upperCaseFormat" allowNulls="false">
+      <header v="Mã chứng từ" e="Voucher Code"></header>
+      <items style="AutoComplete" controller="VoucherExtension" reference="ten_ct%l" key="exists(select 1 from @@sysDatabaseName..syscheckfields b where b.ma_ct = dmct.ma_ct) and wedition &lt;&gt; '9' and status = '1'" check="exists(select 1 from @@sysDatabaseName..syscheckfields b where b.ma_ct = dmct.ma_ct) and wedition &lt;&gt; '9'"/>
+    </field>
+    <field name="ten_ct%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="user_id2" onDemand="true">
+      <header v="Người sửa" e="Modified By"></header>
+      <items style="AutoComplete" controller="User" reference="comment%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="comment%l" readOnly="true" inactivate="true">
+      <header v="" e=""/>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="user_id0" dataFormatString="0, 1" clientDefault="0" align="right" inactivate="true">
+      <header v="Người sử dụng" e="User"></header>
+      <footer v="1 - Lọc theo người sử dụng, 0 - Không" e="1 - Filter by User, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="maxLength" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 25, 75, 100, 100, 130, 0"/>
+      <item value="1101---: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="1101--1: [so_ct1].Label, [so_ct1], [so_ct2], [maxLength]"/>
+      <item value="110100-: [ma_ct].Label, [ma_ct], [ten_ct%l]"/>
+      <item value="110100-: [user_id2].Label, [user_id2], [comment%l]"/>
+      <item value="11000--: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11100--: [user_id0].Label, [user_id0], [user_id0].Description"/>
+
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+#IF @@admin <> 1 #THEN
+  select '' as field, '$NotAuthorized' as message
+  return
+#END
+select 'active$CheckVoucherEditLog$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$CheckVoucherEditLog$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+select @ma_ct = replace(left(@ma_ct, 32), '''', '')
+declare @xtable varchar(64), @xhidden varchar(128), @xref varchar(128), @f1 nvarchar(4000), @f2 nvarchar(4000), @f3 nvarchar(4000), @f4 nvarchar(4000), @f5 nvarchar(4000), @i int, @t char(1)
+select @xhidden = 'c1,c1log,c2,c2log,c3,c3log,c4,c4log,c5,c5log', @f1 = 'ma_dvcs,ngay_ct,so_ct,ngay_ct_log,so_ct_log', @f2 = '', @f3 = '', @f4 = '', @t = '0'
+if exists(select 1 from dmreflog where xcode = @ma_ct) begin
+  select @f1 = '', @f2 = '', @f5 = ''
+  select @xtable = xtable from dmct4 where ma_ct = @ma_ct
+  select @xhidden = replace(xhiddenfield, ' ', ''), @xref = replace(xreffield, ' ', '') from dmreflog where xcode = @ma_ct
+
+  select rtrim(data) as col, cast(N'' as nvarchar(1024)) as colname, id into #t from dbo.AI_ERP$Function$System$Split(@xref, ',') order by id
+
+  update #t set colname = case @@language when 'V' then b.field_name else b.field_name2 end from #t a join @@sysDatabaseName.dbo.syscheckfields b on a.col = b.field and b.ma_ct = @ma_ct
+  update #t set colname = case @@language when 'V' then colname + '$l' else '$l' + colname end
+
+  select @f1 = @f1 + case when @f1 <> '' then ',' else '' end + 'c' + rtrim(id) + ',c' + rtrim(id) + 'log',
+    @f2 = @f2 + case when @f2 <> '' then ',' else '' end + replace(colname, '$l', case @@language when 'V' then N' hiện thời' else N'Current ' end) + ',' + replace(colname, '$l', ''),
+    @f3 = @f3 + case when @f3 <> '' then ',' else '' end + 'c' + rtrim(id), @f4 = @f4 + case when @f4 <> '' then ',' else '' end + replace(colname, '$l', '')
+    from #t order by id
+
+  select @i = max(id) + 1 from #t
+  while (@i <= 5) begin
+    set @f5 = @f5 + case when @f5 = '' then '' else ',' end +  'c' + rtrim(@i) + ',c' + rtrim(@i) + 'log'
+    set @i = @i + 1
+  end
+  if charindex(',so_ct,', ',' + @xhidden + ',') > 0 select @xhidden = @xhidden + ',so_ct_log'
+    else select @f1 = @f1 + ',so_ct,so_ct_log'
+  if charindex(',ngay_ct,', ',' + @xhidden + ',') > 0 select @xhidden = @xhidden + ',ngay_ct_log'
+    else select @f1 = @f1 + ',ngay_ct,ngay_ct_log'
+  if charindex(',ma_dvcs,', ',' + @xhidden + ',') <= 0 select @f1 = @f1 + ',ma_dvcs'
+  select @xhidden = @xhidden + case when @xhidden = '' then '' else ',' end + @f5, @t = '1'
+  drop table #t
+end
+select @xhidden = replace(replace(@xhidden, '\', '\\'), '''', '\'''), @f1 = replace(replace(@f1, '\', '\\'), '''', '\'''), @f2 = replace(replace(@f2, '\', '\\'), '''', '\'''), @f3 = replace(replace(@f3, '\', '\\'), '''', '\'''), @f4 = replace(replace(@f4, '\', '\\'), '''', '\''')
+select '' as field, '' as message, 'setValue$Filter$Function(this, ''' + rtrim(@xhidden) + ''', ''' + rtrim(@f1) + ''', ''' + rtrim(@f2) + ''', ''' + rtrim(@f3) + ''', ''' + rtrim(@f4) + ''', ''' + rtrim(@t) + ''');' as script
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @id int
+if @user_id2 <> '' select @id = id from @@sysDatabaseName..userinfo2 where name = @user_id2
+select @id = isnull(@id, 0)
+
+exec rs_rptCheckVoucherEditLogView @ngay_tu, @ngay_den, @so_ct1, @so_ct2, @ma_ct, @ma_dvcs, @user_id0, @id, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$CheckVoucherEditLog$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");var b=a.getItem("maxLength");b.value=b.maxLength}function close$CheckVoucherEditLog$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(h,c){var b=c.object,d=c.type.Context,g=c.type.Result,a=b.grid;switch(d){case"Checking":var e=b.getItem("ngay_tu").value,f=b.getItem("ngay_den").value;a._v$Code=b.getItemValue("ma_ct");a._v$Name=b.getItemValue("ten_ct%l");a._alterTitle=[null,[["%c",a._v$Code,true],["%n",a._v$Name,true],["%d1",e,true],["%d2",f,true]]];if(a._fields.length>0)try{init$CheckListEditLog$(a)}catch(i){}}}function remove$GridReport$Filter$(b){var i=[],e=b._hiddenFields,f=[],d,a,c;if(b._externalHiddenFields)i=b._externalHiddenFields.replace(/ /g,"").split(",");for(a=0;a<e.length;a++){var g=e[a].Fields.replace(/ /g,"").split(","),j=e[a].Value;for(c=0;c<g.length;c++){var d=g[c];(j||i.includes(d))&&Array.add(f,d)}}for(a=0;a<f.length;a++)for(var c=0;c<b._filter.length;c++){d=$func.dataFieldName(f[a],b._language);var h=$func.findField(d,b._fields);if(h)h.FilterPanelValue="";if(b._filter[c].match(/^(\w+):/)[1]==d){Array.removeAt(b._filter,c);break}}}function setValue$Filter$Function(h,b,c,d,e,f,g){var a=h.grid;a._$f=[b,c,d,e,f,g];a._hiddenFields=[{Fields:a._$f[0],Value:true},{Fields:a._$f[1],Value:false}];if(a._fields.length>0)try{init$CheckListEditLog$(a)}catch(i){}if(!a._c)a._c=a._v$Code;if(a._c!=a._v$Code){remove$GridReport$Filter$(a);a._c=a._v$Code}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

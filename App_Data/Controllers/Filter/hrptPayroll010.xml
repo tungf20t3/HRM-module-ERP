@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY LineCounter "9">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false" aliasName="fromPeriod" defaultValue="(new Date()).getMonth() + 1;">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_bp0" onDemand="true" allowNulls="false" categoryIndex="1">
+      <header v="Bộ phận quản lý" e="Admin Dept"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp0%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" onDemand="true" categoryIndex="1">
+      <header v="Bộ phận tính lương" e="Payment Dept"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" onDemand="true" categoryIndex="1">
+      <header v="Nhân viên" e="Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_nv" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_nv" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="nh_bp1" onDemand="true" categoryIndex="1">
+      <header v="Nhóm bộ phận" e="Department Group"></header>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nhbp1%l" key="status='1' and loai_nh=1" check="loai_nh=1"/>
+    </field>
+    <field name="ten_nhbp1%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_bp2" onDemand="true" categoryIndex="1">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nhbp2%l" key="status='1' and loai_nh=2" check="loai_nh=2"/>
+    </field>
+    <field name="ten_nhbp2%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_bp3" onDemand="true" categoryIndex="1">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nhbp3%l" key="status='1' and loai_nh=3" check="loai_nh=3"/>
+    </field>
+    <field name="ten_nhbp3%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="nh_nv1" onDemand="true" categoryIndex="1">
+      <header v="Nhóm nhân viên 1" e="Employee Group 1"></header>
+      <footer v="Nhóm nhân viên" e="Employee Group"/>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv1%l" key="status = '1' and loai_nh = 1" check="loai_nh = 1"/>
+    </field>
+    <field name="ten_nh_nv1%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_nv2" onDemand="true" categoryIndex="1">
+      <header v="Nhóm nhân viên 2" e="Employee Group 2"></header>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv2%l" key="status = '1' and loai_nh = 2" check="loai_nh = 2"/>
+    </field>
+    <field name="ten_nh_nv2%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_nv3" onDemand="true" categoryIndex="1">
+      <header v="Nhóm nhân viên 3" e="Employee Group 3"></header>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv3%l" key="status = '1' and loai_nh = 3" check="loai_nh = 3"/>
+    </field>
+    <field name="ten_nh_nv3%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nh" categoryIndex="1">
+      <header v="Ngân hàng" e="Bank"></header>
+      <items style="AutoComplete" controller="hrBankList" reference="ten_nh%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_nh%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nt" categoryIndex="1">
+      <header v="Mã ngoại tệ" e="Currency"></header>
+      <items style="AutoComplete" controller="Currency" reference="ten_nt%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_nt%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_co_dau" dataFormatString="0, 1" clientDefault="1" align="right" categoryIndex="1">
+      <header v="Tên nhân viên có dấu" e="Name with tone marks"/>
+      <footer v="1 - Có, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 10, 60, 100, 100, 130, 0, 0, 0"/>
+      <item value="110-------: [ky].Label, [ky]"/>
+      <item value="110-------: [nam].Label, [nam]"/>
+      <item value="11001000: [ma_bp0].Label, [ma_bp0], [ten_bp0%l]"/>
+      <item value="11001001--: [ma_bp].Label, [ma_bp], [ten_bp%l], [ten_nhbp1%l]"/>
+      <item value="11001000--: [ma_nv].Label, [ma_nv], [ten_nv]"/>
+      <item value="110011-1--: [nh_bp1].Label, [nh_bp1], [nh_bp2], [nh_bp3], [ten_nhbp2%l]"/>
+      <item value="110011-111: [nh_nv1].Description, [nh_nv1], [nh_nv2], [nh_nv3], [ten_nh_nv1%l], [ten_nh_nv2%l], [ten_nh_nv3%l]"/>
+      <item value="11001000--: [ma_nh].Label, [ma_nh], [ten_nh%l]"/>
+      <item value="11001000: [ma_nt].Label, [ma_nt], [ten_nt%l]"/>
+      <item value="1110001: [ten_co_dau].Label, [ten_co_dau], [ten_co_dau].Description, [ten_nhbp3%l]"/>
+      <item value="110000----: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 10, 60, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select replace(str(@ky, 2), ' ', '0') + '/' + rtrim(@nam) as ky
+exec hs_rptPayroll010 @ky, @nam, @ma_bp0, @ma_bp, @nh_bp1, @nh_bp2, @nh_bp3, @ma_nv, @nh_nv1, @nh_nv2, @nh_nv3, @ma_nh, @ma_nt, @ten_co_dau, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  if (!f.getItemValue('nam')) {
+    f.getItem('ky').value = (new Date()).getMonth() + 1;
+    f.getItem('nam').value = (new Date()).getFullYear();
+  }
+  f.live(f.getItem('ky'));
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,b){var a=b.object,f=b.type.Context,h=b.type.Result;switch(f){case"Checking":var c=a.grid,d=a.getItemValue("ky"),g=a.getItemValue("nam");c._alterTitle=[null,[["%p",(d<10?"0":"")+d+"/"+g,true]]];var e=a.getItemValue("mau_bc");c._hiddenFields=[{Fields:"tien_nt",Value:e=="10"},{Fields:"tien",Value:e=="20"}];remove$GridReport$Filter(c)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

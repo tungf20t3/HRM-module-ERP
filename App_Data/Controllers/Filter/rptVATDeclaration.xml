@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLCheckProcess SYSTEM "..\Include\XML\CheckProcess.xml">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\Circular\A1080\ReportCircularTypeField.xml">
+
+  <!ENTITY defaultForm "V20GLTHUE3_28">
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ky1" allowNulls="false" type="Decimal" dataFormatString="#0">
+      <header v="Từ tháng" e="From Month"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ky2" allowNulls="false" type="Decimal" dataFormatString="#0">
+      <header v="Đến tháng" e="To Month"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" allowNulls="false" type="Decimal" dataFormatString="###0">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="bo_sung" type="Decimal" dataFormatString="#0">
+      <header v="Bổ sung lần" e="Addition times"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    &ReportCircularTypeField;
+
+    <field name="form" allowNulls="false">
+      <header v="Chọn báo cáo" e="Select Report"></header>
+      <items style="DropDownList">
+        <item value="">
+          <text v="" e=""/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="mau_bc">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11: [ky1].Label, [ky1]"/>
+      <item value="11: [ky2].Label, [ky2]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="11: [bo_sung].Label, [bo_sung]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000: [chon_tt].Label, [chon_tt]"/>
+      <item value="11000: [form].Label, [form]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @form nvarchar(4000), @name nvarchar(4000)
+select @form = '', @name = ''
+select @form = @form + rtrim(form) + char(255), @name = @name + case when lower(@@language) = 'v' then rtrim(ten_maubc) else rtrim(ten_maubc2) end + char(255) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA['
+select @form = left(@form, len(@form) - 1), @name = left(@name, len(@name) - 1)
+select 'this._itemValue=''' + rtrim(@form) + ''';this._itemText=''' + dbo.AI_ERP$Function$EncodeScript(@name) + ''';initForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    &XMLCheckProcess;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @$quarter nvarchar(16), @$month nvarchar(32), @$dateFrom smalldatetime, @$dateTo smalldatetime, @$quy int, @$taxAuthorityCode varchar(32)
+select @$dateFrom = dbo.ff_GetStartDateOfCycle(@ky1, @nam), @$dateTo = dbo.ff_GetEndDateOfCycle(@ky2, @nam)
+select @$quarter = case when @@language = 'v' then N'Quý ' else N'Quarter ' end
+select @$month = case when @@language = 'v' then N'Tháng ' else N'Month ' end
+select @$quy = case when @ky1 = 1 and @ky2 = 3 then 1 when @ky1 = 4 and @ky2 = 6 then 2 when @ky1 = 7 and @ky2 = 9 then 3 when @ky1 = 10 and @ky2 = 12 then 4 else 0 end
+exec rs_GetTaxAuthority @ma_dvcs, @@userID, @@admin, @$taxAuthorityCode out
+
+select @$dateFrom as date_from, @$dateTo as date_to, case when @$quy <> 0 then @$quarter + rtrim(@$quy) else @$month + rtrim(@ky2) end as subTitle, @ky1 as ky1, @ky2 as ky2, @nam as nam, @bo_sung as bo_sung,
+      h_line1, h_line12, h_line2, h_line22, h_line3, h_line32, h_line4, h_line42, h_line5, h_line52, 'TT80_CQTQL' + @$taxAuthorityCode as ma_cqt from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA[' and form = @form
+exec rs_rptVATDeclaration @ky1, @ky2, @nam, @ma_dvcs, @form, @bo_sung, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");var b=a.getItem("ky1");if(!a.getItemValue("ky2")){b.value=a.getItem("ky2").value=(new Date).getMonth()+1;a.getItem("nam").value=(new Date).getFullYear()}a.live(b)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(k,d){var a=d.object,f=d.type.Context,j=d.type.Result;switch(f){case"Checking":var c=a.grid,e=a.getItem("mau_bc").value,g=a.getItem("ky1").value,h=a.getItem("ky2").value,i=a.getItem("nam").value,b=a.getItemValue("chon_tt");c._alterTitle=[null,[["%m1",g,true],["%m2",h,true],["%y",i,true]]];c._hiddenFields=[{Fields:"ds_nt, thue_nt",Value:e=="10"},{Fields:"ds, thue",Value:e=="20"}];c._hiddenForms=[{Form:[1,2,3,5,6,7,10,11,12,14,15,16],Value:b=="1"},{Form:[0,2,3,4,6,7,9,11,12,13,15,16],Value:b=="2"},{Form:[0,1,3,4,5,7,9,10,12,13,14,16],Value:b=="3"||b=="4"},{Form:[0,1,2,4,5,6,9,10,11,13,14,15],Value:b=="5"}];remove$GridReport$Filter(c)}}function initForm(b){for(var d=b.getItem("form"),e=b._itemValue.split(String.fromCharCode(255)),f=b._itemText.split(String.fromCharCode(255)),a=0;a<e.length;a++)d.options[a]=new Option(f[a],e[a]);var c=b.getItem("chon_tt").options.length;if(c>1&&d.options.length>=c)d.options[c-1].selected=true}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

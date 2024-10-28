@@ -1,0 +1,40 @@
+﻿<![CDATA[
+function request$ScheduletMail(g) {
+  var id = g.get_id();
+  var url = '~/AppService/APIReceiveMail.asmx', method = 'ImportInputInvoiceFromMail';
+  $func.showWait(id);
+  g._busy(true);
+  Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl(url, g._baseUrl), method, false, {
+    clientCode: '',
+    userID : g._uid,
+    emailLimitImport : g._$m_limit_1,
+    limitImportRow:  g._$m_limit_2
+  }, onRequest$Completed$ScheduletMail, onRequest$Failed$ScheduletMail, id);
+}
+function onRequest$Completed$ScheduletMail(r, id) {
+  var g = $find(id);
+  g._busy(false);
+  window.setTimeout(function() {
+    $func.hideWait(id);
+    if (r.Successed) {
+      var n1 = r.MailReceived, n2 = r.MailTotal, n3 = r.MailReceivedValid, n4 = r.InputInvoice, n5 = r.MailExcept, s = String.format('$find(\'{0}\')._focusWhenTabChanged();', id), m, ignore = '';
+      if (n1 == 0 && n2 == 0 && n3 == 0) {
+        m = g._language == 'v' ? 'Hiện chưa có thông tin thư (Email) cần xử lý.' : 'There is no email to process.';
+      } else {
+        ignore = (n5 == 0 ? '' : (g._language == 'v' ? String.format(', không nhận {0} hóa đơn', n5) : String.format(', with {0} invoices(s) rejected', n5)))
+        m = g._language == 'v' ? 'Chương trình đã xử lý {0}/{1} thư <span class="Highlight">(Email)</span>{4}, có {3}/{2} hóa đơn được cập nhật.' : 'There are {0}/{1} email(s) are processed successfully{4} and {3}/{2} invoice(s) has been imported.';
+        m = String.format(m, n1, n2, n3, n4, ignore);
+      }
+      $message.show(m, String.format('$find(\'{0}\').goToPage(-1);', id), s);
+    }
+    else {
+      var m = g._language == 'v' ? 'Phát sinh lỗi trong quá trình thực hiện.' : 'The process was failed.';
+      $message.show(m);
+    }
+  }, 100);
+}
+function onRequest$Failed$ScheduletMail(r, id) {
+  $find(id)._busy(false);
+  $func.hideWait(id);
+}
+]]>

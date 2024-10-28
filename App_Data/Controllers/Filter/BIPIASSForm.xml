@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY EnvironmentTaxValidTotal.ExecuteExpression.Condition "if (!v) w.executeExpression([z.$a.t_thue_nt, z.$a.t_thue, z.$a.t_tt_nt, z.$a.t_tt]);">
+  <!ENTITY EnvironmentTaxValidTotal ",z.$a.t_bvmt_nt, z.$a.t_bvmt">
+  <!ENTITY % EnvironmentTax SYSTEM "..\Include\BIEnvironmentTax.ent">
+  %EnvironmentTax;
+  <!ENTITY EnvironmentTaxComma ",">
+
+  <!ENTITY Identity "BIPIASS">
+  <!ENTITY DetailTable "d93">
+  <!ENTITY c21 "Số chứng từ">
+  <!ENTITY c22 "Voucher Number">
+  <!ENTITY c31 "Ngày chứng từ">
+  <!ENTITY c32 "Voucher Date">
+]>
+
+<dir table="m95$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Đặt hàng cho nhà cung cấp đã chọn" e="Exctract Data from Supplier Allocation"></title>
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh">
+      <header v="Mã ncc" e="Vendor"></header>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_bp0">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="so_ct" dataFormatString="@upperCaseFormat" align="right">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="&c31;" e="&c32;"></header>
+    </field>
+    &EnvironmentTaxXMLFlowFormFields.Date;
+    <field name="&DetailTable;" external="true" clientDefault="0" defaultValue="0" rows="208" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="&Identity;Grid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v ="String: ma_kh, ma_kh" e="String: ma_kh, ma_kh"></text>
+        </item>
+        &EnvironmentTaxXMLFlowFormFields.Date.ForeignKey;
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="11010000001101: [ma_kh].Label, [ma_kh], [ten_kh%l], [stt_rec], [so_ct].Label, [so_ct]"/>
+      <item value="1101000000-101: [ma_bp0].Label, [ma_bp0], [ten_bp0%l], [ngay_ct].Label, [ngay_ct]"/>
+      &EnvironmentTaxXMLFlowFormViews.Date;
+
+      <item value="1: [&DetailTable;]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  var z = f.grid, w = z.get_element().parentForm
+  f.setReadOnlyFields('so_ct, ngay_ct, ma_kh, ma_bp0');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid;
+  f._denyFocus = true;
+  f.setItemValues('stt_rec, so_ct, ngay_ct, ma_kh, ten_kh%l, ma_bp0, ten_bp0%l', [g._voucher$Retrieve$ID, g._voucher$Retrieve$Number, g._voucher$Retrieve$Date, g._custID, g._custName, g._purOrgID, g._purOrgName]);
+  ]]>&EnvironmentTaxScriptSet.Date;<![CDATA[
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      set$]]>&Identity;<![CDATA[Form$FlowScript(f);
+      break;
+    default:
+      break;
+  }
+}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+]]>
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d93')._controlBehavior, z = f.grid, w = z.get_element().parentForm, m = g._getItemValue(1, g._getColumnOrder('ma_kh'));
+  var append = false, first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), u = g._getColumnOrder('ma_nt'), ma_nt = w.getItemValue('ma_nt');
+  var l0 = z._getColumnOrder('ma_vt'), l1 = g._getColumnOrder('so_luong0');
+  var l2 = z._getColumnOrder('dvt'), l3 = g._getColumnOrder('nhieu_dvt');
+  var l4 = z._getColumnOrder('ct_gia_dk'), l5 = z._getColumnOrder('stt_rec_bg');
+  var f1 = 'so_luong0, ngay_yc, stt_rec, stt_rec0', f2 = 'so_luong, ngay_giao, stt_rec_kh, stt_rec0kh', fields = 'ma_vt, ten_vt%l, dvt, he_so, ma_vung, ma_thue, thue_suat, ma_thue_nk, thue_suat_nk, so_theo_doi, stt_rec_nc, stt_rec0nc, stt_rec_bg, stt_rec0bg, ct_gia_dk, so_tham_chieu]]>&EnvironmentTaxInheritanceColumns;<![CDATA[';
+  var c2 = z._getColumnOrder('gia_chuan_nt'), c3 = z._getColumnOrder('gia_nt'), c4 = z._getColumnOrder('gia');
+
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l1) != 0) {
+      append = true;
+      var ins = true, row = z._rowCount, v = (ma_nt == g._getItemValue(r, u));
+      if (first && row > 0) if (check$GridVoucherDetail$DefaultMemvar(z, row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+
+      insert$Retrieve$Items(g, r, z, z._rowCount, fields + (v ? ', gia_nt, gia_chuan_nt' : ''), f1, f2);
+      var v1 = (z._getItemValue(row, l4) != ''), val = (z._getItemValue(row, l5) == '');
+      z.setItemGridBehavior(o, [['loai_hang', '1', '', null], ['pp_thay_doi', val, '', null]]);
+      $func.setObjectWhen(z._getItem(row, l2), g._getItemValue(r, l3));
+      $func.setObjectWhen(z._getItem(row, c2), true);
+      $func.setObjectWhen(z._getItem(row, c3), !(v1));
+      $func.setObjectWhen(z._getItem(row, c4), !(v1));
+
+      z._activeRow = o.row;
+      on$GridVoucherDetail$CalcPrice(z, o.row, null, null, null, null, '');
+
+      ]]>&EnvironmentTaxValidDetail.ExecuteExpression;<![CDATA[
+      if (v) {z.executeExpression(o, [z.$a.gia_tg, z.$a.tien_nt0, z.$a.tien0_tg, z.$a.tien_nt, z.$a.tien_tg, z.$a.nk_nt, z.$a.nk_tg, z.$a.ttdb_nt, z.$a.ttdb_tg, z.$a.thue_nt, z.$a.thue_tg]);}
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong]]>&EnvironmentTaxValidTotal;<![CDATA[]);
+  if (v) {
+    z.executeAggregate([z.$a.t_tien_nt0, z.$a.t_tien0, z.$a.t_tien_nt, z.$a.t_tien, z.$a.t_nk_nt, z.$a.t_nk, z.$a.t_ttdb_nt, z.$a.t_ttdb, z.$a.t_gtgt_nt, z.$a.t_gtgt]);
+    w.executeExpression([z.$a.t_thue_nt, z.$a.t_thue, z.$a.t_tt_nt, z.$a.t_tt]);
+  }
+  ]]>&EnvironmentTaxValidTotal.ExecuteExpression;<![CDATA[
+  if (append && w.getItemValue('t_cp_nt')) w._is$Allocated = 0;
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % AccountBalance SYSTEM "..\..\Include\AccountBalance.ent">
+  %AccountBalance;
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % Tiny.Currency SYSTEM "..\..\Include\Tiny.Currency.ent">
+  %Tiny.Currency;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile ", case when @@language = 'V' then 'AccountBalance' else 'AccountBalance2' end as file_name">
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.AccountBalance;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$AccountBalanceImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$AccountBalanceImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="cdtk"/>
+    <table value="cdtk" alias="a"/>
+    <temporary value="#table" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        <![CDATA[if ]]>&Tiny.External.ConfigEvent;<![CDATA[ = 1 select '1' as view_index]]>&ExportImportTemplateQuery;<![CDATA[ else select '0' as view_index]]>&ExportImportTemplateQuery;
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where year(ngay_ks) >= @year)&And;not exists(select 1 from cdtk b where @@table.ma_dvcs = b.ma_dvcs and @@table.tk = b.tk and b.nam = @year) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from cdtk b where @@table.ma_dvcs = b.ma_dvcs and @@table.tk = b.tk and b.nam = @year) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;&And;if (@admin &lt;&gt; 1) begin&AccountBalanceUnitCondition;" tag="&And;&And;end&AccountBalanceUnitTag;" updateValue="None" errorCode="00001&And;00002&And;00002&And;00002"/>
+        <field name="tk" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" check="tk not in (select tk from dmtk where loai_tk = 1 and tk_cn = 0)" updateValue="None" errorCode="00001"/>
+        <field name="du_no00" column="D" type="Decimal"/>
+        <field name="du_co00" column="E" type="Decimal"/>
+        <field name="du_no1" column="F" type="Decimal"/>
+        <field name="du_co1" column="G" type="Decimal"/>
+        <field name="du_no_nt00" column="" type="Decimal"/>
+        <field name="du_co_nt00" column="" type="Decimal"/>
+        <field name="du_no_nt1" column="" type="Decimal"/>
+        <field name="du_co_nt1" column="" type="Decimal"/>
+
+        <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+        <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+        <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+        <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+      </fields>
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where year(ngay_ks) >= @year)&And;not exists(select 1 from cdtk b where @@table.ma_dvcs = b.ma_dvcs and @@table.tk = b.tk and b.nam = @year) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from cdtk b where @@table.ma_dvcs = b.ma_dvcs and @@table.tk = b.tk and b.nam = @year) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;&And;if (@admin &lt;&gt; 1) begin&AccountBalanceUnitCondition;" tag="&And;&And;end&AccountBalanceUnitTag;" updateValue="None" errorCode="00001&And;00002&And;00002&And;00002"/>
+    <field name="tk" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" check="tk not in (select tk from dmtk where loai_tk = 1 and tk_cn = 0)" updateValue="None" errorCode="00001"/>
+    <field name="du_no00" column="D" type="Decimal"/>
+    <field name="du_co00" column="E" type="Decimal"/>
+    <field name="du_no1" column="F" type="Decimal"/>
+    <field name="du_co1" column="G" type="Decimal"/>
+    <field name="du_no_nt00" column="H" type="Decimal"/>
+    <field name="du_co_nt00" column="I" type="Decimal"/>
+    <field name="du_no_nt1" column="J" type="Decimal"/>
+    <field name="du_co_nt1" column="K" type="Decimal"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Vào &Tiny.External.Title.v;" e="&Tiny.External.Title.e;"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="tk" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tài khoản" e="Account"/>
+      </field>
+      <field name="ten_tk" afterField="tk" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên tài khoản" e="Account Name"/>
+      </field>
+      <field name="du_no00" width="16">
+        <text v="Dư nợ đầu kỳ" e="Period-opening Debit Balance"/>
+      </field>
+      <field name="du_co00" width="16">
+        <text v="Dư có đầu kỳ" e="Period-opening Credit Balance"/>
+      </field>
+      <field name="du_no1" width="16">
+        <text v="Dư nợ đầu năm" e="Year-opening Debit Balance"/>
+      </field>
+      <field name="du_co1" width="16">
+        <text v="Dư có đầu năm" e="Year-opening Credit Balance"/>
+      </field>
+      <field name="du_no_nt00" width="16">
+        <text v="Dư nợ nt đầu kỳ" e="Period-opening FC Debit Balance"/>
+      </field>
+      <field name="du_co_nt00" width="16">
+        <text v="Dư có nt đầu kỳ" e="Period-opening FC Credit Balance"/>
+      </field>
+      <field name="du_no_nt1" width="16">
+        <text v="Dư nợ nt đầu năm" e="Year-opening FC Debit Balance"/>
+      </field>
+      <field name="du_co_nt1" width="16">
+        <text v="Dư có nt đầu năm" e="Year-opening FC Credit Balance"/>
+      </field>
+
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @field varchar(32), @user int, @admin bit, @unit varchar(32), @year int, @r int
+select @admin = @@admin, @user = @@userID, @unit = @@unit, @year = nam_bd from dmstt
+]]>&AccountBalanceUploadCheck;<![CDATA[
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+]]>&AccountBalanceUploadInsert;<![CDATA[
+update @@table set du_co_nt00 = 0 where du_no_nt00 <> 0
+update @@table set du_co00 = 0 where du_no00 <> 0
+
+if exists(select 1 from dmstt where month(ngay_ky1) = month(ngay_dn2) and day(ngay_ky1) = day(ngay_dn2)) begin
+  update @@table set du_no_nt1 = du_no_nt00
+  update @@table set du_co_nt1 = du_co_nt00
+  update @@table set du_no1 = du_no00
+  update @@table set du_co1 = du_co00
+end else begin
+  update @@table set du_co_nt1 = 0 where du_no_nt1 <> 0
+  update @@table set du_co1 = 0 where du_no1 <> 0
+end
+
+]]>&Updating;<![CDATA[ where a.nam = @year
+]]>
+    </text>
+  </processing>
+
+</import>

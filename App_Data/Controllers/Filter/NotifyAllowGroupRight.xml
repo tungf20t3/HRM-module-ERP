@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir table="vdmtbnsd" code="ma_quyen, user_id" order="ma_quyen, user_id" database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc dữ liệu" e="Filter Data"></title>
+
+  <fields>
+    <field name="ma_quyen" onDemand="true">
+      <header v="Quyền sử dụng" e="Access Right"></header>
+      <items style="AutoComplete" controller="NotifyAccessList" reference="ten_quyen%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_quyen%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="name" onDemand="true">
+      <header v="Nhóm" e="Group"></header>
+      <items style="AutoComplete" controller="UserGroup" reference="comment%l" key="user_yn = 0 and status = '1'" check="user_yn = 0"/>
+    </field>
+    <field name="comment%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 100, 230"/>
+      <item value="1110: [ma_quyen].Label, [ma_quyen], [ten_quyen%l]"/>
+      <item value="1110: [name].Label, [name], [comment%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$NotifyGroupRightFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$NotifyGroupRightFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @c varchar(16)
+select @c = id from @@sysDatabaseName..userinfo2 where name = @name
+select @c = isnull(@c, '0')
+select '' as field, '' as message, 'set$ExternalKeyFilter(this,' + @c + ');' as script
+]]>
+      </text>
+    </command>
+  </commands>
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      <![CDATA[function active$NotifyGroupRightFilter$(a){a.add_onResponseComplete(on$NotifyGroupRightFilter$ResponseComplete)}function close$NotifyGroupRightFilter$(a){try{a.remove_onResponseComplete(on$NotifyGroupRightFilter$ResponseComplete)}catch(b){}}function on$NotifyGroupRightFilter$ResponseComplete(g,c){var b=c.object,e=c.type.Context,f=c.type.Result;switch(e){case"Checking":var a=b.grid,d=[];a._rightID=b.getItemValue("ma_quyen");a._rightName=$func.trim(b.getItem("ten_quyen%l").value);if($func.trim(a._rightID)!=""){Array.add(d,{Name:"ma_quyen",Opr:"=",Value:a._rightID,Type:"String",Ignore:false});a._alterTitle=[null,[["%s1",a._rightID.toString(),true],["%s2",a._rightName,true]]]}else a._alterTitle=[null,[["%s1","*",true],["%s2","*",true]]];b._$k=d;a._hiddenFields=[{Fields:"ma_quyen, ten_quyen%l",Value:$func.trim(a._rightID)!=""}];remove$GridReport$Filter(a)}}function set$ExternalKeyFilter(b,c){var a=b.grid;a._groupID=c;a._groupID!=0&&Array.add(b._$k,{Name:"user_id",Opr:"=",Value:a._groupID,Type:"Numeric",Ignore:false});a.set_externalKey(b._$k)}]]>
+    </text>
+  </script>
+
+</dir>

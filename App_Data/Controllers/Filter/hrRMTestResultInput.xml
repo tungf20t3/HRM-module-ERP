@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="vhrrmkqktr" code="stt_rec" order="stt_rec" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_dot" allowNulls="false" onDemand="true">
+      <header v="Đợt tuyển dụng" e="Recruitment Period"></header>
+      <items style="AutoComplete" controller="hrRMPeriodInfoInput" reference="ten_dot%l" key="(@@admin = 1 or exists(select 1 from sysunitrights r where r.user_id = @@userID and r.ma_dvcs = hrrmdot.ma_dvcs and r.r_access=1)) and status = '1'" check="(@@admin = 1 or exists(select 1 from sysunitrights r where r.user_id = @@userID and r.ma_dvcs = hrrmdot.ma_dvcs and r.r_access=1))"/>
+    </field>
+    <field name="ten_dot%l" external="true" defaultValue="''" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="110100: [ma_dot].Label, [ma_dot], [ten_dot%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @@admin <> 1 begin
+  if not exists(select 1 from hrrmdot a left join sysunitrights r on a.ma_dvcs = r.ma_dvcs where a.ma_dot = @ma_dot and r.user_id = @@userID and r_new = 1) begin
+    select '' as field, '' as message, 'this.grid._denyNew = true;' as script
+    return
+  end
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(sender) {sender.add_onResponseComplete(on$Filter$ResponseComplete);}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array();
+			g._refreshMemvars = true;
+      g._recruitmentPeriod = f.getItemValue('ma_dot');
+      g._recruitmentPeriodName = f.getItemValue('ten_dot%l');
+      Array.add(k, {Name: 'ma_dot', Opr: '=', Value: g._recruitmentPeriod, Type: 'String', Ignore: false});
+      g.set_externalKey(k);
+      g._alterTitle = [null, [['%s1', g._recruitmentPeriod, true], ['%s2', g._recruitmentPeriodName, true]]];
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+</dir>

@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY % Conditional.BIMode "INCLUDE">
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Đánh giá nhà cung cấp" e="Vendor Evaluation"></title>
+  <fields>
+    <field name="loai_ky" allowNulls="false">
+      <header v="Loại kỳ" e="Period Type"></header>
+      <items style="AutoComplete" controller="BIPeriodTypeList" reference="ten_loai%l" key="status = '1'"/>
+    </field>
+    <field name="ten_loai%l" clientDefault="Default" readOnly="true" hidden="false" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false" aliasName="Period" defaultValue="(new Date()).getMonth() + 1">
+      <header v="Kỳ đánh giá" e="Evaluation Period"></header>
+      <footer v="Kỳ/năm đánh giá" e="Evaluation Period/Year"></footer>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm đánh giá" e="Evaluation Year"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="ma_bp0" allowNulls="false">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+      <items style="AutoComplete" controller="BIPurchasingOrganization.Right" reference="ten_bp0%l" key="status = '1'"/>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_kh">
+      <header v="Mã nhà cung cấp" e="Vendor"></header>
+      <items style="AutoComplete" controller="&VendorController;" reference="ten_kh%l" key="cc_yn = 1 and status = '1'" check="cc_yn = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_kh1">
+      <header v="Nhóm nhà cung cấp" e="Vendor Group"></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=1" check="loai_nh=1"/>
+    </field>
+    <field name="nh_kh2">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=2" check="loai_nh=2"/>
+    </field>
+    <field name="nh_kh3">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=3" check="loai_nh=3"/>
+    </field>
+
+    <field name="ma_vt">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vt1">
+      <header v="Nhóm hàng" e="Item Group"/>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 1 and status = '1'" check="loai_nh = 1"/>
+    </field>
+    <field name="nh_vt2">
+      <header v="" e=""/>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 2 and status = '1'" check="loai_nh = 2"/>
+    </field>
+    <field name="nh_vt3">
+      <header v="" e=""/>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 3 and status = '1'" check="loai_nh = 3"/>
+    </field>
+    <field name="tinh_diem_cl" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Tính điểm chất lượng" e="Q-Score Apply"></header>
+      <footer v="0 - Không, 1 - Có" e="0 - None, 1 - Yes"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="1100100: [loai_ky].Label, [loai_ky], [ten_loai%l]"/>
+      <item value="111: [ky].Description, [ky], [nam]"/>
+      <item value="1100100: [ma_bp0].Label, [ma_bp0], [ten_bp0%l]"/>
+      <item value="1100100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="110011-: [nh_kh1].Label, [nh_kh1], [nh_kh2], [nh_kh3]"/>
+      <item value="1100100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="110011-: [nh_vt1].Label, [nh_vt1], [nh_vt2], [nh_vt3]"/>
+      <item value="1110000: [tinh_diem_cl].Label, [tinh_diem_cl], [tinh_diem_cl].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @@admin <> '1' and not exists(select 1 from bisyspurorgrights where ma_bp0 = @ma_bp0 and user_id = @@userID and r_new = 1) begin
+  select 'ma_bp0' as field, '$NotAuthorized' as message
+  return
+end
+if not exists(select 1 from bictdmlkdg where ma_loai = @loai_ky and nam = @nam and ky = @ky and status = '1') begin
+  select 'loai_ky' as field, case when @@language = 'V' then N'Loại kỳ chưa khai báo chi tiết kỳ đánh giá.' else N'Detail Evaluation Period has not been declared.' end as message
+  return
+end
+exec bs_VendorEvaluation @loai_ky, @ky, @nam, @ma_bp0, @ma_kh, @nh_kh1, @nh_kh2, @nh_kh3, @ma_vt, @nh_vt1, @nh_vt2, @nh_vt3, @@userID, @@admin, '@@sysDatabaseName', default, default, @tinh_diem_cl
+]]>
+      </text>
+    </command>
+  </commands>
+
+</dir>

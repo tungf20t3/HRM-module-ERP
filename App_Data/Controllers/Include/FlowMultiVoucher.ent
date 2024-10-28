@@ -1,0 +1,46 @@
+﻿<!ENTITY % Conditional.FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.txt">
+
+<![%Conditional.FlowMultiVoucher;[
+  <!ENTITY FlowMultiVoucherNumberAllowNulls "true">
+  <!ENTITY FlowMultiFilterFields SYSTEM "..\Include\XML\FlowMultiFilterFields.txt">
+  <!ENTITY FlowMultiScript SYSTEM "..\Include\Javascript\FlowMultiScript.txt">
+]]>
+
+<!ENTITY FlowMultiVoucherNumberAllowNulls "false">
+<!ENTITY FlowMultiFilterFields SYSTEM "..\Include\XML\FlowFilterFields.txt">
+<!ENTITY FlowMultiScript "">
+
+
+
+
+
+<!ENTITY FlowMultiFormField SYSTEM "..\Include\XML\FlowMultiFormField.txt">
+<!ENTITY FlowMultiFormView SYSTEM "..\Include\XML\FlowMultiFormView.txt">
+<!ENTITY FlowMultiFormCommand SYSTEM "..\Include\XML\FlowMultiFormCommand.txt">
+
+
+<!ENTITY FlowMultiUpdateCurrentStock SYSTEM "..\Include\XML\FlowMultiUpdateCurrentStock.txt">
+<!ENTITY FlowMultiTagRowRequest SYSTEM "..\Include\XML\FlowMultiTagRowRequest.txt">
+
+<!ENTITY FlowMultiGridTagHeader SYSTEM "..\Include\XML\FlowMultiGridTagHeader.xml">
+<!ENTITY FlowMultiGridCommand SYSTEM "..\Include\XML\FlowMultiGridCommand.txt">
+
+<!ENTITY FlowMultiGridFinding "
+declare @partitionKey nvarchar(4000), @l int, @firstItem varchar(128), @lastItem varchar(128)
+
+select @firstItem = @@firstItem, @lastItem = @@lastItem, @partitionKey = 'convert(char(8), m.ngay_ct, 112) + m.so_ct + m.stt_rec + replace(str(a.line_nbr, 5), '' '', ''0'')'
+select @l = 21 + character_maximum_length from information_schema.columns where table_name = 'wrkcolumns' and column_name = 'so_ct'
+
+if @firstItem &lt;&gt; '' set @firstItem = left(@firstItem, @l) + replace(str(right(@firstItem, len(@firstItem) - @l), 5), ' ', '0')
+if @lastItem &lt;&gt; '' set @lastItem = left(@LastItem, @l) + replace(str(right(@lastItem, len(@lastItem) - @l), 5), ' ', '0')
+
+exec AI_ERP$Partition$ExecutePage @@refresh, @@pageIndex, @@pageCount, @@lastPage, @@lastCount, @FirstItem, @LastItem, @@textExternal, @queryFormClause, @queryWhereClause, @@textOrderBy, @partitionKey, 'm.ngay_ct', @ngay_ct1, @ngay_ct2, @ma_dvcs, @@admin, @@userID
+">
+<!ENTITY FlowMultiGridToolbar SYSTEM "..\Include\XML\FlowMultiGridToolbar.xml">
+<!ENTITY FlowMultiGridWidthOfNameField "200">
+
+<!ENTITY FlowMultiUserDefinedFieldsQuery ", rtrim(a.ma_vv) as ma_vv, rtrim(a.ma_bp) as ma_bp, rtrim(a.so_lsx) as so_lsx, rtrim(a.ma_sp) as ma_sp, rtrim(a.ma_hd) as ma_hd, rtrim(a.ma_phi) as ma_phi, rtrim(a.ma_ku) as ma_ku">
+<!ENTITY FlowMultiUserDefinedFieldsCopy ", ma_vv, ma_bp, so_lsx, ma_sp, ma_hd, ma_phi, ma_ku">
+
+
+<!ENTITY FlowMultiOrderBy " order by id">

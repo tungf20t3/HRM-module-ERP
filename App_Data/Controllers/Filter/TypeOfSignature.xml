@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir table="dmttckct" code="ma_ttck, ma_loai" order="ma_ttck, ma_loai" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_ttck" allowNulls="false">
+      <header v="Mã chữ ký" e="Signature Code"></header>
+      <items style="AutoComplete" controller="SignInformation" reference="ten_ttck%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_ttck%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11010: [ma_ttck].Label, [ma_ttck], [ten_ttck%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+if (select count(*) from dmttck) = 1 begin
+  select top 1 'init$VoucherFilter$(this, ''' + rtrim(ma_ttck) + ''', ''' + replace(replace(case when @@language = 'V' then ten_ttck else ten_ttck2 end, '\', '\\'), '''', '\''') + ''', false);' as message from dmttck
+  return
+end
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      <![CDATA[function init$VoucherFilter$(a,b,d,c){if(!c){a.setItemValue("ma_ttck",b);a.setItemValues("ma_ttck, ten_ttck%l",[b,d])}}function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);a.getItem("ma_ttck").focus()}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(b,c){var b=c.object,a=b.grid,e=c.type.Context,f=c.type.Result;switch(e){case"Checking":var a=b.grid,g=b._language=="v",d=[];a._sign=b.getItemValue("ma_ttck");a._signName=b.getItemValue("ten_ttck%l");Array.add(d,{Name:"ma_ttck",Opr:"=",Value:a._sign,Type:"String",Ignore:false});a.set_externalKey(d);a._alterTitle=[null,[["%c",a._signName,true]]]}}]]>
+    </text>
+  </script>
+</dir>

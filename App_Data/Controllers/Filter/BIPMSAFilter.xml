@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+
+  <!ENTITY BI.FlowMultiFilterFields SYSTEM "..\Include\XML\BI.PMTran.FlowMultiFilterFields.txt">
+  <!ENTITY BI.XMLFlowFilterViews SYSTEM "..\Include\XML\BI.FlowFilterViews.txt">
+  <!ENTITY BI.XMLFlowFilterCheck SYSTEM "..\Include\XML\BI.FlowFilterCheck">
+  <!ENTITY BI.ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\BI.FlowFilterFunction.txt">
+
+  <!ENTITY Identity "BIPMSA">
+  <!ENTITY c11 "Hợp đồng từ ngày">
+  <!ENTITY c12 "SA Date from">
+  <!ENTITY c21 "Số hợp đồng">
+  <!ENTITY c22 "SA Number">
+  <!ENTITY ext "06">
+  <!ENTITY BI "bi">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'BIPMSAFilter', 'Filter', 'PMTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+
+<dir table="bim06$000000" code="stt_rec" order="ngay_ct, so_ct" id="PA2" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn hợp đồng" e="Select Schedule Agreement"></title>
+  <fields>
+    &BI.FlowMultiFilterFields;
+  </fields>
+
+  <views>
+    &BI.XMLFlowFilterViews;
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @so_ct <> '' begin
+  declare @fields nvarchar(64), @keyMaster nvarchar(4000), @keyFlow nvarchar(4000), @$none nvarchar(512)
+  select @keyMaster = case when @loai_hd = '1' then '%#15$[^2]' else '%#15$[^1]' end + '#20$' + @ma_kh + '%', @fields = 'ma_nt + char(255) + status'
+  select @keyFlow = 'status in (''2'', ''3'')', @$none = case when @@language = 'v' then N'Không có hợp đồng theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+  ]]>&CheckRelativeProcess;&BI.XMLFlowFilterCheck;<![CDATA[
+end else begin
+  select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, '''', '''', '''', '''', '']]>&Identity;<![CDATA[MultiForm'', [''' + convert(char(8), @ngay_ct1, 112) + ''', ''' + @loai_hd + ''']);' as script
+  return
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &BI.ScriptFlowFilterFunction;
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

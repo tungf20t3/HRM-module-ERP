@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY XMLWhenFilterQuerying SYSTEM "..\Include\XML\WhenFilterQuerying.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY DynamicFieldFilterPara ", '#$query'">
+  <!ENTITY % ReferenceNumber SYSTEM "..\Include\ReferenceNumber.ent">
+  %ReferenceNumber;
+
+  <!ENTITY Delta14 "0">
+  <!ENTITY LineCounter "6">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="ngay_bc" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Ngày báo cáo" e="Report Date"/>
+    </field>
+    <field name="tk">
+      <header v="Tài khoản" e="Account"/>
+      <items style="AutoComplete" controller="Account" reference="ten_tk%l" key="status = '1' and tk_cn = 1" check="tk_cn = 1"/>
+    </field>
+    <field name="ten_tk%l" external="true" readOnly="true">
+      <header v="" e=""/>
+    </field>
+    <field name="so_ngay" type="Decimal" dataFormatString="###0" allowNulls="false" clientDefault="3" categoryIndex="1">
+      <header v="Số ngày cảnh báo" e="Days of Warning"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_kh" categoryIndex="1">
+      <header v="Khách hàng" e="Customer"/>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kh%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    <field name="nh_kh1" categoryIndex="1">
+      <header v="Nhóm khách" e="Customer Group"></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=1" check="loai_nh=1"/>
+    </field>
+    <field name="nh_kh2" categoryIndex="1">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=2" check="loai_nh=2"/>
+    </field>
+    <field name="nh_kh3" categoryIndex="1">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=3" check="loai_nh=3"/>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="nhom" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="1">
+      <header v="Nhóm theo hợp đồng" e="Group by Contract"></header>
+      <footer v="1 - Có, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="110: [ngay_bc].Label, [ngay_bc]"/>
+      <item value="110100: [tk].Label, [tk], [ten_tk%l]"/>
+      <item value="110: [so_ngay].Label, [so_ngay]"/>
+      <item value="110100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="11011: [nh_kh1].Label, [nh_kh1], [nh_kh2], [nh_kh3]"/>
+      <item value="11100: [nhom].Label, [nhom], [nhom].Description"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    &XMLWhenFilterQuerying;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @AccountName nvarchar(1024)
+set @AccountName = ''
+select @AccountName = case when @@language = 'E' then ' - ' + rtrim(ten_tk2) else ' - ' + rtrim(ten_tk) end from dmtk where tk = @tk
+if @AccountName = ' - ' set @AccountName = ''
+select @tk + @AccountName as tk, @ngay_bc as ngay_bc, @so_ngay as so_ngay
+exec rs_rptDueSalesInvoiceReport @ngay_bc, @tk, @so_ngay, @ma_kh, @nh_kh1, @nh_kh2, @nh_kh3, @ma_dvcs, @nhom, @@language, @@userID, @@admin
+]]>&DynamicFieldFilterPara;
+        &ReferenceParameters;
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+   if (!f.getItemValue('ngay_bc')) f.setItemValue('ngay_bc', new Date());
+  f.live(f.getItem('ngay_bc'));
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(j,d){var a=d.object,e=d.type.Context,i=d.type.Result;switch(e){case"Checking":var b=a.grid,f=a.getItem("ngay_bc").value,h=a.getItem("tk").value,g=a.getItemValue("so_ngay"),c=a.getItemValue("nhom")=="0";b._alterTitle=[null,[["%s",h,true],["%d",f,true],["%n",g,true]]];b._hiddenFields=[{Fields:"ma_nt, t_tt_nt0, da_tt_nt, cl_nt",Value:a.getItemValue("mau_bc")=="10"},{Fields:"ma_hd, ten_hd_ex",Value:c}];b._hiddenForms=[{Form:[2,3,8,7],Value:c},{Form:[0,1,6,5],Value:!c}];remove$GridReport$Filter(b)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

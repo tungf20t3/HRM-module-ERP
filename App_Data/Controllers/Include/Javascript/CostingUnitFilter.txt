@@ -1,0 +1,26 @@
+﻿<![CDATA[
+function setObjectFilterHidden(f, c, b) {
+  var o = f.getItem(c);
+  o.field.AllowNulls = !b;
+  if (b) {
+    var grandNode = o.parentNode.parentNode;
+    Sys.UI.DomElement.addCssClass(grandNode, 'Required');
+    Sys.UI.DomElement.addCssClass(grandNode, f._id);
+  }
+  if (b) {if (!f._controlFocus) f._controlFocus = o;}
+  else $common.setVisible(o.parentNode.parentNode.parentNode, false);
+}
+function setUnitFilterInformation(f) {if (f._unitCode) f.setItemValues('ma_dvcs, ten_dvcs%l', [f._unitCode, f._unitName]);}
+function checkFilterLockedDate(f, p, y, force) {
+  var g = f.grid, d = force ? new Date(y, p - 1, 1) : new Date(y, p, 0);
+  var r = ((new Date(f._lockedDate)) >= d);
+  var u = ((new Date(f._lockedUnit)) >= d);
+  g._denyNew = g._deny$Unit;
+  g._denyMessage = null;
+  if (!g._denyNew) g._denyNew = r || u;
+  g._denyEdit = g._denyDelete = r || u;
+  if (!r && f._costUnit == 1) g._denyEdit = g._denyDelete = false;
+  if (r || u) return f._language == 'v' ? 'Đã khóa số liệu, kiểm tra lại ngày khóa sổ.' : 'Data is locked, you must modify system locked date.';
+    else return '';
+}
+]]>

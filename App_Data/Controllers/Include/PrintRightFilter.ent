@@ -1,0 +1,18 @@
+﻿<!ENTITY % Conditional.PrintRight SYSTEM "..\Include\PrintRight.txt">
+
+<![%Conditional.PrintRight;[
+  <!ENTITY PrintRightScript SYSTEM "..\Include\Javascript\PrintRightFilter.txt">
+
+  <!ENTITY PrintRightFilterLoading "
+declare @$reportRight varchar(4000)
+exec AI_ERP$System$PrintRight '&TransferID;', @@userID, @@admin, '@@sysDatabaseName', '10', @$reportRight out, default
+select @$reportRight = case when @$reportRight &lt;&gt; '' then '[' + @$reportRight + ']' else 'null' end
+select @message = @message + 'report$PrintRight$FilterInit(this, ' + @$reportRight + ');'
+">
+  <!ENTITY XMLWhenFilterLoadingPrintRight SYSTEM "..\Include\XML\WhenFilterLoadingPrintRight.xml">
+]]>
+
+
+<!ENTITY PrintRightScript "">
+<!ENTITY PrintRightFilterLoading "">
+<!ENTITY XMLWhenFilterLoadingPrintRight SYSTEM "..\Include\XML\WhenFilterLoading.xml">

@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY XMLWhenFilterQuerying SYSTEM "..\Include\XML\WhenFilterQuerying.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY Controller "rptMonthlyAverageExRateDemonstration">
+  <!ENTITY DynamicReportFields ",'&Controller;', '#$query', '@@sysDatabaseName'">
+  <!ENTITY % ReferenceNumber SYSTEM "..\Include\ReferenceNumber.ent">
+  %ReferenceNumber;
+
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.Tiny SYSTEM "..\Include\ReportMargin.Tiny">
+  %ReportMargin.Tiny;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tk" allowNulls="false">
+      <header v="Tài khoản" e="Account"/>
+      <items style="AutoComplete" controller="Account" reference="ten_tk%l" key="status = '1' and loai_tk = 1 and (loai_cl_no = 1 or loai_cl_co = 1)" check="loai_tk = 1 and (loai_cl_no = 1 or loai_cl_co = 1)"/>
+      <clientScript><![CDATA[onchange="setCustFormVisible(this);"]]></clientScript>
+    </field>
+    <field name="ten_tk%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh" filterSource="Optional">
+      <header v="Mã khách" e="Customer"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <header v="Kỳ" e="Period"/>
+      <footer v="Kỳ/năm" e="Period/Year"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 40, 30, 200, 130"/>
+      <item value="110010: [tk].Label, [tk], [ten_tk%l]"/>
+      <item value="110010: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="111--: [ky].Description, [ky], [nam]"/>
+      <item value="11000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000-: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 40, 30, 200, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    &XMLWhenFilterQuerying;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @accountName nvarchar(1024), @accountName2 nvarchar(1024), @customerName nvarchar(1024), @customerName2 nvarchar(1024)
+select @accountName = ten_tk, @accountName2 = ten_tk2 from dmtk where tk = @tk
+select @customerName = ten_kh, @customerName2 = ten_kh2 from dmkh where ma_kh = @ma_kh
+select @ky as ky, @nam as nam, @tk as tk, @accountName as ten_tk, @accountName2 as ten_tk2, @ma_kh as ma_kh, @customerName as ten_kh, @customerName2 as ten_kh2
+exec rs_rptMonthlyAverageExRateDemonstration @tk, @ma_kh, @ky, @nam, @ma_dvcs, @@language, @@userID, @@admin
+]]>&DynamicReportFields;&ReferenceParameters;
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  var o;
+  if (!f.getItemValue('tk')) {
+    o = f.getItem('ma_kh');
+    o.disabled= true;
+    $common.setVisible(o.a, false);
+  } else {
+    o = f.getItem('tk');
+    o._$pending = true;
+    setCustFormVisible(o);
+  }
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  if (!f.getItemValue('ky')) {
+    f.getItem('ky').value = (new Date()).getMonth() + 1;
+    f.getItem('nam').value = (new Date()).getFullYear();
+  }
+  f.live(f.getItem('ky'));
+  changeLookupReadonly(f, 'ma_dvcs');
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(o,g){var a=g.object,i=g.type.Context,j=g.type.Result;switch(i){case"Checking":var m=a.grid,c=a.getItem("ky").value,n=a.getItem("nam").value,k=a.getItem("tk").value,f=a.getItem("ma_kh").value,l=a.getItem("ten_kh%l").value,h="",e=a._language=="v";if(f!="")h=(e?", khách hàng: ":", Customer: ")+f+" - "+l;m._alterTitle=[null,[["%p",c,true],["%y",n,true],["%s1",k,true],["%s2",f,true],["%s4",h,true]]];break;case"SetCheckAccount":var b=a.getItem("ma_kh"),e=j[0].Value==1;b.field.AllowNulls=b.disabled=!e;$common.setVisible(b.a,e);var d=b.parentNode.parentNode,c=a.getItem("tk");if(e){!c._$pending&&b.focus();Sys.UI.DomElement.addCssClass(d,"Required");Sys.UI.DomElement.addCssClass(d,a._id)}else{a.setItemValue("ma_kh","");a.getItem("ten_kh%l").value="";!c._$pending&&a.getItem("ky").focus();Sys.UI.DomElement.removeCssClass(d,"Required");Sys.UI.DomElement.removeCssClass(d,a._id)}if(c._$pending)c._$pending=null}}function setCustFormVisible(a){a.parentForm.request("GetCheckAccount","SetCheckAccount",["tk"])}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetCheckAccount">
+      <text>
+        <![CDATA[
+declare @c0 int
+set @c0 = 0
+if exists (select tk from dmtk where tk = @tk and tk_cn = 1 and loai_tk = 1 and (loai_cl_no = 1 or loai_cl_co = 1))
+  set @c0 = 1
+select @c0 as cn
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &OutlineCss;
+</dir>

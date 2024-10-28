@@ -1,0 +1,22 @@
+﻿<![CDATA[
+if $]]>&BIPurchasingTable;<![CDATA[.NewValue <> $]]>&BIPurchasingTable;<![CDATA[.OldValue begin
+  insert into ]]>&BIPurchasingTable;<![CDATA[ select * from @]]>&BIPurchasingTable;<![CDATA[
+end
+]]>&BIPurchasingAfterUpdate;<![CDATA[
+if $]]>&BIPurchasingTable;<![CDATA[.NewValue <> $]]>&BIPurchasingTable;<![CDATA[.OldValue or @]]>&BIFieldKey;<![CDATA[ <> $]]>&BIFieldKey;<![CDATA[.OldValue begin
+  select ma_vung, ct_ts into #]]>&BIPurchasingTable;<![CDATA[ from ]]>&BIPurchasingTable;<![CDATA[ where ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[ and ct_ts <> ''
+]]>&BIPurchasingPostDetail;<![CDATA[
+end
+]]>
+
+
+<![CDATA[
+if $]]>&BIPurchasingOrganizationTable;<![CDATA[.NewValue <> $]]>&BIPurchasingOrganizationTable;<![CDATA[.OldValue begin
+  insert into ]]>&BIPurchasingOrganizationTable;<![CDATA[ select * from @]]>&BIPurchasingOrganizationTable;<![CDATA[
+end
+]]>&BIPurchasingOrganizationAfterUpdate;<![CDATA[
+if $]]>&BIPurchasingOrganizationTable;<![CDATA[.NewValue <> $]]>&BIPurchasingOrganizationTable;<![CDATA[.OldValue or @]]>&BIFieldKey;<![CDATA[ <> $]]>&BIFieldKey;<![CDATA[.OldValue begin
+  select ma_bp0, ct_ts into #]]>&BIPurchasingOrganizationTable;<![CDATA[ from ]]>&BIPurchasingOrganizationTable;<![CDATA[ where ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[ and ct_ts <> ''
+]]>&BIPurchasingOrganizationPostDetail;<![CDATA[
+end
+]]>

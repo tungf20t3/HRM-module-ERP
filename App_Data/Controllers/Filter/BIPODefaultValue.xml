@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIPODefaultValue">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Khai báo thông tin ngầm định" e="User's Default Parameter"></title>
+  <fields>
+    <field name="ma_bp0" allowNulls="false">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+      <items style="AutoComplete" controller="BIPurchasingOrganization.Right" reference="ten_bp0%l" key="status = '1'" check="1 = 1" information="ma_bp$bidmbp0.ten_bp%l"/>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nh0" onDemand ="true">
+      <header v="Nhóm mua" e="Purchasing Group"></header>
+      <items style="AutoComplete" controller="BIPurchasingGroup.Right" reference="ten_nh0%l" key="status = '1'" check="1 = 1" information="ma_nh$bidmnhom0.ten_nh%l"/>
+    </field>
+    <field name="ten_nh0%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vung" onDemand ="true">
+      <header v="Vùng" e="Plant"></header>
+      <items style="AutoComplete" controller="BIPlant.Right" reference="ten_vung%l" key="status = '1' and ma_dvcs = @@unit" check="ma_dvcs = @@unit" information="ma_vung$bidmvung.ten_vung%l"/>
+    </field>
+    <field name="ten_vung%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11010: [ma_bp0].Label, [ma_bp0], [ten_bp0%l]"/>
+      <item value="11010: [ma_nh0].Label, [ma_nh0], [ten_nh0%l]"/>
+      <item value="11010: [ma_vung].Label, [ma_vung], [ten_vung%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+set @message = 'initForm$]]>&Identity;<![CDATA[(this);'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'loadForm$]]>&Identity;<![CDATA[(this);'  as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'closeForm$]]>&Identity;<![CDATA[(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function initForm$]]>&Identity;<![CDATA[(f) {
+  var g = f.grid, arrHidden = g._$PODefaultForm.HiddenField;
+  if (arrHidden) {
+    set$]]>&Identity;<![CDATA[$ObjectFormHidden(f, arrHidden);
+    f._controlFocus = (arrHidden.indexOf('ma_bp0') < 0 ? f.getItem('ma_bp0') : (arrHidden.indexOf('ma_nh0') < 0 ? f.getItem('ma_nh0') : f.getItem('ma_vung')) : null);
+  }
+  if (g._$PODefaultValue) {
+    var d = g._$PODefaultValue, n = g._$PODefaultName;
+    f.setItemControlBehavior('ma_bp0', d.ma_bp0, n.ten_bp0, false);
+    f.setItemControlBehavior('ma_nh0', d.ma_nh0, n.ten_nh0, false);
+    f.setItemControlBehavior('ma_vung', d.ma_vung, n.ten_vung, false);
+  }
+}
+function loadForm$]]>&Identity;<![CDATA[(f) {f.add_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);}
+function closeForm$]]>&Identity;<![CDATA[(f) {try {f.remove_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}}
+
+function onForm$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result, g = f.grid;
+  switch (context) {
+    case 'Checking':
+      f._checked = false;
+      var data = {ma_bp0: f.getItemValue('ma_bp0'), ma_nh0: f.getItemValue('ma_nh0'), ma_vung: f.getItemValue('ma_vung')}, dv = [{Data: data}];
+      localStorage.setItem(']]>&Identity;<![CDATA[', JSON.stringify(dv));
+      g._$PODefaultValue = data;
+      g._$PODefaultName = {ten_bp0: f.getItemValue('ten_bp0%l'), ten_nh0: f.getItemValue('ten_nh0%l'), ten_vung: f.getItemValue('ten_vung%l')};
+      f.closeDialog();
+      break;
+    default:
+      break;
+  }
+}
+
+function set$]]>&Identity;<![CDATA[$ObjectFormHidden(f, a) {
+  for (var i = 0; i < a.length; i++) {
+    var o = f.getItem(a[i]), field = $func.findField(a[i], f._fields);
+    $common.setVisible(o.parentNode.parentNode.parentNode, false);
+    field.Hidden = true;
+    o.field.AllowNulls = true;
+  }
+}
+]]>
+    </text>
+  </script>
+</dir>

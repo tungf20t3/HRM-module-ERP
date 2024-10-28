@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="Media" targetNamespace="urn:schemas-ai-erp:data-media" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-media" xmlns:a="urn:schemas-ai-erp:data-media" xmlns:mstns="urn:schemas-ai-erp:data-media" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="media" type="mediaType">
+  </xs:element>
+
+  <xs:complexType name="mediaType">
+    <xs:sequence>
+      <xs:element name="setting" type="settingType" />
+      <xs:element name="queries" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="query" type="queryType">
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="map" type="mapType" />
+    </xs:sequence>
+
+    <xs:attribute name="table" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>Specifies the name of the table</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="code" type="xs:string" use="required"/>
+    <xs:attribute name="key" type="xs:string" use="required"/>
+    <xs:attribute name="file" type="xs:string" use="required"/>
+    <xs:attribute name="fileEncode" type="xs:string" use="required"/>
+    <xs:attribute name="data" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="settingType">
+    <xs:sequence>
+      <xs:element name="thumbWidth" type="valueInt" />
+      <xs:element name="thumbHeight" type="valueInt" />
+      <xs:element name="maxWith" type="valueInt" />
+      <xs:element name="maxHeight" type="valueInt" />
+      <xs:element name="folder" type="valueString" />
+      <xs:element name="maxFileSize" type="valueInt" />
+
+      <xs:element name="uploadTimeOut" type="valueInt" />
+      <xs:element name="processDelayTime" type="valueInt" />
+      <xs:element name="fileRecordTimeOut" type="valueInt" />
+      <xs:element name="allowFileExtension" type="valueString" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="mapType">
+    <xs:sequence>
+      <xs:element name="controller" type="mapControllerType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="mapControllerType">
+    <xs:attribute name="id" type="xs:string" />
+    <xs:attribute name="table" type="xs:string" />
+    <xs:attribute name="field" type="xs:string" />
+    <xs:attribute name="external" type="xs:string" />
+  </xs:complexType>
+
+  <xs:complexType name="valueString">
+    <xs:attribute name="value" type="xs:string" />
+  </xs:complexType>
+  <xs:complexType name="valueInt">
+    <xs:attribute name="value" type="xs:int" />
+  </xs:complexType>
+
+  <xs:complexType name="queryType">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Defines the command text that corresponds to the query type.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+
+    <xs:attribute name="event" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Updated"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="textType">
+    <xs:all maxOccurs="1" minOccurs="1">
+      <xs:element name="text" type="xs:string" minOccurs="1" maxOccurs="1">
+      </xs:element>
+    </xs:all>
+  </xs:complexType>
+
+</xs:schema>

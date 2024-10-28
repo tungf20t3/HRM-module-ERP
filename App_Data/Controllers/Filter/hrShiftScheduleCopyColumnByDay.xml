@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir table="hrca$000000" code="stt_rec_nv" order="stt_rec_nv" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Sao chép theo ngày" e="Copy By Date"></title>
+
+  <fields>
+    <field name="ngay" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <footer v="Ngày/tháng sao chép" e="Source Day/Month"/>
+      <header v="Ngày sao chép" e="Source Day"/>
+      <items style="Numeric"/>
+    </field>
+    <field name="thang" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <header v="Tháng sao chép" e="Source Month"/>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_nv2">
+      <header v="Sao chép từ nhân viên" e="Source Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_nv2" key="(@@admin = 1 or (bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID))) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_nv2" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay2" allowNulls="false">
+      <header v="Sao chép cho các ngày" e="Target Days"></header>
+    </field>
+    <field name="thang2">
+      <header v="Sao chép cho các tháng" e="Target Months"></header>
+    </field>
+    <field name="ma_bp2" allowNulls="false">
+      <header v="Sao chép cho bộ phận" e="Target Department"></header>
+      <items style="AutoComplete" controller="hreDepartment" reference="ten_bp2%l" key="status = '1'" check="1 = 1"/>
+      <clientScript><![CDATA[onchange=onChange$ShiftScheduleCopyColumn$Department(this);]]></clientScript>
+    </field>
+    <field name="ten_bp2%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv3">
+      <header v="Danh sách nhân viên" e="Employee List"></header>
+      <items style="Lookup" controller="hrEmployee" key="bp_ref like case when '{$%c[bp_ref2]}' &lt;&gt; '' then '{$%c[bp_ref2]}%' else '''' end and status = '1'" check="bp_ref like case when '{$%c[bp_ref2]}' &lt;&gt; '' then '{$%c[bp_ref2]}%' else '''' end"/>
+    </field>
+    <field name="type" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Kiểu sao chép" e="Type"></header>
+      <footer v="1 - Chép đè, 0 - Không" e="1 - Overwrite, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left" hidden="true" readOnly="true">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Từ/đến ngày" e="Date from/to"></footer>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left" hidden="true" readOnly="true">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+
+    <field name="ma_bp" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vtr" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bac_ql" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref2" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 10, 60, 100, 230, 0"/>
+      <item value="1101111: [ngay].Description, [ngay], [thang], [tu_ngay], [den_ngay], [ma_bp]"/>
+      <item value="1100101: [ma_nv2].Label, [ma_nv2], [ten_nv2], [ma_nv]"/>
+      <item value="1100011: [ngay2].Label, [ngay2], [ma_vtr], [bac_ql]"/>
+      <item value="11000--: [thang2].Label, [thang2]"/>
+      <item value="1100101: [ma_bp2].Label, [ma_bp2], [ten_bp2%l], [bp_ref]"/>
+      <item value="1100001: [ma_nv3].Label, [ma_nv3], [bp_ref2]"/>
+      <item value="111000: [type].Label, [type], [type].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$ShiftScheduleCopyColumn(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$ShiftScheduleCopyColumn(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec AI_ERP$HRM$ShiftScheduleByDay$CopyColumn @ngay, @thang, @tu_ngay, @den_ngay, @ma_nv2, @ngay2, @thang2, @bp_ref2, @ma_nv3, @type, @@userID, @@admin
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,g=f.grid,n=f.getItem("ngay").value,m=f.getItem("ngay2").value,t=f.getItem("thang").value,t2=f.getItem("thang2").value,a;[],b=f._language=="v",d1=f.getItemValue("tu_ngay",null,null,true),d2=f.getItemValue("den_ngay",null,null,true);a=getArrayValue(d1,d2);var e1=b?"Ngày sao chép không hợp lệ.":"Invalid Source Day.",e2=b?"Ngày được sao chép không hợp lệ.":"Invalid Target Days.",e3=b?"Dữ liệu không hợp lệ.":"Invalid Data.",e4=b?"Tháng được sao chép không hợp lệ.":"Invalid Target Months.";if(!checkValid(a,n,t,false)){$message.show(e1,String.format("$find('{0}').focus('{1}');",f.get_id(),"ngay"));f._checked=false}if(f._checked){m=m.replace(/\s+/g,"");if(!/^(([1-9]|[1-2][0-9]|3[0-1])|([1-9]|[1-2][0-9]|3[0-1])-([1-9]|[1-2][0-9]|3[0-1]))(,(([1-9]|[1-2][0-9]|3[0-1])|([1-9]|[1-2][0-9]|3[0-1])-([1-9]|[1-2][0-9]|3[0-1])))*$/.test(m)||/(^|,)(.+?)(,|,.+,)\2(,|$)/g.test(m.split(",").sort().join(","))){$message.show(e2,String.format("$find('{0}').focus('{1}');",f.get_id(),"ngay2"));f._checked=false}}if(f._checked&&t2!=""){t2=t2.replace(/\s+/g,"");if(!/^(([1-9]|[1-2][0-9]|3[0-1])|([1-9]|[1-2][0-9]|3[0-1])-([1-9]|[1-2][0-9]|3[0-1]))(,(([1-9]|[1-2][0-9]|3[0-1])|([1-9]|[1-2][0-9]|3[0-1])-([1-9]|[1-2][0-9]|3[0-1])))*$/.test(t2)||/(^|,)(.+?)(,|,.+,)\2(,|$)/g.test(t2.split(",").sort().join(","))){$message.show(e4,String.format("$find('{0}').focus('{1}');",f.get_id(),"thang2"));f._checked=false}if(f._checked)if(!checkValidArray(t2,a)){$message.show(e4,String.format("$find('{0}').focus('{1}');",f.get_id(),"thang2"));f._checked=false}}if(f._checked){var k1=f.getItem("ma_nv2").value,k2=f.getItem("ma_nv3").value;if(m==n&&k1!=""&&k2!=""&&k2.indexOf(k1)!=-1){$message.show(e3,String.format("$find('{0}').focus('{1}');",f.get_id(),"ma_nv3"));f._checked=false}}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$ShiftScheduleCopyColumn(a){a.add_onResponseComplete(on$ShiftScheduleCopyColumn$ResponseComplete);init$ShiftScheduleCopyColumn(a);changeLookupReadonly(a,"ma_nv3",true);a.getItem("thang").value=a.getItemValue("tu_ngay",null,null,true).getMonth()+1}function close$ShiftScheduleCopyColumn(a){a.remove_onResponseComplete(on$ShiftScheduleCopyColumn$ResponseComplete)}function init$ShiftScheduleCopyColumn(b){var a=b.grid;b.getItem("ten_bp2%l").value=a._deptName;b.setItemValues("tu_ngay, den_ngay, ma_bp, ma_nv, ma_vtr, bac_ql, bp_ref, ma_bp2, bp_ref2",[a._dateFrom,a._dateTo,a._dept,a._staff,a._pos,a._grade,a._deptRef,a._dept,a._deptRef]);b.setReferenceKeyFilter("ma_nv3")}function onChange$ShiftScheduleCopyColumn$Department(a){a.parentForm.request("Reference","Reference",["ma_bp2"])}function on$ShiftScheduleCopyColumn$ResponseComplete(a,b){var a=b.object,e=a.grid,c=b.type.Context,d=b.type.Result;switch(c){case"Reference":a.setItemControlBehavior("bp_ref2",d[0].Value,true);a.setReferenceKeyFilter("ma_nv3");a.setItemValue("ma_nv3","")}}function getArrayValue(e,c){var g=[],a=e,l=1,h=e.getMonth(),j=e.getFullYear(),i=c.getMonth(),k=c.getFullYear(),m=i-h+12*(k-j),b=h+1,f=e.getDate(),d=new Date(j,b,0).getDate();Array.add(g,[b,f,d]);while(l<=m){if(a.getMonth()!=c.getMonth()){a=new Date(a.getFullYear(),a.getMonth()+1,1);b=a.getMonth()+1,f=a.getDate(),d=new Date(a.getFullYear(),b,0).getDate();if(i+1-b+12*(k-a.getFullYear())==0)d=c.getDate()}else b=c.getMonth()+1,f=1,d=c.getDate();Array.add(g,[b,f,d]);l+=1;a=new Date(a.getFullYear(),a.getMonth()+1,1)}return g}function checkValid(b,c,d,e){for(var a=0;a<b.length;a++)if(e&&b[a][0]==d||b[a][0]==d&&b[a][1]<=c&&c<=b[a][2])return true;return false}function checkValidArray(f,c){for(var b=f.split(","),d=true,a=0;a<b.length;a++){if(b[a]!="")if(b[a].indexOf("-")!=-1){var e=b[a].split("-");if(!checkValid(c,null,e[0],true)||!checkValid(c,null,e[1],true))d=false}else if(!checkValid(c,null,b[a],true))d=false;if(b[a]=="")return false}return d}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Reference">
+      <text>
+        <![CDATA[
+declare @b varchar(128)
+select @b = ''
+if exists(select 1 from hrbp where ma_bp = @ma_bp2) select @b = bp_ref from hrbp where ma_bp = @ma_bp2
+select @b as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

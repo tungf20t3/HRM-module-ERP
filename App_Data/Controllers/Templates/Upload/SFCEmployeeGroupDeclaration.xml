@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'SFCEmployeeGroupDeclaration' else 'SFCEmployeeGroupDeclaration2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$SFCEmployeeGroupDeclarationImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$SFCEmployeeGroupDeclarationImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="sfkbnhnc, sfctkbnhnc"/>
+    <dependence value="sfkbnhnc, sfctkbnhnc"/>
+    <listTable value="#m1, #d1"/>
+    <temporary value="#m2, #d2" alias="b, b"/>
+    <alias value="master, detail"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nh" column="A" upperCase="true" resource="master, detail" allowNulls="false" updateValue="None" check="ma_nh not in (select ma_nh from sfdmnhomnc where status = '1')" errorCode="00001"/>
+    <field name="ngay_hl" column="C" resource="master, detail" type="DateTime" check="ngay_hl is null"  errorCode="invalidValueMessage"/>
+    <field name="ma_ca" column="D" upperCase="true" resource="master, detail" allowNulls="false" updateValue="None" check="ma_ca not in (select ma_ca from sfdmca where status = '1')" errorCode="00001"/>
+    <field name="ma_nc" column="F" upperCase="true" resource="detail" reference="1" allowNulls="false" check="ma_nc not in (select ma_nc from sfdmnc where status = '1')&And;exists (select 1 from (select ma_nh, ngay_hl, ma_ca, ma_nc from @@table group by ma_nh, ngay_hl, ma_ca, ma_nc having count(*) &gt; 1) b where @@table.ma_nh = b.ma_nh and @@table.ngay_hl = b.ngay_hl and @@table.ma_ca = b.ma_ca and @@table.ma_nc = b.ma_nc)" errorCode="00001&And;00002"/>
+    <field name="he_so" column="H" resource="detail" type="Decimal" allowNulls="false" check="isnull(he_so, 0) = 0" errorCode="00002"/>
+
+    <field name="line_nbr" column="None" type="Int" updateValue="None" resource="detail"/>
+    <field name="status" column="None" resource="master" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" resource="master" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" resource="master" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" resource="master" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" resource="master" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Khai báo nhóm nhân công" e="Labor Group Detail"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_nh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhóm" e="Group Code"/>
+      </field>
+      <field name="ten_nh" width="32" afterField="ma_nh" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên nhóm" e="Group Name"/>
+      </field>
+      <field name="ngay_hl" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Hiệu lực từ" e="Effective Start"/>
+      </field>
+      <field name="ma_ca" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã ca" e="Shift Code"/>
+      </field>
+      <field name="ten_ca" width="32" afterField="ma_ca" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên ca" e="Shift Name"/>
+      </field>
+      <field name="ma_nc" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân công" e="Labor Code"/>
+      </field>
+      <field name="ten_nc" width="32" afterField="ma_nc" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên nhân công" e="Labor Name"/>
+      </field>
+      <field name="he_so" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Hệ số" e="Coefficient"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'SFCEmployeeGroupDeclaration', 'Edit') = 0 select @type = '0'
+end
+
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+
+declare @count int, @k int
+
+-- Delete
+if @type = '0' delete @@table from @@table a where exists(select 1 from sfkbnhnc b where a.ma_nh = b.ma_nh and a.ngay_hl = b.ngay_hl and a.ma_ca = b.ma_ca)
+select a.* into #k from @@table a join sfkbnhnc b on (a.ma_nh = b.ma_nh and a.ngay_hl = b.ngay_hl and a.ma_ca = b.ma_ca)
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_nh = b.ma_nh and a.ngay_hl = b.ngay_hl and a.ma_ca = b.ma_ca)
+
+-- Checking
+
+select top 0 ma_nh, ngay_hl, ma_ca, ma_nc, he_so, line_nbr into #d1 from sfctkbnhnc
+select @count = count(*) from @@table
+
+if @count > 0 begin
+  select top 0 ma_nh, ngay_hl, ma_ca, cast(0 as int) as stt, identity(int, 1, 1) as id into #id1 from sfkbnhnc
+  insert into #id1(ma_nh, ngay_hl, ma_ca, stt) select ma_nh, ngay_hl, ma_ca, min(stt) from @@table group by ma_nh, ngay_hl, ma_ca
+  select @k = count(*) from #id1
+
+  insert into #d1
+    select b.ma_nh, b.ngay_hl, b.ma_ca, a.ma_nc, a.he_so, (a.stt - b.stt) + 1
+      from @@table a join #id1 b on (a.ma_nh = b.ma_nh and a.ngay_hl = b.ngay_hl and a.ma_ca = b.ma_ca) order by a.ma_nh, a.ngay_hl, a.ma_ca, a.stt
+
+  select top 0 ma_nh, ngay_hl, ma_ca into #m1 from sfkbnhnc
+  insert into #m1 select a.ma_nh, a.ngay_hl, a.ma_ca from @@table a join #id1 b on a.stt = b.stt
+
+  -- Insert
+  @@inserting(master);
+  @@inserting(detail);
+end
+
+if @type = '1' begin
+  select @k = count(*) from #k
+
+  if @k > 0 begin
+  select top 0 ma_nh, ngay_hl, ma_ca, cast(0 as int) as stt, identity(int, 1, 1) as id into #id2 from sfkbnhnc
+  insert into #id2 select a.ma_nh, a.ngay_hl, a.ma_ca, min(a.stt) from #k a join sfkbnhnc b on (a.ma_nh = b.ma_nh and a.ngay_hl = b.ngay_hl and a.ma_ca = b.ma_ca) group by a.ma_nh, a.ngay_hl, a.ma_ca
+
+  select top 0 ma_nh, ngay_hl, ma_ca, ma_nc, he_so, line_nbr into #d2 from sfctkbnhnc
+
+  insert into #d2
+    select b.ma_nh, b.ngay_hl, b.ma_ca, a.ma_nc, a.he_so, (a.stt - b.stt) + 1
+      from #k a join #id2 b on (a.ma_nh = b.ma_nh and a.ngay_hl = b.ngay_hl and a.ma_ca = b.ma_ca) order by a.ma_nh, a.ngay_hl, a.ma_ca, a.stt
+
+  select top 0 ma_nh, ngay_hl, ma_ca into #m2 from sfkbnhnc
+  insert into #m2 select a.ma_nh, a.ngay_hl, a.ma_ca from #k a join #id2 b on a.stt = b.stt
+
+  -- Update
+  update sfkbnhnc set @@list(master); from sfkbnhnc a join #m2 b on a.ma_nh = b.ma_nh and a.ngay_hl = b.ngay_hl and a.ma_ca = b.ma_ca
+  delete sfctkbnhnc from sfctkbnhnc a where exists(select 1 from #id2 b where a.ma_nh = b.ma_nh and a.ngay_hl = b.ngay_hl and a.ma_ca = b.ma_ca)
+  truncate table #d1
+  insert into #d1 select * from #d2
+  @@inserting(detail);
+  end
+end
+]]>
+    </text>
+  </processing>
+
+</import>

@@ -1,0 +1,118 @@
+﻿<!ENTITY % Conditional.CheckValidEmail SYSTEM "..\Include\CheckValidEmail.txt">
+
+<![%Conditional.CheckValidEmail;[
+  <!ENTITY CheckValidEmailFunction SYSTEM "..\Include\Javascript\CheckValidEmail.txt">
+  <!ENTITY CheckValidEmailCommandChecking "
+if (this._checked) {
+  if ('&CheckValidEmail.FieldName;'.indexOf(',') == -1) {
+    var label = $func.findField('&CheckValidEmail.FieldName;', this._fields).Label;
+    var e = ((this._language == 'v') ? 'Trường &lt;span class=&quot;Highlight&quot;&gt;' + label + '&lt;/span&gt; không hợp lệ.' : 'Invalid &lt;span class=&quot;Highlight&quot;&gt;' + label + '&lt;/span&gt;.');
+    if !(checkValidEmail$Test(this, '&CheckValidEmail.FieldName;', &CheckValidEmail.MultiEmail;)) {
+      this._checked = false;
+      var o = this.getItem('&CheckValidEmail.FieldName;');
+      $func.hideWait(this.get_id());
+      $message.show(e, String.format('$find(\'{0}\').focus(\'{1}\');', this._id, o.field.Name));
+    }
+  } else {
+    var _$fieldNames = '&CheckValidEmail.FieldName;'.split(',');
+    for (var i = 0; i &lt; _$fieldNames.length; i++) {
+      var label = $func.findField(_$fieldNames[i], this._fields).Label;
+      var e = ((this._language == 'v') ? 'Trường &lt;span class=&quot;Highlight&quot;&gt;' + label + '&lt;/span&gt; không hợp lệ.' : 'Invalid &lt;span class=&quot;Highlight&quot;&gt;' + label + '&lt;/span&gt;.');
+      if (this._checked) {
+        if !(checkValidEmail$Test(this, _$fieldNames[i], &CheckValidEmail.MultiEmail;)) {
+          this._checked = false;
+          var o = this.getItem(_$fieldNames[i]);
+          $func.hideWait(this.get_id());
+          $message.show(e, String.format('$find(\'{0}\').focus(\'{1}\');', this._id, o.field.Name));
+        }
+      } else break;
+    }
+  }
+}
+">
+  <!ENTITY CheckValidEmailCommandCheckingImport "
+select * into #validMail from dbo.AI_ERP$Function$System$Split('&CheckValidEmail.FieldName;', ',')
+declare @emailFieldName varchar(64), @emailString nvarchar(4000)
+select @emailFieldName = min(data) from #validMail
+
+while @emailFieldName is not null begin
+  declare @$checkValidEmail nvarchar(512)
+  select @$checkValidEmail = case when @@language = 'v' then N'Thư (Email): &lt;span class=&quot;Highlight&quot;>&#37;s1&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; không hợp lệ.'
+  else N'Invalid Email: &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt;.' end
+  select @emailString = 'update @@table set ' + @emailFieldName + ' = replace(' + @emailFieldName + ', '';'', '','') where ' + @emailFieldName + ' &lt;&gt; '''''
+  exec sp_executesql @emailString
+
+  if @$mode = 1 begin
+    &StartErrorCount;
+    select @emailString = '&InsertErrorTable; select ''' + @emailFieldName + ''', stt, ''Mail001'' from @@table where ' + @emailFieldName + ' &lt;&gt; '''' and charindex('','', ' + @emailFieldName + ') = 0 and dbo.ValidateEmail(ltrim(rtrim(' + @emailFieldName + '))) = 0&w1;''' + @emailFieldName + '''&w2;stt&w3;''Mail001''&w4;'
+    exec sp_executesql @emailString
+    &EndErrorCount;
+  end else begin
+    select @emailString = '
+      select top 1 @r = min(stt) from @@table where ' + @emailFieldName + ' &lt;&gt; '''' and charindex('','', ' + @emailFieldName + ') = 0 and dbo.ValidateEmail(ltrim(rtrim(' + @emailFieldName + '))) = 0
+      if @r is not null begin
+        select replace(replace(N''' + @$checkValidEmail + ''', ''&#37;s1'', ' + @emailFieldName + '), ''&#37;s2'', @@delta + @r) as message from @@table where stt = @r
+      end
+    '
+    exec sp_executesql @emailString, N'@r int output', @r = @r output
+    if @r is not null return
+  end
+
+  if &CheckValidEmail.MultiEmail; begin
+    if @$mode = 1 begin
+      select @$checkValidEmail = case when @@language = 'v' then N'Thư (Email) không hợp lệ.' else N'Invalid Email.' end
+      select @emailString = 'declare @r int
+        if exists (select 1 from @@table where charindex('','', ' + @emailFieldName + ') &lt;&gt; 0) begin
+          select stt, ' + @emailFieldName + ' into #$email from @@table where charindex('','', ' + @emailFieldName + ') &lt;&gt; 0
+          declare @$strEmail varchar(4000), @$i int
+          select @$i = min(stt) from #$email
+
+          while @$i is not null begin
+            select @$strEmail = ' + @emailFieldName + ' from #$email where stt = @$i
+            select @r = @$i from dbo.AI_ERP$Function$System$Split(@$strEmail, '','') a where dbo.ValidateEmail(ltrim(rtrim(data))) = 0
+            if @r is not null begin
+              &StartErrorCount;
+              &InsertErrorTable; select ''' + @emailFieldName + ''', @r, ''Mail001'' where 1=1&w1;''' + @emailFieldName + '''&w2;@r&w3;''Mail001''&w4;
+              &EndErrorCount;
+            end
+            select @$i = min(stt) from #$email where @$i &lt; stt
+          end
+        end
+      '
+      exec sp_executesql @emailString, N'@$errorCount int out', @$errorCount out
+      if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+    end else begin
+      select @emailString = '
+        if exists (select 1 from @@table where charindex('','', ' + @emailFieldName + ') &lt;&gt; 0) begin
+          select stt, ' + @emailFieldName + ' into #$email from @@table where charindex('','', ' + @emailFieldName + ') &lt;&gt; 0
+          declare @$strEmail varchar(4000), @$i int
+          select @$i = min(stt) from #$email
+
+          while @$i is not null begin
+            select @$strEmail = ' + @emailFieldName + ' from #$email where stt = @$i
+            select @r = @$i from dbo.AI_ERP$Function$System$Split(@$strEmail, '','') a where dbo.ValidateEmail(ltrim(rtrim(data))) = 0
+            if @r is not null begin
+              select replace(replace(N''' + @$checkValidEmail + ''', ''&#37;s1'', ' + @emailFieldName + '), ''&#37;s2'', @@delta + @r) as message from @@table where stt = @r
+              return
+            end
+            select @$i = min(stt) from #$email where @$i &lt; stt
+          end
+        end
+      '
+
+      exec sp_executesql @emailString, N'@r int output', @r = @r output
+      if @r is not null return
+    end
+  end
+
+  select @emailFieldName = min(data) from #validMail where data > @emailFieldName
+end
+">
+
+  <!ENTITY MailImportVariable SYSTEM "..\Templates\Upload\Include\MailImportVariable.txt">
+]]>
+
+<!ENTITY CheckValidEmailFunction "">
+<!ENTITY CheckValidEmailCommandChecking "">
+<!ENTITY CheckValidEmailCommandCheckingImport "">
+<!ENTITY MailImportVariable "">

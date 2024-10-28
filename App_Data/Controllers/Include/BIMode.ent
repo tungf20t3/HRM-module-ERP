@@ -1,0 +1,126 @@
+﻿<!ENTITY % Conditional.BIMode SYSTEM "..\Include\BIMode.txt">
+
+<![%Conditional.BIMode;[
+  <!ENTITY Import.Query.BI "
+exec AI_ERP$BI$GetPurOrgFilter '' , @@userID, @@admin, '', '', 'ma_bp', '', '', @q output, 1
+insert into @t select 'BIPurchasingOrganization', @q
+exec AI_ERP$System$GetUnitFilter '' , @@userID, @@admin, '', '', 'ma_dvcs', '', '', @q output, 1
+insert into @t select 'BIPlant', @q
+exec AI_ERP$BI$PurchasingRightFilter 'ma_nh', '', '', @@userID, @@admin, @q output, 2
+insert into @t select 'BIPurchasingGroup', @q
+">
+  <!ENTITY Import.Define.BI SYSTEM "..\Templates\Upload\Config\Include\BI.Define">
+
+  <!ENTITY PurGroupKey "(not exists(select 1 from bisyspurgrouprights where user_id = @@userID) or ma_nh in (select ma_nh0 as ma_nh from bisyspurgrouprights where user_id = @@userID))">
+  <!ENTITY VendorController "Customer">
+  <!ENTITY VendorControllerNew "Default">
+  <!ENTITY VendorList "dmkh">
+
+  <!ENTITY BIMode.Structure.Check.Exists "1">
+  <!ENTITY BIMode.Structure.Check.Rights "1">
+  <!ENTITY BIMode.Structure.Check "
+#IF @@action = 'New' #THEN
+  select @ma_dvcs = @@unit
+#END
+declare @e$Field varchar(32), @e$Message nvarchar(4000), @purOrg varchar(32), @purGr varchar(32), @plant varchar(32)
+&BIMode.Structure.SetParameter;
+exec AI_ERP$BI$Structure$Check @purOrg, @purGr, @plant, '&BIMode.Structure.Check.Exists;&BIMode.Structure.Check.Rights;', @@id, @ma_dvcs, @@language, @@action, @@userID, @@admin, '@@sysDatabaseName', @e$Field output, @e$Message output
+if isnull(@e$Message, '') &lt;&gt; '' begin
+  select @e$Field as field, @e$Message as message
+  return
+end
+">
+
+  <!ENTITY BIMode.Vendor.Check "
+&BIMode.Vendor.CheckData;
+declare @vendorCheck$Field varchar(64), @vendorCheck$Message nvarchar(1024), @vendorCheck$Script nvarchar(1024)
+exec AI_ERP$BI$Vendor$Check @vendorCheck$Field out, @vendorCheck$Message out, @vendorCheck$Script out, 'bidmnccts, bidmvtts, bikbcdhtvt', '#$master$check', '#$detail$check', @@id, @@language, @@action, @@userID, @@admin
+if @vendorCheck$Message is not null begin
+  select @vendorCheck$Field as field, @vendorCheck$Message as message, replace(@vendorCheck$Script, '$&#37;g', '&BIMode.Vendor.CheckDetailField;') as script
+  return
+end
+">
+  <!ENTITY BIMode.Vendor.CheckPurOrg "
+declare @$checkPurOrg nvarchar(512)
+select @$checkPurOrg = case when @@language = 'v' then N'Thông tin nhà cung cấp &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; và đơn vị mua &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; không hợp lệ.' else 'Vendor information &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; and Purchasing Organization &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; are invalid' end
+
+if exists(select 1 from bidmnccbp0 where ma_kh = @ma_kh) begin
+  if not exists (select 1 from bidmnccbp0 where ma_kh = @ma_kh and ma_bp0 = @ma_bp0) begin
+    select 'ma_kh' as field, replace(replace(@$checkPurOrg, '&#37;s1', @ma_kh), '&#37;s2', @ma_bp0) as message
+    return
+  end
+end
+">
+  <!ENTITY BIMode.SourceList.CheckData "
+declare @sourceListCheck$Field varchar(64), @sourceListCheck$Message nvarchar(1024), @sourceListCheck$Script nvarchar(1024)
+exec AI_ERP$BI$SourceList$Check @sourceListCheck$Field out, @sourceListCheck$Message out, @sourceListCheck$Script out, '#$master$check', '#$detail$check', @@id, @@language, @@action, @@userID, @@admin, '', ''
+if isnull(@sourceListCheck$Message, '') &lt;&gt; '' begin
+  select @sourceListCheck$Field as field, @sourceListCheck$Message as message, replace(@sourceListCheck$Script, '$&#37;g', '&BIMode.Vendor.CheckDetailField;') as script
+  return
+end
+">
+
+  <!ENTITY BIMode.QuotaArrangement.CheckData "
+declare @quotaCheck$Field varchar(64), @quotaCheck$Message nvarchar(1024), @quotaCheck$Script nvarchar(1024)
+exec AI_ERP$BI$QuotaArrangement$Check @quotaCheck$Field out, @quotaCheck$Message out, @quotaCheck$Script out, '#$master$check', '#$detail$check', @@id, @@language, @@action, @@userID, @@admin
+if isnull(@quotaCheck$Message, '') &lt;&gt; '' begin
+  select @quotaCheck$Field as field, @quotaCheck$Message as message, replace(@quotaCheck$Script, '$&#37;g', '&BIMode.Vendor.CheckDetailField;') as script
+  return
+end
+">
+  <!ENTITY BIMode.PriceToleranceLimits.CheckData "
+declare @priceLimitCheck$Field varchar(64), @priceLimitCheck$Message nvarchar(1024), @priceLimitCheck$Warning nvarchar(1024), @priceLimitCheck$Script nvarchar(1024)
+exec AI_ERP$BI$PriceToleranceLimits$Check @priceLimitCheck$Field out, @priceLimitCheck$Message out, @priceLimitCheck$Warning out, @priceLimitCheck$Script out, '#$master$check', '#$detail$check', @@id, @@language, @@action, @@userID, @@admin
+if isnull(@priceLimitCheck$Message, '') &lt;&gt; '' begin
+  select @priceLimitCheck$Field as field, @priceLimitCheck$Message as message, replace(@priceLimitCheck$Script, '$&#37;g', '&BIMode.Vendor.CheckDetailField;') as script
+  return
+end
+if isnull(@priceLimitCheck$Warning, '') &lt;&gt; '' begin
+  select @$warning = @$warning + case when @$warning &lt;&gt; '' then '&lt;div&gt;' else '' end + @priceLimitCheck$Warning + case when @$warning &lt;&gt; '' then '&lt;/div&gt;' else '' end
+end
+">
+
+
+  <!ENTITY BIMode.Copying "
+declare @e$Field varchar(32), @e$Message nvarchar(4000), @purOrg varchar(32)
+select @purOrg = ma_bp0 from @@master where stt_rec = @stt_rec
+exec AI_ERP$BI$Structure$Check @purOrg, '', '', '01', @@id, @@unit, @@language, 'New', @@userID, @@admin, '@@sysDatabaseName', @e$Field output, @e$Message output
+if isnull(@e$Message, '') &lt;&gt; '' begin
+  select @e$Field as field, @e$Message as message
+  return
+end
+">
+  <!ENTITY BIMode.Voucher.Message.Script "
+function message$Voucher$Detail$Show(f, n, r, c) {
+  var g = f.getItem(n)._controlBehavior, id = f.get_id(), l = g._getColumnOrder(c);
+  g._errorObject = g._getItem(r, l);
+  f.focus(n);
+  g._errorObject.focus()
+}
+">
+  <!ENTITY BI.RecordKey " and &BI.RecordKey.Alias;bi_mode in ('', '1')">
+]]>
+
+<!ENTITY Import.Query.BI "">
+<!ENTITY Import.Define.BI "">
+
+<!ENTITY PurGroupKey "">
+<!ENTITY VendorController "Customer">
+<!ENTITY VendorControllerNew "Default">
+<!ENTITY VendorList "dmkh">
+
+<!ENTITY BIMode.Structure.Check.Exists "0">
+<!ENTITY BIMode.Structure.Check.Rights "0">
+<!ENTITY BIMode.Structure.SetParameter "">
+<!ENTITY BIMode.Structure.Check "">
+
+<!ENTITY BIMode.Vendor.CheckData "">
+<!ENTITY BIMode.Vendor.CheckDetailField "">
+<!ENTITY BIMode.Vendor.Check "">
+<!ENTITY BIMode.Vendor.CheckPurOrg "">
+<!ENTITY BIMode.SourceList.CheckData "">
+
+<!ENTITY BIMode.Copying "">
+<!ENTITY BI.RecordKey.Alias "">
+<!ENTITY BI.RecordKey " and &BI.RecordKey.Alias;bi_mode &lt;&gt; '1'">
+<!ENTITY BIMode.Voucher.Message.Script "">

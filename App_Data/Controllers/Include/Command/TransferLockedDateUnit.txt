@@ -1,0 +1,22 @@
+﻿<![CDATA[
+declare @$lockedDate nvarchar(512), @$d smalldatetime
+select @$d = cast(str(@nam + 1, 4) + '0101' as smalldatetime)
+select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+if exists(select 1 from dmstt where nam_bd > @nam or (ngay_ks >= @$d)) begin
+  select 'nam' as field, @$lockedDate as message
+  return
+end
+if exists(select 1 from options where name = 'c_004' and val = '1') begin
+  if @ma_dvcs <> '' begin
+    if exists(select 1 from dmdvcsks where charindex(',' + rtrim(ma_dvcs) + ',', ',' + replace(@ma_dvcs, ' ', '') + ',') > 0 and ngay_ks >= @$d) begin
+      select 'nam' as field, @$lockedDate as message
+      return
+    end
+  end else begin
+    if exists(select 1 from dmdvcsks where ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID) and ngay_ks >= @$d) begin
+      select 'nam' as field, @$lockedDate as message
+      return
+    end
+  end
+end
+]]>

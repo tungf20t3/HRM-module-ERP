@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\Circular\A04195\ReportCircularTypeField.xml">
+]>
+
+<dir table="dtmaubc" code="ma_dt" order="ma_dt" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    &ReportCircularTypeField;
+  </fields>
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 100, 100, 130"/>
+      <item value="110--:   [chon_tt].Label, [chon_tt]"/>
+    </view>
+  </views>
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);a.getItem("chon_tt").focus()}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(h,a){var b=a.object,d=a.type.Context,g=a.type.Result;switch(d){case"Checking":var f=b.grid,c=$func.trim(b.getItemValue("chon_tt"))=="1",e=c?"not ":"";b.grid._circular=c;f.set_externalKey([{Name:e+"rtrim(ma_dt)",Opr:"like",Value:"%A04195",Type:"String",Ignore:false}])}}]]>
+    </text>
+  </script>
+  &OutlineCss;
+</dir>

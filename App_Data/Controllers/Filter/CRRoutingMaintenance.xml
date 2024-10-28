@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterInit SYSTEM "..\Include\XML\WhenFilterInit.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+]>
+
+<dir table="phrt" code="stt_rec" order="ma_lo_trinh" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="ma_lo_trinh" filterSource="master" operation="10">
+      <header v="Mã quy trình" e="Routing Code"></header>
+      <items style="AutoComplete" controller="CRRoutingCodeList" reference="ten_lo_trinh%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_lo_trinh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_cd" filterSource="detail" operation="10" categoryIndex="1">
+      <header v="Mã công đoạn" e="Operation Code"></header>
+    </field>
+    <field name="ten_cd%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" filterSource="detail" operation="20" categoryIndex="1">
+      <header v="Mã vật tư" e="Item Code"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1' and loai_vt in ('41', '51')" check="status = '1' and loai_vt in ('41', '51')"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="user_id0" dataFormatString="0, 1" clientDefault="1" align="right" inactivate="true" categoryIndex="-1">
+      <header v="Người sử dụng" e="User"></header>
+      <footer v="1 - Lọc theo người sử dụng, 0 - Không" e="1 - Filter by User, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="64">
+      <item value="120, 30, 70, 330"/>
+      <item value="1101: [ma_lo_trinh].Label, [ma_lo_trinh], [ten_lo_trinh%l]"/>
+      <item value="1101: [ma_cd].Label, [ma_cd], [ten_cd%l]"/>
+      <item value="1101: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="1110: [user_id0].Label, [user_id0], [user_id0].Description"/>
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 330">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterInit;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFilterInit;
+    </text>
+  </script>
+</dir>

@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "TimekeepingImportForm">
+  <!ENTITY UploadButtonCss SYSTEM "..\Include\XML\ImageUploadForm.txt">
+
+  <!ENTITY UploadCreateTicket SYSTEM "..\Include\XML\UploadCreateTicket.txt">
+  <!ENTITY UploadField SYSTEM "..\Include\XML\UploadField.txt">
+  <!ENTITY UploadCommand SYSTEM "..\Include\Command\UploadCommand.txt">
+  <!ENTITY UploadScript SYSTEM "..\Include\Javascript\UploadScript.txt">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+]>
+
+<dir table="hrvaora$000000" code="stt_rec, thoi_gian" order="c$" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lấy số liệu chấm công" e="Timekeeping Data Import"></title>
+
+  <fields>
+    &UploadField;
+    <field name="type" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Kiểu sao chép" e="Type"></header>
+      <footer v="1 - Chép đè, 0 - Không" e="1 - Overwrite, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_bp" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ticket" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+
+    &FilterFormModeField;
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 100, 30, 0, 0, 0, 0, 0"/>
+      <item value="110001011111: [upload].Label, [upload], [upload].Description, [tu_ngay], [den_ngay], [ma_bp], [ma_nv], [bp_ref]"/>
+      <item value="1110000----1: [type].Label, [type], [type].Description, [ticket]"/>
+      &FilterFormModeView;
+    </view>
+  </views>
+
+  <commands>
+    &UploadCommand;
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, g = f.grid, k = f.getItem('ticket').value;
+var fileName = get$]]>&Identity;<![CDATA[FileName($get('fileupload').value), allowExt = 'xlsx';
+var err = (this._language == 'v' ? 'Định dạng tệp không đúng.' : 'Invalid file type.');
+if (fileName != '') {
+  var ext = fileName.split('.').pop();
+  if (allowExt.indexOf(ext.toLowerCase()) < 0) {
+    f._checked = false;
+    $message.show(err);
+  }
+  else {
+    init$]]>&Identity;<![CDATA[IFrame(f);
+    if (g._refreshMemvars) f._importMemvars = g._memvars;
+    set$]]>&Identity;<![CDATA[Memvar(f, f._importMemvars, 'type]]>&FilterFormModeVarField;<![CDATA[');
+    var form = $get('uploadForm'), query = {Language: f._language, Controller: g._controller, Key: k, Memvars: f._importMemvars, Time: new Date().getTime().toString()};
+    $get('query', form).value = Sys.Serialization.JavaScriptSerializer.serialize(query);
+    form.action = $func.resolveClientUrl('~/AppHandler/Import.ashx', g._baseUrl);
+    form.target = g._controller + '_IFrame';
+    form.submit();
+    f.request('GetTicket', 'GetTicket', []);
+    f._checked = false;
+    ]]>&FilterFormModeEndSubmit;<![CDATA[
+  }
+  g._refreshMemvars = false;
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &UploadScript;
+      &FilterFormModeScript;
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[(f) {
+  var g = f.grid;
+  document.body._form = f;
+  $get('fileupload').value = '';
+  f.getItem('upload').field.AllowNulls = false;
+  $get(f.get_id() + '_form_upload').style.color = 'grey';
+  f.getItem('tu_ngay').value = g._d1;
+  f.getItem('den_ngay').value = g._d2;
+  f.getItem('ma_bp').value = g._dept;
+  f.getItem('ma_nv').value = g._staff;
+  f.getItem('bp_ref').value = g._deptRef;
+  f.request('GetTicket', 'GetTicket', []);
+}
+function on$]]>&Identity;<![CDATA[$ResponseComplete(f, e) {
+  var f = e.object, g = f.grid, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'GetTicket':
+      f.setItemValue('ticket', result[0].Value);
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetTicket">
+      <text>
+        &UploadCreateTicket;<![CDATA[
+select @ticket as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &UploadButtonCss;
+</dir>

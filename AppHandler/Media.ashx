@@ -1,0 +1,1 @@
+﻿<%@ WebHandler Class="Media.Handler" %>

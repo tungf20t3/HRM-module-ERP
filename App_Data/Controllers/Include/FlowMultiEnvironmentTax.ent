@@ -1,0 +1,37 @@
+﻿<!ENTITY % Conditional.EnvironmentTax SYSTEM "..\Include\EnvironmentTax.txt">
+
+<![%Conditional.EnvironmentTax;[
+  <!ENTITY EnvironmentTaxDeclare "
+select top 0 ma_vt, dvt, muc_thue, ty_le as tl_chiu_thue, tk_thue_mt, dvt as dvt_0, ty_le as he_so_mt, ty_le as ty_le_0, ty_le as ty_le_2
+  into #dmkbtmt from dmkbtmt
+">
+
+  <!ENTITY EnvironmentTaxFields ", rtrim(m.muc_thue) as muc_thue, m.tl_chiu_thue, rtrim(m.tk_thue_mt) as tk_thue_mt, m.he_so_mt">
+  <!ENTITY EnvironmentTaxJoin " left join #dmkbtmt m on a.ma_vt = m.ma_vt and a.dvt = m.dvt_0">
+
+  <!ENTITY EnvironmentTaxQuery "
+insert into #dmkbtmt select a.ma_vt, a.dvt, a.muc_thue, a.ty_le as tl_chiu_thue, a.tk_thue_mt, b.dvt as dvt_0, a.ty_le * 0 as he_so_mt, a.ty_le * 0 as ty_le_0, a.ty_le * 0 as ty_le_2
+  from dmkbtmt a join #d b on a.ma_vt = b.ma_vt
+  where a.loai = &EnvironmentTaxType; and a.ngay_hl =(select max(ngay_hl) from dmkbtmt c where c.ngay_hl &lt;= b.ngay_ct and c.ma_vt = b.ma_vt and c.loai = &EnvironmentTaxType;)
+
+update #dmkbtmt set he_so_mt = 1 where dvt = dvt_0
+update #dmkbtmt set ty_le_0 = b.he_so from #dmkbtmt a join vdmvtqddvt b on a.dvt = b.dvt and a.ma_vt = b.ma_vt where a.he_so_mt = 0
+update #dmkbtmt set ty_le_2 = b.he_so from #dmkbtmt a join vdmvtqddvt b on a.dvt_0 = b.dvt and a.ma_vt = b.ma_vt where a.he_so_mt = 0
+update #dmkbtmt set he_so_mt = he_so / ty_le_0 * ty_le_2 from #dmkbtmt a join vdmvtqddvt b ON a.ma_vt = b.ma_vt where b.xtype = 'S' and a.he_so_mt = 0
+
+update #d set muc_thue = m.muc_thue, tl_chiu_thue = m.tl_chiu_thue, tk_thue_mt = m.tk_thue_mt, he_so_mt = m.he_so_mt from #d a join #dmkbtmt m on a.ma_vt = m.ma_vt and a.dvt = m.dvt_0
+">
+
+  <!ENTITY EnvironmentTaxCopyFields ", muc_thue, tl_chiu_thue, tk_thue_mt, he_so_mt">
+
+  <!ENTITY EnvironmentTaxValidDetail ".concat([z.$a.mt, z.$a.mt_tg])">
+  <!ENTITY EnvironmentTaxValidTotal ".concat([z.$a.t_thue_mt, z.$a.t_thue_mt_nt])">
+]]>
+
+<!ENTITY EnvironmentTaxDeclare "">
+<!ENTITY EnvironmentTaxFields "">
+<!ENTITY EnvironmentTaxJoin "">
+<!ENTITY EnvironmentTaxQuery "">
+<!ENTITY EnvironmentTaxCopyFields "">
+<!ENTITY EnvironmentTaxValidDetail "">
+<!ENTITY EnvironmentTaxValidTotal "">

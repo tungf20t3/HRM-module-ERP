@@ -1,0 +1,264 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Code "T02">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % Tiny.Currency SYSTEM "..\..\Include\Tiny.Currency.ent">
+  %Tiny.Currency;
+
+  <!ENTITY % CheckTaxCode SYSTEM "..\..\Include\CheckImportTaxCode.ent">
+  %CheckTaxCode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.OutputVATEntry;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$OutputVATEntryImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$OutputVATEntryImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="ctgt20"/>
+    <table value="ctgt20" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;not exists(select 1 from ctgt20 b where @@table.ngay_lct = b.ngay_lct and @@table.so_ct = b.so_ct and @@table.so_seri = b.so_seri and @@table.ma_mau_ct = b.ma_mau_ct and @@table.ma_so_thue = b.ma_so_thue and @@table.ma_thue = b.ma_thue and b.ma_ct = @voucherID and status = '1') and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from ctgt20 b where @@table.ngay_lct = b.ngay_lct and @@table.so_ct = b.so_ct and @@table.so_seri = b.so_seri and @@table.ma_mau_ct = b.ma_mau_ct and @@table.ma_so_thue = b.ma_so_thue and @@table.ma_thue = b.ma_thue and b.ma_ct = @voucherID and status = '1') and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;if (@admin &lt;&gt; 1) begin&And;if (@admin &lt;&gt; 1 and @type = '1') begin" tag="&And;end&And;end" errorCode="00001&And;00001&And;00001"/>
+    <field name="ngay_ct" column="." type="DateTime" allowNulls="false"/>
+    <field name="ngay_lct" column="." type="DateTime" isPrimaryKey="true" updateValue="None"/>
+    <field name="so_ct" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="so_seri" column="." isPrimaryKey="true" upperCase="true" updateValue="None"/>
+    <field name="ma_mau_ct" column="." isPrimaryKey="true" upperCase="true" updateValue="None" check="ma_mau_ct &lt;&gt; '' and ma_mau_ct not in (select ma_mau_ct from dmmauct)" errorCode="00001"/>
+
+    <field name="ma_kh" column="." upperCase="true" check="ma_kh &lt;&gt; '' and ma_kh not in (select ma_kh from dmkh where kh_yn = '1')" errorCode="00001"/>
+    <field name="ten_kh" column="." check="ten_kh = ''" errorCode="00001"/>
+    <field name="dia_chi" column="."/>
+    <field name="ma_so_thue" column="." isPrimaryKey="true" upperCase="true" updateValue="None"/>
+    <field name="ten_vt" column="."/>
+
+    <field name="ma_nt" upperCase="true" column="&Tiny.External.Import.Field.Column;" check="ma_nt not in (select ma_nt from dmnt)" errorCode="00001"/>
+    <field name="ty_gia" column="&Tiny.External.Import.Field.Column;" type="Decimal" defaultValue="1"/>
+    <field name="t_tien_nt2" column="." type="Decimal"/>
+    <field name="ma_thue" isPrimaryKey="true" upperCase="true" updateValue="None" column="." check="ma_thue not in (select ma_thue from dmthue)" errorCode="00001"/>
+    <field name="t_thue_nt" column="." type="Decimal"/>
+    <field name="tk_thue_co" upperCase="true" column="." check="tk_thue_co not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+    <field name="tk_du" upperCase="true" column="." check="tk_du &lt;&gt; '' and tk_du not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+
+    <field name="ma_nvbh" upperCase="true" column="&Tiny.External.Import.Field.Column;" check="ma_nvbh &lt;&gt; '' and ma_nvbh not in (select ma_nvbh from dmnvbh)" errorCode="00001"/>
+    <field name="ma_kho" upperCase="true" column="." check="ma_kho &lt;&gt; '' and not exists(select 1 from dmkho b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_kho = b.ma_kho)" errorCode="00001"/>
+    <field name="ma_vv" upperCase="true" column="." check="ma_vv &lt;&gt; '' and ma_vv not in (select ma_vv from dmvv)" errorCode="00001"/>
+    <field name="ma_kh2" upperCase="true" column="." check="ma_kh &lt;&gt; '' and ma_kh not in (select ma_kh from dmkh)" errorCode="00001"/>
+    <field name="ghi_chu" column="."/>
+
+    <field name="t_tien2" column="" type="Decimal" insertValue="case when a.ma_nt = '' then a.t_tien_nt2 else round(a.t_tien_nt2 * a.ty_gia, @round) end" updateValue="case when b.ma_nt = '' then b.t_tien_nt2 else round(b.t_tien_nt2 * b.ty_gia, @round) end"/>
+    <field name="t_thue" column="" type="Decimal" insertValue="case when a.ma_nt = '' then a.t_thue_nt else round(a.t_thue_nt * a.ty_gia, @round) end" updateValue="case when b.ma_nt = '' then b.t_thue_nt else round(b.t_thue_nt * b.ty_gia, @round) end"/>
+    <field name="thue_suat" column="" type="Decimal"/>
+
+    <field name="stt_rec" column=""/>
+    <field name="ma_ct" column="None" insertValue="@voucherID" updateValue="None"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <variable>
+    &TaxCodeImportVariable;
+    &ImportLockedDateVariable;
+  </variable>
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật hóa đơn GTGT đầu ra" e="VAT Invoice Output Entry"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ngay_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày chứng từ" e="Voucher Date"/>
+      </field>
+      <field name="ngay_lct" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hóa đơn" e="Invoice Date"/>
+      </field>
+      <field name="so_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số hóa đơn" e="Invoice Number"/>
+      </field>
+      <field name="so_seri" width="16">
+        <text v="Ký hiệu" e="Series"/>
+      </field>
+      <field name="ma_mau_ct" width="16">
+        <text v="Mẫu hóa đơn" e="Invoice Form"/>
+      </field>
+      <field name="ma_kh" width="16">
+        <text v="Mã khách" e="Customer"/>
+      </field>
+      <field name="ten_kh" width="32" starColor="&EIT.StarColor.Sub;">
+        <text v="Tên khách hàng" e="Customer Name"/>
+      </field>
+      <field name="dia_chi" width="32">
+        <text v="Địa chỉ" e="Address"/>
+      </field>
+      <field name="ma_so_thue" width="32">
+        <text v="Mã số thuế" e="Tax Code"/>
+      </field>
+      <field name="ten_vt" width="32">
+        <text v="Tên vật tư" e="Item"/>
+      </field>
+      <field name="ma_nt" width="16">
+        <text v="Mã nt" e="Currency"/>
+      </field>
+      <field name="ty_gia" width="16">
+        <text v="Tỷ giá" e="Exchange Rate"/>
+      </field>
+
+      <field name="t_tien_nt2" width="16">
+        <text v="Tổng tiền" e="Total Amount"/>
+      </field>
+
+      <field name="ma_thue" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã thuế" e="Tax Code"/>
+      </field>
+      <field name="thue_suat" width="16">
+        <text v="Thuế suất" e="Tax Rate"/>
+      </field>
+
+      <field name="t_thue_nt" width="16">
+        <text v="Tiền thuế" e="Tax Amount"/>
+      </field>
+      <field name="tk_thue_co" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Tài khoản thuế" e="Tax Account"/>
+      </field>
+      <field name="tk_du" width="16">
+        <text v="Tài khoản đối ứng" e="Corr. Tax Account"/>
+      </field>
+
+
+      <field name="ma_nvbh" width="16">
+        <text v="Nhân viên bán" e="Sales Employee"/>
+      </field>
+      <field name="ma_kho" width="16">
+        <text v="Kho xuất" e="Site"/>
+      </field>
+      <field name="ma_vv" width="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_kh2" width="16">
+        <text v="Cục thuế" e="Tax Authority"/>
+      </field>
+      <field name="ghi_chu" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @field varchar(32), @user int, @admin bit, @r int, @wsID varchar(8), @voucherID varchar(8), @locked nvarchar(512)
+declare @baseCurrency varchar(8), @count int, @m int, @round int
+
+select @voucherID = ']]>&Code;<![CDATA['
+select @locked = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày chứng từ tại dòng <span class="Highlight">%s</span>.' else N'Data is locked, please check the date of voucher at row <span class="Highlight">%s</span>.' end
+
+select @wsID = rtrim(val) from options where name = 'm_ws_id'
+select @baseCurrency = rtrim(val) from options where name = 'm_ma_nt0'
+select @round = cast(rtrim(val) as int) from options where name = 'm_round_tien'
+select @admin = @@admin, @user = @@userID from dmstt
+select @m = character_maximum_length from information_schema.columns where table_name = 'wrkcolumns' and column_name = 'so_ct'
+
+if @admin <> 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'OutputVATEntry', 'Edit') = 0 select @type = '0'
+  end
+end
+
+
+select @count = count(*) from @@table
+select ma_dvcs, ngay_ct, so_ct into #unit from @@table
+
+-- Locked Date
+]]>&ImportLockedDateCheck;<![CDATA[
+]]>&CommandCheckTaxCodeImport;<![CDATA[
+
+update @@table set so_ct = space(@m - len(rtrim(so_ct))) + ltrim(so_ct), ngay_lct = case when a.ngay_lct is null then a.ngay_ct else a.ngay_lct end,
+    ma_nt = case when a.ma_nt <> '' then a.ma_nt else @baseCurrency end,
+    ten_kh = case when a.ten_kh <> '' then a.ten_kh else isnull(rtrim(b.ten_kh), '') end,
+    thue_suat = c.thue_suat, tk_thue_co = case when a.tk_thue_co = '' then isnull(rtrim(c.tk_thue_co), '') else rtrim(a.tk_thue_co) end
+  from @@table a
+    left join dmkh b on a.ma_kh = b.ma_kh
+    left join dmthue c on a.ma_thue = c.ma_thue
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+-- Delete
+if @type = '0' delete @@table from @@table a where exists(select 1 from ctgt20 b where a.ma_dvcs = b.ma_dvcs and a.ngay_lct = b.ngay_lct and a.so_ct = b.so_ct and a.so_seri = b.so_seri and a.ma_mau_ct = b.ma_mau_ct and a.ma_so_thue = b.ma_so_thue and a.ma_thue = b.ma_thue and b.ma_ct = @voucherID)
+select @field = 'ma_dvcs'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from @@table where @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)
+  ]]>&Error;<![CDATA[
+end
+]]>&EndErrorMode;<![CDATA[
+
+update @@table set stt_rec = b.stt_rec
+  from @@table a join (select c.ma_dvcs, c.ngay_lct, c.so_ct, c.so_seri, c.ma_mau_ct, c.ma_so_thue, c.ma_thue, min(c.stt_rec) as stt_rec from ctgt20 c join @@table d on c.ma_dvcs = d.ma_dvcs and c.ngay_lct = d.ngay_lct and c.so_ct = d.so_ct and c.so_seri = d.so_seri and c.ma_mau_ct = d.ma_mau_ct and c.ma_so_thue = d.ma_so_thue and c.ma_thue = d.ma_thue where c.ma_ct = @voucherID and c.status = '1' group by c.ma_dvcs, c.ngay_lct, c.so_ct, c.so_seri, c.ma_mau_ct, c.ma_so_thue, c.ma_thue) b on a.ma_dvcs = b.ma_dvcs and a.ngay_lct = b.ngay_lct and a.so_ct = b.so_ct and a.so_seri = b.so_seri and a.ma_mau_ct = b.ma_mau_ct and a.ma_so_thue = b.ma_so_thue and a.ma_thue = b.ma_thue
+
+-- Gather
+select a.* into #k from @@table a join ctgt20 b on a.ma_dvcs = b.ma_dvcs and a.ngay_lct = b.ngay_lct and a.so_ct = b.so_ct and a.so_seri = b.so_seri and a.ma_mau_ct = b.ma_mau_ct and a.ma_so_thue = b.ma_so_thue and a.ma_thue = b.ma_thue
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.ngay_lct = b.ngay_lct and a.so_ct = b.so_ct and a.so_seri = b.so_seri and a.ma_mau_ct = b.ma_mau_ct and a.ma_so_thue = b.ma_so_thue and a.ma_thue = b.ma_thue)
+
+-- Insert
+if @count > 0 begin
+  exec AI_ERP$App$UpdateIdentityNumber @wsID, @voucherID, @count, @user, '@@table', 'stt_rec', 'stt'
+  update @@table set ma_nt = '', ty_gia = 0 where ma_nt = @baseCurrency
+  ]]>&Inserting;<![CDATA[
+end
+
+-- Update
+if @type = '1' begin
+  update #k set ma_nt = '', ty_gia = 0 where ma_nt = @baseCurrency
+  update ctgt20 set @@list from ctgt20 a, #k b where a.ma_dvcs = b.ma_dvcs and a.ngay_lct = b.ngay_lct and a.so_ct = b.so_ct and a.so_seri = b.so_seri and a.ma_mau_ct = b.ma_mau_ct and a.ma_so_thue = b.ma_so_thue and a.ma_thue = b.ma_thue and status = '1'
+end
+]]>
+    </text>
+  </processing>
+
+</import>

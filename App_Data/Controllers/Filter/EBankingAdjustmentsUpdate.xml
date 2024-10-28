@@ -1,0 +1,323 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY d "set ngay_ct = ''' + @d + '''">
+  <!ENTITY set " set ngay_ct = @ngay_ct, user_id2 = @@userID, datetime2 = @dateChange from ">
+  <!ENTITY join " + ' a join #u b on a.stt_rec = b.stt_rec where b.period = ''' + @oldPeriod + '''">
+  <!ENTITY where " + ' where stt_rec in (select stt_rec from #u where period = ''' + @oldPeriod + ''')">
+
+  
+  <!ENTITY Key "declare @rk varchar(16)
+select @rk = lower(left(replace(newid(), '-', ''), 16))
+update @@sysDatabaseName..userinfo2 set rkey = @rk where id = @@userID">
+  
+]>
+
+<dir table="c56$000000" code="name" order="name" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xác nhận" e="Confirm"></title>
+  <fields>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày hạch toán" e="Posting Date"></header>
+    </field>
+
+    <field name="cpass" external="true" defaultValue="''">
+      <header v="Xác nhận mật khẩu" e="Confirm Password"></header>
+      <clientScript><![CDATA[type="password" onchange="genHash(this);"]]></clientScript>
+    </field>
+    <field name="chkpass" external="true" hidden="true" readOnly="true" defaultValue="''" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 100, 230, 0"/>
+      <item value="11---: [ngay_ct].Label, [ngay_ct]"/>
+      <item value="110-1: [cpass].Label, [cpass], [chkpass]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        &Key;<![CDATA[
+declare @message nvarchar(4000)
+select @message = 'this._key = ''' + @rk + ''';loadForm(this);'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'closeForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, o = f.getItem('cpass');
+o.oldValue = o.value;
+o.value = '';
+checkFieldEntry(f, o);
+if (f._checked) {
+  f._checked = false;
+  f.request('CheckKey', 'CheckKey', ['chkpass']);
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function loadForm(f) {
+  var g = f.grid;
+  f.add_onResponseComplete(on$Form$ResponseComplete);
+  if (f._$init) f.request('Key', 'Key', []);
+  f._$init = true;
+}
+function closeForm(f) {try {f.remove_onResponseComplete(on$Form$ResponseComplete);} catch (ex) {}}
+function on$Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Key':
+      f._key = result[0].Value;
+      break;
+    case 'CheckKey':
+      if (result[0].Value) request$PaymentAdj(f);
+        else $message.show(f._language == 'v' ? 'Mật khẩu xác nhận không đúng.' : 'Confirmation password is invalid.', String.format('revertPassword(\'{0}\', \'\', true); $find(\'{0}\').focus(\'{1}\');', f.get_id(), 'cpass'));
+      break;
+    case 'Adjustments':
+      if (result[0].Value) {
+        var g = f.grid;
+        g._$k = [];
+        fill$Grid(g, false);
+        g.goToPage(-1);
+        f.cancelDialog();
+      }
+      break;
+    default:
+      break;
+  }
+}
+function genHash(o) {
+  var f = o.parentForm, p = $func.trim(MD5(o.value));
+  f.getItem('chkpass').value = CRC32($func.trim(f._key).substr(0, 8) + p.substr(1, p.length - 2));
+}
+function checkFieldEntry(f, o, force) {
+  if (force) o = f.getItem(o);
+  var v = force ? o.value : o.oldValue;
+  if (f._checked && !v) {
+    f._checked = false;
+    $func.hideWait(f.get_id());
+    $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), o.field.Label), String.format('revertPassword(\'{0}\', \'\', true); $find(\'{0}\').focus(\'{1}\');', f.get_id(), o.field.Name));
+  }
+}
+function revertPassword(f, name, force) {
+  if (force) f = $find(f);
+  var o = f.getItem('cpass');
+  if (o.oldValue) o.value = o.oldValue;
+}
+
+function request$PaymentAdj(f, force) {
+  var g = f.grid;
+  f.request('Adjustments', 'Adjustments', [['s', 'Infinite', g._$k], ['ngay_ct', 'DateTime', f.getItemValue('ngay_ct')]]);
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Key">
+      <text>
+        &Key;<![CDATA[
+select @rk as value
+return
+]]>
+      </text>
+    </action>
+
+    <action id="CheckKey">
+      <text>
+        <![CDATA[
+declare @hash varchar(32), @c bit, @d bit, @k varchar(6)
+exec @@sysDatabaseName..AI_ERP$System$CheckSum @@userID, @chkpass, 0, @c output
+select @c as val
+return
+]]>
+      </text>
+    </action>
+
+    <action id="Adjustments">
+      <text>
+        <![CDATA[
+select @ngay_ct = cast(@ngay_ct as datetime)
+declare @$updateConflict nvarchar(512), @$lockedDate nvarchar(512), @minDate smalldatetime, @i int, @q nvarchar(4000), @table varchar(32), @grand varchar(32),
+  @oldPeriod varchar(8), @currentPeriod varchar(8), @oldMaster varchar(32), @currentMaster varchar(32), @oldDetail varchar(32), @currentDetail varchar(32),
+  @oldInquiry varchar(32), @currentInquiry varchar(32), @oldPost varchar(32), @currentPost varchar(32), @oldPostTax varchar(32), @currentPostTax varchar(32),
+  @d varchar(8), @dateChange datetime, @timeChange varchar(32), @voucherCode varchar(32), @unitCode varchar(32), @oldEBanking varchar(32), @currentEBanking varchar(32)
+
+declare @maxNext int, @maxBack int, @$validDate nvarchar(512)
+select top 1 @maxBack = val from options where name = 'm_ngay_dc_truoc'
+select top 1 @maxNext = val from options where name = 'm_ngay_dc_sau'
+select @maxBack = isnull(@maxBack, 0), @maxNext = isnull(@maxNext, 0)
+
+select @currentPeriod = convert(char(6), @ngay_ct, 112), @voucherCode = 'BN1', @table = '56',
+  @currentMaster = 'm' + @table + '$' + @currentPeriod, @currentDetail = 'd' + @table + '$' + @currentPeriod, @currentInquiry = 'i' + @table + '$' + @currentPeriod,
+  @grand = 'c' + @table + '$000000', @currentPost = 'r00$' + @currentPeriod, @currentPostTax = 'r30$' + @currentPeriod, @currentEBanking = 'knnh00$' + @currentPeriod
+
+select @$updateConflict = case when @@language = 'v' then N'Chứng từ đã phân bổ hoặc thanh toán, không thể sửa được.' else N'Can not edit this voucher, It was received or paid.' end
+select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+select @$validDate = case when @@language = 'v' then N'Trường <span class="Highlight">' + N'Ngày hạch toán' + N' </span> chưa nhập hoặc giá trị nhập không hợp lệ.' else N'Field <span class="Highlight">' + 'Posting Date' + ' </span> must not be blank or has invalid value.' end
+
+if not exists(select 1 from dmstt where @ngay_ct between ngay_gh1 and ngay_gh2) begin
+  select 'ngay_ct' as field, @$lockedDate as message
+  return
+end
+
+create table #lockedDate (r int)
+select top 0 stt_rec, ngay_ct, ma_dvcs into #c from c56$000000
+insert into #c select stt_rec, ngay_ct, ma_dvcs from c56$000000 where exists(select 1 from @s where patindex('%'+ stt_rec + '%', text) > 0) and ngay_ct <> @ngay_ct
+
+-- Check
+select min(ngay_ct) as ngay_ct, ma_dvcs into #check from #c group by ma_dvcs
+select top 1 @minDate = ngay_ct, @unitCode = ma_dvcs from #check order by ma_dvcs
+while @unitCode is not null begin
+  insert into #lockedDate exec fs20_CheckLockedDateOnVoucher @voucherCode, @ngay_ct, @@userID, @unitCode, 1
+  insert into #lockedDate exec fs20_CheckLockedDateOnVoucher @voucherCode, @minDate, @@userID, @unitCode, 1
+  if exists(select * from #lockedDate where r <> 1) begin
+    select 'ngay_ct' as field, @$lockedDate as message
+    return
+  end
+  select @unitCode = min(ma_dvcs) from #check where ma_dvcs > @unitCode
+  select @minDate = ngay_ct from #check where ma_dvcs = @unitCode
+end
+
+if @@admin <> 1 begin
+  if exists (select 1 from sysunitrights a join #c b on a.ma_dvcs = b.ma_dvcs and a.user_id = @@userID and a.r_edit = 0) begin
+    select 'ngay_ct' as field, '$NotAuthorized' as message
+    return
+  end
+end
+
+if exists(select 1 from cttt30 a join #c b on left(a.stt_rec, 10) = left(b.stt_rec, 10) and a.loai_tt = 1 and a.loai_ct <> '1') begin
+  select 'ngay_ct' as field, @$updateConflict as message
+  return
+end
+if exists(select 1 from cttt20 a join #c b on left(a.stt_rec_tt, 10) = left(b.stt_rec, 10) and a.loai_tt = 1) begin
+  select 'ngay_ct' as field, @$updateConflict as message
+  return
+end
+
+declare @checkEbanking bit, @oldPeriodEbanking varchar(6)
+select convert(char(6), min(ngay_ct), 112) as period into #eperiod from #c group by year(ngay_ct), month(ngay_ct)
+select @oldPeriodEbanking = min(period) from #eperiod
+
+while @oldPeriodEbanking is not null begin
+  select @q = 'if exists (select 1 from knnh00$' + @oldPeriodEbanking + ' a join #c b on a.stt_rec = b.stt_rec where not(@ngay_ct between (a.ngay_ct_goc - @maxBack) and (a.ngay_ct_goc + @maxNext))) select @checkEbanking = 1'
+  exec sp_executesql @q, N'@checkEbanking bit out, @ngay_ct smalldatetime, @maxNext int, @maxBack int', @checkEbanking out, @ngay_ct, @maxNext, @maxBack
+
+  if @checkEbanking = 1 begin
+    select 'ngay_ct' as field, @$validDate as message
+    return
+  end
+  select @oldPeriodEbanking = min(period) from #eperiod where period > @oldPeriodEbanking
+end
+
+-- update
+select @dateChange = getdate(), @d = convert(char(8), @ngay_ct, 112), @timeChange = convert(varchar, @dateChange, 25)
+
+update ct00]]>&set;<![CDATA[ct00 a join #c b on a.stt_rec = b.stt_rec
+update ctgt30]]>&set;<![CDATA[ctgt30 a join #c b on a.stt_rec = b.stt_rec
+update cttt20]]>&set;<![CDATA[cttt20 a join #c b on left(a.stt_rec, 10) = left(b.stt_rec, 10)
+update cttt30]]>&set;<![CDATA[cttt30 a join #c b on a.stt_rec = b.stt_rec
+update cttt60]]>&set;<![CDATA[cttt60 a join #c b on left(a.stt_rec, 10) = left(b.stt_rec, 10)
+
+select @q = 'update ' + @grand + ' ]]>&d;<![CDATA[ from ' + @grand + ' a join #c b on a.stt_rec = b.stt_rec'
+exec sp_executesql @q
+
+select stt_rec, ngay_ct, convert(char(6), ngay_ct, 112) as period into #u from #c where month(@ngay_ct) <> month(ngay_ct) or year(@ngay_ct) <> year(ngay_ct)
+delete #c from #c a join #u b on a.stt_rec = b.stt_rec
+
+if exists (select 1 from #u) begin
+  select convert(char(6), min(ngay_ct), 112) as period into #period from #u group by year(ngay_ct), month(ngay_ct)
+  select @oldPeriod = min(period) from #period
+  select top 0 * into #m from m56$000000
+  select top 0 * into #d from d56$000000
+  select top 0 * into #i from i56$000000
+  select top 0 * into #r00 from r00$000000
+  select top 0 * into #r30 from r30$000000
+  select top 0 * into #knnh from knnh00$000000
+
+  while @oldPeriod is not null begin
+    select @oldMaster = 'm' + @table + '$' + @oldPeriod, @oldDetail = 'd' + @table + '$' + @oldPeriod, @oldInquiry = 'i' + @table + '$' + @oldPeriod, @oldPost = 'r00$' + @oldPeriod, @oldPostTax = 'r30$' + @oldPeriod, @oldEBanking = 'knnh00$' + @oldPeriod
+    select @q = '
+  insert into #m select a.* from ' + @oldMaster]]>&join;<![CDATA[
+  insert into #d select a.* from ' + @oldDetail]]>&join;<![CDATA[
+  insert into #i select a.* from ' + @oldInquiry]]>&join;<![CDATA[
+  insert into #r00 select a.* from ' + @oldPost]]>&join;<![CDATA[
+  insert into #r30 select a.* from ' + @oldPostTax]]>&join;<![CDATA[
+  insert into #knnh select a.* from ' + @oldEBanking]]>&join;<![CDATA[
+
+  update #m ]]>&d;<![CDATA[, user_id2 = @@userID, datetime2 = ''' + @timeChange + '''
+  update #d ]]>&d;<![CDATA[
+  update #i ]]>&d;<![CDATA[, c$ = ''' + @d + ''' + so_ct + stt_rec
+  update #r00 ]]>&d;<![CDATA[, user_id2 = @@userID, datetime2 = ''' + @timeChange + '''
+  update #r30 ]]>&d;<![CDATA[, user_id2 = @@userID, datetime2 = ''' + @timeChange + '''
+  update #knnh ]]>&d;<![CDATA[
+
+  delete ' + @oldMaster]]>&where;<![CDATA[
+  delete ' + @oldDetail]]>&where;<![CDATA[
+  delete ' + @oldInquiry]]>&where;<![CDATA[
+  delete ' + @oldPost]]>&where;<![CDATA[
+  delete ' + @oldPostTax]]>&where;<![CDATA[
+  delete ' + @oldEBanking ]]>&where;<![CDATA[
+
+  insert into ' + @currentMaster + ' select * from #m
+  insert into ' + @currentDetail + ' select * from #d
+  insert into ' + @currentInquiry + ' select * from #i
+  insert into ' + @currentPost + ' select * from #r00
+  insert into ' + @currentPostTax + ' select * from #r30
+  insert into ' + @currentEBanking + ' select * from #knnh
+'
+    exec sp_executesql @q
+
+    truncate table #m
+    truncate table #d
+    truncate table #i
+    truncate table #r30
+    truncate table #r00
+    truncate table #knnh
+    select @oldPeriod = min(period) from #period where period > @oldPeriod
+  end
+end
+
+if exists (select 1 from #c) begin
+  select @q = '
+update m' + @table + '$' + @currentPeriod + ' ]]>&d;<![CDATA[, user_id2 = @@userID, datetime2 = ''' + @timeChange + ''' from m' + @table + '$' + @currentPeriod + ' a join #c b on a.stt_rec = b.stt_rec
+update d' + @table + '$' + @currentPeriod + ' ]]>&d;<![CDATA[ from d' + @table + '$' + @currentPeriod + ' a join #c b on a.stt_rec = b.stt_rec
+update i' + @table + '$' + @currentPeriod + ' ]]>&d;<![CDATA[, c$ = ''' + @d + ''' + so_ct + a.stt_rec from i' + @table + '$' + @currentPeriod + ' a join #c b on a.stt_rec = b.stt_rec
+update r00$' + @currentPeriod + ' ]]>&d;<![CDATA[, user_id2 = @@userID, datetime2 = ''' + @timeChange + ''' from r00$' + @currentPeriod + ' a join #c b on a.stt_rec = b.stt_rec
+update r30$' + @currentPeriod + ' ]]>&d;<![CDATA[, user_id2 = @@userID, datetime2 = ''' + @timeChange + ''' from r30$' + @currentPeriod + ' a join #c b on a.stt_rec = b.stt_rec
+update knnh00$' + @currentPeriod + ' ]]>&d;<![CDATA[ from knnh00$' + @currentPeriod + ' a join #c b on a.stt_rec = b.stt_rec
+'
+  exec sp_executesql @q
+end
+select 1 as c
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

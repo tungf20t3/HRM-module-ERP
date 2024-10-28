@@ -1,0 +1,53 @@
+﻿<![CDATA[
+function textboxWatermark(f, a, type, css, name) {
+  var s = f._language == 'v' ? '1' : '2';
+  for (var i = 0; i < a.length; i++) {
+    var e = f.getItem(a[i]);
+    if (type == 0) {
+      var c = String.format('{0}{1}{2}', name, i + 1, s), o = e._textboxWatermark = new TextboxWatermark();
+      o.create(e, css, c);
+    }
+    if (type <= 1) e._textboxWatermark.update();
+    if (type > 1) try {if (e && e._textboxWatermark) e._textboxWatermark.dispose();} catch (ex) {}
+  }
+}
+TextboxWatermark = function {}
+TextboxWatermark.prototype = {
+  create: function(e, c1, c2) {
+    this._e = e, this._c1 = c1, this._c2 = c2;
+    this._focus = Function.createDelegate(this, this._onFocus);
+    this._blur = Function.createDelegate(this, this._onBlur);
+    $addHandler(e, "focus", this._focus);
+    $addHandler(e, "blur", this._blur);
+  },
+  dispose: function() {
+    var e = this._e;
+    if (this._blur) {
+      $removeHandler(e, 'blur', this._blur);
+      this._blur = null;
+    }
+    if (this._focus) {
+      $removeHandler(e, "focus", this._focus);
+      this._focus = null;
+    }
+  },
+  _onFocus: function(e) {
+    this.removeCssClass();
+  }, 
+  _onBlur: function(e) {
+    this.update();
+  },
+  update: function() {
+    if (this._e.value) this.removeCssClass();
+      else this.addCssClass();
+  },
+  addCssClass: function() {
+    if (this._c1) Sys.UI.DomElement.addCssClass(this._e, this._c1);
+    if (this._c2) Sys.UI.DomElement.addCssClass(this._e, this._c2);
+  },
+  removeCssClass: function() {
+    if (this._c1) Sys.UI.DomElement.removeCssClass(this._e, this._c1);
+    if (this._c2) Sys.UI.DomElement.removeCssClass(this._e, this._c2);
+  }
+}
+]]>

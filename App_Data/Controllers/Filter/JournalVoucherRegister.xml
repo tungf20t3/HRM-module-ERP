@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+]>
+
+<dir table="ctgs" code="nam, so_ctgs" order="ngay_ctgs, so_ctgs, tk" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Đăng ký số chứng từ ghi sổ" e="Journal Voucher Register"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày ctgs từ" e="JV Date from"/>
+      <footer v="Ngày ctgs từ/đến" e="JV Date from/to"/>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày ctgs đến" e="JV Date to"/>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit(s)"></header>
+      <items style="Lookup" controller="Unit" key="ma_dvcs in (select ma_dvcs from sysunitrights r where r.user_id = @@userID and r.r_access=1) and status = '1'" check="ma_dvcs in (select ma_dvcs from sysunitrights r where r.user_id = @@userID and r.r_access=1)"/>
+    </field>
+    <field name="copy" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Sao chép số liệu" e="Copy"></header>
+      <footer v="1 - Sao chép chứng từ ghi sổ sang kỳ sau, 0 - Không" e="1 - Copy Journal Voucher Register To Next Period, 0 - No"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange=on$Filter$CopyChange(this.parentForm);]]></clientScript>
+    </field>
+    <field name="ngay_ct3" type="DateTime" dataFormatString="@datetimeFormat" align="left" filterSource="Optional">
+      <header v="Ngày ctgs từ" e="JV Date from"/>
+      <footer v="Chép ngày ctgs từ/đến" e="Date from/to"/>
+    </field>
+    <field name="ngay_ct4" type="DateTime" dataFormatString="@datetimeFormat" align="left" filterSource="Optional">
+      <header v="Ngày ctgs đến" e="JV Date to"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11100: [copy].Label, [copy], [copy].Description"/>
+      <item value="1101: [ngay_ct3].Description, [ngay_ct3], [ngay_ct4]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'on$Filter$CopyChange(this, true);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @copy = 1 exec rs_CopyJournalVC @ngay_ct3, @ngay_ct4, @ma_dvcs, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptQueryFilterString;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs")}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,d){var b=d.object,e=d.type.Context,f=d.type.Result;switch(e){case"Checking":var a=b.grid,c=[];a._d1=b.getItem("ngay_ct1").value,a._d2=b.getItem("ngay_ct2").value,a._u=b.getItemValue("ma_dvcs").replace(/'/g,"''");a._dateFrom=b.getItemValue("ngay_ct1"),a._dateTo=b.getItemValue("ngay_ct2");a._alterTitle=[null,[["%s1",a._d1,true],["%s2",a._d2,true]]];a._queryFilterString=getQueryFilterString(b,"ma_dvcs");b.getItemValue("ngay_ct1")&&Array.add(c,{Name:"ngay_ctgs",Opr:">=",Value:b.getItemValue("ngay_ct1"),Type:"DateTime",Ignore:false});b.getItemValue("ngay_ct2")&&Array.add(c,{Name:"ngay_ctgs",Opr:"<=",Value:b.getItemValue("ngay_ct2"),Type:"DateTime",Ignore:false});a._u!=""&&Array.add(c,{Name:"dbo.ff_InList(ma_dvcs, '"+a._u+"')",Opr:"=",Value:1,Type:"String",Ignore:false});a.set_externalKey(c);if(a._$k!=null)a._$k=[]}}function on$Filter$CopyChange(a,c){var b=a.getItem("copy").value==0;a.getItem("ngay_ct3").disabled=a.getItem("ngay_ct4").disabled=b;a.getItem("ngay_ct3").field.AllowNulls=a.getItem("ngay_ct4").field.AllowNulls=b;$common.setVisible(a.getItem("ngay_ct3").a,!b),$common.setVisible(a.getItem("ngay_ct4").a,!b);!c&&!b&&a.getItem("ngay_ct3").focus()}]]>
+    </text>
+  </script>
+
+</dir>

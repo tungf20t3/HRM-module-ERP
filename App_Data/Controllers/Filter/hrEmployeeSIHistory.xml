@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="vhreqtlbhht2" code="stt_rec, stt_rec0" order="stt_rec, stt_rec0" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_bd_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày bắt đầu từ" e="Start Date from"></header>
+      <footer v="Ngày bắt đầu từ/đến" e="Start Date from/to"></footer>
+    </field>
+    <field name="ngay_bd_den" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày bắt đầu đến" e="Start Date to"></header>
+    </field>
+    <field name="ngay_kt_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày kết thúc từ" e="End Date from"></header>
+      <footer v="Ngày kết thúc từ/đến" e="End Date from/to"></footer>
+    </field>
+    <field name="ngay_kt_den" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày kết thúc đến" e="End Date to"></header>
+    </field>
+    <field name="bo_phan" onDemand="true" external="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+      <clientScript><![CDATA[onchange="onchange$EmployeeSIHistoryFilter$Deparment(this);"]]></clientScript>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" onDemand="true">
+      <header v="Mã nhân viên" e="Employee ID"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="loai_thay_doi" onDemand="true">
+      <header v="Loại thay đổi" e="SI Change Type"></header>
+      <items style="AutoComplete" controller ="hrSIChangeType" reference="ten_loai%l" key="status = 1" check="1 = 1"></items>
+    </field>
+    <field name="ten_loai%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="lEmpSi_yn" type="Boolean" inactivate="true">
+      <header v="" e=""></header>
+      <footer v="Chỉ lọc các bản ghi sau cùng và còn hiệu lực" e="Only get the latest and still validated records"></footer>
+      <items style="CheckBox"/>
+    </field>
+    <field name="bp_ref" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="182">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="1101: [ngay_bd_tu].Description, [ngay_bd_tu], [ngay_bd_den]"/>
+      <item value="1101: [ngay_kt_tu].Description, [ngay_kt_tu], [ngay_kt_den]"/>
+      <item value="1101001: [bo_phan].Label, [bo_phan], [ten_bp%l], [bp_ref]"/>
+      <item value="110100: [ma_nv].Label, [ma_nv], [ten]"/>
+      <item value="110100: [loai_thay_doi].Label, [loai_thay_doi], [ten_loai%l]"/>
+      <item value="-11000: [lEmpSi_yn], [lEmpSi_yn].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$EmployeeSIHistoryFilter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$EmployeeSIHistoryFilter(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$EmployeeSIHistoryFilter(a){a.add_onResponseComplete(on$EmployeeSIHistoryFilter$ResponseComplete)}function close$EmployeeSIHistoryFilter(a){try{a.remove_onResponseComplete(on$EmployeeSIHistoryFilter$ResponseComplete)}catch(b){}}function onchange$EmployeeSIHistoryFilter$Deparment(a){a.parentForm.request("Reference","Reference",["bo_phan"])}function on$EmployeeSIHistoryFilter$ResponseComplete(g,d){var b=d.object,e=d.type.Context,f=d.type.Result;switch(e){case"Reference":b.setItemControlBehavior("bp_ref",f[0].Value,true);break;case"Checking":var a=b.grid,c=[];a._refreshMemvars=true;a._dateFrom=b.getItemValue("ngay_bd_tu");a._dateTo=b.getItemValue("ngay_bd_den");a._staff=b.getItemValue("ma_nv");a._dept=b.getItemValue("bo_phan");a._type=b.getItemValue("loai_thay_doi");Array.add(c,{Name:"ngay_thay_doi",Opr:">=",Value:a._dateFrom,Type:"DateTime",Ignore:false});Array.add(c,{Name:"ngay_thay_doi",Opr:"<=",Value:a._dateTo,Type:"DateTime",Ignore:false});if(b.getItemValue("lEmpSi_yn")){Array.add(c,{Name:"ngay_thay_doi = (select max(ngay_thay_doi) from vhreqtlbhht2 b where b.stt_rec = vhreqtlbhht2.stt_rec) and 1",Opr:"=",Value:1,Type:"String",Ignore:false});Array.add(c,{Name:"((ngay_thay_doi2 is null) or (ngay_thay_doi2 is not null and ngay_thay_doi2 >= getdate())) and 1",Opr:"=",Value:1,Type:"DateTime",Ignore:false})}b.getItemValue("ngay_kt_tu")!=null&&Array.add(c,{Name:"ngay_thay_doi2",Opr:">=",Value:b.getItemValue("ngay_kt_tu"),Type:"DateTime",Ignore:false});b.getItemValue("ngay_kt_den")!=null&&Array.add(c,{Name:"ngay_thay_doi2",Opr:"<=",Value:b.getItemValue("ngay_kt_den"),Type:"DateTime",Ignore:false});a._dept&&Array.add(c,{Name:"bp_ref",Opr:"like",Value:$func.trim(b.getItemValue("bp_ref"))+"%",Type:"String",Ignore:false});a._staff&&Array.add(c,{Name:"ma_nv",Opr:"=",Value:a._staff,Type:"String",Ignore:false});a._type&&Array.add(c,{Name:"loai_thay_doi",Opr:"=",Value:a._type,Type:"String",Ignore:false});a.set_externalKey(c)}}]]>
+    </text>
+  </script>
+  <response>
+    <action id="Reference">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrbp where ma_bp = @bo_phan) begin
+  select bp_ref from hrbp where ma_bp = @bo_phan
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

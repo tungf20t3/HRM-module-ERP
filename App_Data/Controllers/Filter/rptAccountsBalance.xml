@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY % Tiny.External SYSTEM "..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.rptAccountsBalance;
+
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.rptAccountsBalance SYSTEM "..\Include\ReportMargin.rptAccountsBalance">
+  %ReportMargin.rptAccountsBalance;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày" e="Date"></header>
+    </field>
+    <field name="loai_ky" dataFormatString="1, 2" clientDefault="2" align="right">
+      <header v="Đầu kỳ/cuối kỳ" e="Opening/Closing"/>
+      <footer v="1 - Đầu kỳ, 2 - Cuối kỳ" e="1 - Opening, 2 - Closing"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1" >
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="tk_so_cai" type="Boolean" clientDefault="1" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAccountsBalance;" hidden="true" readOnly="true">
+      <header v="Xem tk số cái" e="View GL Account"></header>
+      <items style="CheckBox"></items>
+    </field>
+    <field name="tk_so_cai_1" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAccountsBalance;" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+      <footer v="0 - Xem tất, 1 - Chỉ xem tk sổ cái" e="0 - All, 1 - GL Account"/>
+      <items style="Mask"></items>
+    </field>
+    <field name="tk" type="Boolean" clientDefault="1" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAccountsBalance;">
+      <header v="Xem tài khoản" e="Account"></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="tk_1" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAccountsBalance;">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk%l" key="status = '1'" check="1 = 1">
+      </items>
+    </field>
+    <field name="ten_tk%l" external="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="tk_bac" type="Boolean" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAccountsBalance;">
+      <header v="Xem tk có bậc &lt;=" e="Level &lt;="></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="tk_bac_1" dataFormatString="###" maxLength="3" clientDefault="99" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAccountsBalance;">
+      <header v="" e=""></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="xem_tat" type="Boolean" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAccountsBalance;">
+      <header v="Xem tất" e="All"></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="tk_chi_tiet" type="Boolean" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAccountsBalance;">
+      <header v="Chỉ xem tài khoản chi tiết" e="Only Detail Account"></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    &Tiny.External.Form.View.rptAccountsBalance;
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select cast(@ngay as smalldatetime) as date_to
+exec rs_rptAcountsBalance @ngay, @ma_dvcs, @tk_1, @tk_so_cai_1, @tk_bac_1, @tk_chi_tiet, @mau_bc, @loai_ky, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptQueryFilterString;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function onTabChanged(o, e) {
+  var f = o.parentForm, c = f.getItemValue('tk') ? 'tk_1' : 'tk_bac_1';
+  f.focusWhenTabChanged(['ma_dvcs', c]);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function active$VoucherFilter$(a){a._tabContainer.add_activeTabChanged(onTabChanged);a._tabContainer._loaded=true;a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");if(a.getItemValue("tk"))a.getItem("tk_bac_1").disabled=a.getItem("xem_tat").disabled=a.getItem("tk_chi_tiet").disabled=true;else{var b=a.getItem("tk_1");$common.setVisible(b.a,false);b.disabled=true}}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,b){var a=b.object,c=b.type.Context,f=b.type.Result;switch(c){case"Checking":var e=a.getItemValue("mau_bc"),d=a.getItem("ngay").value;a.grid._hiddenFields=[{Fields:"du_no_nt, du_co_nt",Value:e=="10"}];a.grid._alterTitle=[null,[["%d2",d,true]]];remove$GridReport$Filter(a.grid)}}function onchange$Item(e){var a=e.parentForm,b=e.field.Name,f=b=="tk_bac",d=["tk","tk_bac","xem_tat","tk_chi_tiet"];if(b!="xem_tat"&&b!="tk_chi_tiet")a.getItem("xem_tat").disabled=a.getItem("tk_chi_tiet").disabled=!f;$common.setVisible(a.getItem("tk_1").a,b=="tk");for(var c=0;c<d.length;c++)if(a.getItem(d[c])!=e)a.getItem(d[c]).checked=false;else a.getItem(b).checked=true;if(b=="tk"){setItemDisable(a.getItem("tk"));a.getItem("tk_bac_1").value="99"}else{a.getItem("tk_1").value="";a.getItem("ten_tk%l").value=""}if(b=="tk_bac"){setItemDisable(a.getItem("tk_bac"));a.getItem("xem_tat").checked=true}if(b=="xem_tat")a.getItem("tk_bac").checked=true;if(b=="tk_chi_tiet")a.getItem("tk_bac").checked=true;a.getItem(a.getItemValue("tk")?"tk_1":"tk_bac_1").focus()}function setItemDisable(c){for(var d=c.parentForm,e=c.field.Name,b=["tk_1","tk_bac_1"],a=0;a<b.length;a++)d.getItem(b[a]).disabled=e+"_1"!=b[a]}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+
+</dir>

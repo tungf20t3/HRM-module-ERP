@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "BIPROutlineAgreement">
+  <!ENTITY DetailTable "bid10">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Vendor">
+  <!ENTITY c21 "Số thỏa thuận">
+  <!ENTITY c22 "Outline Agreement No.">
+  <!ENTITY c31 "Ngày thỏa thuận">
+  <!ENTITY c32 "Outline Agreement Date">
+
+]>
+
+<dir table="bim10$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Thỏa thuận mua hàng" e="Outline Agreement"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="11010000001101: [ma_kh].Label, [ma_kh], [ten_kh%l], [stt_rec], [so_ct].Label, [so_ct]"/>
+      <item value="-----------101: [ngay_ct].Label, [ngay_ct]"/>
+
+      <item value="1: [&DetailTable;]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('bid10')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, ngay_giao, stt_rec, stt_rec0', f2 = 'so_luong, ngay_yc, stt_rec_oa, stt_rec0oa';
+  var first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]);
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = g._getColumnOrder('so_luong0'), l7 = g._getColumnOrder('so_ngay_giao');
+  var l2 = z._getColumnOrder('dvt'), l3 = g._getColumnOrder('nhieu_dvt'), l4 = z._getColumnOrder('ma_ncc_cd');
+  var fields = 'ma_vt, ten_vt%l, dvt, he_so, ma_vt_ncc, ]]>&XMLHiddenFields;<![CDATA[';
+
+  if (v) {f1 += ', gia_nt0'; f2 += ', gia_nt';}
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l1) != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (check$Grid$DefaultMemvar(z, row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+
+      $func.setObjectWhen(z._getItem(row, l2), g._getItemValue(r, l3));
+      z._setItemValue(row, l4, m);
+      if (v) {z.executeExpression(o, [z.$a.gia, z.$a.tien_nt, z.$a.tien]);}
+    }
+  }
+
+  z.executeAggregate([z.$a.t_so_luong]);
+  if (v) {z.executeAggregate([z.$a.t_tien_nt, z.$a.t_tien]);}
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

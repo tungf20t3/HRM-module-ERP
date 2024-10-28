@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir table="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Hóa đơn từ ngày" e="Date From"></header>
+      <footer v="Ngày hóa đơn từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="hóa đơn đến ngày" e="Date to"></header>
+    </field>
+    <field name="so_ct1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="Số hóa đơn từ/đến" e="Voucher No. from/to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ct2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="" e=""></header>
+      <items style="Mask"></items>
+    </field>
+
+    <field name="tien_cl1" type="Decimal" dataFormatString="### ### ### ### ##0" align="right">
+      <header v="Còn phải trả từ/đến" e="Payable from/to"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="tien_cl2" type="Decimal" dataFormatString="### ### ### ### ##0" align="right">
+      <header v="" e=""></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="tk">
+      <header v="Tài khoản" e="Account"></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_tk%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh">
+      <header v="Mã khách" e="Customer"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_kh1">
+      <header v="Nhóm khách" e="Customer Group"></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=1" check="loai_nh=1"/>
+    </field>
+    <field name="nh_kh2">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=2" check="loai_nh=2"/>
+    </field>
+    <field name="nh_kh3">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=3" check="loai_nh=3"/>
+    </field>
+
+    <field name="loai_hd" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Loại hóa đơn" e="Invoice Type"></header>
+      <footer v="1 - Chưa tất toán, 2 - Hóa đơn chi vượt" e="1 - Not yet, 2 - Overpayments"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="maxLength" type="Int16" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="1101--1: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2], [maxLength]"/>
+      <item value="1101---: [so_ct1].Label, [so_ct1], [so_ct2]"/>
+      <item value="1101---: [tien_cl1].Label, [tien_cl1], [tien_cl2]"/>
+      <item value="110100-: [tk].Label, [tk], [ten_tk%l]"/>
+      <item value="110100-: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="11011--: [nh_kh1].Label, [nh_kh1], [nh_kh2], [nh_kh3]"/>
+      <item value="111000-: [loai_hd].Label, [loai_hd], [loai_hd].Description"/>
+      <item value="11000--: [ma_dvcs].Label, [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_AdvancedWriteOffView @ngay_ct1, @ngay_ct2, @so_ct1, @so_ct2, @tien_cl1, @tien_cl2, @tk, @ma_kh, @nh_kh1, @nh_kh2, @nh_kh3, @loai_hd, '2', @maxLength, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");var b=a.getItem("maxLength");b.value=b.maxLength}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(f,b){var c=b.object,d=b.type.Context,e=b.type.Result;switch(d){case"Checking":var a=c.grid;a._d1=c.getItem("ngay_ct1").value,a._d2=c.getItem("ngay_ct2").value;a._alterTitle=[null,[["%d1",a._d1,true],["%d2",a._d2,true]]];if(a._$k!=null)a._$k=a._$d=[]}}]]>
+    </text>
+  </script>
+</dir>

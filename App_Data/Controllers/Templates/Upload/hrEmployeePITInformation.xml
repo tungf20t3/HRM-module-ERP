@@ -1,0 +1,381 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+
+  <!ENTITY CheckTaxCodeExtImport "
+select stt, mst_pt as ma_so_thue into #t2 from @@table where mst_pt &lt;&gt; ''
+if @$mode = 1 begin
+  select top 0 cast(0 as int) as stt into #taxCodeInvalid2
+  insert into #taxCodeInvalid2 exec AI_ERP$System$CheckTaxCode 'stt, ma_so_thue', @t_yn output, @r output, '#t2', @$mode, @$errorCount
+  &StartErrorCount;
+  &InsertErrorTable; select 'mst_pt', stt, 'TaxCode001' from #taxCodeInvalid2 order by stt
+  &EndErrorCount;
+end else begin
+  exec AI_ERP$System$CheckTaxCode 'stt, ma_so_thue', @t_yn output, @r output, '#t2'
+  if @t_yn = 0 begin
+    select replace(replace(@taxCodeInvalidConflict, '&#37;s1', mst_pt), '&#37;s2', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+">
+  <!ENTITY % CheckTaxCode SYSTEM "..\..\Include\CheckImportTaxCode.ent">
+  %CheckTaxCode;
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Controller "hrEmployeePITInformation">
+  <!ENTITY PrimeFieldImport "stt_rec">
+  <!ENTITY TableNameImport "#m2">
+  <!ENTITY TypeImport "2">
+  <!ENTITY TableDestinationImport "hrtttncnct, hrttctpt">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrEmployeePITInformation' else 'hrEmployeePITInformation2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="5"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$EmployeePITInformationImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$EmployeePITInformationImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrtttncn, hrttctpt, hrnv"/>
+    <dependence value="hrtttncn, hrtttncnct, hrttctpt"/>
+    <listTable value="#m1, #d1, #dep1"/>
+    <temporary value="#m2, #d2, #dep2" alias="b, b, b"/>
+    <alias value="master, detail, dependant"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <variable>
+    &TaxCodeImportVariable;
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="A" isPrimaryKey="true" allowNulls="false" reference="2" upperCase="true" check="ma_nv not in (select ma_nv from hrnv)" errorCode="00001"/>
+    <field name="ma_so_thue" column="C" upperCase="true" resource="master"/>
+    <field name="doi_tuong" column="D" check="doi_tuong &lt;&gt; '' and doi_tuong not in ('1', '2')" resource="master, detail" errorCode="00002"/>
+    <field name="tinh_thue_yn" column="E" check="tinh_thue_yn &lt;&gt; '' and tinh_thue_yn not in ('0', '1')" resource="master, detail" errorCode="00002"/>
+    <field name="tinh_gt_yn" column="F" check="tinh_gt_yn &lt;&gt; '' and tinh_gt_yn not in ('0', '1')" resource="master, detail" errorCode="00002"/>
+    <field name="hop_dong_yn" column="G" check="hop_dong_yn &lt;&gt; '' and hop_dong_yn not in ('0', '1')" resource="master, detail" errorCode="00002"/>
+    <field name="uy_quyen_yn" column="H" check="uy_quyen_yn &lt;&gt; '' and uy_quyen_yn not in ('0', '1')" resource="master, detail" errorCode="00002"/>
+    <field name="cn_nn_duoi12" column="." type="Boolean" resource="master, detail"/>
+
+    <field name="ngay_hl" isPrimaryKey="true" updateValue="none" column="I" type="DateTime" reference="1.ngay_sinh" relation="ngay_hl" check="(doi_tuong + tinh_thue_yn + tinh_gt_yn + hop_dong_yn + uy_quyen_yn &lt;&gt; '') and ngay_hl is null" resource="detail" errorCode="00001"/>
+    <field name="ghi_chu" column="J" reference="1.dien_giai"  relation="ghi_chu" resource="detail"/>
+
+    <field name="ma_pt" isPrimaryKey="true" column="K" reference="1" upperCase="true" check="ma_pt = '' and ((ten_pt &lt;&gt; '') or (ngay_sinh is not null) or (cmnd &lt;&gt; '') or (mst_pt &lt;&gt; '') or (quoc_tich &lt;&gt; '') or (quan_he &lt;&gt; '') or (so_khai_sinh &lt;&gt; '') or (quyen_so &lt;&gt; '') or (quoc_gia &lt;&gt; '') or (tinh_thanh &lt;&gt; '') or (quan_huyen &lt;&gt; '') or (phuong_xa &lt;&gt; '') or (ngay_hl_tu is not null) or (ngay_hl_den is not null) or (kem_theo &lt;&gt; '') or (dien_giai &lt;&gt; '') or (so_lan &lt;&gt; 0))" resource="dependant" errorCode="00002"/>
+    <field name="ten_pt" column="L" reference="1" check="ma_pt &lt;&gt; '' and ten_pt = ''" resource="dependant" errorCode="00002"/>
+    <field name="ngay_sinh" column="M" type="DateTime" resource="dependant"/>
+    <field name="ma_loai_gt" column="." reference="1" upperCase="true" check="ma_loai_gt not in (select ma_loai_gt from dmloaigt)" resource="dependant" errorCode="00001"/>
+    <field name="cmnd" column="N" reference="1" resource="dependant" check="(ma_loai_gt = '04' and cmnd &lt;&gt; '')" errorCode="00001"/>
+    <field name="mst_pt" column="O" reference="1.ma_so_thue" relation="ma_so_thue" resource="dependant"/>
+    <field name="quoc_tich" column="P" reference="1" upperCase="true" check="quoc_tich &lt;&gt; '' and quoc_tich not in (select ma_qt from dmqt)" resource="dependant" errorCode="00001"/>
+    <field name="loai_qh" column="." reference="1" check="loai_qh &lt;&gt; '' and loai_qh not in (select loai_qh from dmqhpt)" resource="dependant" errorCode="00001"/>
+    <field name="quan_he" column="Q" reference="1" resource="dependant"/>
+    <field name="so_khai_sinh" column="R" reference="1" resource="dependant"/>
+    <field name="quyen_so" column="S" reference="1" resource="dependant"/>
+    <field name="quoc_gia" column="T" reference="1" resource="dependant"/>
+    <field name="tinh_thanh" column="U" reference="1" resource="dependant"/>
+    <field name="quan_huyen" column="V" reference="1" resource="dependant"/>
+    <field name="phuong_xa" column="W" reference="1" resource="dependant"/>
+    <field name="ngay_hl_tu" isPrimaryKey="true" column="X" type="DateTime" check="ma_pt &lt;&gt; '' and ngay_hl_tu is null&And;ngay_hl_den is not null and ngay_hl_den &lt; ngay_hl_tu" resource="dependant" errorCode="00002"/>
+    <field name="ngay_hl_den" column="Y" type="DateTime" resource="dependant"/>
+    <field name="kem_theo" column="Z" reference="1" resource="dependant"/>
+    <field name="dien_giai" column="AA" reference="1" resource="dependant"/>
+    <field name="so_lan" column="AB" type="Decimal" resource="dependant"/>
+
+    <field name="stt_rec" column="None" updateValue="None" resource="master, detail, dependant"/>
+    <field name="stt_rec0" column="None" insertValue="replace(str(stt, 3), ' ', '0')" updateValue="None" resource="detail, dependant"/>
+    <field name="line_nbr" column="None" type="Int" insertValue="stt" updateValue="None" resource="detail, dependant"/>
+    <field name="ten_pt2" column="None" reference="1" insertValue="ten_pt" updateValue="b.ten_pt" resource="detail, dependant"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="@datetime0" updateValue="None" resource="master, dependant"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="@datetime0" updateValue="@datetime0" resource="master, dependant"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@user" updateValue="None" resource="master, dependant"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@user" updateValue="@user" resource="master, dependant"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Thông tin thuế TNCN nhân viên" e="Employee PIT Information"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_nv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="ma_so_thue" width="16">
+        <text v="Mã số thuế" e="Tax Code"/>
+      </field>
+      <field name="doi_tuong" width="12">
+        <text v="Đối tượng" e="Kind"/>
+      </field>
+      <field name="tinh_thue_yn" width="12">
+        <text v="Tính thuế" e="Tax Assessment"/>
+      </field>
+      <field name="tinh_gt_yn" width="12">
+        <text v="Giảm trừ bản thân" e="Deduction"/>
+      </field>
+      <field name="hop_dong_yn" width="12">
+        <text v="Hợp đồng lao động" e="Labor Contract"/>
+      </field>
+      <field name="uy_quyen_yn" width="12">
+        <text v="Loại" e="Authorization"/>
+      </field>
+      <field name="cn_nn_duoi12" width="12">
+        <text v="Cá nhân nước ngoài dưới 12 tháng" e="Foreigner has worked for less than 12 months"/>
+      </field>
+
+      <field name="ngay_hl" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hiệu lực" e="Effective Date"/>
+      </field>
+      <field name="ghi_chu" width="32">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      <field name="ma_pt" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã người phụ thuộc" e="Dependant ID"/>
+      </field>
+      <field name="ten_pt" width="32" starColor="&EIT.StarColor.Sub;">
+        <text v="Tên người phụ thuộc" e="Dependant Name"/>
+      </field>
+      <field name="ngay_sinh" width="16">
+        <text v="Ngày sinh" e="Date of Birth"/>
+      </field>
+      <field name="cmnd" width="16">
+        <text v="Số CMND/CCCD/Hộ chiếu" e="ID/Passport No."/>
+      </field>
+      <field name="mst_pt" width="16">
+        <text v="Mã số thuế" e="Tax Code"/>
+      </field>
+      <field name="quoc_tich" width="16">
+        <text v="Quốc tịch" e="Nationality"/>
+      </field>
+      <field name="loai_qh" width="16">
+        <text v="Loại quan hệ" e="Relationship Type"/>
+      </field>
+      <field name="quan_he" width="16">
+        <text v="Quan hệ" e="Relationship"/>
+      </field>
+      <field name="so_khai_sinh" width="16">
+        <text v="Số giấy khai sinh" e="Birth Certificate No."/>
+      </field>
+      <field name="quyen_so" width="16">
+        <text v="Quyển số" e="Book No."/>
+      </field>
+      <field name="quoc_gia" width="32">
+        <text v="Quốc gia" e="Nation"/>
+      </field>
+      <field name="tinh_thanh" width="32">
+        <text v="Tỉnh/Thành" e="Province/City"/>
+      </field>
+      <field name="quan_huyen" width="32">
+        <text v="Quận/Huyện" e="District"/>
+      </field>
+      <field name="phuong_xa" width="32">
+        <text v="Phường/Xã" e="Ward/Commune"/>
+      </field>
+      <field name="ngay_hl_tu" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Hiệu lực từ ngày" e="Effective from"/>
+      </field>
+      <field name="ngay_hl_den" width="16">
+        <text v="Đến ngày" e="Effective to"/>
+      </field>
+      <field name="kem_theo" width="32">
+        <text v="Chứng từ đi kèm" e="Enclosed Documents"/>
+      </field>
+      <field name="dien_giai" width="32">
+        <text v="Diễn giải" e="Description"/>
+      </field>
+      <field name="so_lan" width="12">
+        <text v="Lần bổ sung" e="Adding Time"/>
+      </field>
+      <field name="ma_loai_gt" width="12" starColor="&EIT.StarColor.Sub;">
+        <text v="Loại giấy tờ" e="Type of dependant’s  identity paper"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @field varchar(32), @user int, @admin bit, @language char(1), @sys varchar(32), @joinUnit bit, @joinDept bit, @r int, @count int, @datetime0 datetime
+select @admin = @@admin, @user = @@userID, @language = @@language, @sys = '@@sysDatabaseName', @key = '', @joinUnit = 0, @joinDept = 0, @datetime0 = getdate()
+
+-- Check
+]]>&Checking;<![CDATA[
+
+select top 0 identity(int, 1, 1) as id, ma_nv, ma_pt, ngay_hl_tu, ngay_hl_den, 0 as stt into #check from @@table
+insert into #check select ma_nv, ma_pt, ngay_hl_tu, ngay_hl_den, stt from @@table where ma_pt <> '' order by ngay_hl_tu
+select @field = 'ngay_hl_tu'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00002' from #check a where exists(select 1 from #check b where a.ma_nv = b.ma_nv and a.ma_pt = b.ma_pt and b.ngay_hl_tu < a.ngay_hl_den and a.id = b.id - 1)
+  ]]>&w1;<![CDATA['ma_nv']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from #check a where exists(select 1 from #check b where a.ma_nv = b.ma_nv and a.ma_pt = b.ma_pt and b.ngay_hl_tu < a.ngay_hl_den and a.id = b.id - 1)]]>&Error;<![CDATA[
+end
+select @field = 'ngay_hl_den'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00002' from #check a where exists(select 1 from #check b where a.ma_nv = b.ma_nv and a.ma_pt = b.ma_pt and a.ngay_hl_den is null and a.id = b.id - 1)
+  ]]>&w1;<![CDATA['ma_nv']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from #check a where exists(select 1 from #check b where a.ma_nv = b.ma_nv and a.ma_pt = b.ma_pt and a.ngay_hl_den is null and a.id = b.id - 1)]]>&Error;<![CDATA[
+end
+
+-- Key
+if @admin = 0 begin
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+  select @key = case when @key = '' then '' else ' where (' + @key + ')' end
+end
+]]>&CommandCheckTaxCodeImport;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+
+-- Gather
+select top 0 a.stt_rec, a.ma_so_thue, a.doi_tuong, a.tinh_thue_yn, a.tinh_gt_yn, a.hop_dong_yn, a.uy_quyen_yn, a.cn_nn_duoi12, b.ngay_sinh as ngay_hl, b.dien_giai as ghi_chu, b.ma_pt, b.ten_pt, b.ngay_sinh,
+  b.ma_loai_gt, b.cmnd, b.ma_so_thue as mst_pt, b.quoc_tich, b.loai_qh, b.quan_he, b.so_khai_sinh, b.quyen_so, b.quoc_gia, b.tinh_thanh, b.quan_huyen, b.phuong_xa,
+  b.ngay_hl_den as ngay_hl_tu, b.ngay_hl_den, b.kem_theo, b.dien_giai, b.so_lan, b.line_nbr as stt into #r from hrtttncn a, hrttctpt b
+
+select @q = 'insert into #r select e.stt_rec, a.ma_so_thue, case when a.doi_tuong = '''' then ''1'' else a.doi_tuong end,
+    case when a.tinh_thue_yn = '''' then ''1'' else a.tinh_thue_yn end, case when a.tinh_gt_yn = '''' then ''1'' else a.tinh_gt_yn end, case when a.hop_dong_yn = '''' then ''1'' else a.hop_dong_yn end, case when a.uy_quyen_yn = '''' then ''1'' else a.uy_quyen_yn end, case when a.uy_quyen_yn = ''0'' then 0 else a.cn_nn_duoi12 end, a.ngay_hl, a.ghi_chu, a.ma_pt, a.ten_pt, a.ngay_sinh, a.ma_loai_gt, a.cmnd, a.mst_pt,
+    a.quoc_tich, a.loai_qh, a.quan_he, a.so_khai_sinh, a.quyen_so, a.quoc_gia, a.tinh_thanh, a.quan_huyen, a.phuong_xa, a.ngay_hl_tu, a.ngay_hl_den, a.kem_theo, a.dien_giai, a.so_lan, a.stt
+  from @@table a join hrnv e on a.ma_nv = e.ma_nv' + @key
+exec sp_executesql @q
+update #r set uy_quyen_yn = 0, cn_nn_duoi12 = 0 where not (doi_tuong = 1 and hop_dong_yn = 1)
+
+select top 0 stt_rec, stt_rec0, doi_tuong, tinh_thue_yn, tinh_gt_yn, uy_quyen_yn, cn_nn_duoi12, hop_dong_yn, ngay_hl, ghi_chu, cast(0 as int) as stt into #d1 from hrtttncnct
+
+insert into #d1 select stt_rec, cast('' as char(3)) as stt_rec0, doi_tuong, tinh_thue_yn, tinh_gt_yn, uy_quyen_yn, cn_nn_duoi12, hop_dong_yn, ngay_hl, ghi_chu, stt
+  from #r where ngay_hl is not null order by stt_rec, ngay_hl, stt
+
+select a.stt_rec, a.ma_so_thue, isnull(d.doi_tuong, a.doi_tuong) as doi_tuong, isnull(d.tinh_thue_yn, a.tinh_thue_yn) as tinh_thue_yn, isnull(d.tinh_gt_yn, a.tinh_gt_yn) as tinh_gt_yn, isnull(d.hop_dong_yn, a.hop_dong_yn) as hop_dong_yn, isnull(d.uy_quyen_yn, a.uy_quyen_yn) as uy_quyen_yn, isnull(d.cn_nn_duoi12, a.cn_nn_duoi12) as cn_nn_duoi12 into #m1
+  from #r a left join (select stt_rec, doi_tuong, tinh_thue_yn, tinh_gt_yn, uy_quyen_yn, cn_nn_duoi12, hop_dong_yn from #d1 b where ngay_hl = (select max(ngay_hl) from #d1 c where b.stt_rec = c.stt_rec)) d on a.stt_rec = d.stt_rec
+    join (select stt_rec, min(stt) as stt from #r group by stt_rec) z on a.stt_rec = z.stt_rec and a.stt = z.stt
+
+select stt_rec, cast('' as char(3)) as stt_rec0, ma_pt, ten_pt, ngay_sinh, ma_loai_gt, cmnd, mst_pt, quoc_tich, loai_qh, quan_he, so_khai_sinh, quyen_so,
+    quoc_gia, tinh_thanh, quan_huyen, phuong_xa, ngay_hl_tu, ngay_hl_den, kem_theo, dien_giai, so_lan, stt into #dep1
+  from #r where ma_pt <> '' order by stt_rec, ma_pt, ngay_hl_tu
+
+-- Check double
+select @$errorField = 'ngay_hl', @$errorRow = min(stt) from #d1 group by stt_rec, ngay_hl having count(ngay_hl) > 1
+if @$errorRow is not null begin select '' as message, @$errorField as field, @$errorRow as record; return end;
+select @$errorField = 'ngay_hl_tu', @$errorRow = min(stt) from #dep1 group by stt_rec, ma_pt, ngay_hl_tu having count(ngay_hl_tu) > 1
+if @$errorRow is not null begin select '' as message, @$errorField as field, @$errorRow as record; return end;
+]]>&EndErrorMode;<![CDATA[
+
+if @type = '0' begin
+  delete #m1 from #m1 a where exists(select 1 from hrtttncn b where a.stt_rec = b.stt_rec)
+  delete #d1 from #d1 a where exists(select 1 from hrtttncnct b where a.stt_rec = b.stt_rec and a.ngay_hl = b.ngay_hl)
+  delete #dep1 from #dep1 a where exists(select 1 from hrttctpt b where a.stt_rec = b.stt_rec and a.ma_pt = b.ma_pt and a.ngay_hl_tu = b.ngay_hl_tu)
+end
+
+select a.stt_rec, a.ma_so_thue, a.doi_tuong, a.tinh_thue_yn, a.tinh_gt_yn, a.hop_dong_yn, a.uy_quyen_yn, a.cn_nn_duoi12 into #m2
+  from #m1 a join hrtttncn b on a.stt_rec = b.stt_rec
+delete #m1 from #m1 a where exists(select 1 from #m2 b where a.stt_rec = b.stt_rec)
+if @type = '1' ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+select a.stt_rec, a.doi_tuong, a.tinh_thue_yn, a.tinh_gt_yn, a.hop_dong_yn, a.uy_quyen_yn, a.cn_nn_duoi12, a.ngay_hl, a.ghi_chu into #d2
+  from #d1 a join hrtttncnct b on a.stt_rec = b.stt_rec and a.ngay_hl = b.ngay_hl
+delete #d1 from #d1 a where exists(select 1 from #d2 b where a.stt_rec = b.stt_rec and a.ngay_hl = b.ngay_hl)
+
+select b.stt_rec, b.stt_rec0, a.ma_pt, a.ten_pt, a.ngay_sinh, a.ma_loai_gt, a.cmnd, a.mst_pt, a.quoc_tich, a.loai_qh, a.quan_he, a.so_khai_sinh, a.quyen_so,
+    a.quoc_gia, a.tinh_thanh, a.quan_huyen, a.phuong_xa, a.ngay_hl_tu, a.ngay_hl_den, a.kem_theo, a.dien_giai, a.so_lan into #dep2
+  from #dep1 a join hrttctpt b on a.stt_rec = b.stt_rec and a.ma_pt = b.ma_pt and a.ngay_hl_tu = b.ngay_hl_tu
+delete #dep1 from #dep1 a where exists(select 1 from #dep2 b where a.stt_rec = b.stt_rec and a.ma_pt = b.ma_pt and a.ngay_hl_tu = b.ngay_hl_tu)
+
+-- Insert
+@@inserting(master);
+
+select @count = count(*) from #d1
+if @count > 0 begin
+  select top 0 stt_rec, stt_rec0 into #sttDetail from #d1
+  select top 0 stt_rec, ngay_hl, identity(int, 1, 1) as stt into #o1Detail from #r
+
+  insert into #sttDetail select b.stt_rec, max(b.stt_rec0) from #d1 a join hrtttncnct b on a.stt_rec = b.stt_rec group by b.stt_rec, a.ngay_hl
+
+  insert into #o1Detail(stt_rec, ngay_hl)
+    select stt_rec, ngay_hl
+      from (select stt_rec, ngay_hl from #d1
+         union select distinct stt_rec, null from #d1) a order by stt_rec, ngay_hl
+
+  select stt, stt_rec into #o2Detail from #o1Detail where ngay_hl is null
+
+  update #d1 set stt = b.stt + cast(isnull(c.stt_rec0, 0) as int) from #d1 a
+    left join (select c.stt - d.stt as stt, c.stt_rec, c.ngay_hl from #o1Detail c join #o2Detail d on c.stt_rec = d.stt_rec) b
+      on a.stt_rec = b.stt_rec and a.ngay_hl = b.ngay_hl
+    left join #sttDetail c on a.stt_rec = c.stt_rec
+
+  @@inserting(detail);
+end
+
+-- Dependant
+select @count = count(*) from #dep1
+if @count > 0 begin
+  select top 0 stt_rec, stt_rec0 into #stt from #dep1
+  select top 0 stt_rec, ma_pt, cast(null as smalldatetime) as ngay_hl, identity(int, 1, 1) as stt into #o1 from #r
+
+  insert into #stt select b.stt_rec, max(b.stt_rec0) from #dep1 a join hrttctpt b on a.stt_rec = b.stt_rec group by b.stt_rec, a.ma_pt, a.ngay_hl_tu
+
+  insert into #o1(stt_rec, ma_pt, ngay_hl)
+    select stt_rec, a.ma_pt, ngay_hl_tu
+      from (select stt_rec, ma_pt, ngay_hl_tu from #dep1
+        union select distinct stt_rec, '', null from #dep1) a order by stt_rec, ma_pt, ngay_hl_tu
+
+  select stt, stt_rec into #o2 from #o1 where ngay_hl is null
+
+  update #dep1 set stt = b.stt + cast(isnull(c.stt_rec0, 0) as int) from #dep1 a
+    left join (select c.stt - d.stt as stt, c.stt_rec, c.ma_pt, c.ngay_hl from #o1 c join #o2 d on c.stt_rec = d.stt_rec) b
+      on a.stt_rec = b.stt_rec and a.ma_pt = b.ma_pt and a.ngay_hl_tu = b.ngay_hl
+    left join #stt c on a.stt_rec = c.stt_rec
+
+  @@inserting(dependant);
+end
+
+-- Update
+if @type = '1' begin
+  update hrtttncn set @@list(master); from hrtttncn a join #m2 b on a.stt_rec = b.stt_rec
+  update hrtttncnct set @@list(detail); from hrtttncnct a join #d2 b on a.stt_rec = b.stt_rec and a.ngay_hl = b.ngay_hl
+  update hrttctpt set @@list(dependant); from hrttctpt a join #dep2 b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0
+end
+]]>
+    </text>
+  </processing>
+
+</import>

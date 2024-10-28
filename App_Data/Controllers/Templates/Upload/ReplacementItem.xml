@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "
+declare @filename varchar(128), @costUnit char(1)
+select @costUnit = val from options where name = 'm_gt_dvcs'
+if @@language = 'v' select @filename = case when @costUnit = 0 then 'ReplacementItem.xlsx' else 'ReplacementItem3.xlsx' end
+else select @filename = case when @costUnit = 0 then 'ReplacementItem2.xlsx' else 'ReplacementItem4.xlsx' end
+">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$ReplacementItemImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$ReplacementItemImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="xdmvt2"/>
+    <table value="xdmvt2" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+        <![CDATA[
+select case when rtrim(val) = '1' then '1' else '0' end as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[ from options where name = 'm_gt_dvcs'
+]]>
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where ngay_ks >= @dateCurrent)&And;ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)" condition="if @costUnit = '1' begin&And;if @costUnit = '1' begin&And;if @costUnit = '1' begin if @@admin &lt;&gt; 1 begin" tag="end&And;end&And;end end" errorCode="00001&And;00002&And;00002"/>
+        <field name="ma_vt" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_vt not in (select ma_vt from dmvt)" errorCode="00001"/>
+        <field name="ma_vt0" column="D" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="(ma_vt0 not in (select ma_vt from dmvt)) or (ma_vt0 = ma_vt)" errorCode="00001"/>
+
+        <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+        <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+        <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+        <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+        <field name="ky" column="None" type="Decimal" insertValue="@$ky" updateValue="None"/>
+        <field name="nam" column="None" type="Decimal" insertValue="@$nam" updateValue="None"/>
+      </fields>
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_vt" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_vt not in (select ma_vt from dmvt)" errorCode="00001"/>
+    <field name="ma_vt0" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="(ma_vt0 not in (select ma_vt from dmvt)) or (ma_vt0 = ma_vt)" errorCode="00001"/>
+    <field name="ma_dvcs" column="" isPrimaryKey="true" allowNulls="false" defaultValue="" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where ngay_ks >= @dateCurrent)&And;ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)" condition="if @costUnit = '1' begin&And;if @costUnit = '1' begin&And;if @costUnit = '1' begin if @@admin &lt;&gt; 1 begin" tag="end&And;end&And;end end" errorCode="00001&And;00002&And;00002"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+    <field name="ky" column="None" type="Decimal" insertValue="@$ky" updateValue="None"/>
+    <field name="nam" column="None" type="Decimal" insertValue="@$nam" updateValue="None"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Khai báo vật tư thay thế" e="Material Replacement Declaration"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ma_vt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã vật tư" e="Item Code"/>
+      </field>
+      <field name="ten_vt" afterField="ma_vt" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên vật tư" e="Item Name"/>
+      </field>
+      <field name="ma_vt0" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Nhóm thay thế" e="Replacement Group"/>
+      </field>
+      <field name="ten_vt0" afterField="ma_vt0" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên nhóm vật tư thay thế" e="Description"/>
+      </field>
+
+      &EIT.NoteFieldAdd;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @field varchar(32), @r int, @costUnit char(1), @dateCurrent smalldatetime
+
+select @dateCurrent = dateadd(mm, 1, cast(str(@$nam, 4) + replace(str(@$ky, 2), ' ', '0') + '01' as smalldatetime)) - 1
+select @costUnit = rtrim(val) from options where name = 'm_gt_dvcs'
+
+delete @@table from @@table a where exists(select 1 from xdmvt2 b where a.ma_dvcs = b.ma_dvcs and a.ma_vt = b.ma_vt and a.ma_vt0 = b.ma_vt0 and b.nam = @$nam and b.ky = @$ky)
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+]]>
+    </text>
+  </processing>
+
+</import>

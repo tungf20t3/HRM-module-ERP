@@ -1,0 +1,360 @@
+﻿<!ENTITY % Conditional.BIMode SYSTEM "..\Include\BIMode.txt">
+
+<![%Conditional.BIMode;[
+  <!ENTITY BI.SATran.Focus "String.format('$find(\'{0}\')._focusWhenTabChanged();', id)">
+
+  <!ENTITY BI.SATran.f "112">
+  <!ENTITY BI.PRTran.Categories.Index "3">
+  <!ENTITY BI.SATran.ReadOnly "false">
+  <!ENTITY BI.SATran.Hidden "true">
+  <!ENTITY BI.SATran.Overline "-">
+  <!ENTITY BI.SATran.Unit.View "">
+  <!ENTITY BI.SATran.Inquiry.Parameter ", 'ma_bp0, ma_vung', 2">
+  <!ENTITY BI.SATran.TabChange ", ''">
+
+  <!ENTITY BI.SATran.PODefaultValue.Script.LoadGrid "g._$PODefaultForm.HiddenField = &#91;'ma_nh0', 'ma_vung'&#93;;">
+
+  <!ENTITY BI.SATran.Fields.Filter SYSTEM "..\Include\XML\BI.SATran.Fields.Filter.txt">
+  <!ENTITY BI.SATran.Views.Filter SYSTEM "..\Include\XML\BI.SATran.Views.Filter.xml">
+  <!ENTITY BI.SATran.Categories.Filter SYSTEM "..\Include\XML\BI.SATran.Filter.Category.xml">
+
+  <!ENTITY BI.SATran.Fields.Grid SYSTEM "..\Include\XML\BI.SATran.Fields.Grid.txt">
+  <!ENTITY BI.SATran.Views.Grid SYSTEM "..\Include\XML\BI.SATran.Views.Grid.xml">
+
+  <!ENTITY BI.SATran.Fields SYSTEM "..\Include\XML\BI.SATran.Fields.txt">
+  <!ENTITY BI.SATran.Views SYSTEM "..\Include\XML\BI.SATran.Views.xml">
+  <!ENTITY BI.SATran.Categories SYSTEM "..\Include\XML\BI.PRTran.Category.xml">
+
+  <!ENTITY BI.SATran.InitExternalFields.Declare "
+declare @plantCode varchar(32), @plantName nvarchar(1024)
+select @plantCode = ma_vung from @@prime$partition$current where stt_rec = @stt_rec
+select @plantName = case when @@language = 'V' then ten_vung else ten_vung2 end from bidmvung where ma_vung = @plantCode
+">
+  <!ENTITY BI.SATran.InitExternalFields.Select ", @plantName as ten_vung&#37;l">
+
+  <!ENTITY BI.SATran.AfterUpdate "
+declare @$id$PR varchar(32), @$p varchar(6), @q nvarchar(4000), @$pur$Gr varchar(32), @$r bit
+select top 1 @$id$PR = stt_rec_nc from d93$$partition$current where stt_rec = @stt_rec
+exec dbo.AI_ERP$BI$Options$GetValue 'ma_nh0', @$pur$Gr out, 'bioptionsnsd', 'user_id = @@userID'
+if isnull(@$id$PR, '') &lt;&gt; '' begin
+  select @$p = convert(char(6), ngay_ct, 112), @$r = 0 from c91$000000 where stt_rec = @$id$PR
+  select * into #d93 from @d93
+  select @q = 'if exists(select 1 from #d93 a join d91$' + @$p + ' b on a.stt_rec_nc = b.stt_rec and a.stt_rec0nc = b.stt_rec0 where (b.ma_nh0 &lt;&gt; '''' and a.ma_nh0 &lt;&gt; b.ma_nh0) or (b.ma_nh0 = '''' and a.ma_nh0 &lt;&gt; @$pur$Gr)) set @$r = 1'
+  exec sp_executesql @q, N'@$r bit out, @$pur$Gr varchar(32)', @$r out, @$pur$Gr
+  if @$r = 1 begin
+    select @$warning = @$warning + case when @@language = 'v' then N'Thông tin nhóm mua của phiếu nhu cầu đã chọn không giống với nhà cung cấp.' else N'Purchase Requisition should have same purchasing group as Supplier Allocation.' end
+  end
+end
+">
+
+  <!ENTITY BI.SATran.Command.CheckVoucherFlow.BeginTag "exists(select 1 from d93$$partition$current where stt_rec = @stt_rec and sl_dh &lt;&gt; 0) begin">
+  <!ENTITY BI.SATran.Command.CheckVoucherFlow.EndTag "'$NotAuthorized' as message return end">
+  <!ENTITY BI.SATran.Command.CheckVoucherFlow.BeforeUpdate "if @@view = 0 and @@action = 'Edit' and &BI.SATran.Command.CheckVoucherFlow.BeginTag; select @message as script, &BI.SATran.Command.CheckVoucherFlow.EndTag;">
+  <!ENTITY BI.SATran.Command.CheckVoucherFlow.BeforeDelete "if &BI.SATran.Command.CheckVoucherFlow.BeginTag; select &BI.SATran.Command.CheckVoucherFlow.EndTag;">
+
+  <!ENTITY BI.SATRan.Fields.Detail SYSTEM "..\Include\XML\BI.SATRan.Fields.Detail.txt">
+  <!ENTITY BI.SATran.Views.Detail SYSTEM "..\Include\XML\BI.SATran.Views.Detail.xml">
+  <!ENTITY BI.SATRan.Fields.Detail.Delivery.v "Số ngày giao hàng">
+  <!ENTITY BI.SATRan.Fields.Detail.Delivery.e "Delivery Day">
+  <!ENTITY BI.SATRan.Fields.Detail.Loading.Join " left join dmct d on a.ma_nguon = d.ma_ct">
+
+  <!ENTITY BI.SATran.ItemLookup.Finding.ParameterValue "select @$primeFilter = @$primeFilter + case when @$primeFilter &lt;&gt; '' then ' and ' else '' end + 'a.ma_ncc_cd = '''''">
+
+  <!ENTITY BI.SATran.RequisitionLookup.Form.h "155">
+  <!ENTITY BI.SATran.RequisitionLookup.Form.r "95">
+  <!ENTITY BI.SATran.RequisitionLookup.Quantity.Lable.v "đặt">
+  <!ENTITY BI.SATran.RequisitionLookup.Finding.MasterKey "&#37;&#35;15$1&#35;&#37;">
+  <!ENTITY BI.SATran.RequisitionLookup.Finding.ParameterValue "select @$detailPartition = case when @$detailPartition &lt;&gt; '' then @$detailPartition else 'd91$&#37;Partition' end, @$detailAlias = case when @$detailAlias &lt;&gt; '' then @$detailAlias else 'd91' end, @$detailFilter = @$detailFilter + case when @$detailFilter &lt;&gt; '' then ' and ' else '' end + 'ma_ncc_cd = '''''">
+  <!ENTITY BI.SATran.RequisitionLookup.Finding.Parameter ", @$detailPartition, @$detailAlias, @$detailFilter">
+  <!ENTITY BI.SATran.RequisitionLookup.Filter.Check.Type "
+declare @chk bit
+select @s = 'if exists(select 1 from m91$' + @partition + ' where stt_rec = ''' + replace(@retrieveID, '''', '''''') + ''' and loai_ct = ''1'') select @chk = 1 else select @chk = 0'
+exec sp_executesql @s, N'@chk bit output', @chk output
+if isnull(@chk, 0) = 0 begin
+  select 'so_ct' as field, @$none as message
+  return
+end
+">
+  <!ENTITY BI.SATran.RequisitionLookup.Filter.Check.Item " and ma_ncc_cd = ''''">
+  <!ENTITY BI.SATran.RequisitionLookup.Filter.Fields SYSTEM "..\Include\XML\BI.SATran.RequisitionLookup.Filter.Fields.txt">
+  <!ENTITY BI.SATran.RequisitionLookup.Filter.Views.Index "1">
+  <!ENTITY BI.SATran.RequisitionLookup.Filter.Views.Fields ", [ma_bp0]">
+  <!ENTITY BI.SATran.RequisitionLookup.Filter.Declare ", dvt nvarchar(64), ma_ncc_dn varchar(32)">
+  <!ENTITY BI.SATran.RequisitionLookup.Filter.Select ", dvt, ma_ncc_dn">
+  <!ENTITY BI.SATran.RequisitionLookup.Filter.Set "
+declare @UOMPur nvarchar(64), @UOMNamePur nvarchar(512), @SupPur varchar(32), @SupNamePur nvarchar(512), @PlantPR varchar(32), @Memo nvarchar(512)
+select @UOMPur = dvt, @SupPur = ma_ncc_dn from #t
+select @UOMNamePur = case when @@language = 'v' then ten_dvt else ten_dvt2 end from dmdvt where dvt = @UOMPur
+select @SupNamePur = case when @@language = 'v' then ten_kh else ten_kh2 end from &VendorList; where ma_kh = @SupPur
+select @s = 'select @PlantPR = ma_vung, @Memo = dien_giai from m91$' + @partition + ' where stt_rec = @retrieveID'
+exec sp_executesql @s, N'@retrieveID varchar(128), @PlantPR varchar(32) output, @Memo nvarchar(512) output', @retrieveID, @PlantPR output, @Memo output
+">
+  <!ENTITY BI.SATran.RequisitionLookup.Filter.Update "update #r set fields = fields + char(255) + rtrim(isnull(@UOMPur, '')) + char(255) + rtrim(isnull(@UOMNamePur, '')) + char(255) + rtrim(isnull(@SupPur, '')) + char(255) + rtrim(isnull(@SupNamePur, '')) + char(255) + rtrim(isnull(@ma_bp0, '')) + char(255) + rtrim(isnull(@plantPR, '')) + char(255) + rtrim(isnull(@Memo, ''))">
+  <!ENTITY BI.SATran.RequisitionLookup.Filter.Active "f.setItemValue('ma_bp0', w.getItemValue('ma_bp0'));">
+
+  <!ENTITY BI.SATran.RequisitionLookup.Form.Fields SYSTEM "..\Include\XML\BI.SATran.RequisitionLookup.Form.Fields.txt">
+  <!ENTITY BI.SATran.RequisitionLookup.Form.Fields.ForeignKey SYSTEM "..\Include\XML\BI.SATran.RequisitionLookup.Form.Fields.ForeignKey.txt">
+  <!ENTITY BI.SATran.RequisitionLookup.Form.Views SYSTEM "..\Include\XML\BI.SATran.RequisitionLookup.Form.Views.xml">
+  <!ENTITY BI.SATran.RequisitionLookup.Form.Script.setReadOnlyFields ", dvt, ma_ncc_dn, dien_giai">
+  <!ENTITY BI.SATran.RequisitionLookup.Form.Script.SetItemValues "f.setItemValues('dept_id, ma_md, ten_bp&#37;l, ten_md&#37;l, ong_ba, dvt, ten_dvt&#37;l, ma_ncc_dn, ten_ncc_dn&#37;l, ma_bp0, ma_vung, dien_giai', [k[1], k[2], k[4], k[5], k[6], k[7], k[8], k[9], k[10], k[11], k[12], k[13]]);">
+  <!ENTITY BI.SATran.RequisitionLookup.Form.Retrieve.Fields ", gia_chuan_nt, so_tham_chieu, ma_nguon, ten_nguon&#37;l, ma_nh0, ten_nh&#37;l, so_theo_doi, ct_gia_dk, ck_dv_nt, cp_dv_nt, ck_nt, cp_nt">
+  <!ENTITY BI.SATran.RequisitionLookup.Form.Retrieve.Source ", stt_rec_gia, stt_rec0gia">
+  <!ENTITY BI.SATran.RequisitionLookup.Form.Retrieve.Destination ", stt_rec_tc, stt_rec0tc">
+  <!ENTITY BI.SATran.RequisitionLookup.Form.Check.Script "
+var g = f.getItem('d91')._controlBehavior, a = query$Select(g, 'sum$so_luong0, max$sl_han_ngach, min$line_nbr $groupBy stt_rec_ng, ma_kh $where (([ma_nguon] == &quot;P02&quot;) &amp;&amp; ([so_luong0] &gt; 0))');
+
+for (var i = 0; i &lt; a.length; i++) {
+  if (a[i][2] &gt; a[i][3]) {
+    f._checked = false;
+    g._errorObject = g._getItem(a[i][4], g._getColumnOrder('so_luong0'));
+    $message.show(f._language == 'v' ? 'Tồn tại số lượng đặt hàng lớn hơn hạn ngạch còn lại.' : 'There existed an order quantity exceeds the allowable quota.', String.format('$find(\'{0}\')._errorObject.focus()', g.get_id()));
+    break;
+  }
+}
+">
+  <!ENTITY BI.SATran.RequisitionLookup.Form.Retrieve.Script "
+w.setItemValues('ma_vung', [f.getItemValue('ma_vung')]);
+w.setReferenceKeyFilter('ma_vung');
+w.setItemValues('dien_giai', [f.getItemValue('dien_giai')]);
+">
+
+  <!ENTITY BI.SATran.RequisitionLookup.Grid.Fields SYSTEM "..\Include\XML\BI.SATran.RequisitionLookup.Grid.Fields.txt">
+  <!ENTITY BI.SATran.RequisitionLookup.Grid.Views SYSTEM "..\Include\XML\BI.SATran.RequisitionLookup.Grid.Views.xml">
+  <!ENTITY BI.SATran.RequisitionLookup.Grid.Load "g.add_onResponseComplete(on$GridVoucherDetail$ResponseComplete);">
+  <!ENTITY BI.SATran.RequisitionLookup.Grid.Dispose "try {g.remove_onResponseComplete(on$GridVoucherDetail$ResponseComplete);} catch (ex) {}">
+  <!ENTITY BI.SATran.RequisitionLookup.Grid.ExecuteCommand "
+case 'AutoAllocation':
+  if (g._activeRow &lt; 0) return;
+  g.setSequenceNumber('line_nbr');
+  set$&Identity;GridVoucherDetail$AllocationQuantity$(f, g, f.getItemValue('sl_duyet'), null, 1);
+  break;
+case 'GeneralDelete':
+  if (g._activeRow &lt; 0) return;
+  switch (e.type.Value) {
+    case '10':
+      msg = (g._language == 'v' ? 'Hệ thống sẽ &lt;span class=&quot;Highlight&quot;&gt;xóa bản ghi đang được chọn&lt;/span&gt;, bạn có chắc chắn thực hiện không?' : 'Are you sure you want to &lt;span class=&quot;Highlight&quot;&gt;delete the selected records&lt;/span&gt;?');
+      $message.show(msg, 0, String.format('run$Delete($find(\'{0}\'), 1);', id), &BI.SATran.Focus;);
+      break;
+    case '20':
+      var msg = (g._language == 'v' ? 'Bạn có chắc chắn bỏ dữ liệu đã chọn không?' : 'Are you sure you want to remove selected data?');
+      $message.show(msg, 0, String.format('run$Delete($find(\'{0}\'), 2);', id), &BI.SATran.Focus;);
+      break;
+    case '30':
+      var msg = (g._language == 'v' ? 'Bạn có chắc chắn bỏ dữ liệu đã phân bổ không?' : 'Are you sure you want to remove allocated data?');
+      $message.show(msg, 0, String.format('run$Delete($find(\'{0}\'), 3);', id), &BI.SATran.Focus;);
+      break;
+    default:
+      break;
+  }
+  break;
+case 'GeneralAllocation':
+  if (g._activeRow &lt; 0) return;
+  g.setSequenceNumber('line_nbr');
+  var b = 0;
+  for (var i = 1; i &lt;= g._rowCount; i++) {b += g._getItemValue(i, g._getColumnOrder('so_luong0'));}
+  var quantity = f.getItemValue('sl_duyet') - (b + g._getItemValue(1, g._getColumnOrder('sl_dh')));
+  if (quantity &lt;= 0) {
+    if (g._activeCell) g._activeCell.focus();
+    return;
+  }
+  switch (e.type.Value) {
+    case '10':
+      if (query$Select(g, 'count$1 $groupBy ma_nguon,so_luong0 $where (([ma_nguon] == &quot;P02&quot;) &amp;&amp; ([so_luong0] == 0))').length == 0) {
+        $message.show((f._language == 'v' ? 'Không tồn tại bản ghi thỏa nguồn cung ứng, không phân bổ được.': 'Source List does not already exists. It can not be allocated.'), &BI.SATran.Focus;);
+        break;
+      }
+      if (query$Select(g, 'count$1 $groupBy ma_nguon,sl_han_ngach,so_luong0 $where (([ma_nguon] == &quot;P02&quot;) &amp;&amp; ([sl_han_ngach] &gt; 0) &amp;&amp; ([so_luong0] == 0))').length == 0) {
+        $message.show((f._language == 'v' ? 'Hạn ngạch còn lại đã hết, không phân bổ được.': 'Cannot allocate due to out of quota.'), &BI.SATran.Focus;);
+        break;
+      }
+      set$&Identity;GridVoucherDetail$AllocationQuantity$(f, g, quantity, 1, 0);
+      break;
+    case '20':
+      if (query$Select(g, 'count$1 $groupBy ma_nguon,cd_ncc_sl,so_luong0 $where (([ma_nguon] == &quot;P01&quot;) &amp;&amp; ([so_luong0] == 0))').length == 0) {
+        $message.show((f._language == 'v' ? 'Không tồn tại bản ghi thỏa nguồn cung ứng, không phân bổ được.': 'Source List does not already exists. It can not be allocated.'), &BI.SATran.Focus;);
+        break;
+      }
+      set$&Identity;GridVoucherDetail$AllocationQuantity$(f, g, quantity, 2, 0);
+      break;
+    case '30':
+      if (query$Select(g, 'count$1 $groupBy ma_nguon,so_luong0 $where (([ma_nguon] != &quot;P02&quot;) &amp;&amp; ([ma_nguon] != &quot;P01&quot;) &amp;&amp; ([so_luong0] == 0))').length == 0) {
+        $message.show((f._language == 'v' ? 'Không tồn tại bản ghi thỏa nguồn cung ứng, không phân bổ được.': 'Source List does not already exists. It can not be allocated.'), &BI.SATran.Focus;);
+        break;
+      }
+      set$&Identity;GridVoucherDetail$AllocationQuantity$(f, g, quantity, 3, 0);
+      break;
+    case '40':
+      set$&Identity;GridVoucherDetail$AllocationQuantity$(f, g, quantity, null, -1);
+      break;
+    default:
+      break;
+  }
+  break;
+case 'AddSourceList':
+  g.showForm('BISAAddSourceListFilter');
+  break;
+&PriceDetailConditionTypeExecuteCommand;
+">
+  <!ENTITY BI.SATran.RequisitionLookup.Grid.PriceChanged "
+if (g._getItemValue(o.row, g._getColumnOrder('ct_gia_dk')) != '') {
+  o._lastValue = '' + o._lastValue;
+  o.value = '' + o.value;
+
+  on$GridVoucherDetail$CalcPrice(g, o.row, null, null, null, null, 'gia_chuan_nt');
+}
+">
+  <!ENTITY BI.SATran.RequisitionLookup.Grid.ItemValueChanged "
+case 'so_luong0':
+  &BI.SATran.RequisitionLookup.Grid.PriceChanged;
+  g.executeAggregate([['t_so_luong', 'so_luong0']]);
+  break;
+case 'gia_nt':
+  g.setItemGridBehavior(o, [['ct_gia_dk', '', null, null]]);
+  break;
+">
+  <!ENTITY BI.SATran.RequisitionLookup.Grid.Check "&amp;&amp;({6}{5}{6}&gt;={0})&amp;&amp;({3}{5}{3}&gt;{0})">
+  <!ENTITY BI.SATran.RequisitionLookup.Grid.Loading "exec bs_LoadRequisitionSATran '#temp', @stt_rec, @ma_vt, @sa_date, @sa_date, @ma_bp0, 1, @@language, @@userID, @@admin">
+  <!ENTITY BI.SATran.RequisitionLookup.Grid.Script SYSTEM "..\Include\Javascript\BI.SATran.RequisitionLookup.Grid.Script.txt">
+  <!ENTITY BI.SATran.RequisitionLookup.Grid.Button SYSTEM "..\Include\XML\BI.SATran.RequisitionLookup.Grid.Button.txt">
+
+  <!ENTITY % PurchasingPrice SYSTEM "..\Include\BIPurchasingPrice.ent">
+  %PurchasingPrice;
+]]>
+
+<!ENTITY BI.SATran.f "64">
+<!ENTITY BI.PRTran.Categories.Index "">
+<!ENTITY BI.SATran.ReadOnly "true">
+<!ENTITY BI.SATran.Hidden "false">
+<!ENTITY BI.SATran.Overline "1">
+<!ENTITY BI.SATran.Unit.View ", [ma_dvcs]">
+<!ENTITY BI.SATran.Inquiry.Parameter ", default, default">
+<!ENTITY BI.SATran.TabChange "">
+
+<!ENTITY BI.SATran.PODefaultValue.Script.LoadGrid "">
+
+<!ENTITY BI.SATran.Fields.Filter "">
+<!ENTITY BI.SATran.Views.Filter "">
+<!ENTITY BI.SATran.Categories.Filter "">
+
+<!ENTITY BI.SATran.Fields.Grid "">
+<!ENTITY BI.SATran.Views.Grid "">
+
+<!ENTITY BI.SATran.Fields SYSTEM "..\Include\Standard\XML\BI.PRTran.Standard.Fields.txt">
+<!ENTITY BI.SATran.Views "">
+<!ENTITY BI.SATran.Categories "">
+
+<!ENTITY BI.SATran.InitExternalFields.Declare "">
+<!ENTITY BI.SATran.InitExternalFields.Select "">
+
+<!ENTITY BI.SATran.AfterUpdate "">
+
+<!ENTITY BI.SATran.Command.CheckVoucherFlow.BeginTag "">
+<!ENTITY BI.SATran.Command.CheckVoucherFlow.EndTag "">
+<!ENTITY BI.SATran.Command.CheckVoucherFlow.BeforeUpdate "">
+<!ENTITY BI.SATran.Command.CheckVoucherFlow.BeforeDelete "">
+
+<!ENTITY BI.SATRan.Fields.Detail "">
+<!ENTITY BI.SATran.Views.Detail SYSTEM "..\Include\XML\BI.SATran.Views.Detail.Standard.xml">
+<!ENTITY BI.SATRan.Fields.Detail.Delivery.v "Thời gian thực hiện">
+<!ENTITY BI.SATRan.Fields.Detail.Delivery.e "Lead Time">
+<!ENTITY BI.SATRan.Fields.Detail.Loading.Join "">
+
+<!ENTITY BI.SATran.ItemLookup.Finding.ParameterValue "">
+<!ENTITY BI.SATran.RequisitionLookup.Form.h "203">
+<!ENTITY BI.SATran.RequisitionLookup.Form.r "143">
+<!ENTITY BI.SATran.RequisitionLookup.Quantity.Lable.v "">
+<!ENTITY BI.SATran.RequisitionLookup.Finding.MasterKey "">
+<!ENTITY BI.SATran.RequisitionLookup.Finding.ParameterValue "">
+<!ENTITY BI.SATran.RequisitionLookup.Finding.Parameter "">
+<!ENTITY BI.SATran.RequisitionLookup.Filter.Check.Type "">
+<!ENTITY BI.SATran.RequisitionLookup.Filter.Check.Item "">
+<!ENTITY BI.SATran.RequisitionLookup.Filter.Fields "">
+<!ENTITY BI.SATran.RequisitionLookup.Filter.Views.Index "">
+<!ENTITY BI.SATran.RequisitionLookup.Filter.Views.Fields "">
+<!ENTITY BI.SATran.RequisitionLookup.Filter.Declare "">
+<!ENTITY BI.SATran.RequisitionLookup.Filter.Select "">
+<!ENTITY BI.SATran.RequisitionLookup.Filter.Set "">
+<!ENTITY BI.SATran.RequisitionLookup.Filter.Update "">
+<!ENTITY BI.SATran.RequisitionLookup.Filter.Active "">
+
+<!ENTITY BI.SATran.RequisitionLookup.Form.Fields "">
+<!ENTITY BI.SATran.RequisitionLookup.Form.Fields.ForeignKey "">
+<!ENTITY BI.SATran.RequisitionLookup.Form.Views "">
+<!ENTITY BI.SATran.RequisitionLookup.Form.Script.setReadOnlyFields "">
+<!ENTITY BI.SATran.RequisitionLookup.Form.Script.SetItemValues "f.setItemValues('dept_id, ma_md, ten_bp&#37;l, ten_md&#37;l, ong_ba', [k[1], k[2], k[4], k[5], k[6]]);">
+<!ENTITY BI.SATran.RequisitionLookup.Form.Retrieve.Fields "">
+<!ENTITY BI.SATran.RequisitionLookup.Form.Retrieve.Source "">
+<!ENTITY BI.SATran.RequisitionLookup.Form.Retrieve.Destination "">
+<!ENTITY BI.SATran.RequisitionLookup.Form.Check.Script "">
+<!ENTITY BI.SATran.RequisitionLookup.Form.Retrieve.Script "">
+
+<!ENTITY BI.SATran.RequisitionLookup.Grid.Fields "">
+<!ENTITY BI.SATran.RequisitionLookup.Grid.Views SYSTEM "..\Include\XML\BI.SATran.RequisitionLookup.Grid.Views.Standard.xml">
+<!ENTITY BI.SATran.RequisitionLookup.Grid.Load "">
+<!ENTITY BI.SATran.RequisitionLookup.Grid.Dispose "">
+<!ENTITY BI.SATran.RequisitionLookup.Grid.ExecuteCommand "">
+<!ENTITY BI.SATran.RequisitionLookup.Grid.PriceChanged "">
+<!ENTITY BI.SATran.RequisitionLookup.Grid.ItemValueChanged "
+case 'so_luong0':
+  g.executeAggregate([['t_so_luong', 'so_luong0']]);
+  break;
+">
+<!ENTITY BI.SATran.RequisitionLookup.Grid.Check "&amp;&amp;({3}{5}{3}>={0})">
+<!ENTITY BI.SATran.RequisitionLookup.Grid.Loading "
+declare @q nvarchar(4000), @p char(6)
+select @p = convert(char(6), ngay_ct, 112) from c91$000000 where stt_rec = @stt_rec
+set @q = 'insert into #temp select distinct @@fieldExternal from d91$' + @p + ' a left join m91$' + @p + ' b on a.stt_rec = b.stt_rec'
+set @q = @q + ' join dmgia3 c on a.ma_vt = c.ma_vt left join dmkh d on d.ma_kh = c.ma_kh left join dmvt e on e.ma_vt = a.ma_vt'
+set @q = @q + ' where a.stt_rec = ''' + replace(@stt_rec, '''', '''''') + ''' and a.ma_vt = ''' + replace(@ma_vt, '''', '''''') + ''''
+set @q = @q + ' and a.sl_duyet &gt; 0 and a.xstatus in (''2'', ''5'') and ''' + replace(@sa_date, '''', '') + ''' between c.ngay_ct1 and c.ngay_ct2'
+set @q = @q + ' order by ma_kh'
+exec sp_executesql @q
+
+declare @n1 int, @n2 int
+select @n1 = cast(rtrim(val) as int) from options where name = 'm_round_sl'
+select @n2 = cast(rtrim(val) as int) from options where name = 'm_round_gia_nt'
+update #temp set so_luong1 = round(so_luong1*he_so1/he_so, @n1),
+  so_luong2 = round(so_luong2*he_so1/he_so, @n1),
+  sl_min = round(sl_min * he_so1 / he_so, @n1),
+  sl_max = round(sl_max * he_so1 / he_so, @n1)
+where he_so &lt;&gt; 0
+
+update #temp set gia_nt = round(gia_nt*he_so/he_so1, @n2) where he_so1 &lt;&gt; 0
+update #temp set so_luong1 = 0, so_luong2 = 0, sl_min = 0, sl_max = 0 where he_so = 0
+update #temp set gia_nt = 0 where he_so1 = 0
+
+select * from #temp order by ma_kh, gia_nt
+">
+<!ENTITY BI.SATran.RequisitionLookup.Grid.Script "">
+<!ENTITY BI.SATran.RequisitionLookup.Grid.Button "">
+
+<!ENTITY PriceDetailScaleField "">
+<!ENTITY PriceDetailScaleView "">
+<!ENTITY PriceDetailScaleButton "">
+<!ENTITY PriceDetailScaleClass "">
+<!ENTITY PriceDetailCurrency "">
+<!ENTITY PriceDetailScaleExecuteShow "">
+<!ENTITY PriceDetailScaleExecuteCommand "">
+
+<!ENTITY PriceDetailConditionTypeField "">
+<!ENTITY PriceDetailConditionTypeView "">
+<!ENTITY PriceDetailConditionTypeButton "">
+<!ENTITY PriceDetailConditionTypeClass "">
+<!ENTITY PriceDetailConditionTypeExecuteShow "">
+<!ENTITY PriceDetailConditionTypeExecuteCommand "">
+
+<!ENTITY PriceDetailGetConditionTypeRef "">
+<!ENTITY PriceDetailResponseConditionTypeRef "">
+
+<!ENTITY PriceDetailExField "">
+<!ENTITY PriceDetailExView "">
+<!ENTITY PriceDetailExStandardPriceAlias "">
+<!ENTITY PriceDetailExPriceAlias "">
+<!ENTITY PriceDetailExHandleStandardPrice "">
+<!ENTITY PriceDetailExHandlePrice "">
+
+<!ENTITY PriceDetailButtonGroup "">
+<!ENTITY PriceDetailClassGroup "">
+<!ENTITY PriceDetailGroupExecuteCommand "">
+<!ENTITY PriceDetailScript "">
+<!ENTITY FormTask.HiddenOrChangeCaption "">

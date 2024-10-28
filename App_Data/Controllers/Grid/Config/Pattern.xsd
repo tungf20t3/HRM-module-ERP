@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="Pattern" targetNamespace="urn:schemas-ai-erp:data-pattern" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-pattern" xmlns:a="urn:schemas-ai-erp:data-pattern" xmlns:mstns="urn:schemas-ai-erp:data-pattern" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="config" type ="configType">
+    <xs:key name="field">
+      <xs:selector xpath="a:fields/a:field" />
+      <xs:field xpath="@name"/>
+    </xs:key>
+  </xs:element>
+
+  <xs:complexType name="configType">
+    <xs:all maxOccurs="1" minOccurs="1">
+      <xs:element name="fields" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="field" type="fieldType" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:element name="query" type="queryType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="allowFilter" type="allowFilterType" minOccurs="0" maxOccurs="1"/>
+
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="fieldType">
+    <xs:all maxOccurs="1" minOccurs="1">
+      <xs:element name="header" type="headerType"  minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Specifies a default caption displayed in the grid.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="label" type="headerType" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Specifies a default text label displayed in the corresponding data fields of presentation views.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:all>
+
+    <xs:attribute name="name" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>Matches the name of the column in the result set returned by query.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="align" type="xs:string" use="optional"/>
+    <xs:attribute name="width" type="xs:int" use="optional"/>
+    <xs:attribute name="dataFormatString" type="xs:string" use="optional"/>
+    <xs:attribute name="inactivate" type="xs:boolean" use="optional"/>
+    <xs:attribute name="hidden" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation>Hides the data field from user interface rendered in client browser. Hidden fields can be modified in custom action handlers.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="headerType">
+    <xs:attribute name="v" type="xs:string" use="required"/>
+    <xs:attribute name="e" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="queryType">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Defines the command text that corresponds to the query type.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+
+    <xs:attribute name="events" type="xs:string" use="required"/>
+    <xs:attribute name="reference" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="allowFilterType">
+    <xs:all maxOccurs="1" minOccurs="1">
+      <xs:element name="fields" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="field" type="filterType" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="filterType">
+    <xs:attribute name="name" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>Matches the name of the column in the result set returned by query.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="type" type="dataType" use="optional">
+      <xs:annotation>
+        <xs:documentation>Specifies the data type of the base column of this field.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="dataFormatString" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:simpleType name="dataType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="AnsiString"/>
+      <xs:enumeration value="Binary"/>
+      <xs:enumeration value="Byte"/>
+      <xs:enumeration value="Boolean"/>
+      <xs:enumeration value="Currency"/>
+      <xs:enumeration value="Date"/>
+      <xs:enumeration value="DateTime"/>
+      <xs:enumeration value="Decimal"/>
+      <xs:enumeration value="Double"/>
+      <xs:enumeration value="Guid"/>
+      <xs:enumeration value="Int16"/>
+      <xs:enumeration value="Int32"/>
+      <xs:enumeration value="Int64"/>
+      <xs:enumeration value="Object"/>
+      <xs:enumeration value="SByte"/>
+      <xs:enumeration value="Single"/>
+      <xs:enumeration value="String"/>
+      <xs:enumeration value="Time"/>
+      <xs:enumeration value="UInt16"/>
+      <xs:enumeration value="UInt32"/>
+      <xs:enumeration value="UInt64"/>
+      <xs:enumeration value="VarNumeric"/>
+      <xs:enumeration value="AnsiStringFixedLength"/>
+      <xs:enumeration value="StringFixedLength"/>
+      <xs:enumeration value="Xml"/>
+      <xs:enumeration value="DateTime2"/>
+      <xs:enumeration value="DateTimeOffset"/>
+      <xs:enumeration value="Byte[]"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

@@ -1,0 +1,18 @@
+﻿<![CDATA[
+tien_tt_nt: '[tt_nt]:=[tien_nt] + (([loai_hd] == 2) ? 0 : [thue_nt])',
+tien_tt: '[tt]:=[tien] + (([loai_hd] == 2) ? 0 : [thue])',
+thue_nt: '[thue_nt]:=(([loai_hd] == 0 || [loai_hd] == 3) ? 0: (([loai_hd] == 2) ? [tien_nt]/(1 + ([thue_suat]/100))* ([thue_suat]/100) : [tien_nt]*[thue_suat]/100))',
+thue: '[thue]:=(([loai_hd] == 0 || [loai_hd] == 3) ? 0 :([thue_nt]*[$ty_gia]))',
+thue2: '[thue]:=([loai_hd] == 0 || [loai_hd] == 3) ? 0: (([loai_hd] == 2) ?([tien]/(1 + ([thue_suat]/100))*([thue_suat]/100)):([tien]*[thue_suat]/100))',
+t_thue1_nt: ['t_thue1_nt', 'thue_nt'],
+t_thue1: ['t_thue1', 'thue'],
+
+t_thue: '[t_thue]:=[t_thue1]+[t_thue2]',
+t_thue_nt: '[t_thue_nt]:=[t_thue1_nt]+[t_thue2_nt]',
+
+t_tien_nt2: ['t_tien_nt', '[tien_nt] - [thue_nt] * (([loai_hd] == 2) ? 1 : 0)'],
+t_tien2: ['t_tien', '[tien] - [thue] * (([loai_hd] == 2) ? 1 : 0)'],
+
+t_tt_nt2: ['t_tt_nt', 'tt_nt'],
+t_tt2: ['t_tt', 'tt'],
+]]>

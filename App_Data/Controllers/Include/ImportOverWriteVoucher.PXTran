@@ -1,0 +1,62 @@
+﻿<!ENTITY % Conditional.ImportOverwrite SYSTEM "..\Include\ImportOverwriteVoucher.txt">
+
+<![%Conditional.ImportOverwrite;[
+  <!ENTITY ImportOverwriteMatchData "
++ ' join &ImportOverwriteMainTable; b with(nolock) on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct' + case when @check$Unit = '1' then ' and a.ma_dvcs = b.ma_dvcs' else '' end    
+">
+  
+  <!ENTITY ImportOverwriteDeleting "
+&ImportOverwriteUseEI;
+set @field = 'so_ct'
+if @$mode = 1 begin
+  &StartErrorCount;
+  &InsertErrorTable; select @field, o.stt, 'OW01' from #owdata o join cttt30 c on c.stt_rec like (left(o.stt_rec, 10) + '&#37;') and c.loai_tt = 1
+  &w1;@field&w2;o.stt&w3;'OW01'&w4;
+  &EndErrorCount;
+
+  &ImportOverwriteEIWhenBeforeDeleteMultiError;
+
+  &StartErrorCount;
+  &InsertErrorTable; select @field, o.stt, 'OW01' from #owdata o join d&Detail;$000000 b on b.stt_rec = o.stt_rec where (b.stt_rec_hd &lt;&gt; '')
+  &w1;@field&w2;o.stt&w3;'OW01'&w4; group by o.stt
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  &EndErrorCount;
+
+  select @$owp = min(p) from #owpartition
+  while @$owp is not null begin
+
+    &ImportOverwriteEIWhenBeforeDeleteByPartMultiError;
+
+    select @$owp = min(p) from #owpartition where p > @$owp
+  end
+end else begin
+  select top 1 @r = min(o.stt) from #owdata o join cttt30 c on c.stt_rec like (left(o.stt_rec, 10) + '&#37;') and c.loai_tt = 1 &ImportOverwriteError;
+  select top 1 @r = min(o.stt) from #owdata o join d&Detail;$000000 b on b.stt_rec = o.stt_rec where (b.stt_rec_hd &lt;&gt; '') &ImportOverwriteError;
+  &ImportOverwriteEIWhenBeforeDelete;
+
+  select @$owp = min(p) from #owpartition
+  while @$owp is not null begin
+
+    &ImportOverwriteEIWhenBeforeDeleteByPart;
+
+    select @$owp = min(p) from #owpartition where p > @$owp
+  end
+end
+">
+
+  <!ENTITY ImportOverwriteDeleted "&ImportOverwriteDeleteMultiVoucher;">
+  <!ENTITY ImportOverwriteInsertingByPart "&ImportOverwriteUpdateByPart;&ImportOverwriteEIUpdateByPart;">
+
+  <!ENTITY ImportOverwriteInserting "
+if @type = '1' begin
+  &ImportOverwriteEIUpdate;
+
+  update m&Detail;$000000 set user_id0 = o.user_id0, datetime0 = o.datetime0 from m&Detail;$000000 a join #owdata o on a.stt_rec = o.stt_rec
+  update i&Detail;$000000 set user_id0 = o.user_id0 from i&Detail;$000000 a join #owdata o on a.stt_rec = o.stt_rec
+end
+">
+]]>
+
+<!ENTITY ImportOverwriteDeleting "">
+<!ENTITY ImportOverwriteDeleted "">
+<!ENTITY ImportOverwriteInsertingByPart "">

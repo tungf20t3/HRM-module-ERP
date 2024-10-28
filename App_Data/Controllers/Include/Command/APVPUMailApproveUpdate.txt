@@ -1,0 +1,23 @@
+﻿<![CDATA[
+declare @ownerID int, @isChange bit
+select @ownerID = isnull(user_id0, 0) from @@prime$partition$current where stt_rec = @stt_rec
+select @isChange = 0
+select @script = @script + 'refresh$APV$Status(this,''' + @$status + ''', ''' + @$u_status + ''',''' + @$userName3 + ''',''' + @kieu_duyet + ''');'
+if(@$status in (']]>&APVStatusOpen;<![CDATA[', ']]>&APVStatusPending;<![CDATA[', ']]>&APVStatusApprove;<![CDATA[')) begin
+  create table #mail(id int, stt_rec char(13), userID int, xtype int)
+  if @$status = ']]>&APVStatusOpen;<![CDATA[' set @ownerID = 0
+  if (@$u_status0 = '' or @$u_status0 = '0' or @$status = ']]>&APVStatusOpen;<![CDATA[' or (@$u_status0 = '1' and $]]>&APVDetailTable;<![CDATA[.NewValue <> $]]>&APVDetailTable;<![CDATA[.OldValue)) set @isChange = 1
+  if not exists(select 1 from dmquyenct where loai_duyet = ']]>&APVApprovalType;<![CDATA[' and ma_quyen = @role and status = ']]>&APVStatusOpen;<![CDATA[' and created_mail_yn = '1' and kieu_duyet = @kieu_duyet) select @ownerID = 0
+  insert into #mail exec AI_ERP$APV$PU$GetApprovalMailList @stt_rec, '$partition$current', ']]>&APVApprovalType;<![CDATA[', '@@sysDatabaseName', 0, @isChange, @ownerID
+  declare @p int, @mailUser int, @xtype int
+  select @p = min(id) from #mail
+  while @p is not null begin
+    select @mailUser = userID, @xtype = xtype from #mail where id = @p
+    select @invoke = @invoke + case when @invoke = '' then '' else '&' + char(255) + ';' end + 'Message.Message.SendPrivate(' + ']]>&APVController;<![CDATA[' + ',' + @stt_rec + ',' + '@@appDatabaseName' + char(255) + '@@sysDatabaseName' + ',1,' + rtrim(@mailUser)+ ',' + rtrim(@xtype) + ')' 
+    select @p = min(id) from #mail where id > @p
+  end
+  ]]>&PostNotify;<![CDATA[
+end else begin
+  if @$status = '0' delete dmxn where stt_rec = @stt_rec
+end
+]]>

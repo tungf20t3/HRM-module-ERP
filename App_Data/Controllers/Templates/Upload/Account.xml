@@ -1,0 +1,299 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % Tiny.Currency SYSTEM "..\..\Include\Tiny.Currency.ent">
+  %Tiny.Currency;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile ", case when @@language = 'V' then 'Account' else 'Account2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$AccountImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$AccountImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmtk"/>
+    <table value="dmtk" alias="a"/>
+    <listTable value="#r"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        <![CDATA[if ]]>&Tiny.Currency.ConfigEvent;<![CDATA[ = 1 select '1' as view_index]]>&ExportImportTemplateQuery;<![CDATA[ else select '0' as view_index]]>&ExportImportTemplateQuery;
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        <field name="tk" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true"/>
+        <field name="ten_tk" column="B" allowNulls="false"/>
+        <field name="ten_tk2" column="C"/>
+        <field name="tk_me" column="D" check="tk_me &lt;&gt; '' and ((tk_me not in (select tk from @@table)) or (tk_me = tk))" errorCode="00001"/>
+        <field name="tk_cn" column="E" type="Boolean" check="tk_cn &lt;&gt; dbo.ff_Inlist(tk, rtrim(@m_tk_cn_list))" errorCode="00002"/>
+        <field name="tk_sc" column="F" type="Boolean"/>
+        <field name="ten_ngan" column="G"/>
+        <field name="ten_ngan2" column="H"/>
+
+        <field name="ma_nt" column=""/>
+        <field name="loai_cl_no" column="" type="Decimal" defaultValue="0"/>
+        <field name="loai_cl_co" column="" type="Decimal" defaultValue="0"/>
+        <field name="loai_tk" column="None" insertValue="loai_tk"/>
+        <field name="bac_tk" column="None" insertValue="bac_tk"/>
+        <field name="status" column="None" insertValue="'1'"/>
+        <field name="datetime0" column="None" type="DateTime" insertValue="@d"/>
+        <field name="datetime2" column="None" type="DateTime" insertValue="@d"/>
+        <field name="user_id0" column="None" type="Int" insertValue="@@userID"/>
+        <field name="user_id2" column="None" type="Int" insertValue="@@userID"/>
+      </fields>
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="tk" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true"/>
+    <field name="ten_tk" column="B" allowNulls="false"/>
+    <field name="ten_tk2" column="C"/>
+    <field name="tk_me" column="D" check="tk_me &lt;&gt; '' and ((tk_me not in (select tk from @@table)) or (tk_me = tk))" errorCode="00001"/>
+    <field name="ma_nt" column="E" allowNulls="false" check="ma_nt not in (select ma_nt from dmnt)" errorCode="00001"/>
+    <field name="tk_cn" column="F" type="Boolean" check="tk_cn &lt;&gt; dbo.ff_Inlist(tk, rtrim(@m_tk_cn_list))" errorCode="00002"/>
+    <field name="tk_sc" column="G" type="Boolean"/>
+    <field name="loai_cl_no" column="H" type="Decimal" check="loai_cl_no not in (0, 1, 2, 3, 4)&And;ma_nt = @baseCurrency and loai_cl_no &lt;&gt; 0" errorCode="00002&And;00002"/>
+    <field name="loai_cl_co" column="I" type="Decimal" check="loai_cl_co not in (0, 1, 2, 3, 4)&And;ma_nt = @baseCurrency and loai_cl_co &lt;&gt; 0" errorCode="00002&And;00002"/>
+    <field name="ten_ngan" column="J"/>
+    <field name="ten_ngan2" column="K"/>
+
+    <field name="loai_tk" column="None" insertValue="loai_tk"/>
+    <field name="bac_tk" column="None" insertValue="bac_tk"/>
+    <field name="status" column="None" insertValue="'1'"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="@d"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="@d"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục tài khoản" e="Chart of Accounts"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="tk" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tài khoản" e="Account"/>
+      </field>
+      <field name="ten_tk" width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên tài khoản" e="Description"/>
+      </field>
+      <field name="ten_tk2" width="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="tk_me" width="16">
+        <text v="Tài khoản mẹ" e="Parent Account"/>
+      </field>
+      <field name="ma_nt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nt" e="Currency"/>
+      </field>
+      <field name="tk_cn" width="12">
+        <text v="Tk theo dõi công nợ" e="AR/AP Account"/>
+      </field>
+      <field name="tk_sc" width="12">
+        <text v="Tài khoản sổ cái" e="GL Account"/>
+      </field>
+      <field name="loai_cl_no" width="12">
+        <text v="Pp tính tggs nợ" e="Debit Ex. Rate Type"/>
+      </field>
+      <field name="loai_cl_co" width="12">
+        <text v="Pp tính tggs có" e="Credit Ex. Rate Type"/>
+      </field>
+      <field name="ten_ngan" width="32">
+        <text v="Tên ngắn" e="Short Name"/>
+      </field>
+      <field name="ten_ngan2" width="32">
+        <text v="Tên ngắn khác" e="Other Short Name"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @notAuthorized nvarchar(512), @exists nvarchar(512), @q nvarchar(4000), @duplicate nvarchar(4000), @invalid nvarchar(4000), @irregular nvarchar(4000), @field varchar(32), @irregularChars varchar(128), @r int, @childAccount$Conflict nvarchar(4000)
+declare @baseCurrency varchar(32), @m_tk_cn_list varchar(512), @d datetime
+
+select @m_tk_cn_list = rtrim(val) from options where name = 'm_tk_cn_list'
+select @baseCurrency = rtrim(val) from options where name = 'm_ma_nt0'
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[, @d = getdate()
+select @invalid = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có giá trị nhập không hợp lệ.' else 'The value of cell <span class="Highlight">%invalidCell</span> has invalid value.' end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> lồng nhau với một tài khoản khác cùng cấp.' else 'The value of cell <span class="Highlight">%invalidCell</span> is nested with an existing one in the same level.' end
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @exists = case @@language when 'v' then N'Không thể cập nhập dữ liệu vì tài khoản đã được sử dụng.' else 'Cannot import chart of account that has been used.'  end
+select @notAuthorized = case @@language when 'v' then N'Chưa có <span class="Highlight">quyền thực hiện chức năng này</span> hoặc <span class="Highlight">truy cập bị từ chối</span>. Liên hệ với người quản trị hệ thống nếu bạn có thể được truy cập vào chức năng này.'
+  else N'You are <span class="Highlight">not authorized</span> or you <span class="Highlight">do not have permission</span> to execute this action. Contact the System administrator if you believe you should be able to execute this action.' end
+select @childAccount$Conflict = case @@language when 'v' then N'Các ký tự bắt đầu của tài khoản phải được khai báo trùng so với tài khoản mẹ.' else 'The ordinal number of each sub-account must be added to the right of the number of its parent account.' end
+
+if @debug_mode = '0' begin
+  if (exists(select top 1 1 from ct00) or exists(select top 1 1 from ct70) or exists(select top 1 1 from ct90) or exists(select top 1 1 from cdtk where (abs(du_no_nt00) + abs(du_co_nt00) + abs(du_no00) + abs(du_co00) + abs(du_no_nt1) + abs(du_co_nt1) + abs(du_no1) + abs(du_co1)) > 0) or exists(select top 1 1 from cdvv) or exists(select top 1 1 from cdhd) or exists(select top 1 1 from cdku) or exists(select top 1 1 from cdnvbh)) begin
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTableCell;<![CDATA[ select 'E', 1, @exists
+      set @$errorCount = @$errorCount - @@rowcount; set rowcount 0;
+      ]]>&EndErrorMode;<![CDATA[
+    end else begin
+      select @exists as message, '' as field
+    end
+    return
+  end
+  if @@admin = 0 begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'Account', 'Edit') = 0 begin
+      if @$mode = 1 begin
+        ]]>&StartErrorCount;<![CDATA[
+        ]]>&InsertErrorTableCell;<![CDATA[ select 'E', 1, 'notAuthorized'
+        set @$errorCount = @$errorCount - @@rowcount; set rowcount 0;
+        ]]>&EndErrorMode;<![CDATA[
+      end else begin
+        select @notAuthorized as message, '' as field
+      end
+      return
+    end
+  end
+end
+
+-- Update
+update @@table set ma_nt = case when ma_nt <> '' then ma_nt else @baseCurrency end
+
+-- Checking
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'tk', stt, @message from @@table where tk like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'tk', @r = min(stt) from @@table where tk like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+]]>&Checking;<![CDATA[
+
+-- Do not delete following line
+-- #OverwriteChecking
+
+-- Gather
+select top 0 tk, ten_tk, ten_tk2, ten_ngan, ten_ngan2, ma_nt, tk_me, tk_sc, tk_cn, loai_cl_no, loai_cl_co, loai_tk, bac_tk, cast(0 as int) as stt into #r from dmtk
+insert into #r select tk, ten_tk, ten_tk2, ten_ngan, ten_ngan2, ma_nt, tk_me, tk_sc, tk_cn, loai_cl_no, loai_cl_co, 1, 1, stt from @@table
+create index i on #r (tk)
+
+update #r set loai_tk = 0 from #r a where exists(select 1 from #r b where a.tk <> b.tk and a.tk = b.tk_me)
+select tk, tk_me, bac_tk, stt into #dmtk0 from #r where tk_me = ''
+select tk, tk_me, bac_tk, stt into #dmtk1 from #r where tk_me <> ''
+
+if exists(select 1 from options where name = 'm_tk_long_yn' and val = '1') begin
+  if exists(select 1 from #dmtk1 where charindex(rtrim(tk_me), rtrim(tk)) <> 1) begin
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select 'tk', stt, @childAccount$Conflict from #dmtk1 where charindex(rtrim(tk_me), rtrim(tk)) <> 1
+      ]]>&w1;<![CDATA['tk']]>&w2;<![CDATA[stt]]>&w3;<![CDATA[@childAccount$Conflict]]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select top 1 @childAccount$Conflict as message, 'tk' as field, stt as record from #dmtk1 where charindex(rtrim(tk_me), rtrim(tk)) <> 1
+      return
+    end
+  end
+end
+
+declare @max int, @count int
+select @count = 0, @max = 32
+while exists(select 1 from #dmtk1) and @count < @max begin
+  insert into #dmtk0 select a.tk, a.tk_me, b.bac_tk + 1, a.stt from #dmtk1 a join #dmtk0 b on a.tk_me = b.tk
+  if exists(select 1 from #dmtk1 where tk in (select tk from #dmtk0)) delete #dmtk1 where tk in (select tk from #dmtk0) else break
+  select @count = @count + 1
+end
+if exists(select 1 from #dmtk1) begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'tk_me', stt, 'invalidValueMessage' from #dmtk1 where 1=1
+    ]]>&w1;<![CDATA['tk_me']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['invalidValueMessage']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select top 1 @invalid as message, 'tk_me' as field, stt as record from #dmtk1
+    return
+  end
+end
+update #r set bac_tk = b.bac_tk from #r a join #dmtk0 b on a.tk = b.tk and a.tk_me = b.tk_me
+
+select @field = 'tk'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from #r a with (index(i)), #r b with (index(i)) where a.tk <> b.tk and a.bac_tk = b.bac_tk and a.tk like rtrim(b.tk) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @q = 'select top 1 @r = a.stt from #r a with (index(i)), #r b with (index(i)) where a.tk <> b.tk and a.bac_tk = b.bac_tk and a.tk like rtrim(b.tk) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+end
+]]>&EndErrorMode;<![CDATA[
+
+if @debug_mode = '1' and @@admin = 1 begin
+  select '' as message
+  return
+end
+
+-- Insert
+insert into dmtklog select @d, * from dmtk
+delete dmtk
+]]>&Inserting;<![CDATA[
+delete cdtk
+select tk as ma_nx, ten_tk as ten_nx, ten_tk2 as ten_nx2, * into #dmnx from dmtk where loai_tk = 1
+if exists(select 1 from #dmnx) begin
+  select top 0 * into #dmnx0 from dmnx0
+  select @q = dbo.AI_ERP$Function$Ext$Insert('#dmnx0', '#dmnx', '#dmnx0', '#dmnx', null, null)
+  exec sp_executesql @q
+  delete dmnx0
+  insert into dmnx0 select * from #dmnx0
+end
+]]>
+    </text>
+  </processing>
+</import>

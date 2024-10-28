@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterFields SYSTEM "..\Include\XML\FlowFilterFields.txt">
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "SOBlanket">
+  <!ENTITY c11 "Hợp đồng từ ngày">
+  <!ENTITY c12 "Date From">
+  <!ENTITY c21 "Số hợp đồng">
+  <!ENTITY c22 "Blanket Order Number">
+  <!ENTITY ext "64">
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'SOBlanketFilter', 'Filter', 'SOTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return">
+]>
+
+<dir table="m64$000000" code="stt_rec" order="ngay_ct, so_ct" id="DXA" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn hợp đồng" e="Select Blanket Order"></title>
+  <fields>
+    &XMLFlowFilterFields;
+  </fields>
+
+  <views>
+    &XMLFlowFilterViews;
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @fields nvarchar(512), @keyMaster nvarchar(1024), @keyFlow nvarchar(4000), @$none nvarchar(512)
+select @keyMaster = '%#15$2#20$' + rtrim(@ma_kh) + '#%', @fields = 'ma_nt + char(255) + status + char(255) + isnull(convert(varchar(8), ngay_hl, 112), ''null'')'
+select @keyFlow = 'status in (''2'',''4'')', @$none = case when @@language = 'v' then N'Không có hợp đồng theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+]]>&CheckRelativeProcess;&XMLFlowFilterCheck;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFilterFunction;
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

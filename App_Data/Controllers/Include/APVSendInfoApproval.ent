@@ -1,0 +1,38 @@
+﻿<!ENTITY APVMessageSendInfoCheck "
+if exists(select 1 from #err) begin
+  select case when @@language = 'V' then N'Bạn chưa có hoặc chưa được phân quyền thực hiện chức năng này.' else 'You do not have permission to perform this action, please contact your administrator.' end as message
+  select '' as stt_rec, 0 as userID, 0 as xtype
+  return
+end
+">
+<!ENTITY APVMessageSendInfoBegin "
+declare @masterTable varchar(32), @dyn varchar(6), @q nvarchar(4000), @GeneralTable varchar(32), @DetailTable varchar(32), @notifygroup varchar(32), @invoke nvarchar(4000)
+select @masterTable = m$, @GeneralTable = case when right(c$, 1) = '$' then c$ + '000000' else c$ end, @DetailTable = d$ from dmct9 where rtrim(ma_ct) in (select right(@@stt_rec, 3))
+select @notifygroup = '', @invoke = ''
+if @GeneralTable &lt;&gt; '' begin
+  set @q = 'select @dyn = convert(char(6), ngay_ct, 112) from ' + @GeneralTable + ' where stt_rec = '@@stt_rec''
+  exec sp_executesql @q, N'@dyn char(6) output', @dyn output
+  if right(@masterTable, 1) = '$' set @masterTable = @masterTable + @dyn
+  if right(@DetailTable, 1) = '$' set @DetailTable = @DetailTable + @dyn
+  create table #mail(id int, stt_rec char(13), user_id int, type int)
+">
+<!ENTITY APVMessageSendInfoEnd "
+  exec AI_ERP$APV$GetNotify @notifyGroup, @@stt_rec, @masterTable, @detailTable, &NotifyPushFlag;, @@userID, '@@sysDatabaseName', '#mail', @invoke output
+  select '' as message, @invoke as notify
+  select * from #mail
+end
+">
+
+<!ENTITY APVSendInfoDeclare "
+create table #duyet(action varchar(32), stt_rec char(13), stt_rec0 varchar(32), so_luong numeric(19, 3), xtype varchar(32))
+create table #duyet1(stt_rec char(13), stt_rec0 varchar(32), so_luong numeric(19, 3), xtype varchar(32))
+create table #duyet2(stt_rec char(13), xtype varchar(32))
+">
+<!ENTITY APVSendInfoExt "">
+<!ENTITY APVSendInfo "
+&APVSendInfoExt;
+insert into #duyet1(stt_rec, stt_rec0, so_luong, xtype) select stt_rec, stt_rec0, sum(so_luong), xtype from #duyet where so_luong &lt;&gt; 0 group by action, stt_rec, stt_rec0, xtype
+delete #duyet1 from #duyet1 a join (select stt_rec, stt_rec0, so_luong from #duyet1 group by stt_rec, stt_rec0, so_luong having count(*) > 1) b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0 and a.so_luong = b.so_luong
+insert into #duyet2(stt_rec, xtype) select distinct stt_rec, xtype from #duyet1
+if exists(select 1 from #duyet2) exec AI_ERP$APV$GetNotifyAndMail &NotifyPushFlag;, @@userID, '@@sysDatabaseName', '#duyet2', @invoke output
+">

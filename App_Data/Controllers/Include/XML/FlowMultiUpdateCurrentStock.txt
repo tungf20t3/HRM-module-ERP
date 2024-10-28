@@ -1,0 +1,71 @@
+<![CDATA[
+select top 0 cast(0 as int) as id, sl_nhap as ton13 into #ton from wrkin
+declare @$stock$View$Type char(1)
+if ']]>&Tag;<![CDATA[' = '2' and exists(select 1 from options where name = 'm_instock_split' and val = '1')
+  select @$stock$View$Type = rtrim(val) from options where name = 'm_instock_view2'
+else 
+  select @$stock$View$Type = rtrim(val) from options where name = 'm_instock_view'
+
+select @$stock$View$Type = isnull(@$stock$View$Type, '1')
+
+if not exists(select 1 from options where name = 'm_instock_onhand' and val = '1') begin
+  set @q = 'insert into #ton select a.id, e.ton13 / case when a.he_so <> 0 then a.he_so else 1 end as ton13 from #d a'
+  set @q = @q + case 
+    when @$stock$View$Type = '1' then ' left join cdvt]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho'
+    when @$stock$View$Type = '2' then ' left join cdvitri]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_vi_tri = e.ma_vi_tri'
+    when @$stock$View$Type = '3' then ' left join cdklo]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_lo = e.ma_lo'
+    when @$stock$View$Type = '4' then ' left join cdlo]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_lo = e.ma_lo and a.ma_vi_tri = e.ma_vi_tri'
+    else '' end
+  exec sp_executesql @q
+  
+  update #d set ton13 = b.ton13 from #d a join #ton b on a.id = b.id
+end else begin
+  select top 0 ma_kho, ma_vi_tri, ma_vt, ma_lo, so_luong as ton13 into #xcd from cdvt73
+  select top 0 ma_kho, ma_vi_tri, ma_vt, ma_lo into #dton from #d
+
+  if @$stock$View$Type = '1' insert into #dton select distinct ma_kho, '', ma_vt, '' from #d
+  else if @$stock$View$Type = '2' insert into #dton select distinct ma_kho, ma_vi_tri, ma_vt, '' from #d
+  else if @$stock$View$Type = '3' insert into #dton select distinct ma_kho, '', ma_vt, ma_lo from #d
+  else if @$stock$View$Type = '4' insert into #dton select distinct ma_kho, ma_vi_tri, ma_vt, ma_lo from #d
+
+  if @$stock$View$Type = '1' begin
+    insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(ton13) from #dton d join cdvt]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho group by a.ma_kho, a.ma_vt
+	  if ']]>&Tag;<![CDATA[' = ''
+		  insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(a.so_luong) from #dton d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho group by a.ma_kho, a.ma_vt
+	  else
+		  insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(a.so_luong) from #dton d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho group by a.ma_kho, a.ma_vt
+    
+    update #d set ton13 = e.ton13 from #d a left join (select ma_kho, ma_vt, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho
+  end
+  
+  if @$stock$View$Type = '2' begin
+	  insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(ton13) from #dton d join cdvitri]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri group by a.ma_kho, a.ma_vi_tri, a.ma_vt
+	  if ']]>&Tag;<![CDATA[' = ''
+		  insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(a.so_luong) from #dton d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri group by a.ma_kho, a.ma_vi_tri, a.ma_vt
+	  else
+		  insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(a.so_luong) from #dton d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri group by a.ma_kho, a.ma_vi_tri, a.ma_vt
+
+	  update #d set ton13 = e.ton13 from #d a left join (select ma_kho, ma_vt, ma_vi_tri, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_vi_tri) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_vi_tri = e.ma_vi_tri
+  end
+  
+  if @$stock$View$Type = '3' begin
+	  insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(ton13) from #dton d join cdklo]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_lo
+	  if ']]>&Tag;<![CDATA[' = ''
+		  insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(a.so_luong) from #dton d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_lo
+	  else
+		  insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(a.so_luong) from #dton d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_lo
+
+	  update #d set ton13 = e.ton13 from #d a left join (select ma_kho, ma_vt, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_lo) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_lo = e.ma_lo
+  end
+
+  if @$stock$View$Type = '4' begin
+	  insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(ton13) from #dton d join cdlo]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_vi_tri, a.ma_lo
+	  if ']]>&Tag;<![CDATA[' = ''
+		  insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(a.so_luong) from #dton d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_vi_tri, a.ma_lo
+	  else
+		  insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(a.so_luong) from #dton d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_vi_tri, a.ma_lo
+
+	  update #d set ton13 = e.ton13 from #d a left join (select ma_kho, ma_vt, ma_vi_tri, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_vi_tri, ma_lo) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_lo = e.ma_lo and a.ma_vi_tri = e.ma_vi_tri
+  end
+end
+]]>

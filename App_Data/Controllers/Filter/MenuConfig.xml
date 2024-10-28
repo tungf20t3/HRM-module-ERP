@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Khai báo kiểu hiển thị chức năng" e="Dropdown Menu Setting"></title>
+  <fields>
+    <field name="page1" type="Decimal" dataFormatString="#0">
+      <header v="Chức năng cấp 2" e="Dropdown Menu Level 2"></header>
+      <footer v="Số chức năng chính tối đa mỗi cột" e="Maximum number of items per column"></footer>
+      <items style="Numeric"/>
+    </field>
+    <field name="page2" type="Decimal" dataFormatString="#0">
+      <header v="Chức năng cấp 3" e="Dropdown Menu Level 3"></header>
+      <footer v="Số chức năng chi tiết tối đa mỗi cột" e="Maximum number of items per column"></footer>
+      <items style="Numeric"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="130, 30, 60, 330"/>
+      <item value="1110: [page1].Label, [page1], [page1].Description"/>
+      <item value="1110: [page2].Label, [page2], [page2].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event ="Checking">
+      <text>
+        <![CDATA[
+var f = this;
+localStorage.setItem('menuItemPerPage', f.getItemValue('page1'));
+localStorage.setItem('menuSubItemPerPage', f.getItemValue('page2'));
+ ]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$VoucherFilter$(c){var b=10,a=15;try{b=localStorage.getItem("menuItemPerPage")}catch(d){}if(!b)b=10;try{a=localStorage.getItem("menuSubItemPerPage")}catch(d){}if(!a)a=15;c.setItemValue("page1",parseInt(b));c.setItemValue("page2",parseInt(a))}]]>
+    </text>
+  </script>
+  <css>
+    <text>
+      <![CDATA[
+.FormCell{vertical-align:top;}
+.UpdateDlgContent{padding:9px;}
+]]>
+    </text>
+  </css>
+</dir>

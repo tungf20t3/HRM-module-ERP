@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Pay Type</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Pay Type</p>
+<p id="p1">This function is used to define codes of pay type to calculate employee incomes or deductions such as salary, award, penalty, allowance, tax...</p>
+
+<p id="td2">Definition screen</p>
+<p id="pic"><img src="eng\hrPayType.png"/></p>
+
+<p id="td2">Field descriptions</p>
+
+<p class="node">No.</p>
+<p class="node_d"> Used to set the order of pay types</p>
+<p class="note">To pay type calculated by formula and used to calculated personal income tax, its ordinal number must be before one of personal income tax type.</p>
+<p class="node">Pay Type Code</p>
+<p class="node_d">Code of pay type used to calculate salary, income or tax. The system pay types are defined before so you cannot change their codes.</p>
+	
+<p class="node">Short Name/ Other Short Name</p>
+<p class="node_d">Short name is used to create column title in "Employee Salary Sheet".</p>
+	
+<p class="node">Style</p>
+<p class="node_d">0 - System: </p>
+<p class="node_d">Refer to <b> <a href = hrSalaryComputation.htm> Logic of salary and PIT computation</a></b> for more details</p>
+
+<p class="node_d">1 - Quantity: pay type is defined a fixed value as follows:</p>
+
+<ul class="lo_2">	- A specific value</ul>
+<p class="e">For example: Define the "Adjustment for Inflation" pay type a value of 1,000,000. Select the style 1 - Quantity and key in "Formula" field the value of 1,000,000. </p>
+
+<ul class="lo_2">	- An optional parameter value<br/>
+Get the value of an optional parameter to a pay type. In this case, please refer to our counselor for advice.  </ul>
+<p class="e">For example: Get value of "Deduction for Family Circumstances Applicable to a Taxpayer" parameter (e.g. 9,000,000), code of this parameter is "T_GT_BT_NT". Use value of this parameter for "Taxpayer Deduction" pay type.
+<br/> --&gt;Select style 1 - Quantity and type the string of "@T_GT_BT_NT" in "Formula" field;</p>
+
+<ul class="lo_2">	- A value of a field in "Employee Information Input"<br/>
+Get the value of a field in "Employee Information Input" to a pay type. In this case, please refer to our counselor for advice.
+</ul>
+<p class="e"> For example: get the value of "Amount 1" field (e.g. 1,000,000) for the pay type "Personal allowance for remote areas", code of this field is "Tien1". Use this value for "Personal allowance for remote areas" pay type.
+<br/> --&gt; Select style 1 - Quantity and type the string "!Tien1" into "Formula" field.</p>
+
+<p class="node_d">
+2 - Formula: Used to calculate intermediate pay type codes which cannot be directly calculated by code style 0 - System and 1 - Quantity.</p>
+
+<p class="node_d">9 - Other: </p>
+<p class="node_d">This option is provisionally designed only (maybe for customization).</p>
+
+
+<p class="node">Formula</p>
+<p class="node_d">Used to key in a specific value or parameter (for style 1) or a formula (for style 2) in user-defined pay type codes. <br/>
+You can define to add, subtract, multiply, divide, sum... the defined codes.</p>
+<p class="note">Notes of formula definition to style 2: <br/>
+- Pay type code must be put in square brackets []; <br/>
+- In case of division expression, define the formula as "CASE WHEN [condition = 0] THEN 0 ELSE [division expression] END" to avoid the denominator 0.</p>
+<p class="e">For exmaple: <br/>
+- Round the result of calculation: ROUND([L21]*[Z05], 0);<br/>
+- Define division expression: CASE WHEN [Z10] = 0 THEN 0 ELSE [L21]/[Z10] END;<br/>
+- Define sum expression: SUM([Z10] - [U00]).</p>
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>
+<p id="pic"><img src="Eng\hrPayType.png"/></p>

@@ -1,0 +1,218 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+
+  <!ENTITY Controller "BIMasterInspectionCharacteristics">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % Nested SYSTEM "..\..\Include\BIMasterInspectionCharacteristics.Nested">
+  %Nested;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BIMasterInspectionCharacteristicsImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BIMasterInspectionCharacteristicsImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="bikddmdactinh"/>
+    <table value="bikddmdactinh" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C001">
+      <header v="Giá trị đến phải lớn hơn hoặc bằng giá trị từ." e="Upper spec. limit must be larger than or equal to lower spec. limit."/>
+    </var>
+    <var id="C002">
+      <header v="Giá trị mục tiêu không thuộc phạm vi giá trị từ và đến." e="Target value is out of range."/>
+    </var>
+    <var id="00003">
+      <header v="Giá trị &Nested.Message.v;." e="The value is &Nested.Message.e;." />
+    </var>
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dac_tinh" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ten_dac_tinh" column="." allowNulls="false"/>
+    <field name="ten_dac_tinh2" column="."/>
+
+    <field name="tinh_chat" column="." defaultValue="1" check="tinh_chat not in ('1', '2')" errorCode="00002"/>
+    <field name="gia_tri_tu" column="." type="Decimal"/>
+    <field name="gia_tri_den" column="." type="Decimal" check="gia_tri_tu &lt;&gt; 0 and gia_tri_den &lt;&gt; 0 and(gia_tri_tu &gt; gia_tri_den)" errorCode="C001"/>
+    <field name="gt_muc_tieu" column="." type="Decimal" check="gt_muc_tieu &lt;&gt; 0 and ((gia_tri_tu &lt;&gt; 0 and not(gt_muc_tieu &gt;= gia_tri_tu)) or (gia_tri_den &lt;&gt; 0 and not(gt_muc_tieu &lt;= gia_tri_den)))" errorCode="C002"/>
+
+    <field name="yeu_cau" column="."/>
+    <field name="trong_so" column="." type="Decimal" check="trong_so > 999" errorCode="00002"/>
+    <field name="kieu_ghi_nhan" column="." defaultValue="1" check="kieu_ghi_nhan not in ('1', '2')" errorCode="00002"/>
+    <field name="kd_bat_buoc" column="." defaultValue="1" check="kd_bat_buoc not in ('1', '0')" errorCode="00002"/>
+    <field name="stt_sx" column="." relation="stt" type="Decimal" check="stt_sx > 9999" errorCode="00002"/>
+    <field name="ghi_chu" column="."/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục đặc tính kiểm định" e="Master Inspection Characteristics"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_dac_tinh" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã đặc tính" e="Code"/>
+      </field>
+      <field name="ten_dac_tinh" width ="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên đặc tính" e="Description"/>
+      </field>
+      <field name="ten_dac_tinh2" width ="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="tinh_chat" width ="16">
+        <text v="Tính chất" e="Characteristic Type"/>
+      </field>
+      <field name="gia_tri_tu" width ="16">
+        <text v="Giá trị từ" e="Lower Specification Limit"/>
+      </field>
+      <field name="gia_tri_den" width ="16">
+        <text v="Giá trị đến" e="Upper Specification Limit"/>
+      </field>
+      <field name="gt_muc_tieu" width ="16">
+        <text v="Giá trị mục tiêu" e="Target Value"/>
+      </field>
+
+      <field name="yeu_cau" width ="50">
+        <text v="Yêu cầu" e="Require Description"/>
+      </field>
+      <field name="trong_so" width ="16">
+        <text v="Trọng số" e="Weight"/>
+      </field>
+      <field name="kieu_ghi_nhan" width ="16">
+        <text v="Kiểu ghi nhận" e="Results Recording Type"/>
+      </field>
+      <field name="kd_bat_buoc" width ="16">
+        <text v="Kiểm định bắt buộc" e="Inspection Required"/>
+      </field>
+      <field name="stt_sx" width ="16">
+        <text v="Stt sắp xếp" e="Ordinal Number"/>
+      </field>
+      <field name="ghi_chu" width ="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'BIMasterInspectionCharacteristics', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @r int, @d datetime
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[, @d = getDate()
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> ]]>&Nested.Message.v;<![CDATA[.' else 'The value of cell <span class="Highlight">%invalidCell</span> is ]]>&Nested.Message.e;<![CDATA[.' end
+
+create index i on @@table (ma_dac_tinh)
+
+-- Delete
+if @type = '0' delete @@table from @@table a join bikddmdactinh b on a.ma_dac_tinh = b.ma_dac_tinh
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select @field = 'ma_dac_tinh'
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, @message from @@table where ma_dac_tinh like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ma_dac_tinh like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+-- Gather
+select a.* into #k from @@table a join bikddmdactinh b on a.ma_dac_tinh = b.ma_dac_tinh
+delete @@table from @@table a join #k b on a.ma_dac_tinh = b.ma_dac_tinh
+
+-- Checking
+select @field = 'ma_dac_tinh'
+]]>&Nested.Key.b;<![CDATA[
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_dac_tinh <> b.ma_dac_tinh and a.ma_dac_tinh like rtrim(b.ma_dac_tinh) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, bikddmdactinh b with (index(PK_bikddmdactinh)) where a.ma_dac_tinh like rtrim(b.ma_dac_tinh) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from bikddmdactinh a, @@table b with (index(i)) where a.ma_dac_tinh like rtrim(b.ma_dac_tinh) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_dac_tinh <> b.ma_dac_tinh and a.ma_dac_tinh like rtrim(b.ma_dac_tinh) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select top 1 @r = a.stt from @@table a, bikddmdactinh b with (index(PK_bikddmdactinh)) where a.ma_dac_tinh like rtrim(b.ma_dac_tinh) + '%']]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = b.stt from bikddmdactinh a, @@table b with (index(i)) where a.ma_dac_tinh like rtrim(b.ma_dac_tinh) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+</import>

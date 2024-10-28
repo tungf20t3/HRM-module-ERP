@@ -1,0 +1,299 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Giấy báo nợ</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Giấy báo nợ </p>
+<p id="td2"> Giải thích chung</p>
+<p class="node">Loại phiếu chi</p>
+<p class="node_d">Loại giấy báo nợ. Tùy theo tính chất nghiệp vụ sẽ dùng các loại giấy báo nợ khác nhau. Có các loại giấy báo nợ sau:
+</p>
+<ul class="lo_2">
+-        1- "Thanh toán chi tiết theo hoá đơn": sử dụng trong trường hợp doanh nghiệp có theo dõi việc thanh toán công nợ chi tiết
+ theo từng hóa đơn và bộ phận kế toán tiền gửi kiêm luôn chức năng theo dõi việc thanh toán chi tiết theo từng hóa đơn.<br/>
+-        2- "Chi cho khách hàng": sử dụng trong trường hợp bộ phận kế toán tiền gửi chỉ thực hiện chi cho đối tượng công nợ theo
+ số duyệt. Việc phân bổ thanh toán công nợ chi tiết theo từng hóa đơn (nếu có) được thực hiện ở bộ phận xử lý công nợ chuyên biệt.<br/>
+-        3- "Chi cho các khách hàng": sử dụng trong trường hợp chi cho một đối tượng đại diện nhận tiền nhưng phải theo dõi công
+ nợ trên nhiều đối tượng công nợ khác.<br/>
+-        5 – "Chi ngoại tệ tỷ giá ghi sổ sử dụng pp trung bình": sử dụng trong trường hợp nghiệp vụ phát sinh liên quan đến ngoại
+ tệ có tính tỷ giá giá ghi sổ theo phương pháp trung bình tháng.<br/>
+-        9- "Chi khác": sử dụng trong trường hợp chi thanh toán thẳng. Loại này được sử dụng phổ biến nhất. Các chứng từ có hóa
+ đơn GTGT sẽ nhập theo loại này
+</ul>
+<p class="node">Tài khoản có</p>
+<p class="node_d">Tài khoản ghi có, thông thường là tài khoản tiền gửi. Tài khoản được chọn từ danh mục tài khoản.
+</p>
+<p class="node">Số pc / Ngày lập / Ngày hạch toán</p>
+<p class="node_d">Thông tin về số giấy báo nợ, số giấy báo nợ được chương trình tự động đánh tăng lên 1 khi nhập chứng từ mới nhưng người 
+sử dụng được sửa lại.
+<br/>
+Ngày lập giấy báo nợ chỉ để tham khảo chứ không dùng trong tính toán. Khi tính toán thì chương trình sẽ dùng ngày hạch toán. 
+Ngày hạch toán phải lớn hơn ngày đã khóa sổ.
+</p>
+<p class="node">Mã ngoại tệ / Tỷ giá gs/ Tỷ giá</p>
+<p class="node_d">Mã của loại tiền giao dịch của chứng từ hiện thời. Mã ngoại tệ chọn nhập từ danh mục tiền tệ.
+<br/>
+Tỷ giá ghi sổ được tự động tính theo phương pháp chọn trước trong danh mục tài khoản. 
+Trong trường hợp mã ngoại tệ là đồng hạch toán, tỷ giá ghi sổ sẽ là 1.
+</p>
+<p class="note">Chú ý:<br/>
+Trường tỷ giá và tỷ giá ghi sổ sẽ chuyển đổi vị trí cho nhau (vị trí hiệu lực và vô hiệu) trong từng loại chứng từ cụ thể:
+<br/>
+- Loại 1/2/5: Nhập tỷ giá ghi sổ;
+<br/>
+- Loại 3/9: Nhập tỷ giá. 
+</p>
+
+<p class="node">Xử lý và trạng thái</p>
+<p class="node_d">Trạng thái của chứng từ. Có 3 trạng thái:</p>
+
+<ul class="lo_2">
+- Lập chứng từ: Chưa chuyển vào bất kỳ sổ sách nào;<br/>
+-      Chuyển KTTH: Nếu có chứng từ thuế VAT thì hóa đơn sẽ chuyển vào sổ sách, báo cáo thuế. Nếu là chứng từ liên quan thanh toán theo hóa đơn, sẽ được 
+chuyển vào sổ công nợ chi tiết theo hóa đơn;
+<br/>
+-      Đã chuyển vào sổ cái: ghi vào tất cả sổ sách liên quan.
+</ul>
+
+<p class="notex">Trong trường hợp doanh nghiệp sử dụng quy trình duyệt phiếu chi và báo nợ, trạng thái chứng từ sẽ là các trạng thái duyệt. 
+Chứng từ ở trạng thái chờ duyệt sẽ không xuất hiện tại chức năng chuyển sổ cái.</p>
+
+<p id="td2"> Màn hình nhập liệu chi tiết giấy báo nợ - loại chứng từ 2, 5 và 9</p>
+<p id="pic"><img src="vie/CPTran1.png"/></p>
+<p class="node">Tài khoản nợ</p>
+<p class="node_d">Mã số của tài khoản ghi nợ trong định khoản nghiệp vụ phát sinh. Tài khoản nợ được chọn trong danh mục tài khoản.
+</p>
+<p class="node">Diễn giải</p>
+<p class="node_d">Diễn giải về nội dung phát sinh. Dòng diễn giải này sẽ được chuyển vào sổ cái 
+làm ghi chú chứng từ.</p>
+<p class="node">Tiền (ngoại tệ xxx)</p>
+<p class="node_d">Xxx - mã đồng tiền giao dịch. Số phát sinh theo đồng tiền giao dịch. Trong trường hợp ngoại tệ, tiền sẽ được tính toán theo công thức 
+[tiền xxx * tỷ giá]. Tuy nhiên nếu số tiền thực tế của giao dịch [xxx * tỷ giá] thì có thể nhập trực tiếp giá trị trường tiền.
+</p>
+<p class="node">Tiền</p>
+<p class="node_d">Số phát sinh theo đồng tiền hạch toán. Nếu đồng tiền giao dịch là đồng tiền hạch toán thì không hiện trường này. Trường này bằng số 
+tiền ngoại tệ nhân với tỷ giá quy đổi nhưng được phép sửa.
+</p>
+<p id="td3">Phần thông tin thuế</p>
+
+<p class="note">Chú ý:
+Người dùng có thể nhập thông tin hóa đơn thuế tại chi tiết chứng từ hoặc ngăn thông tin thuế. Chương trình cho phép nhập 2 nơi độc lập,
+ kết quả sẽ kết hợp từ cả hai. Tổng thuế sẽ bằng thuế trên chi tiết và thuế trong thông tin thuế.
+</p>
+
+<p class="node">Mẫu bc</p>
+<p class="node_d">Dùng để lọc khi lên các báo cáo thuế ở phân hệ báo cáo thuế.
+<br/>Bao gồm các loại sau:</p>
+<ul class="lo_2">
+-        3- Hoá đơn giá trị gia tăng;<br/>
+-        4- Hàng hoá, dịch vụ mua vào không có hoá đơn;<br/>
+-        5- Hoá đơn bán hàng thông thường.
+</ul>
+
+<p class="node">Mã tính chất</p>
+<p class="node_d">Tính chất thuế GTGT của hàng hoá, dịch vụ mua vào theo qui định. Dùng để phân loại khi lên báo cáo "Bảng kê hoá đơn, chứng từ hàng hoá, 
+dịch vụ mua vào (mẫu 01-2/GTGT)".
+<br/>Bao gồm các tính chất sau:
+</p>
+<ul class="lo_2">-        1- Hàng hoá, dịch vụ dùng riêng cho SXKD chịu thuế GTGT, đã phát sinh doanh thu;
+<br/>-        2- Hàng hoá, dịch vụ dùng riêng cho SXKD không chịu thuế GTGT;
+<br/>-        3- Hàng hoá, dịch vụ dùng chung cho SXKD chịu thuế GTGT và không chịu thuế GTGT;
+<br/>-        4- Hàng hoá, dịch vụ dùng cho TSCĐ chưa phát sinh doanh thu được khấu trừ dần theo quý.
+<br/>-        5- Hàng hóa, dịch vụ không phải tổng hợp khi lên tờ khai 01/GTGT.
+</ul>
+
+<p class="node">Mẫu hóa đơn</p>
+<p class="node_d">
+Trường "Mẫu hóa đơn" ngầm định lấy từ tham số tùy chọn, cho phép sửa lại.<br/>
+Chương trình sẽ xét thứ tự ưu tiên để kết xuất lên cột "Ký hiệu mẫu hóa đơn" của báo cáo thuế:</p>
+<ul class="lo_2">
+- Nếu trường "Mẫu hóa đơn" có cập nhật, chương trình sẽ ngầm định dùng trường này để lên báo cáo thuế;<br/>
+- Nếu trường "Mẫu hóa đơn" không cập nhật, chương trình sẽ ngầm định dùng tham số "Ký hiệu mẫu số hóa đơn đầu vào ngầm định" trong
+ tham số tùy chọn;<br/>
+- Nếu tham số "Ký hiệu mẫu số hóa đơn đầu vào ngầm định" trong tham số tùy chọn không khai báo, chương trình sẽ không thể
+ hiện trên báo cáo.
+</ul>
+
+
+<p class="node">Số hoá đơn / Số seri/Ngày hoá đơn</p>
+<p class="node_d">Số hóa đơn, Ngày hoá đơn và số seri hóa đơn của nhà cung cấp.</p>
+
+<p class="node">Mã khách thuế</p>
+<p class="node_d">Mã của nhà cung cấp hàng hóa, dịch vụ. Ngầm định mã này sẽ là mã khách của giấy báo nợ nhưng có thể sửa lại được. Mã được chọn trong 
+danh mục khách hàng. Sau khi nhập mã chương trình sẽ cập nhật các trường tên, địa chỉ, mã số thuế của nhà cung cấp.
+<br/>Trường này có thể bỏ qua trong trường hợp ta muốn tự nhập tên, địa chỉ, mã số thuế của nhà cung cấp. Việc tự nhập các trường này thường sử dụng trong 
+trường hợp nhà cung cấp lẻ.
+</p>
+<p class="node">Tên khách hàng thuế</p>
+<p class="node_d">Tên của nhà cung cấp hàng hóa, dịch vụ. Nếu không có mã thuế, có thể nhập trực tiếp.
+</p>
+<p class="node">Mã số thuế</p>
+<p class="node_d">Mã số thuế của nhà cung cấp.
+</p>
+<p class="node">Hàng hóa, dịch vụ</p>
+<p class="node_d">Tên (nhóm) hàng hóa, dịch vụ mua vào.
+</p>
+<p class="node">Cục thuế</p>
+<p class="node_d">Mã của cục thuế nơi doanh nghiệp báo cáo phần thuế được khấu trừ này. Mã của cục thuế được chọn trong danh mục khách hàng.
+<br/>Trường này được sử dụng trong trường hợp phải theo dõi nhiều cục thuế khác nhau. Trường hợp này thường xảy ra đối với các công ty có các đơn vị 
+trực thuộc ở các địa bàn khác nhau.
+</p>
+<p id="td3">Phần thông tin khác</p>
+<p class="node">Theo dõi t.toán</p>
+<p class="node_d">Xử lý đối với các khoản chi cho vay, tạm ứng như là hoá đơn (thuộc phân hệ kế toán phải thu). Phục vụ lên các báo cáo phân tích tuổi nợ,
+ báo cáo chi tiết thanh toán theo từng khoản cho vay, tạm ứng.
+<br/>Chương trình ngầm định gán số chứng từ, ngày hạch toán ở phần thông tin chung vào các trường số chứng từ, ngày chứng từ tương ứng trong phần "Thanh toán" 
+và được phép sửa lại. Riêng trường "Mã thanh toán" thì được ngầm định lấy từ danh mục khách hàng (nhà cung cấp).
+</p>
+<p class="node">Sửa tỷ giá ghi sổ</p>
+<p class="node_d">Xử lý để sửa tỷ giá ghi sổ của tài khoản tiền. 
+Có thể sửa tỷ giá ghi sổ đã được tính tự động bởi chương trình bằng tỷ giá tùy ý. 
+Khi tính tỷ giá cuối tháng, chương trình sẽ trừ khoản phát sinh này khỏi công thức tính toán và không cập nhật lại tỷ giá tính được cho những chứng từ này.
+</p>
+<p class="note">Lưu ý:
+<br/>
+-        Chỉ nhập các chứng từ thuế trong giấy báo nợ loại chứng từ 9 vì giấy báo nợ loại này phục vụ cho các khoản chi trả ngay.
+<br/>
+-        Trong trường hợp sử dụng loại chứng từ bằng 2 ta cũng có thể phân bổ số tiền đã chi cho từng hóa đơn nhưng việc phân bổ được thực 
+hiện ở phân hệ kế toán công nợ phải trả. Chương trình sẽ liệt kê những giấy báo nợ đã chi trong phân hệ tiền mặt, tiền gửi và các hóa đơn liên quan 
+đến khách hàng hiện thời chưa tất toán để ta thực hiện phân bổ số tiền chi cho các hóa đơn tương ứng.
+</p>
+<p id="td2">Màn hình nhập liệu giấy báo nợ- loại chứng từ 1</p>
+<p id="p2">Loại chứng từ báo nợ 1- "Chi chi tiết theo hoá đơn" sử dụng trong trường hợp doanh nghiệp có theo dõi việc thanh toán công nợ
+ chi tiết theo từng hóa đơn và bộ phận kế toán tiền mặt tiền gửi kiêm luôn chức năng
+  theo dõi việc thanh toán chi tiết theo từng hóa đơn từ báo nợ. 
+  Khi chi tiền chi tiết theo hóa đơn ta phải chỉ rõ là chi tiền cho hóa đơn nào. Trong trường hợp chi tiền cho nhiều hóa đơn thì phải tách 
+  số tiền ra theo từng hóa đơn. 
+<br/>
+Để tìm hóa đơn cần thanh toán, nhấn tồ hợp phím "Ctrl+Insert" hoặc nhấn nút "
+<img src="Vie\newdetail.png" />" - "Mới" để tạo một dòng chi tiết mới. Sau đó nhập số hóa đơn hoặc nhấn nút tìm kiếm.
+</p>
+<p id="pic"><img src="vie/CPTran2.png"/></p>
+<p id="p3x">
+Để tìm và chọn nhiều hóa đơn cùng mã nhà cung cấp, nhấn <img src="vie/getdata1.png"/> - "Lấy số liệu từ hóa đơn", nhập "Hóa đơn từ ngày" để lọc số liệu.
+Kích "Chọn" các dòng cần thanh toán, sau đó nhấn "Nhận". Chương trình sẽ chuyển các hóa đơn đã chọn vào chi tiết thanh toán.
+</p>
+
+<p id="p3">(Xem trong hướng dẫn <a href=CDtran.htm> Phiếu chi)</a></p>
+
+<p id="td2">Màn hình nhập liệu chi tiết báo nợ- loại chứng từ 3</p>
+<p id="pic"><img src="vie/CPTran3.png"/></p>
+<p id="p2">Trường hợp chi cho nhiều khách cũng giống như trường hợp loại giấy báo nợ cho một khách. Điểm khác biệt ở đây là ở mỗi dòng 
+chi tiết hạch toán có thể nhập các mã khách khác nhau. Ngoài ra, đối với các phát sinh ngoại tệ mà dùng loại chứng từ này thì chương trình chỉ 
+ghi nhận và hạch toán theo tỷ giá giao dịch, không tạo chênh lệch tỷ giá.</p>
+<p id="td2">Phần thông tin nghiệp vụ khác</p>
+<p id="td3">Phần thông tin Phí ngân hàng</p>
+<p id="p3">Hạch toán phí ngân hàng</p>
+<ul class = "lo_1">
+-	Ghi Nợ "Tài khoản phí" (từ mã phí) <br/>
+-	Ghi Nợ "Tài khoản thuế" (từ mã thuế)
+	</ul>
+<ul class = "lo_2">
+-	Ghi Có "Tài khoản có" (chứng từ)
+</ul>
+<!--
+<p class="note"> Ghi chú về loại giới hạn tiền áp dụng <br/>
+- Với loại chứng từ liên quan tính toán tỷ giá ngay (với báo nợ là loại 1,2,9) thì chương trình không thực hiện được nếu đồng tiền 
+phát sinh khác với đồng tiền hạch toán. (Chương trình không cho lưu và cảnh báo "Mã giao dịch không hợp lệ")
+</p>
+-->
+<p class="note">Ghi chú về ghi sổ các trường thông tin<br/>
+- Tài khoản đối ứng: Ghi vào sổ cái, sổ chi tiết tài khoản trường "Mã khách" trên chứng từ báo có nếu "tài khoản đối ứng" là tài khoản công nợ
+, mã khách trong "Danh mục ngân hàng" nếu tài khoản đối ứng là tài khoản thường. <br/>
+- Diễn giải riêng của phí sẽ lấy trong thẻ "Phí ngân hàng". <br/>
+- Ghi chú khác: Khi chưa khai báo tài khoản ngân hàng hoặc mã ngân hàng trong tài khoản ngân hàng chưa khai báo mã khách, chương trình sẽ 
+cảnh báo và không cho phép lưu.</p>
+
+<p id="td3">Phần thông tin Ủy nhiệm chi</p>
+<p id="p3"> Phần thông tin in Ủy nhiệm chi, mặc nhiên lấy từ danh mục khách hàng, các thông tin bao gồm: </p>
+<ul class="lo_1">
+- Đơn vị nhận tiền<br/>
+- Số tài khoản<br/>
+- Tại ngân hàng<br/>
+- Tỉnh thành<br/>
+- Nội dung: mặc nhiên lấy từ "Lý do chi" của chứng từ. Người dùng có thể chỉnh sửa.
+</ul>
+<p class="note">
+Lưu ý:<br>
+Liên quan tùy chọn in diễn giải của ủy nhiệm chi theo "Lý do chi" của chứng từ hay "Nội dung" trong phần thông tin Ủy nhiệm chi, liên hệ 
+ nhân viên tư vấn để cài đặt.
+</p>	
+<!--9217---->
+<p class="node">Người nhận chịu phí ngân hàng</p>
+<p class="node_d">Dùng để xác định phí trong hay phí ngoải trên mẫu in ủy nhiệm chi các ngân hàng (nếu có).</p>
+<p id="td3">Phần thông tin thanh toán</p>
+<p id="p3">Thông tin thanh toán dùng để cập nhật "Mã thanh toán", "Số chứng từ","Ngày chứng từ" trong trường hợp sử dụng 
+loại 2 và có chọn "Theo dõi thanh toán".
+<br/>
+Các thông tin này sẽ được lưu lại trong chi tiết thanh toán và xử lý thanh toán tương đương như hóa đơn công nợ.
+</p>
+
+<p id="td3">Phần Khấu trừ thuế</p>
+<p id="p3">
+Nếu tham số "Hiện thẻ khấu trừ thuế trong giấy báo có/phiếu chi" là "Có" thì hiển thị thông tin "Khấu trừ thuế" trên giấy báo nợ, phiếu chi.
+<br>
+Bút toán này sử dụng trong các loại phiếu chi loại 2,5 và 9 khi cần ghi tăng thuế khấu trừ 
+hoặc thanh toán thuế khấu trừ cho các loại vụ việc thuê ngoài. 
+<br>
+Có thể không nhập dữ liệu vào thẻ này, khi đó không xử lý gì;
+Chuyển vào sổ cái: tương tự như phiếu kế toán.
+</p>
+<p class="note">
+Lưu ý:<br>
+- Trong trường hợp tài khoản trong thẻ này là tài khoản công nợ, chương trình không xử lý đối với tham số 
+"Theo dõi thanh toán trong phiếu kế toán".    
+<br>
+- Trường "Theo dõi thanh toán" không có tác dụng đối với thẻ này;
+<br>
+- Tham số "Chuyển diễn giải trong phiếu kế toán theo tài khoản đối ứng" có ảnh hưởng tới số thứ tự của diễn giải chi tiết và diễn giải tổng cộng;
+<br>
+- Đối với mã giao dịch 2 hoặc 9, nếu đồng tiền phát sinh khác với đồng tiền hạch toán và trong ngăn "Khấu trừ thuế" tại cột "Tài khoản" có tồn tại ít nhất 1 tài khoản có gốc ngoại tệ thì chương trình sẽ không cho lưu và cảnh báo "Mã giao dịch không hợp lệ" 
+(ví dụ bút toán ghi có thuế, ghi nợ công nợ phải trả). 
+Điều này tương đương với việc không chấp nhận bút toán có đồng tiền ngoại tệ trong khi nhập nghiệp vụ này.
+</p>
+<p id="td2">Một số hướng dẫn khác</p>
+<p class="node">Lấy số liệu từ đề nghị chi</p>
+<p class="node_d">Chương trình cho phép lấy số liệu từ các đề nghị chi đã duyệt tương ứng theo từng loại.
+- Với mã giao dịch 1: cho phép lấy số liệu từ "đề nghị chi tiền" có "Loại chứng từ" = 1 - Theo hóa đơn, "Loại thanh toán" = 1 - Chuyển khoản,
+ "Trạng thái" = 1 – "Đã duyệt" và trùng "Mã ngoại tệ"; <br/>
+- Mã giao dịch 2, 5, 9: cho phép lấy số liệu từ "đề nghị chi tiền" có "Loại chứng từ" = 2 – "Theo khách hàng", "Loại thanh toán" = 
+1 - Chuyển khoản, "Trạng thái" = 1 – "Đã duyệt" và trùng "Mã ngoại tệ" ;
+</p>
+<p class="note">Lưu ý:<br/>
+ - Trường hợp hóa đơn kế thừa đã được tất toán thì không chuyển vào;<br/>
+ - Trường hợp lấy nhiều đề nghị cùng 1 hóa đơn thì chỉ chuyển vào 1 dòng đầu tiên;<br/>
+ - Khi dùng quy trình ấy số liệu từ đề nghị chi, sau khi lưu chứng từ không được sửa mã giao dịch.
+</p>
+
+<p class="node">
+Kết nhập dữ liệu từ tệp excel (hàng loạt) (loại chứng từ 2,3,9)</p>
+<p class="node_d">
+Chương trình cho phép đưa dữ liệu từ bảng tính vào chương trình để tiết kiệm thời gian nhập liệu ban đầu cho người dùng. <br/>
+Quy trình thực hiện, đề nghị xem thêm <a href="GeneralVouchertask.htm"> "Những hướng dẫn chung về cập nhật các chứng từ"</a>, mục "Kết nhập dữ liệu từ bảng tính"
+</p>
+
+<p class="node">In chứng từ</p>
+<p class="node_d">
+- Trường hợp cần in chứng từ hàng loạt, chương trinh có hỗ trợ chức năng này.
+ </p>
+<p class="node">Tỷ giá ghi sổ</p>
+<p class="node_d">
+Trong các chứng từ thu chi, tỷ giá ghi sổ các tài khoản gốc ngoại tệ sẽ được áp lại chứng từ, 
+công thức tính toán đề nghị xem thêm <a href=OtherCAguide.htm> "Những hướng dẫn khác về phân hệ vốn bằng tiền".</a></p>
+
+
+<p id="p1"> Chi tiết các thao tác làm việc với chứng từ đề nghị xem thêm <a href=GeneralVouchertask.htm> "Những hướng dẫn chung về cập nhật các chứng từ"</a></p>
+<script type="text/javascript" src="setPageFooter.js"></script>
+</body>
+</html>

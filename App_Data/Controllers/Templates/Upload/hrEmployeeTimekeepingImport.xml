@@ -1,0 +1,200 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrEmployeeTimekeepingImport' else 'hrEmployeeTimekeepingImport2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="5"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$TimekeepingImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$TimekeepingImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrvaora$000000"/>
+    <table value="hrvaora$000000" alias="a"/>
+    <listTable value="#k" alias="a"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="so_the" column="A" isPrimaryKey="true" allowNulls="false"/>
+    <field name="thoi_gian" column="B" isPrimaryKey="true" allowNulls="false" type="DateTime"/>
+    <field name="vao_ra" column="C"/>
+
+    <field name="stt_rec" column="None"/>
+    <field name="ngay" column="None" type="DateTime"/>
+    <field name="c$" column="None" insertValue="convert(varchar(8), a.ngay, 112) + cast(a.so_the as char(32)) + replace(replace(replace(replace(convert(varchar(32), a.thoi_gian, 121), &quot;-&quot;, &quot;&quot;), &quot;:&quot;, &quot;&quot;), &quot;.&quot;, &quot;&quot;), &quot; &quot;, &quot;&quot;)"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Chấm công" e="Timekeeping"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="so_the" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số thẻ nhân viên" e="Card Number"/>
+      </field>
+      <field name="thoi_gian" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Thời gian" e="Time"/>
+      </field>
+      <field name="vao_ra" width="12">
+        <text v="Loại" e="Type"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <declare>
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @q nvarchar(4000), @locked nvarchar(512), @t varchar(32), @c varchar(32), @q2 nvarchar(4000)
+declare @r int, @m int, @y int, @rangeFrom smalldatetime, @rangeTo smalldatetime
+select @locked = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+select @t = 'hrvaora$%partition', @c = 0, @r = 0, @m = 0, @y = 0
+select @rangeFrom = ngay_gh1, @rangeTo = ngay_gh2 from dmstt
+]]>
+    </text>
+  </declare>
+
+  <checking>
+    <text>
+      <![CDATA[
+if @rangeFrom > @$tu_ngay or @rangeTo < @$den_ngay begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTableCell;<![CDATA[ select 'E', 1, @locked
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&EndErrorMode;<![CDATA[
+  end else begin
+    select @locked as message
+    return
+  end
+end
+]]>
+    </text>
+  </checking>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'vao_ra', stt, '00002' from @@table where vao_ra not in('1', '2', '')
+  ]]>&w1;<![CDATA['vao_ra']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where vao_ra not in('1', '2', '')
+  if @r is not null begin
+    select '' as message, 'vao_ra' as field, @r as record
+    return
+  end
+end
+
+select @rangeTo = @$den_ngay + 1
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'thoi_gian', stt, '00002' from @@table where thoi_gian < @$tu_ngay or thoi_gian > @rangeTo
+  ]]>&w1;<![CDATA['thoi_gian']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where thoi_gian < @$tu_ngay or thoi_gian > @rangeTo
+  if @r is not null begin
+    select '' as message, 'thoi_gian' as field, @r as record
+    return
+  end
+end
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+declare @user int, @admin bit, @sys varchar(32), @key nvarchar(4000), @join nvarchar(1023), @unit bit, @dept bit, @s nvarchar(4000), @d1 varchar(32), @d2 varchar(32)
+select @admin = @@admin, @user = @@userID, @sys = '@@sysDatabaseName', @key = '', @join = '', @unit = 0, @dept = 0
+select @d1 = '''' + convert(varchar(8), @$tu_ngay, 112) + '''', @d2 = '''' + convert(varchar(8), @$den_ngay, 112) + ''''
+
+-- Key
+if @admin = 0 exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @unit output, @dept output
+if @unit = 1 or @dept = 1 select @join = ' join hrnv e on a.stt_rec = e.stt_rec'
+
+select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+select @key = case when @key = '' then '' else ' and (' + @key + ')' end
+
+-- Identity
+select top 0 so_the, stt_rec, cast(null as smalldatetime) as ngay_tu, cast(null as smalldatetime) as ngay_den, cast(null as smalldatetime) as ngay_hh, identity(int, 1, 1) as stt into #o1 from hrvaora$000000
+select top 0 so_the, ngay_tu as ngay_hl into #o2 from #o1
+select top 0 cast('' as char(64)) as so_the, stt_rec, ngay_tu as ngay_hl, ngay_hh into #o3 from #o1
+
+select @s = 'insert into #o2 select a.so_the, max(a.ngay_tu) from hrttchamcong a' + @join + ' where (a.ngay_tu <= ' + @d1 + ')' + @key + ' group by a.so_the'
+select @s = @s + ' insert into #o3 select a.so_the, a.stt_rec, a.ngay_tu, a.ngay_den from hrttchamcong a' + @join + ' where (a.ngay_tu > ' + @d1 + ' and a.ngay_tu <= ' + @d2 + ')' + @key
+exec sp_executesql @s
+
+select a.so_the, a.ngay_tu, max(a.stt_rec) as stt_rec into #o4 from hrttchamcong a join #o2 b on a.so_the = b.so_the and a.ngay_tu = b.ngay_hl group by a.so_the, a.ngay_tu
+select a.so_the, a.stt_rec, a.ngay_tu as ngay_hl, a.ngay_den as ngay_hh into #o5 from hrttchamcong a join #o4 b on a.so_the = b.so_the and a.ngay_tu = b.ngay_tu and a.stt_rec = b.stt_rec
+
+insert into #o1 (so_the, stt_rec, ngay_tu, ngay_hh) select so_the, stt_rec, ngay_hl, ngay_hh from (
+    select so_the, stt_rec, ngay_hl, ngay_hh from #o5 where stt_rec in (select stt_rec from #o3)
+    union all select so_the, stt_rec, ngay_hl, ngay_hh from #o3
+  ) a order by so_the, ngay_hl
+
+update #o1 set ngay_den = b.ngay_hl from #o1 a join (select so_the, ngay_tu as ngay_hl, stt - 1 as stt from #o1) b on a.so_the = b.so_the and a.stt = b.stt
+
+create index stt_rec on #o1 (so_the)
+create index stt_rec on #o5 (so_the)
+
+-- Update
+select so_the, convert(smalldatetime, convert(varchar(8), thoi_gian, 112), 112) as ngay, thoi_gian, vao_ra, cast('' as char(13)) as stt_rec into #k from #table
+update #k set stt_rec = b.stt_rec from #k a join #o5 b on a.so_the = b.so_the where (b.ngay_hh is null or a.ngay <= b.ngay_hh)
+update #k set stt_rec = b.stt_rec from #k a join #o1 b on a.so_the = b.so_the and a.ngay >= b.ngay_tu and (b.ngay_den is null or a.ngay < b.ngay_den) and (b.ngay_hh is null or a.ngay <= b.ngay_hh) where a.stt_rec = ''
+delete #k where stt_rec = ''
+
+-- Insert
+select distinct month(ngay) as m, year(ngay) as y into #h from #k
+select @r = min(y * 12 + m) from #h
+while @r is not null begin
+  select @m = m, @y = y from #h where y * 12 + m = @r
+  select @c = replace(@t, '%partition', rtrim(@y) + replace(str(@m, 2), ' ', '0'))
+
+  select @q = 'delete %t1 from %t1 a where exists(select 1 from %t2 b where b.stt_rec = a.stt_rec and b.ngay = a.ngay)'
+  select @q = case when @type = 0 then replace(replace(@q, '%t1', '#k'), '%t2', @c) else replace(replace(@q, '%t1', @c), '%t2', '#k') end
+
+  select @q2 = ']]>&Inserting;<![CDATA['
+  select @q2 = replace(replace(replace(@q2, '''', ''''''), '"', ''''), 'hrvaora$000000', @c)
+  select @q = @q + char(13) + @q2
+  select @q = @q + ' where month(ngay) = ' + rtrim(@m) + ' and year(ngay) = ' + rtrim(@y)
+  exec sp_executesql @q
+
+  select @r = min(y * 12 + m) from #h where y * 12 + m > @r
+end
+]]>
+    </text>
+  </processing>
+
+</import>

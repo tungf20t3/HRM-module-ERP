@@ -1,0 +1,89 @@
+﻿<!ENTITY CheckTaxCodeDetailTable "r30">
+<!ENTITY CheckTaxCodeTableValue "'#$tax$code'">
+<!ENTITY CheckTaxCodeTableQuerySelectWarning "select @$warning = @$warning + @$taxCodeInvalidConflict">
+<!ENTITY CheckTaxCodeTableQuerySelectErr "
+if isnull(@col, 0) &lt;&gt; 0 select @$taxCodescriptConflict = 'var f = this;var z = this.getItem(\''&CheckTaxCodeDetailTable;\'')._controlBehavior;var l = z._getColumnOrder(\''ma_so_thue\'');f._errorWarningObject = z._getItem(' + rtrim(@col) + ', l);if (f._errorWarningObject) {f.focus(\''&CheckTaxCodeDetailTable;\'');f._errorWarningObject.focus();}'
+select '' as field, @$taxCodeInvalidConflict as message, @$taxCodescriptConflict as script
+return
+">
+<!ENTITY CheckTaxCodeExt "">
+<!ENTITY CheckTaxCodeExtImport "">
+<!ENTITY CheckTaxCodeConditionImport "">
+<!ENTITY CheckTaxCodeDetailExt "">
+<!ENTITY CheckTaxCodeConditionExt "select @tax_check_yn = khong_kt_mst from dmkh where ma_kh = @ma_kh">
+
+
+<!ENTITY CheckTaxCodeConditionByCustomer "
+&CheckTaxCodeConditionExt;
+if isnull(@tax_check_yn, 0) = 0 begin
+  exec AI_ERP$System$CheckTaxCode &CheckTaxCodeFieldValue;, @t_yn output, @col output, &CheckTaxCodeTableValue;
+  if @t_yn = 0 and @$taxCodeInvalid is not null begin
+    if @$taxCodeInvalid = '2' begin
+      select 'ma_so_thue' as field, @$taxCodeInvalidConflict as message
+      return
+    end else &CheckTaxCodeTableQuerySelectWarning;
+  end
+  &CheckTaxCodeExt;
+end
+">
+<!ENTITY CheckTaxCodeConditionByVAT "
+select line_nbr, rtrim(ma_so_thue) as ma_so_thue into #$tax$code from @&CheckTaxCodeDetailTable; a where ma_so_thue &lt;&gt; '' and (a.ma_kh = '' or exists(select 1 from dmkh b where a.ma_kh = b.ma_kh and b.khong_kt_mst = 0))
+exec AI_ERP$System$CheckTaxCode &CheckTaxCodeFieldValue;, @t_yn output, @col output, &CheckTaxCodeTableValue;
+if @t_yn = 0 and @$taxCodeInvalid is not null begin
+  if @$taxCodeInvalid = '2' begin
+    &CheckTaxCodeTableQuerySelectErr;
+  end else &CheckTaxCodeTableQuerySelectWarning;
+end
+">
+<!ENTITY CheckTaxCodeDeclare "
+declare @$taxCodeInvalid varchar(32), @$taxCodeInvalidConflict nvarchar(512), @$scriptConflict nvarchar(512), @$taxCodescriptConflict nvarchar(512)
+select @$scriptConflict = '', @$taxCodescriptConflict = ''
+select @$taxCodeInvalid = rtrim(val) from options where name = 'm_kt_mst' and val &lt;&gt; '0'
+select @$taxCodeInvalidConflict = case isnull(@$taxCodeInvalid, '0') when '2' then case @@language when 'v' then N'Trường &lt;span class=&quot;Highlight&quot;&gt;Mã số thuế&lt;/span&gt; chưa nhập hoặc giá trị nhập không hợp lệ.' else N'Field &lt;span class=&quot;Highlight&quot;&gt;Tax Code&lt;/span&gt; must not be blank or has invalid value.' end when '1' then case @@language when 'v' then N'Trường &lt;span class=&quot;Highlight&quot;&gt;Mã số thuế&lt;/span&gt; không đúng.' else N'Field &lt;span class=&quot;Highlight&quot;&gt;Tax Code&lt;/span&gt; is invalid.' end else '' end
+">
+<!ENTITY CommandCheckTaxCodeBeforeSave "
+declare @tax_check_yn bit, @t_yn bit, @col int
+if isnull(@$taxCodeInvalid, '0') &lt;&gt; '0' begin
+  if &CheckTaxCodeCondition; begin
+    &CheckTaxCodeConditionByCustomer;
+    &CheckTaxCodeConditionByVAT;
+  end
+  &CheckTaxCodeDetailExt;
+end
+">
+
+<!ENTITY CommandListCheckTaxCodeWarningMessage "if @$scriptConflict &lt;&gt; '' select '' as field, '' as message, 'objectBehavior$TaxCode(this, ''' + @$scriptConflict + ''');' as script">
+<!ENTITY CommandListCheckTaxCodeWarning "
+if @$scriptConflict &lt;&gt; '' begin
+  select '' as field, '' as message, 'objectBehavior$TaxCode(this, ''' + @$scriptConflict + ''');' as script
+  return
+end">
+<!ENTITY ScriptCheckTaxCode "function objectBehavior$TaxCode(f, msg) {$message.show(msg + String.format('&lt;div style=&quot;color:#444444;&quot;&gt;{0}&lt;/div&gt;', (f._language == 'v' ? 'Lưu ý: Hệ thống vẫn lưu dữ liệu vừa cập nhật.' : 'Warnings: Updated data has been saved.')), String.format('var o=$get(\'{0}_updateDlgEdit\');if(o) o.focus();', f.get_id()));}">
+
+<!ENTITY CommandCheckTaxCodeImport "
+declare @taxCodeInvalid tinyint, @taxCodeInvalidConflict nvarchar(512), @t_yn bit
+
+select @taxCodeInvalidConflict = case when @@language = 'v' then N'Mã số thuế &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; không đúng.' else N'The tax code &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; has invalid value.' end
+select @taxCodeInvalid = case when exists(select 1 from options where name = 'm_kt_mst' and val = '2') then 1 else 0 end
+
+if @taxCodeInvalid = 1 begin
+  select stt, ma_so_thue into #$tax$code from @@table where ma_so_thue &lt;&gt; ''&CheckTaxCodeConditionImport;
+
+  if @$mode = 1 begin
+    select top 0 cast(0 as int) as stt into #taxCodeInvalid
+    insert into #taxCodeInvalid exec AI_ERP$System$CheckTaxCode 'stt, ma_so_thue', @t_yn output, @r output, '#$tax$code', @$mode, @$errorCount
+    &StartErrorCount;
+    &InsertErrorTable; select 'ma_so_thue', stt, 'TaxCode001' from #taxCodeInvalid order by stt
+    &EndErrorCount;
+  end else begin
+    exec AI_ERP$System$CheckTaxCode 'stt, ma_so_thue', @t_yn output, @r output, '#$tax$code'
+    if @t_yn = 0 begin
+      select replace(replace(@taxCodeInvalidConflict, '&#37;s1', ma_so_thue), '&#37;s2', @@delta + @r) as message from @@table where stt = @r
+      return
+    end
+  end
+  &CheckTaxCodeExtImport;
+end
+">
+
+<!ENTITY TaxCodeImportVariable SYSTEM "..\Templates\Upload\Include\TaxCodeImportVariable.txt">

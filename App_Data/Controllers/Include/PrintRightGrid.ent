@@ -1,0 +1,17 @@
+﻿<!ENTITY % Conditional.PrintRight SYSTEM "..\Include\PrintRight.txt">
+
+<![%Conditional.PrintRight;[
+  <!ENTITY PrintRightScript SYSTEM "..\Include\Javascript\PrintRightGrid.txt">
+  <!ENTITY PrintRightGridShowing "
+declare @$formRight varchar(4000)
+exec AI_ERP$System$PrintRight '&TransferID;', @@userID, @@admin, '@@sysDatabaseName', '01', default, @$formRight out
+select @$formRight = case when @$formRight &lt;&gt; '' then '[' + @$formRight + ']' else 'null' end
+select @message = @message + 'report$PrintRight$GridInit(this, ' + @$formRight + ');'
+">
+  <!ENTITY XMLWhenGridShowingPrintRight SYSTEM "..\Include\XML\WhenGridShowingPrintRight.xml">
+]]>
+
+
+<!ENTITY PrintRightScript "">
+<!ENTITY PrintRightGridShowing "">
+<!ENTITY XMLWhenGridShowingPrintRight "">

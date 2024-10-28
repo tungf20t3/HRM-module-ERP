@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE config [
+  <!ENTITY % ConfigDynamicEvents SYSTEM "..\..\Include\ConfigDynamicEvents.ent">
+  %ConfigDynamicEvents;
+
+  <!ENTITY % Tiny.Currency SYSTEM "..\..\Include\Tiny.Currency.ent">
+  %Tiny.Currency;
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+]>
+
+<config xmlns="urn:schemas-ai-erp:data-pattern">
+  <query events="Initialize, Checking, Script, Showing" reference="&ConfigDynamicEventsReference;">
+    <text>
+      <![CDATA[
+declare @tag varchar(32), @hiddenFields varchar(128), @message nvarchar(4000), @dynamicEvents nvarchar(4000)
+
+select @message = '', @tag = substring('@@table', 2, 2)
+select @hiddenFields = rtrim(hide) from @@sysDatabaseName..voucherinfo where ma_ct = @@id
+exec @@appDatabaseName..AI_ERP$Generate$DynamicEvents @@controller, @@event, @tag, @hiddenFields, @@id, @@sysDatabaseName, @dynamicEvents out
+set @message = @message + @dynamicEvents
+
+if (1 = ]]>&Tiny.Currency.ConfigEvent;<![CDATA[ or 1 = ]]>&Tiny.External.ConfigEvent;<![CDATA[) begin
+  declare @$formFieldAction nvarchar(4000)
+  exec @@sysDatabaseName..AI_ERP$GenerateEvents$FormFieldAction @@controller, @@event, 'sysformfield', '1=0]]>&Tiny.Currency.ConfigCondition;&Tiny.External.ConfigCondition;<![CDATA[', '@@appDatabaseName', @$formFieldAction out
+  set @message = @message + @$formFieldAction
+end
+
+select @message as message
+]]>
+    </text>
+  </query>
+</config>

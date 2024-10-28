@@ -1,0 +1,165 @@
+﻿
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ 
+<meta name="generator" content="Adobe RoboHelp 8" /><meta name="OriginalFile" content="AllocationTran.doc" /><title>Khai báo bút toán phân bổ tự động
+</title><link rel="stylesheet" href="ai_erp.css" type="text/css" /><script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]></script><style type="text/css"><!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+--></style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Khai báo bút toán phân bổ tự động</p>
+<p id="p1">Cuối kỳ, tùy theo đặc điểm sản xuất kinh doanh của từng doanh nghiệp, kế toán thường phải thực hiện các bút toán phân bổ như:</p>
+<ul class="lo_0">- Phân bổ chi phí sản xuất chung, phân bổ chi phí nhân công trực tiếp cho từng sản phẩm để tính giá thành.
+<br/>- Phân bổ chi phí bán hàng, chi phí quản lý doanh nghiệp vào tài khoản kết quả kinh doanh và tài khoản chi phí chờ kết chuyển, v.v và 
+v.v...</ul>
+<p id="p1">Số lượng các bút toán phân bổ có thể là rất lớn (tới vài trăm) trong trường hợp quản lý chi tiết về chi phí và doanh thu theo 
+loại hình kinh doanh và bộ phận kinh doanh. Ngoài ra trong trường hợp cần phải điều chỉnh lại số liệu gốc thì ta lại phải sửa lại các bút 
+toán phân bổ. Chính vì vậy khi thực hiện thủ công sẽ chiếm khá nhiều thời gian.
+<br/>Với mục đích làm giảm nhẹ công việc của kế toán đồng thời loại trừ sự nhầm lẫn khi tính toán bằng tay, chương trình có chức năng cho 
+phép thực hiện tự động các bút toán phân bổ.
+<br/>Để thực hiện chức năng phân bổ tự động phải trải qua hai bước:</p>
+<ul class="lo_0">
+-          Bước 1: Khai báo các bút toán phân bổ tự động. Ở bước này ta sẽ khai báo tài khoản phân bổ và các tài khoản nhận giá trị phân 
+bổ cũng như khai báo các tài khoản mà ta muốn chương trình tự động tính hệ số phân bổ dựa vào các tài khoản này.
+<br/>
+-          Bước 2: Thực hiện bút toán phân bổ tự động. Ở bước này ta sẽ xác định hệ số phân bổ bằng một trong các cách: nhập bằng tay, cho 
+chương trình tự động tính dựa vào tài khoản hệ số được khai báo ở bước 1 hoặc tính hệ số dựa vào định mức nguyên vật liệu (hoặc định mức 
+tiền lương,...). Cuối cùng, ta thực hiện phân bổ.
+</ul>
+<p id="p1">Trong trường hợp phân bổ được chi tiết hoá cho từng khách hàng, vụ việc, lệnh sản xuất...thì khai báo là có phân bổ theo từng 
+khách hàng, vụ việc, lệnh sản xuất.</p>
+<p id="td2">Màn hình danh mục bút toán phân bổ</p>
+<p id="pic"><img src="vie/AllocationTran1.png"/></p>
+
+<p id="td2">Màn hình thêm mới bút toán phân bổ</p>
+<p id="pic"><img src="vie/AllocationTran2.png"/></p>
+
+<p id="td2">Giải thích các trường</p>
+<p class="node">Số thứ tự</p>
+<p class="node_d">Số thứ tự của các bút toán phân bổ. Các bút toán phân bổ sẽ được chương trình thực hiện tuần tự theo thứ tự này.</p>
+<p class="note">Lưu ý
+<br/> Khi thiết lập số thứ tự, nên để các bút toán có thứ tự cách nhau một vài số. Sở dĩ phải thiết lập như vậy là vì trong quá trình thực 
+hiện sẽ có thể phát sinh những bút toán phân bổ có thứ tự xen kẽ với các bút toán có sẵn.</p>
+<p class="node">Tên bút toán</p>
+<p class="node_d">Tên của bút toán phân bổ. Tên của bút toán không được để trắng. Tên này sẽ được chương trình đưa vào dòng diễn giải của 
+sổ cái các tài khoản được khai báo trong bút toán phân bổ này.</p>
+<p class="node">Loại phân bổ</p>
+<p class="node_d">Nếu loại phân bổ là Có - Nợ thì kết quả của bút toán sẽ là Ghi Nợ tài khoản nhận phân bổ (tài khoản đích) và ghi Có tài 
+khoản phân bổ (tài khoản nguồn).
+<br/>Nếu loại phân bổ là Nợ - Có thì kết quả của bút toán sẽ là ghi nợ tài khoản phân bổ (tài khoản nguồn)/ ghi có tài khoản nhận phân bổ 
+(tài khoản đích).</p>
+<p class="node">Tài khoản phân bổ</p>
+<p class="node_d">Số hiệu tài khoản nguồn trong bút toán phân bổ. Tài khoản này có thể khai báo là tài khoản tổng hợp hoặc chi tiết. Tuy 
+nhiên, khi thực hiện, chương trình sẽ chỉ thực hiện phân bổ từ những tài khoản chi tiết thuộc tài khoản tổng hợp</p>
+<p class="node">Tài khoản nhận phân bổ</p>
+<p class="node_d">Số hiệu tài khoản ghi nợ trong bút toán phân bổ. Tài khoản này sẽ được lấy trong "Danh mục tài khoản". Tài khoản này phải 
+là tài khoản chi tiết.</p>
+<p class="node">Tài khoản Nợ/tài khoản có (tài khoản tiêu thức)</p>
+
+<p class="node_d">Tài khoản dùng trong tiêu thức tính hệ số phân bổ. Chương trình cho phép khai báo 1 cặp tài khoản đối ứng cho 1 tiêu 
+thức tính hệ số phân bổ. Có thể khai báo đối ứng hoặc chỉ khai báo chỉ một bên nợ hoặc bên có. 
+Trong trường hợp này, chương trình sẽ xác định là phải lấy phát sinh nợ (hoặc có) theo đối tượng phân bổ chi tiết và 
+nhóm theo tài khoản trong tiêu thức.</p>
+
+<p class="e">Ví dụ:<br/>
+1. Khai báo bút toán phân bổ 632 cho 911 theo tiêu thức "có 642 đối ứng nợ 911 theo vụ việc".
+<br/>
+2. Có phát sinh như sau:
+<br/>
+Nợ: 911: 30
+<br/>
+Có: 642: 10 (vụ việc 1)
+<br/>
+Có: 642: 20 (vụ việc 2)
+<br/>
+3. Tài khoản 632 trong kỳ có phát sinh nợ: 10.000 
+</p>
+<p class="e2">
+Khi phân bổ, chương trình tính được như sau:
+<br/>
+Nợ: 911: 10.000
+<br/>
+Có: 632: 10.000x10/30 (vụ việc 1)
+<br/>
+Có: 632: 10.000x20/30 (vụ việc 2)</p>
+
+<p class="node">Mã vụ việc (tên vụ việc)/Bộ phận/Mã hợp đồng</p>
+<p class="node_d">Tùy theo chỉ tiêu được chọn trong cửa sổ khai báo tài khoản phân bổ, trường này sẽ yêu cầu nhập mã tương ứng với chỉ tiêu 
+đó.<br/>
+Bút toán phân bổ sẽ phân bổ chi tiết cho vụ việc (hoặc Bộ phận/Hợp đồng) có mã được khai báo trong trường này. Mã này được định nghĩa 
+như đối tượng phân bổ chi tiết. Các mã này sẽ được lấy trong các danh mục tương ứng.</p>
+<p class="node">Trạng thái</p>
+<p class="node_d">Ngầm định chương trình để ở trạng thái 1. Nếu chọn trạng thái 0 thì bút toán phân bổ này chỉ hiện lên khi cập nhật 
+danh mục và khi lên báo cáo, không hiện lên khi nhập số liệu.</p>
+
+<p id="td2">Màn hình thêm mới chi tiết bút toán phân bổ</p>
+<p id="pic"><img src="vie/AllocationTran4.png"/></p>
+
+<p id="p2"> Có thể cập nhật trong phần chi tiết hoặc không, tuy nhiên người dùng phải khai báo tại phần thêm mới bút toán trước 
+khi thêm mới trong chi tiết. Tương tự màn hình thêm mới. </p>
+
+<p id="td2">Một số thao tác</p>
+
+<p class="node">   Thêm mới chi tiết và khai báo tiêu thức phân bổ</p>
+<p class="node_d">
+Sau khi thêm mới bút toán phân bổ, người dùng muốn khai báo chi tiết nhấn <img src="vie/Lotgenerate.png"/></p>
+
+<p class="node_d">Danh sách tài khoản nợ, tài khoản có: </p>
+<ul class="lo_3">
+-          Dựa vào giá trị cộng hay trừ (1/0) ở từng dòng khi khai báo tài khoản hệ số ở trên để xác định dấu (dương/âm) cho kết quả tính 
+toán của các dòng định khoản, sau đó tổng lại với phần khai báo bút toán bên ngoài để cho ra kết quả hệ số cuối cùng của đối tượng nhận 
+phân bổ. 
+<br/>
+-          Như vậy có khả năng là một vài đối tượng ở trên sẽ rơi vào cặp tiêu thức có giá trị loại trừ (âm), khi đó chi phí phân bổ có thể 
+là giảm đi hoặc âm nếu không có các các phát sinh khác trong tiêu thức bù lại. Kết quả hạch toán sẽ là số tiền âm. Trường hợp này 
+dùng khi giảm chi phí theo tiêu thức tự động.
+</ul>
+
+<p class="e">Ví dụ về phân bổ theo tiêu thức:<br/>
+Giả sử Cân đối phát sinh tài khoản theo vụ việc vào ngày 31/01/2016 như sau:</p>
+
+<p id="pic"><img src="vie/AllocationTran5.png"/></p>
+
+<p class="e">Trường hợp phân bổ từ Nợ → Có: phân bổ tài khoản 5111 vào tài khoản 911A, 911B, 911C
+<br/>
+Giả sử các tài khoản 911A, 911B, 911C được phân bổ theo các tiêu thức:
+<br/>
+-          Chi phí bán hàng 641 theo từng vụ việc, loại tiêu thức: cộng thêm;<br/>
+-          Chi phí quản lý 642 theo từng vụ việc, loại tiêu thức: loại trừ.</p>
+
+
+<p class="e">Khi đó, phát sinh đối ứng 511→ 911 theo vụ việc 1 là: <br/>
+
+500.000.000*(10.000.000 - 1.000.000) /(10.000.000 + 20.000.000 + 30.000.000 - 1.000.000 - 2.000.000 – 0)=78,947368;<br/>
+
+Và phát sinh đối ứng 511→ 911 theo vụ việc 3 là: <br/>
+
+500.000.000*(30.000.000 - 0) /(10.000.000 + 20.000.000 + 30.000.000 - 1.000.000 - 2.000.000 – 0)=263,157895</p>
+
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body></html>

@@ -1,0 +1,431 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "
+declare @filename varchar(128), @costUnit char(1)
+select @costUnit = val from options where name = 'm_gt_dvcs'
+if @@language = 'v' select @filename = case when @costUnit = 0 then 'Factor.xlsx' else 'Factor3.xlsx' end
+else select @filename = case when @costUnit = 0 then 'Factor2.xlsx' else 'Factor4.xlsx' end
+">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$FactorImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$FactorImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="xdmyt"/>
+    <table value="xdmyt" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+        <![CDATA[
+select case when rtrim(val) = '1' then '1' else '0' end as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[ from options where name = 'm_gt_dvcs'
+]]>
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)" condition="if @costUnit = '1' begin&And;if @costUnit = '1' begin if (@@admin &lt;&gt; 1) begin" tag="end&And;end end" errorCode="00001&And;00002"/>
+        <field name="ma_yt" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+        <field name="ten_yt" column="C" allowNulls="false"/>
+        <field name="ten_yt2" column="D"/>
+        <field name="loai_yt" column="E" allowNulls="false" upperCase="true" check="loai_yt not in (select ma_loai from xdmloaiyt)" errorCode="00001"/>
+        <field name="nh_yt" column="F" allowNulls="false" upperCase="true" check="nh_yt not in (select ma_nh from xdmnhyt)" errorCode="00001"/>
+        <field name="kieu_yt" column="G" defaultValue="1" check="kieu_yt not in (1, 2, 3, 4)" errorCode="00002"/>
+        <field name="cong_tru" column="H" defaultValue="1" check="cong_tru not in (1, 2)" errorCode="00002"/>
+        <field name="tk_no" column="I" allowNulls="false" upperCase="true"/>
+        <field name="tk_co" column="J" upperCase="true"/>
+        <field name="tk_dd" column="K" allowNulls="false" upperCase="true" check="tk_dd not in (select tk from dmtk)" errorCode="00001"/>
+        <field name="dd_ck" column="L" type="Boolean" defaultValue="false"/>
+        <field name="th_bp0" column="M" type="Boolean" defaultValue="false"/>
+        <field name="th_sp" column="N" type="Boolean" defaultValue="false"/>
+        <field name="th_lsx" column="O" type="Boolean" defaultValue="false"/>
+        <field name="th_bp" column="P" type="Boolean" defaultValue="false"/>
+        <field name="th_nvl" column="Q" type="Boolean" defaultValue="false"/>
+        <field name="ma_bp" column="R" upperCase="true" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from xdmbp)" errorCode="00001"/>
+        <field name="hs_yt" column="S" upperCase="true" check="hs_yt &lt;&gt; '' and not exists(select 1 from xdmyt where @@table.ma_dvcs = xdmyt.ma_dvcs and charindex(',' + rtrim(xdmyt.ma_yt) + ',', ',' + rtrim(@@table.hs_yt) + ',') &gt; 0)" errorCode="00001"/>
+        <field name="gt_ps" column="T" defaultValue="1" check="gt_ps not in (1, 2)" errorCode="00002"/>
+        <field name="pb_yn" column="U" defaultValue="1" check="pb_yn not in (0, 1)" errorCode="00002"/>
+
+        <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+        <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+        <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+        <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+        <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+      </fields>
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_yt" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ten_yt" column="B" allowNulls="false"/>
+    <field name="ten_yt2" column="C"/>
+    <field name="loai_yt" column="D" allowNulls="false" upperCase="true" check="loai_yt not in (select ma_loai from xdmloaiyt)" errorCode="00001"/>
+    <field name="nh_yt" column="E" allowNulls="false" upperCase="true" check="nh_yt not in (select ma_nh from xdmnhyt)" errorCode="00001"/>
+    <field name="kieu_yt" column="F" defaultValue="1" check="kieu_yt not in (1, 2, 3, 4)" errorCode="00002"/>
+    <field name="cong_tru" column="G" defaultValue="1" check="cong_tru not in (1, 2)" errorCode="00002"/>
+    <field name="tk_no" column="H" allowNulls="false" upperCase="true"/>
+    <field name="tk_co" column="I" upperCase="true"/>
+    <field name="tk_dd" column="J" allowNulls="false" upperCase="true" check="tk_dd not in (select tk from dmtk)" errorCode="00001"/>
+    <field name="dd_ck" column="K" type="Boolean" defaultValue="false"/>
+    <field name="th_bp0" column="L" type="Boolean" defaultValue="false"/>
+    <field name="th_sp" column="M" type="Boolean" defaultValue="false"/>
+    <field name="th_lsx" column="N" type="Boolean" defaultValue="false"/>
+    <field name="th_bp" column="O" type="Boolean" defaultValue="false"/>
+    <field name="th_nvl" column="P" type="Boolean" defaultValue="false"/>
+    <field name="ma_bp" column="Q" upperCase="true" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from xdmbp)" errorCode="00001"/>
+    <field name="hs_yt" column="R" upperCase="true" check="hs_yt &lt;&gt; '' and not exists(select 1 from xdmyt where @@table.ma_dvcs = xdmyt.ma_dvcs and charindex(',' + rtrim(xdmyt.ma_yt) + ',', ',' + rtrim(@@table.hs_yt) + ',') &gt; 0)" errorCode="00001"/>
+    <field name="gt_ps" column="S" defaultValue="1" check="gt_ps not in (1, 2)" errorCode="00002"/>
+    <field name="pb_yn" column="T" defaultValue="1" check="pb_yn not in (0, 1)" errorCode="00002"/>
+    <field name="ma_dvcs" column="" isPrimaryKey="true" allowNulls="false" defaultValue="" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)" condition="if @costUnit = '1' begin&And;if @costUnit = '1' begin if (@@admin &lt;&gt; 1) begin" tag="end&And;end end" errorCode="00001&And;00002"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục yếu tố" e="Cost Factor List"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ma_yt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã yếu tố" e="Factor"/>
+      </field>
+      <field name="ten_yt" width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên yếu tố" e="Description"/>
+      </field>
+      <field name="ten_yt2" width="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="loai_yt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại yếu tố" e="Factor Type"/>
+      </field>
+      <field name="nh_yt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Nhóm yếu tố" e="Factor Group"/>
+      </field>
+
+      <field name="kieu_yt" width="12">
+        <text v="Kiểu yếu tố" e="Factor Style"/>
+      </field>
+      <field name="cong_tru" width="12">
+        <text v="Yt cộng thêm/giảm trừ" e="Factor +/-"/>
+      </field>
+      <field name="tk_no" width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Danh sách tk nợ" e="Debit Accounts"/>
+      </field>
+      <field name="tk_co" width="32">
+        <text v="Danh sách tk có" e="Credit Accounts"/>
+      </field>
+      <field name="tk_dd" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tài khoản dở dang" e="WIP Account"/>
+      </field>
+      <field name="dd_ck" width="12">
+        <text v="Dở dang cuối kỳ" e="WIP Closing Balance"/>
+      </field>
+      <field name="th_bp0" width="12">
+        <text v=" Tập hợp bộ phận g.tiếp" e="Gathered by Indirect Dept."/>
+      </field>
+      <field name="th_sp" width="12">
+        <text v="Tập hợp sản phẩm" e="Gathered by Product"/>
+      </field>
+      <field name="th_lsx" width="12">
+        <text v="Tập hợp lệnh sản xuất" e="Gathered by MO"/>
+      </field>
+      <field name="th_bp" width="12">
+        <text v="Tập hợp công đoạn" e="Gathered by Dept."/>
+      </field>
+      <field name="th_nvl" width="12">
+        <text v="Tập hợp theo n.v.liệu" e="Gathered by Material"/>
+      </field>
+
+      <field name="ma_bp" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã bộ phận" e="Section"/>
+      </field>
+      <field name="hs_yt" width="32">
+        <text v="Ds các yếu tố tính hs" e="Factors to Define Coef."/>
+      </field>
+      <field name="gt_ps" width="12">
+        <text v="Tính hs theo pstk/gt" e="Factors to Define Coef."/>
+      </field>
+      <field name="pb_yn" width="12">
+        <text v="Kết chuyển sang tkdd" e="Posted to WIP Account"/>
+      </field>
+
+      &EIT.NoteFieldAdd;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'Factor', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @field varchar(32), @r int, @costUnit char(1), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @dv varchar(33), @yt varchar(33), @$yt varchar(33), @ds_no varchar(1023), @ds_co varchar(1023), @bp varchar(33), @i int, @c int, @l int, @h nvarchar(4000)
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[, @i = 1
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> đã có hoặc lồng nhau.' else 'The value of cell <span class="Highlight">%invalidCell</span> is invalid or already exists.' end
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+
+select @costUnit = rtrim(val) from options where name = 'm_gt_dvcs'
+
+create index i on @@table (ma_yt)
+
+-- Checking
+if @type = '0' delete @@table from @@table a where exists (select 1 from xdmyt b where a.ma_dvcs = b.ma_dvcs and a.ma_yt = b.ma_yt)
+
+update @@table set ma_bp = '' where th_bp0 = 0 and th_bp = 0
+
+select @field = 'ma_yt'
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, @message from @@table where ma_yt like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ma_yt like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+if @$mode = 1 begin
+  select @h = '
+    declare @s table(stt int, s varchar(4000))
+    insert into @s select stt, replace(replace(%field, '' '', ''''), '','', '', '') from #table order by stt
+    ]]>&InsertErrorTable;<![CDATA[ select @field, stt, ''invalidLengthMessage'' from @s where len(s) > %$length ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA[''invalidLengthMessage'']]>&w4;<![CDATA[
+    if @@rowcount = 0 begin
+      update #table set %field = b.s from #table a join @s b on a.stt = b.stt
+      set rowcount 0;
+    end
+  '
+end else begin
+  select @h = '
+    declare @s table(stt int, s varchar(4000))
+    insert into @s select stt, replace(replace(%field, '' '', ''''), '','', '', '') from #table order by stt
+    select top 1 @r = stt from @s where len(s) > %$length
+    if @r is null update #table set %field = b.s from #table a join @s b on a.stt = b.stt
+  '
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  select @field = 'tk_no', @q = replace(replace(@h, '%field', @field), '%$length', col_length('tempdb..#table', @field))
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @field = 'tk_co', @q = replace(replace(@h, '%field', @field), '%$length', col_length('tempdb..#table', @field))
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @field = 'hs_yt', @q = replace(replace(@h, '%field', @field), '%$length', col_length('tempdb..#table', @field))
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'tk_no', @q = replace(replace(@h, '%field', @field), '%$length', col_length('tempdb..#table', @field))
+  exec sp_executesql @q, N'@r int out', @r out]]>&Error;<![CDATA[
+  select @field = 'tk_co', @q = replace(replace(@h, '%field', @field), '%$length', col_length('tempdb..#table', @field))
+  exec sp_executesql @q, N'@r int out', @r out]]>&Error;<![CDATA[
+  select @field = 'hs_yt', @q = replace(replace(@h, '%field', @field), '%$length', col_length('tempdb..#table', @field))
+  exec sp_executesql @q, N'@r int out', @r out]]>&Error;<![CDATA[
+end
+
+]]>&Checking;<![CDATA[
+
+if @$mode = 1 begin
+  exec AI_ERP$App$Import$CheckFieldList '@@table', 'hs_yt', 'stt', 'xdmyt', 'ma_yt', @r output, default, default, @$mode, @$errorCount output
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  select @field = 'hs_yt'
+  exec AI_ERP$App$Import$CheckFieldList '@@table', 'hs_yt', 'stt', 'xdmyt', 'ma_yt', @r output]]>&Error;<![CDATA[
+end
+
+select a.* into #k from @@table a join xdmyt b on a.ma_dvcs = b.ma_dvcs and a.ma_yt = b.ma_yt
+if @costUnit = '1' begin
+  if (@@admin <> 1) begin
+    select @field = 'ma_dvcs'
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from #k where ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_edit = 1)
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(stt) from #k where ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_edit = 1)]]>&Error;<![CDATA[
+    end
+  end
+end
+
+-- Accounts
+declare @t0 table (stt int, ma_dvcs varchar(33), ma_yt varchar(33), tk_no varchar(32), tk_co varchar(32), ma_bp varchar(33))
+declare @t1 table (i int, c varchar(4000))
+declare @t2 table (i int, c varchar(4000))
+
+select @field = 'ma_yt', @i = 1, @l = col_length('xdmytct', 'tk_no')
+select @c = max(stt) + 1 from @@table
+
+while @i < @c begin
+  select @dv = a.ma_dvcs, @yt = a.ma_yt, @ds_no = a.tk_no, @ds_co = a.tk_co, @bp = a.ma_bp, @$yt = isnull(b.ma_yt, '')
+    from @@table a left join #k b on a.stt = b.stt where a.stt = @i
+
+  insert into @t1 select * from dbo.AI_ERP$Function$System$Split(@ds_no, ',')
+  update @t1 set c = left(rtrim(ltrim(isnull(c, ''))), @l - 1)
+
+  if @ds_no <> '' begin
+    if exists (select 1 from @t1 a join @t1 b on a.i <> b.i and rtrim(a.c) like rtrim(b.c) + '%') begin
+      select @field = 'tk_no'
+      if @$mode = 1 begin
+        ]]>&StartErrorCount;<![CDATA[
+        ]]>&InsertErrorTable;<![CDATA[ select @field, @i, '00002' where 1=1
+        ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[@i]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+        ]]>&EndErrorCount;<![CDATA[
+      end else begin
+        select @r = @i]]>&Error;<![CDATA[
+      end
+    end
+  end
+
+  insert into @t2 select * from dbo.AI_ERP$Function$System$Split(@ds_co, ',')
+  update @t2 set c = left(rtrim(ltrim(isnull(c, ''))), @l - 1)
+
+  if @ds_co <> '' begin
+    if exists (select 1 from @t2 a join @t2 b on a.i <> b.i and rtrim(a.c) like rtrim(b.c) + '%') begin
+      select @field = 'tk_co'
+      if @$mode = 1 begin
+        ]]>&StartErrorCount;<![CDATA[
+        ]]>&InsertErrorTable;<![CDATA[ select @field, @i, '00002' where 1=1
+        ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[@i]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+        ]]>&EndErrorCount;<![CDATA[
+      end else begin
+        select @r = @i]]>&Error;<![CDATA[
+      end
+    end
+  end
+  insert into @t0 select @i, @dv, @yt, a.c + '%', b.c + '%', @bp from @t1 a cross join @t2 b
+
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'ma_bp', a.stt, '00002' from @t0 a join xdmytct b with(nolock) on b.ma_dvcs = @dv and a.ma_yt = @yt and b.ma_yt <> @$yt and a.tk_no = b.tk_no and a.tk_co = b.tk_co where ((b.ma_bp <> '' and @bp = '') or (b.ma_bp = '' and @bp <> ''))
+    ]]>&w1;<![CDATA['ma_bp']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'tk_no', a.stt, '00002' from @t0 a join xdmytct b with(nolock) on (a.tk_no like b.tk_no or b.tk_no like a.tk_no) and (a.tk_co like b.tk_co or b.tk_co like a.tk_co) and b.ma_dvcs = @dv and a.ma_yt = @yt and b.ma_bp = @bp and b.ma_yt <> @$yt
+    ]]>&w1;<![CDATA['tk_no']]>&w2;<![CDATA[@i]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select top 1 @field = 'ma_bp', @r = a.stt from @t0 a join xdmytct b with(nolock) on b.ma_dvcs = @dv and a.ma_yt = @yt and b.ma_yt <> @$yt and a.tk_no = b.tk_no and a.tk_co = b.tk_co where ((b.ma_bp <> '' and @bp = '') or (b.ma_bp = '' and @bp <> ''))]]>&Error;<![CDATA[
+    select top 1 @field = 'tk_no', @r = a.stt from @t0 a join xdmytct b with(nolock) on (a.tk_no like b.tk_no or b.tk_no like a.tk_no) and (a.tk_co like b.tk_co or b.tk_co like a.tk_co) and b.ma_dvcs = @dv and a.ma_yt = @yt and b.ma_bp = @bp and b.ma_yt <> @$yt]]>&Error;<![CDATA[
+  end
+
+  delete @t1
+  delete @t2
+  set @i = @i + 1
+end
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_bp', a.stt, '00002' from @t0 a join @t0 b on a.ma_dvcs = b.ma_dvcs and a.ma_yt <> b.ma_yt and a.tk_no = b.tk_no and a.tk_co = b.tk_co where ((b.ma_bp <> '' and a.ma_bp = '') or (b.ma_bp = '' and a.ma_bp <> ''))
+  ]]>&w1;<![CDATA['ma_bp']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'tk_no', a.stt, '00002' from @t0 a join @t0 b on (a.tk_no like b.tk_no or b.tk_no like a.tk_no) and (a.tk_co like b.tk_co or b.tk_co like a.tk_co) and a.ma_dvcs = b.ma_dvcs and a.ma_bp = b.ma_bp and a.ma_yt <> b.ma_yt
+  ]]>&w1;<![CDATA['tk_no']]>&w2;<![CDATA[@i]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select top 1 @field = 'ma_bp', @r = a.stt from @t0 a join @t0 b on a.ma_dvcs = b.ma_dvcs and a.ma_yt <> b.ma_yt and a.tk_no = b.tk_no and a.tk_co = b.tk_co where ((b.ma_bp <> '' and a.ma_bp = '') or (b.ma_bp = '' and a.ma_bp <> ''))]]>&Error;<![CDATA[
+  select top 1 @field = 'tk_no', @r = a.stt from @t0 a join @t0 b on (a.tk_no like b.tk_no or b.tk_no like a.tk_no) and (a.tk_co like b.tk_co or b.tk_co like a.tk_co) and a.ma_dvcs = b.ma_dvcs and a.ma_bp = b.ma_bp and a.ma_yt <> b.ma_yt]]>&Error;<![CDATA[
+end
+
+delete @@table from @@table a where exists (select 1 from xdmyt b where a.ma_dvcs = b.ma_dvcs and a.ma_yt = b.ma_yt)
+
+select @field = 'ma_yt'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_dvcs = b.ma_dvcs and a.ma_yt <> b.ma_yt and a.ma_yt like rtrim(b.ma_yt) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, xdmyt b with (index(PK_xdmyt)) where a.ma_dvcs = b.ma_dvcs and a.ma_yt like rtrim(b.ma_yt) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from xdmyt a, @@table b with (index(i)) where a.ma_dvcs = b.ma_dvcs and a.ma_yt like rtrim(b.ma_yt) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_dvcs = b.ma_dvcs and a.ma_yt <> b.ma_yt and a.ma_yt like rtrim(b.ma_yt) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  select top 1 @r = a.stt from @@table a, xdmyt b with (index(PK_xdmyt)) where a.ma_dvcs = b.ma_dvcs and a.ma_yt like rtrim(b.ma_yt) + '%']]>&Duplicate;<![CDATA[
+  select @q = 'select top 1 @r = b.stt from xdmyt a, @@table b with (index(i)) where a.ma_dvcs = b.ma_dvcs and a.ma_yt like rtrim(b.ma_yt) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+insert into xdmytct(ma_dvcs, ma_yt, tk_no, tk_co, ma_bp) select a.ma_dvcs, a.ma_yt, a.tk_no, a.tk_co, a.ma_bp from @t0 a join @@table b on a.ma_dvcs = b.ma_dvcs and a.ma_yt = b.ma_yt
+
+if @type = '1' begin
+  ]]>&Updating;<![CDATA[
+  delete xdmytct from xdmytct a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.ma_yt = b.ma_yt)
+  insert into xdmytct(ma_dvcs, ma_yt, tk_no, tk_co, ma_bp) select a.ma_dvcs, a.ma_yt, a.tk_no, a.tk_co, a.ma_bp from @t0 a join #k b on a.ma_dvcs = b.ma_dvcs and a.ma_yt = b.ma_yt
+end
+]]>
+    </text>
+  </processing>
+
+</import>

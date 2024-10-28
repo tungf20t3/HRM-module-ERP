@@ -1,0 +1,133 @@
+﻿<!ENTITY % Conditional.EnvironmentTax SYSTEM "..\Include\EnvironmentTax.txt">
+
+<![%Conditional.EnvironmentTax;[
+  <!ENTITY EnvironmentTaxTable.Mode "bi">
+  <!ENTITY EnvironmentTaxAliasName "mt">
+  <!ENTITY EnvironmentTaxInheritanceLoadingJoin " left join #dmkbtmt &EnvironmentTaxAliasName; on a.ma_vt = &EnvironmentTaxAliasName;.ma_vt and a.dvt = &EnvironmentTaxAliasName;.dvt_mt">
+  <!ENTITY EnvironmentTaxPrimePartitionCurrent "#prime">
+  <!ENTITY EnvironmentTaxInheritanceQuery.KeyExternal "">
+  <!ENTITY EnvironmentTaxInheritanceQuery "
+select top 0 * into &EnvironmentTaxPrimePartitionCurrent; from &EnvironmentTaxTable.Mode;d&EnvironmentTaxPrimeTable;$000000
+declare @$p varchar(6), @key varchar(32), @$strEnvironmentTax nvarchar(4000)
+select @key = replace(@stt_rec, '''', '')
+select @$p = convert(char(6), ngay_ct, 112) from &EnvironmentTaxTable.Mode;c&EnvironmentTaxPrimeTable;$000000 where stt_rec = @stt_rec
+select @$strEnvironmentTax = 'insert into &EnvironmentTaxPrimePartitionCurrent; select * from &EnvironmentTaxTable.Mode;d&EnvironmentTaxPrimeTable;$' + @$p + ' a where stt_rec = ''' + @key + '''&EnvironmentTaxInheritanceQuery.KeyExternal;'
+exec sp_executesql @$strEnvironmentTax
+
+select distinct a.ma_vt, a.dvt, a.muc_thue, a.ty_le as tl_chiu_thue, b.dvt as dvt_mt, cast(0 as numeric(19, 3)) as he_so_mt, a.ty_le * 0 as ty_le_0, a.ty_le * 0 as ty_le_2 into #dmkbtmt
+  from dmkbtmt a join &EnvironmentTaxPrimePartitionCurrent; b on a.ma_vt = b.ma_vt
+    where a.loai = '&EnvironmentTaxType;' and a.ngay_hl =(select max(ngay_hl) from dmkbtmt c where c.ngay_hl &lt;= @ngay_mt and c.ma_vt = b.ma_vt and c.loai = '&EnvironmentTaxType;' and c.status = '1') and a.status = '1' and stt_rec = @stt_rec
+
+update #dmkbtmt set he_so_mt = 1 where dvt = dvt_mt
+update #dmkbtmt set ty_le_0 = b.he_so from #dmkbtmt a join vdmvtqddvt b on a.dvt = b.dvt and a.ma_vt = b.ma_vt where a.he_so_mt = 0
+update #dmkbtmt set ty_le_2 = b.he_so from #dmkbtmt a join vdmvtqddvt b on a.dvt_mt = b.dvt and a.ma_vt = b.ma_vt where a.he_so_mt = 0
+update #dmkbtmt set he_so_mt = he_so / ty_le_0 * ty_le_2 from #dmkbtmt a join vdmvtqddvt b ON a.ma_vt = b.ma_vt where b.xtype = 'S' and a.he_so_mt = 0
+    ">
+
+  <!ENTITY EnvironmentTaxDeclare "
+select top 0 ma_vt, dvt, muc_thue, ty_le as tl_chiu_thue, dvt as dvt_mt, ty_le as he_so_mt, ty_le as ty_le_0, ty_le as ty_le_2
+  into #dmkbtmt from dmkbtmt
+">
+  <!ENTITY EnvironmentTaxRequest.DateEffective ", ['ngay_mt', 'DateTime', f.grid.get_element().parentForm.getItemValue('ngay_ct')]">
+  <!ENTITY EnvironmentTaxQuery.DateEffective "b.ngay_ct">
+  <!ENTITY EnvironmentTaxQuery "
+insert into #dmkbtmt select distinct a.ma_vt, a.dvt, a.muc_thue, a.ty_le as tl_chiu_thue, b.dvt as dvt_mt, cast(0 as numeric(19, 3)) as he_so_mt, a.ty_le * 0 as ty_le_0, a.ty_le * 0 as ty_le_2
+  from dmkbtmt a join #d b on a.ma_vt = b.ma_vt
+  where a.loai = '&EnvironmentTaxType;' and a.ngay_hl =(select max(ngay_hl) from dmkbtmt c where c.ngay_hl &lt;= &EnvironmentTaxQuery.DateEffective; and c.ma_vt = b.ma_vt and c.loai = '&EnvironmentTaxType;' and c.status = '1') and a.status = '1'
+
+update #dmkbtmt set he_so_mt = 1 where dvt = dvt_mt
+update #dmkbtmt set ty_le_0 = b.he_so from #dmkbtmt a join vdmvtqddvt b on a.dvt = b.dvt and a.ma_vt = b.ma_vt where a.he_so_mt = 0
+update #dmkbtmt set ty_le_2 = b.he_so from #dmkbtmt a join vdmvtqddvt b on a.dvt_mt = b.dvt and a.ma_vt = b.ma_vt where a.he_so_mt = 0
+update #dmkbtmt set he_so_mt = he_so / ty_le_0 * ty_le_2 from #dmkbtmt a join vdmvtqddvt b ON a.ma_vt = b.ma_vt where b.xtype = 'S' and a.he_so_mt = 0
+
+update #d set muc_thue = m.muc_thue, tl_chiu_thue = m.tl_chiu_thue, he_so_mt = m.he_so_mt from #d a join #dmkbtmt m on a.ma_vt = m.ma_vt and a.dvt = m.dvt_mt
+">
+
+  <!ENTITY EnvironmentTaxFields ", rtrim(&EnvironmentTaxAliasName;.muc_thue) as muc_thue, &EnvironmentTaxAliasName;.tl_chiu_thue, &EnvironmentTaxAliasName;.he_so_mt">
+  <!ENTITY EnvironmentTaxJoin "&EnvironmentTaxInheritanceLoadingJoin;">
+  <!ENTITY EnvironmentTaxInheritanceQueryWhereClause "">
+
+  <!ENTITY EnvironmentTaxDetailChangeQuatityInheritance "&EnvironmentTaxComma; z.$a.mt, z.$a.mt_tg">
+  <!ENTITY EnvironmentTaxDetailCheckRelativeQueryJoin ", (select *, 0 as tl_chiu_thue, 0 as he_so_mt from dmkbtmt where 1 = 0) &EnvironmentTaxAliasName;">
+  <!ENTITY EnvironmentTaxInheritanceColumns ", muc_thue, tl_chiu_thue, he_so_mt">
+  <!ENTITY EnvironmentTaxCopyFields "&EnvironmentTaxInheritanceColumns;">
+  <!ENTITY EnvironmentTaxValidDetail.ExecuteExpression "z.executeExpression(o, [z.$a.mt, z.$a.mt_tg]);">
+  <!ENTITY EnvironmentTaxValidTotal "&EnvironmentTaxComma;z.$a.t_thue_bvmt_nt, z.$a.t_thue_bvmt">
+  <!ENTITY EnvironmentTaxValidTotal.ExecuteExpression.Condition "">
+  <!ENTITY EnvironmentTaxValidTotal.ExecuteExpression "&EnvironmentTaxValidTotal.ExecuteExpression.Condition;">
+
+  <!ENTITY EnvironmentTaxInheritanceFields SYSTEM "..\Include\XML\BI.EnvironmentTaxInheritanceFields.txt">
+  <!ENTITY EnvironmentTaxInheritanceViews SYSTEM "..\Include\XML\BI.EnvironmentTaxInheritanceViews.xml">
+  <!ENTITY EnvironmentTaxScriptFlowFormFunction SYSTEM "..\Include\Javascript\EnvironmentTaxScriptFlowFormFunction.txt">
+  <!ENTITY EnvironmentTaxScriptSet.Date "f.setItemValue('ngay_mt', g.get_element().parentForm.getItemValue('ngay_ct'));">
+
+  <!ENTITY EnvironmentTaxXMLFlowFormFields SYSTEM "..\Include\XML\EnvironmentTaxXMLFlowFormFields.txt">
+  <!ENTITY EnvironmentTaxXMLFlowFormFields.Date SYSTEM "..\Include\XML\EnvironmentTaxXMLFlowFormFields.Date.txt">
+  <!ENTITY EnvironmentTaxXMLFlowFormFields.Date.ForeignKey SYSTEM "..\Include\XML\EnvironmentTaxXMLFlowFormFields.Date.ForeignKey.txt">
+  <!ENTITY EnvironmentTaxXMLFlowFormViews.Date SYSTEM "..\Include\XML\EnvironmentTaxXMLFlowFormViews.Date.txt">
+
+  <!ENTITY EnvironmentTaxFunction SYSTEM "..\Include\Javascript\BI.EnvironmentTax.txt">
+  <!ENTITY EnvironmentTaxGridFields "addGridFieldsEnvironment(f, c, r, g, '&EnvironmentTaxGridFields.Foreign; : &EnvironmentTaxGridFields.Base;');">
+  <!ENTITY EnvironmentTax.DetailRender "overGridFields(f, g, '&EnvironmentTaxGridFields.Foreign; :&EnvironmentTaxGridFields.Base;', true);">
+  <!ENTITY EnvironmentTaxCurrencyResponse SYSTEM "..\Include\Javascript\BI.WhenEnvironmentTaxCurrencyResponse.txt">
+
+  <!ENTITY EnvironmentTax.UpdateImport.Key "
+    join #m&Detail; m on a.stt_rec = m.stt_rec
+  where m.loai_ct = '2'
+">
+
+  <!ENTITY EnvironmentTax.UpdateImport "
+select top 0 ma_vt, dvt, muc_thue, ty_le as tl_chiu_thue, dvt as dvt_mt, cast(null as numeric(19, 3)) as he_so_mt, ty_le as ty_le_0, ty_le as ty_le_2
+  into #dmkbtmt from dmkbtmt
+
+insert into #dmkbtmt select distinct a.ma_vt, a.dvt, a.muc_thue, a.ty_le as tl_chiu_thue, b.dvt as dvt_mt, a.ty_le * 0 as he_so_mt, a.ty_le * 0 as ty_le_0, a.ty_le * 0 as ty_le_2
+  from dmkbtmt a join #d&Detail; b on a.ma_vt = b.ma_vt
+  where a.loai = '1' and a.ngay_hl =(select max(ngay_hl) from dmkbtmt c where c.ngay_hl &lt;= b.ngay_ct and c.ma_vt = b.ma_vt and c.loai = '1' and c.status = '1') and a.status = '1'
+
+update #dmkbtmt set he_so_mt = 1 where dvt = dvt_mt
+update #dmkbtmt set ty_le_0 = b.he_so from #dmkbtmt a join dmqddvt b on a.dvt = b.dvt and a.ma_vt = b.ma_vt where a.he_so_mt = 0
+update #dmkbtmt set ty_le_2 = b.he_so from #dmkbtmt a join dmqddvt b on a.dvt_mt = b.dvt and a.ma_vt = b.ma_vt where a.he_so_mt = 0
+update #dmkbtmt set he_so_mt = he_so / ty_le_0 * ty_le_2 from #dmkbtmt a join dmqddvt b ON a.ma_vt = b.ma_vt where b.xtype = 'S' and a.he_so_mt = 0
+
+update #d&Detail; set muc_thue = mt.muc_thue, tl_chiu_thue = mt.tl_chiu_thue, he_so_mt = mt.he_so_mt
+  from #d&Detail; a join #dmkbtmt mt on a.ma_vt = mt.ma_vt and a.dvt = mt.dvt_mt
+  &EnvironmentTax.UpdateImport.Key;
+">
+]]>
+
+<!ENTITY EnvironmentTaxTable.Mode "">
+<!ENTITY EnvironmentTaxAliasName "">
+<!ENTITY EnvironmentTaxInheritanceLoadingJoin "">
+<!ENTITY EnvironmentTaxPrimePartitionCurrent "@@prime$partition$current">
+<!ENTITY EnvironmentTaxInheritanceQuery "">
+<!ENTITY EnvironmentTaxDeclare "">
+<!ENTITY EnvironmentTaxRequest.DateEffective "">
+<!ENTITY EnvironmentTaxQuery.DateEffective "">
+<!ENTITY EnvironmentTaxQuery "">
+<!ENTITY EnvironmentTaxFields "">
+<!ENTITY EnvironmentTaxJoin "">
+<!ENTITY EnvironmentTaxInheritanceQueryWhereClause "where @@whereClause">
+
+<!ENTITY EnvironmentTaxDetailChangeQuatityInheritance "">
+<!ENTITY EnvironmentTaxDetailCheckRelativeQueryJoin "">
+<!ENTITY EnvironmentTaxInheritanceColumns "">
+<!ENTITY EnvironmentTaxCopyFields "">
+<!ENTITY EnvironmentTaxValidDetail.ExecuteExpression "">
+<!ENTITY EnvironmentTaxValidTotal "">
+<!ENTITY EnvironmentTaxValidTotal.ExecuteExpression "">
+
+<!ENTITY EnvironmentTaxInheritanceFields "">
+<!ENTITY EnvironmentTaxInheritanceViews "">
+<!ENTITY EnvironmentTaxScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+<!ENTITY EnvironmentTaxScriptSet.Date "">
+<!ENTITY EnvironmentTaxXMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+<!ENTITY EnvironmentTaxXMLFlowFormFields.Date "">
+<!ENTITY EnvironmentTaxXMLFlowFormFields.Date.ForeignKey "">
+<!ENTITY EnvironmentTaxXMLFlowFormViews.Date "">
+
+<!ENTITY EnvironmentTaxFunction "">
+<!ENTITY EnvironmentTaxGridFields "">
+<!ENTITY EnvironmentTax.DetailRender "">
+<!ENTITY EnvironmentTaxCurrencyResponse SYSTEM "..\Include\Javascript\WhenCurrencyResponse.txt">
+
+<!ENTITY EnvironmentTax.UpdateImport "">

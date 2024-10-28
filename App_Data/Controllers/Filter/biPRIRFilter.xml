@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIPRIRFilter">
+  <!ENTITY IdentityForm "BIPRIRMultiForm">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn giá" e="Get Info Record"></title>
+  <fields>
+    <field name="ngay_hl_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày hiệu lực từ" e="Effective Date from"></header>
+      <footer v="Ngày hl từ/đến" e="Effective Date from/to"></footer>
+    </field>
+    <field name="ngay_hl_den" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày hiệu lực đến" e="Effective Date to"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="1101: [ngay_hl_tu].Description, [ngay_hl_tu], [ngay_hl_den]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[$Filter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$Filter(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[$Filter(f) {
+  var g = f.grid, w = g.get_element().parentForm;
+  f.add_onResponseComplete(onFilter$]]>&Identity;<![CDATA[$ResponseComplete);
+
+  var unit = w.getItemValue('ma_dvcs'), plant = w.getItemValue('ma_vung');
+  var item = g._getItemValue(g._activeRow, g._getColumnOrder('ma_vt')), quantity = g._getItemValue(g._activeRow, g._getColumnOrder('so_luong')), dvt = g._getItemValue(g._activeRow, g._getColumnOrder('dvt'));
+  var custID = (g._getItemValue(g._activeRow, g._getColumnOrder('ma_ncc_cd')) != '' ? g._getItemValue(g._activeRow, g._getColumnOrder('ma_ncc_cd')) : g._getItemValue(g._activeRow, g._getColumnOrder('ma_ncc_dn')));
+
+  g._filter$Fields = [unit, plant, custID, item, null, null, dvt, quantity];
+}
+
+function close$]]>&Identity;<![CDATA[$Filter(f) {
+  try {f.remove_onResponseComplete(onFilter$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}
+}
+
+function onFilter$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result, g = f.grid;
+  switch (context) {
+    case 'Checking':
+      var d1 = f.getItemValue('ngay_hl_tu'), d2 = f.getItemValue('ngay_hl_den');
+      g._filter$Fields[4] = d1.getFullYear() + ('0' + (d1.getMonth() + 1)).slice(-2) + ('0' + d1.getDate()).slice(-2);
+      g._filter$Fields[5] = d2.getFullYear() + ('0' + (d2.getMonth() + 1)).slice(-2) + ('0' + d2.getDate()).slice(-2);
+      g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';
+      break;
+    default:
+      break;
+  }
+}
+
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g) {
+  g.showForm('BIPRIRMultiForm');
+  g._memvars = [];
+}
+]]>
+    </text>
+  </script>
+
+</dir>

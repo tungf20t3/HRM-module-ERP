@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY ScriptIrregular SYSTEM "..\Include\Javascript\Irregular.txt">
+
+  <!ENTITY % Nested SYSTEM "..\Include\Nested.ent">
+  %Nested;
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tạo mã vật tư tự động" e="Autogenerate Item Code"></title>
+  <fields>
+    <field name="ma_vt" allowNulls="false" maxLength="16">
+      <header v="Mã vật tư" e="Item Code"></header>
+      <items style="Mask"/>
+    </field>
+
+    <field name="dvt" dataFormatString="1, 0" clientDefault="1" align="right">
+      <header v="Đơn vị tính" e="Unit of Measure"></header>
+      <footer v="1 - Tạo tự động, 0 - Không" e="1 - Auto-Generation, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="loai_vt" allowNulls="false">
+      <header v="Loại vật tư" e="Item Type"></header>
+      <items style="AutoComplete" controller="ItemType" reference="ten_loai_vt%l" key="status = '1'" check="1 = 1" information="ma_loai_vt$dmloaivt.ten_loai_vt%l"/>
+    </field>
+    <field name="ten_loai_vt%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="tk_vt" allowNulls="false">
+      <header v="Tk vật tư" e="Inventory Account"></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk_vt%l" key="loai_tk = 1 and status = '1'" check="loai_tk = 1" information="tk$dmtk.ten_tk%l" new="Default"/>
+    </field>
+    <field name="ten_tk_vt%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="keys" readOnly="true" filterSource="Infinite">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhieu_dvt" readOnly="true" filterSource="Infinite">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="1100-1: [ma_vt].Label, [ma_vt], [keys]"/>
+      <item value="111001: [dvt].Label, [dvt], [dvt].Description, [nhieu_dvt]"/>
+      <item value="110100: [loai_vt].Label, [loai_vt], [ten_loai_vt%l]"/>
+      <item value="110100: [tk_vt].Label, [tk_vt], [ten_tk_vt%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[select 'var f = this;f.setItemValues(''ma_vt'', [f.grid._$ma_vt]);$func.setCurPos(f.getItem(''ma_vt''), 0);load$InputInvoiceItemsCreate$(this);' as message
+return]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if dbo.AI_ERP$Function$CheckIrregularExternal(@ma_vt) = 0 begin
+  select '' as message
+  return
+end
+
+if @dvt = '1' and rtrim(@@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'UOM', 'New')) = 0 begin
+  select 'dvt' as field, case when @@language = 'v' then N'Chưa có quyền xử lý tại <span class="Highlight">Danh mục đơn vị tính</span>. Vui lòng liên hệ quản trị hệ thống.' else N'You do not have permission to update <span class="Highlight">Units of Measure</span>. Contact the System administrator if you believe you should be able to execute this action.' end as message
+  return
+end
+
+if exists(select 1 from dmvt where rtrim(ma_vt) = rtrim(@ma_vt)) begin
+  select 'ma_vt' as field, case when @@language = 'v' then N'Mã vật tư <span class="Highlight">' + rtrim(@ma_vt) + N'</span> đã có trong danh mục vật tư.' else N'Item Code <span class="Highlight">' + rtrim(@ma_vt) + N'</span> is already exists.' end as message
+  return
+end
+
+declare @k nvarchar(4000), @r nvarchar(4000), @d nvarchar(4000), @val nchar(20), @error char(1), @nested bit
+select top 1 @k = text from @keys
+select top 1 @d = text from @nhieu_dvt
+select @nested = 0
+
+select data into #data from dbo.AI_ERP$Function$System$Split(@d, ',') where isnull(data, '') <> '' group by data
+if exists(select 1 from #data a where not exists(select 1 from dmdvt b where rtrim(ltrim(a.data)) = rtrim(ltrim(b.dvt)))) begin
+  if @dvt = '0' begin
+    select top 1 @val = data from #data a where not exists(select 1 from dmdvt b where rtrim(ltrim(a.data)) = rtrim(ltrim(b.dvt)))
+    select case when @@language = 'v' then N'Đơn vị tính <span class="Highlight">' + rtrim(@val) + N'</span> không hợp lệ.' else N'Unit of Measure <span class="Highlight">' + rtrim(@val) + N'</span> is invalid.' end as message
+    return
+  end else begin
+    insert into dmdvt(dvt, ten_dvt, ten_dvt2, status, datetime0, datetime2, user_id0, user_id2, ma_td1, ma_td2, ma_td3, sl_td1, sl_td2, sl_td3, ngay_td1, ngay_td2, ngay_td3, gc_td1, gc_td2, gc_td3, s1, s2, s3, s4, s5, s6, s7, s8, s9)
+      select a.data, a.data, N'', N'1', getdate(), getdate(), @@userID, @@userID, N'', N'', N'', 0.0000, 0.0000, 0.0000, NULL, NULL, NULL, N'', N'', N'', N'', N'', N'', 0.0000, 0.0000, 0.0000, NULL, NULL, NULL
+        from #data a where not exists(select 1 from dmdvt b where rtrim(ltrim(a.data)) = rtrim(ltrim(b.dvt)))
+  end
+end
+drop table #data
+
+]]>&Item.Nested.Key.b;<![CDATA[
+  select @nested = 1
+end
+
+exec rs_AutoGenerateInputInvoiceItems @ma_vt, @loai_vt, @tk_vt, @k, 2, @nested, @@language, @@userID, @@admin, @r output, @error output
+
+if (@error in ('1', '2', '3')) begin
+  select 'ma_vt' as field, case when @@language = 'v' then N'Trường <span class="Highlight">Mã vật tư</span> giá trị nhập không hợp lệ.' else N'Field <span class="Highlight">Item Code</span> has invalid value.' end as message
+  return
+end
+if (@error = '4') begin
+  select 'ma_vt' as field, case when @@language = 'v' then N'Trường <span class="Highlight">Mã vật tư</span> ]]>&Item.Nested.Message.v;<![CDATA[ trong danh mục vật tư.' else N'Field <span class="Highlight">Item Code</span> is ]]>&Item.Nested.Message.e;<![CDATA[.' end as message
+  return
+end
+
+select '' as field, '' as message, 'on$InputInvoiceItemsCreate$Complete(this, ''[' + replace(replace(rtrim(isnull(@r, '')), '\', '\\'), '''', '\''') + ']'');' as script
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,g=f.grid,v=f._language=="v",msg=v?'Trường <span class="Highlight">Mã vật tư</span> giá trị nhập không hợp lệ.':'Field <span class="Highlight">Item Code</span> has invalid value.';f._checked&&objectBehavior$Dir$Irregular.checkCode(f,"ma_vt",false,"'`~!@$%^&*(),;\"<>?/\\,_");if(f._checked&&!checkItemCode(f,g)){$message.show(msg,String.format("$find('{0}').getItem('ma_vt').focus();",f.get_id()));f._checked=false}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function load$InputInvoiceItemsCreate$(d){for(var e=d.grid,b=[],c=[],a=0;a<e._$k.length;a++){var f=e._$k[a].split(";");Array.add(b,f[0]);Array.add(c,f[1])}d.setItemValues("keys, nhieu_dvt",[b,c])}function on$InputInvoiceItemsCreate$Complete(a,b){a.grid._formScript="refresh$InputInvoiceItems$(this, "+b+");"}function checkItemCode(f){var b=f.getItemValue("ma_vt");if(b[b.length-1]!="#")return false;for(var c=b.split("#"),e="",d=[],a=c.length-1;a>=0;a--)if(!c[a])e=e+"#";else d.push(c[a]);return d.length>1?false:true}]]>
+      &ScriptIrregular;
+    </text>
+  </script>
+</dir>

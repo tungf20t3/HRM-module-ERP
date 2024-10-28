@@ -1,0 +1,243 @@
+﻿<!ENTITY % Conditional.BI.WSTran SYSTEM "..\Include\BIMode.txt">
+<!ENTITY % Conditional.ImportOverwrite SYSTEM "..\Include\ImportOverwriteVoucher.txt">
+
+<![%Conditional.BI.WSTran;[
+  <!ENTITY BI.WSDetail.Grid.Fields SYSTEM "..\Include\XML\BI.WSDetail.Grid.Fields.txt">
+  <!ENTITY BI.WSDetail.Grid.Fields.Retrieve SYSTEM "..\Include\XML\BI.PSDetail.Grid.Fields.Retrieve.txt">
+  <!ENTITY BI.WSDetail.Grid.Fields.Retrieve.PS SYSTEM "..\Include\XML\BI.PSDetail.Grid.Fields.Retrieve.PS.txt">
+  <!ENTITY BI.WSDetail.Grid.Fields.Retrieve.PO SYSTEM "..\Include\XML\BI.PSDetail.Grid.Fields.Retrieve.PO.txt">
+
+  <!ENTITY BI.WSDetail.Grid.Fields.Retrieve.Copying ", ma_bp0, ma_nh0, stt_rec_ttmh, stt_rec0ttmh, stt_rec_sa, stt_rec0sa">
+
+  <!ENTITY BI.WSDetail.Grid.Views SYSTEM "..\Include\XML\BI.WSDetail.Grid.Views.txt">
+  <!ENTITY BI.WSDetail.Grid.Views.Retrieve SYSTEM "..\Include\XML\BI.PSDetail.Grid.Views.Retrieve.txt">
+
+  <!ENTITY BI.WSDetail.Grid.Inspection.Retrieve.v "Lấy số liệu từ kiểm định">
+  <!ENTITY BI.WSDetail.Grid.Inspection.Retrieve.e "Extract Data from Inspection Lot Origin">
+  <!ENTITY BI.WSDetail.Grid.Inspection.ExecuteCommand "g.showForm('BIWSQualityControlFilter');">
+  <!ENTITY BI.WSDetail.Grid.Inspection.ExecuteCommand.Check "">
+
+  <!ENTITY BI.Field.Retrieve ", ma_bp0, ma_nh0, ma_vung, stt_rec_ttmh, stt_rec0ttmh, stt_rec_sa, stt_rec0sa">
+  <!ENTITY BI.Field.Retrieve.Response ", rtrim(a.ma_bp0) as ma_bp0, rtrim(a.ma_nh0) as ma_nh0, rtrim(a.ma_vung) as ma_vung, a.stt_rec_ttmh, a.stt_rec0ttmh, a.stt_rec_hd as stt_rec_sa, a.stt_rec0hd as stt_rec0sa">
+  <!ENTITY BI.Field.Retrieve.Response.PS ", rtrim(a.ma_bp0) as ma_bp0, rtrim(a.ma_nh0) as ma_nh0, rtrim(a.ma_vung) as ma_vung, a.stt_rec_ttmh, a.stt_rec0ttmh, a.stt_rec_sa, a.stt_rec0sa">
+  <!ENTITY BI.Field.Retrieve.Response.PO ", rtrim(a.ma_bp0) as ma_bp0, rtrim(a.ma_nh0) as ma_nh0, cast(null as varchar(32)) as ma_vung, a.stt_rec_ttmh, a.stt_rec0ttmh, a.stt_rec_hd as stt_rec_sa, a.stt_rec0hd as stt_rec0sa">
+  <!ENTITY BI.Field.Retrieve.Script.Check "check$GridVoucherDetail$DefaultMemvar(z, row)">
+
+
+  <!ENTITY BI.Post.History.PO "
+if @status &lt;&gt; '0' begin
+  exec AI_ERP$BI$Voucher$Posting$HistoryPO 'm68$$partition$current', 'd68$$partition$current', @stt_rec, @@id, 'a.stt_rec_dh &lt;&gt; '''' and right(a.stt_rec_dh, 3) = ''PO1''',
+    'tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_xuat = b.tien, tien_nt_x = b.tien_nt, tien_nhap = 0, tien_nt_n = 0', '', &StockType;
+end
+">
+  <!ENTITY BI.Delete.History.PO "delete bih94$000000 where stt_rec = @stt_rec">
+
+  <!ENTITY BI.Post.History.PI "
+if @status &lt;&gt; '0' begin
+  exec AI_ERP$BI$Voucher$Posting$HistoryPI 'm68$$partition$current', 'd68$$partition$current', @stt_rec, @@id, 'a.stt_rec_dh &lt;&gt; '''' and right(a.stt_rec_dh, 3) = ''PO2''',
+    'tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_xuat = b.tien, tien_nt_x = b.tien_nt, tien_nhap = 0, tien_nt_n = 0', '', &StockType;
+end
+">
+  <!ENTITY BI.Delete.History.PI "delete bih95$000000 where stt_rec = @stt_rec">
+
+  <!ENTITY BI.Post.History.SA "
+if @status &lt;&gt; '0' begin
+  exec AI_ERP$BI$Voucher$Posting$HistorySA 'm68$$partition$current', 'd68$$partition$current', @stt_rec, @@id, 'a.stt_rec_sa &lt;&gt; ''''',
+    'tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_xuat = b.tien, tien_nt_x = b.tien_nt, tien_nhap = 0, tien_nt_n = 0', '', &StockType;
+end
+">
+  <!ENTITY BI.Delete.History.SA "delete bih06$000000 where stt_rec = @stt_rec">
+
+
+  <!ENTITY BI.WSTran.PODefaultValue.Script.LoadGrid "g._$PODefaultForm.HiddenField = &#91;'ma_bp0', 'ma_nh0'&#93;;">
+
+  <!ENTITY BI.WSTran.Filter.h "112">
+  <!ENTITY BI.WSTran.Filter.Fields SYSTEM "..\Include\XML\BI.PDTran.Filter.Fields.txt">
+  <!ENTITY BI.WSTran.Filter.Views SYSTEM "..\Include\XML\BI.WSTran.Filter.Views.xml">
+
+  <!ENTITY BI.WSTran.Form.Render.Add "f.getItem('d68')._controlBehavior.add_onRender(on$Voucher$GridRender);">
+  <!ENTITY BI.WSTran.Form.Render.Remove "try {f.getItem('d68')._controlBehavior.remove_onRender(on$Voucher$GridRender);} catch (ex) {}">
+  <!ENTITY BI.WSTran.Form.Detail.Item.Request ", 'ma_vung'">
+  <!ENTITY BI.WSTran.Form.Detail.Item.Response ", @ma_vung">
+
+
+  <!ENTITY BI.WSTran.DetailTableSource "
+#IF $d68.NewValue = $d68.OldValue #THEN
+  (select * from d68$$partition$previous where stt_rec = @stt_rec)
+#ELSE
+  @d68
+#END
+">
+  <!ENTITY BI.WSTran.DetailTableSource.Action "
+#IF @@action = 'Edit' #THEN
+  (select * from d68$$partition$previous where stt_rec = @stt_rec)
+#ELSE
+  @d68
+#END
+">
+
+
+  <!ENTITY BI.WSTran.Approval.Before "
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '1', stt_rec_sa, stt_rec0sa, (so_luong * he_so) from d68$$partition$previous where stt_rec = @stt_rec and stt_rec_sa &lt;&gt; ''
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '1', stt_rec_ttmh, stt_rec0ttmh, (so_luong * he_so) from d68$$partition$previous where stt_rec = @stt_rec and stt_rec_ttmh &lt;&gt; ''
+">
+  <!ENTITY BI.WSTran.Approval.After "
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '2', stt_rec_sa, stt_rec0sa, (so_luong * he_so) from d68$$partition$current where stt_rec = @stt_rec and stt_rec_sa &lt;&gt; ''
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '2', stt_rec_ttmh, stt_rec0ttmh, (so_luong * he_so) from d68$$partition$current where stt_rec = @stt_rec and stt_rec_ttmh &lt;&gt; ''
+">
+  <!ENTITY BI.WSTran.Form.CheckWhenVoucherBeforeEdit "
+#IF @@view = 0 #THEN
+  #IF @@action = 'Edit' #THEN
+    #IF @@admin &lt;&gt; 1 #THEN
+      if exists(select 1 from bisysplantrights where user_id = @@userID) and exists(select 1 from d68$$partition$current a where stt_rec = @stt_rec and ma_vung not in (select ma_vung from bisysplantrights b where b.user_id = @@userID)) begin
+        select @message as script, '$NotAuthorized' as message
+        return
+      end
+    #END
+    if exists(select 1 from @@prime$partition$current where stt_rec = @stt_rec and status &lt;&gt; '0') begin
+      &BI.WSTran.Form.CheckDelivery;
+    end
+  #END
+#END
+">
+  <!ENTITY BI.WSTran.Form.CheckWhenVoucherBeforeDelete "
+#IF @@admin &lt;&gt; 1 #THEN
+  if exists(select 1 from bisysplantrights where user_id = @@userID) and exists(select 1 from d68$$partition$current a where stt_rec = @stt_rec and ma_vung not in (select ma_vung from bisysplantrights b where b.user_id = @@userID)) begin
+    select @$denyAccess as message
+    return
+  end
+#END
+if exists(select 1 from @@prime$partition$previous where stt_rec = @stt_rec and status &lt;&gt; '0') begin
+  &BI.WSTran.Form.CheckDelivery;
+end
+">
+
+  <!ENTITY BI.WSTran.Form.CheckDelivery "
+declare @q$Delivery nvarchar(4000), @e$Delivery$Invalid nvarchar(512), @e$Delivery$Line int
+
+select @e$Delivery$Invalid = case when @@language = 'v' then N'Đã có phát sinh liên quan đến vật tư &lt;span class=&quot;Highlight&quot;&gt;&#37;s&lt;/span&gt; của đơn hàng, không sửa hoặc xóa được.' else N'There existed processing against Purchase Order for item &lt;span class=&quot;Highlight&quot;&gt;&#37;s&lt;/span&gt;, it cannot be edited or deleted.' end
+select a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_sa as stt_rec_hd, a.stt_rec0sa as stt_rec0hd, min(a.line_nbr) as line_nbr, max(b.datetime2) as datetime2 into #d$Delivery from d68$$partition$current a left join m68$$partition$current b on a.stt_rec = b.stt_rec where a.stt_rec = @stt_rec and b.tt_yn = 1 and (a.stt_rec_dh &lt;&gt; '' or a.stt_rec_hd &lt;&gt; '') group by a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_sa, a.stt_rec0sa
+
+if exists(select 1 from #d$Delivery where stt_rec_dh &lt;&gt; '') begin
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih94$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec &lt;&gt; b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 &lt; b.datetime2
+  if @e$Delivery$Line is not null begin
+    select 'd68' as field, replace(@e$Delivery$Invalid, '&#37;s', rtrim(ma_vt)) as message from d68$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih95$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec &lt;&gt; b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 &lt; b.datetime2
+  if @e$Delivery$Line is not null begin
+    select 'd68' as field, replace(@e$Delivery$Invalid, '&#37;s', rtrim(ma_vt)) as message from d68$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+end
+
+if exists(select 1 from #d$Delivery where stt_rec_hd &lt;&gt; '') begin
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih06$000000 b on a.stt_rec_hd = b.stt_rec_hd and a.stt_rec0hd = b.stt_rec0hd where a.stt_rec &lt;&gt; b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 &lt; b.datetime2
+  if @e$Delivery$Line is not null begin
+    select 'd68' as field, replace(@e$Delivery$Invalid, '&#37;s', rtrim(ma_vt)) as message from d68$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+end
+">
+  <!ENTITY BI.WSTran.Form.Check SYSTEM "..\Include\Command\BI.WSTran.Form.Check.txt">
+
+  <!ENTITY BI.WSTran.Upload.Plant.Declare "&WSTranFieldsExt;">
+  <!ENTITY BI.WSTran.Upload.Plant.Struct ", a.ma_vung">
+  <!ENTITY BI.WSTran.Upload.Plant.Insert ", ''">
+  <!ENTITY BI.WSTran.Upload.Plant.Set "update a set ma_vung = b.ma_vung from #d&Detail; a left join #plant b on a.ma_kho = b.ma_kho where a.ma_vung = ''">
+  <!ENTITY BI.WSTran.Upload.Plant.Select "select b.ma_vung, a.ma_kho, min(a.stt) as stt into #plant from @@table a join dmkho b on a.ma_kho = b.ma_kho group by b.ma_vung, a.ma_kho">
+  <!ENTITY BI.WSTran.Upload.Plant.Right "
+exec AI_ERP$BI$System$CheckImportPlantRights '#plant', 'ma_vung', 'stt', @user, @admin, @r output, default, @$mode, @$errorCount output, @field
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  &Error;
+end
+">
+  <![%Conditional.ImportOverwrite;[
+    <!ENTITY BI.WSTran.Upload.Plant.Overwrite.Right "
+if exists(select 1 from #owdata) begin
+  select @$owp = min(p) from #owpartition
+  delete #plant
+  while @$owp is not null begin
+    select @$owq = 'insert into #plant select a.ma_vung, a.ma_kho, min(b.stt) as stt from d&Detail;$' + rtrim(@$owp) + ' a left join #owdata b on a.stt_rec = b.stt_rec where b.stt_rec is not null group by a.ma_vung, a.ma_kho'
+    exec sp_executesql @$owq
+    select @$owp = min(p) from #owpartition where p &gt; @$owp
+  end
+  exec AI_ERP$BI$System$CheckImportPlantRights '#plant', 'ma_vung', 'stt', @user, @admin, @r output, default, @$mode, @$errorCount output, @field
+  if @$mode = 1 begin
+    if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+  end else begin
+    &Error;
+  end
+end
+">
+]]>
+]]>
+
+<!ENTITY BI.WSDetail.Grid.Fields "&SiteField;">
+<!ENTITY BI.WSDetail.Grid.Fields.Retrieve "">
+<!ENTITY BI.WSDetail.Grid.Fields.Retrieve.PS "">
+<!ENTITY BI.WSDetail.Grid.Fields.Retrieve.PO "">
+<!ENTITY BI.WSDetail.Grid.Fields.Retrieve.Copying "">
+<!ENTITY BI.WSDetail.Grid.Views SYSTEM "..\Include\Standard\XML\BI.WSDetail.Grid.Views.Standard.txt">
+<!ENTITY BI.WSDetail.Grid.Views.Retrieve "">
+
+<!ENTITY BI.WSDetail.Grid.Inspection.Retrieve.v "Lấy số liệu từ phiếu kiểm định">
+<!ENTITY BI.WSDetail.Grid.Inspection.Retrieve.e "Extract Data from QA Transaction">
+<!ENTITY BI.WSDetail.Grid.Inspection.ExecuteCommand "
+if (v) break;
+g.showForm('WSQualityControlFilter');
+">
+<!ENTITY BI.WSDetail.Grid.Inspection.ExecuteCommand.Check "if (v &amp;&amp; !(g.validRowExpression('kt_so', '[stt_rec_kt] == &quot;&quot;'))) break;">
+
+
+<!ENTITY BI.Field.Retrieve "">
+<!ENTITY BI.Field.Retrieve.Response "">
+<!ENTITY BI.Field.Retrieve.Response.PS "">
+<!ENTITY BI.Field.Retrieve.Response.PO "">
+<!ENTITY BI.Field.Retrieve.Script.Check "z.blankMemvar(row)">
+
+<!ENTITY BI.Post.History.PO "">
+<!ENTITY BI.Delete.History.PO "">
+<!ENTITY BI.Post.History.PI "">
+<!ENTITY BI.Delete.History.PI "">
+<!ENTITY BI.Post.History.SA "">
+<!ENTITY BI.Delete.History.SA "">
+
+<!ENTITY BI.WSTran.PODefaultValue.Script.LoadGrid "">
+
+<!ENTITY BI.WSTran.Filter.h "64">
+<!ENTITY BI.WSTran.Filter.Fields "">
+<!ENTITY BI.WSTran.Filter.Views "">
+
+<!ENTITY BI.WSTran.Form.Render.Add "f.getItem('d68')._controlBehavior.add_onRender(on$Voucher$GridRender);">
+<!ENTITY BI.WSTran.Form.Render.Remove "try {f.getItem('d68')._controlBehavior.remove_onRender(on$Voucher$GridRender);} catch (ex) {}">
+<!ENTITY BI.WSTran.Form.Detail.Item.Request "">
+<!ENTITY BI.WSTran.Form.Detail.Item.Response "">
+
+<!ENTITY BI.WSTran.DetailTableSource "">
+<!ENTITY BI.WSTran.DetailTableSource.Action "">
+
+
+<!ENTITY BI.WSTran.Approval.Before "">
+<!ENTITY BI.WSTran.Approval.After "">
+<!ENTITY BI.WSTran.Form.CheckWhenVoucherBeforeEdit "">
+<!ENTITY BI.WSTran.Form.CheckWhenVoucherBeforeDelete "">
+
+<!ENTITY BI.WSTran.Form.CheckDelivery "">
+<!ENTITY BI.WSTran.Form.Check "">
+
+<!ENTITY BI.WSTran.Upload.Plant.Declare "">
+<!ENTITY BI.WSTran.Upload.Plant.Struct "">
+<!ENTITY BI.WSTran.Upload.Plant.Insert "">
+<!ENTITY BI.WSTran.Upload.Plant.Set "">
+<!ENTITY BI.WSTran.Upload.Plant.Select "">
+<!ENTITY BI.WSTran.Upload.Plant.Right "">
+<!ENTITY BI.WSTran.Upload.Plant.Overwrite.Right "">

@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="sms" code="action, sent" order="action, sent" database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Gửi tin nhắn" e="Send Message"></title>
+  <fields>
+    <field name="userID" type="Int32" hidden="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="userName" disabled="true">
+      <header v="Người sử dụng" e="User"></header>
+    </field>
+    <field name="userFullName" readOnly="true" disabled="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="content" rows="6" allowNulls="false" maxLength="512">
+      <header v="Nội dung" e="Content"></header>
+    </field>
+
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 80, 330"/>
+      <item value="111: [userName].Label, [userName], [userFullName]"/>
+      <item value="1101: [content].Label, [content],  [userID]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'init$SMSForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @phone varchar(32), @email nvarchar(128)
+select @phone = dien_thoai, @email = e_mail from userinfo2 where id = @userID
+insert into smssimulator(phone, email, message, sent) values(@phone, @email, @content, getdate())
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$SMSForm(f) {
+  var g = f.grid, r = g._activeRow;
+  f.getItem('userID').value = g._getItem(r, g._getColumnOrder('id')).value;
+  f.getItem('userName').value = g._getItem(r, g._getColumnOrder('name')).value;
+  f.getItem('userFullName').value = g._getItem(r, g._getColumnOrder('comment%l')).value;
+  f.getItem('content').focus();
+}
+]]>
+    </text>
+  </script>
+</dir>

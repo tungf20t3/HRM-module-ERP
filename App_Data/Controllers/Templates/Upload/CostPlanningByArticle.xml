@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'CostPlanningByArticle' else 'CostPlanningByArticle2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$CostPlanningByArticleImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$CostPlanningByArticleImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+    <baseTable value="dtkhct"/>
+    <table value="dtkhct" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;exists (select 1 from dmdvcsks b where year(b.ngay_ks) >= @@table.nam and @@table.ma_dvcs = b.ma_dvcs)&And;not exists(select 1 from dtkhct b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_vv = b.ma_vv and @@table.ma_so = b.ma_so and b.nam = @@table.nam) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from dtkhct b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_vv = b.ma_vv and @@table.ma_so = b.ma_so and b.nam = @@table.nam) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;&And;if (@admin &lt;&gt; 1) begin&And;if (@admin &lt;&gt; 1 and @type = '1') begin" tag="&And;&And;end&And;end" errorCode="00001&And;00001&And;00001&And;00001"/>
+    <field name="nam" column="B" isPrimaryKey="true" type="Decimal" allowNulls="false" updateValue="None" check="exists (select 1 from dmstt b where year(b.ngay_ks) >= @@table.nam)" errorCode="00001"/>
+    <field name="ma_vv" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="not exists (select 1 from dmvv b where @@table.ma_vv = b.ma_vv)" errorCode="00001"/>
+    <field name="ma_so" column="E" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="not exists (select 1 from dtdmct b where @@table.ma_so = b.ma_so)" errorCode="00001"/>
+    <field name="tien" column="F" type="Decimal"/>
+    <field name="tien_nt" column="G" type="Decimal"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật kế hoạch theo chỉ tiêu" e="Input Cost Planning by Article"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_dvcs" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="nam" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Năm" e="Year"/>
+      </field>
+      <field name="ma_vv" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Công trình" e="Project"/>
+      </field>
+      <field name="ten_vv" width ="32" afterField="ma_vv" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên công trình" e="Project Name"/>
+      </field>
+      <field name="ma_so" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Chỉ tiêu" e="Article"/>
+      </field>
+      <field name="tien" width ="16">
+        <text v="Tiền" e="Amount"/>
+      </field>
+      <field name="tien_nt" width ="16">
+        <text v="Tiền ngoại tệ" e="FC Amount"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @field varchar(32), @user int, @admin bit, @r int
+select @admin = @@admin, @user = @@userID
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+
+if @admin <> 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'CostPlanningByArticle', 'Edit') = 0 select @type = '0'
+  end
+end
+if @type = '0' delete @@table from @@table a where exists(select 1 from dtkhct b where a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and a.ma_so = b.ma_so and b.nam = a.nam)
+select a.* into #k from @@table a join dtkhct b on a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and a.ma_so = b.ma_so and b.nam = a.nam
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and a.ma_so = b.ma_so and a.nam = b.nam)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ end
+]]>
+    </text>
+  </processing>
+</import>

@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+
+  <!ENTITY Controller "BIInspectionLotOrigin">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % Nested SYSTEM "..\..\Include\BIInspectionLotOrigin.Nested">
+  %Nested;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BIInspectionLotOriginImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BIInspectionLotOriginImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="bikddmnguon"/>
+    <table value="bikddmnguon" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="00003">
+      <header v="Giá trị &Nested.Message.v;." e="The value is &Nested.Message.e;." />
+    </var>
+    <var id="C001">
+      <header v="Thông tin mã nguồn, mã chứng từ và loại chứng từ không hợp lệ." e="The inspection lot origin, voucher code and voucher type are invalid."/>
+    </var>
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nguon" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ten_nguon" column="." allowNulls="false"/>
+    <field name="ten_nguon2" column="."/>
+    <field name="ma_ct" column="." upperCase="true" allowNulls="false" check="ma_ct &lt;&gt; '' and ma_ct not in (select ma_ct from bikdngct)" errorCode="00001"/>
+    <field name="loai_ct" column="." upperCase="true" allowNulls="false" check="loai_ct &lt;&gt; '' and loai_ct not in (select loai_ct from bikdngct b where b.ma_ct = @@table.ma_ct)" errorCode="00001"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục nguồn kiểm định" e="Inspection Lot Origin"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_nguon" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nguồn" e="Code"/>
+      </field>
+      <field name="ten_nguon" width ="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên nguồn" e="Description"/>
+      </field>
+      <field name="ten_nguon2" width ="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="ma_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã chứng từ" e="Voucher Code"/>
+      </field>
+      <field name="loai_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại chứng từ" e="Voucher Type"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'BIInspectionLotOrigin', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @existsGroup nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @r int, @d datetime
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[, @d = getDate()
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> ]]>&Nested.Message.v;<![CDATA[.' else 'The value of cell <span class="Highlight">%invalidCell</span> is ]]>&Nested.Message.e;<![CDATA[.' end
+select @existsGroup = case when @@language = 'v' then N'Thông tin mã chứng từ <span class="Highlight">%s1</span> và loại chứng từ <span class="Highlight">%s2</span> tại dòng <span class="Highlight">%s3</span> không hợp lệ.'
+  else 'The voucher code <span class="Highlight">%s1</span> and voucher type <span class="Highlight">%s2</span> at row <span class="Highlight">%s3</span> are invalid.' end
+
+create index i on @@table (ma_nguon)
+
+-- Delete
+if @type = '0' delete @@table from @@table a join bikddmnguon b on a.ma_nguon = b.ma_nguon
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select @field = 'ma_nguon'
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, @message from @@table where ma_nguon like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ma_nguon like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_ct', stt, 'C001' from @@table a join (select ma_ct, loai_ct from @@table group by ma_ct, loai_ct having count(1) > 1) b on a.ma_ct = b.ma_ct and a.loai_ct = b.loai_ct
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_ct', stt, 'C001' from @@table a join bikddmnguon b on a.ma_ct = b.ma_ct and a.loai_ct = b.loai_ct and a.ma_nguon <> b.ma_nguon
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table group by ma_ct, loai_ct having count(1) > 1
+  if @r is not null begin
+    select replace(replace(replace(@existsGroup, '%s1', ma_ct), '%s2', loai_ct), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+  select @r = min(a.stt) from @@table a join bikddmnguon b on a.ma_ct = b.ma_ct and a.loai_ct = b.loai_ct and a.ma_nguon <> b.ma_nguon
+  if @r is not null begin
+    select replace(replace(replace(@existsGroup, '%s1', ma_ct), '%s2', loai_ct), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+
+-- Gather
+select a.* into #k from @@table a join bikddmnguon b on a.ma_nguon = b.ma_nguon
+delete @@table from @@table a join #k b on a.ma_nguon = b.ma_nguon
+
+-- Checking
+select @field = 'ma_nguon'
+]]>&Nested.Key.b;<![CDATA[
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_nguon <> b.ma_nguon and a.ma_nguon like rtrim(b.ma_nguon) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, bikddmnguon b with (index(PK_bikddmnguon)) where a.ma_nguon like rtrim(b.ma_nguon) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from bikddmnguon a, @@table b with (index(i)) where a.ma_nguon like rtrim(b.ma_nguon) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_nguon <> b.ma_nguon and a.ma_nguon like rtrim(b.ma_nguon) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select top 1 @r = a.stt from @@table a, bikddmnguon b with (index(PK_bikddmnguon)) where a.ma_nguon like rtrim(b.ma_nguon) + '%']]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = b.stt from bikddmnguon a, @@table b with (index(i)) where a.ma_nguon like rtrim(b.ma_nguon) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+</import>

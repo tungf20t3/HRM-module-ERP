@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterFields SYSTEM "..\Include\XML\FlowFilterFields.txt">
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "MOOrder">
+  <!ENTITY c11 "Đơn hàng từ ngày">
+  <!ENTITY c12 "Order Date from">
+  <!ENTITY c21 "Số đơn hàng">
+  <!ENTITY c22 "Order Number">
+  <!ENTITY ext "64">
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'MOOrderFilter', 'Filter', 'MOTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+
+<dir table="m64$000000" code="stt_rec" order="ngay_ct, so_ct" id="DXA" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn đơn hàng" e="Select Sales Order"></title>
+  <fields>
+    &XMLFlowFilterFields;
+  </fields>
+
+  <views>
+    &XMLFlowFilterViews;
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @fields nvarchar(64), @keyFlow nvarchar(4000), @$none nvarchar(512), @keyMaster nvarchar(4000)
+select @keyMaster = '%#15$1#20$' + rtrim(@ma_kh) + '#%', @fields = ''''''
+select @keyFlow = 'status = ''2''', @$none = case when @@language = 'v' then N'Không có đơn hàng theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+]]>&CheckRelativeProcess;&XMLFlowFilterCheck;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFilterFunction;
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

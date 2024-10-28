@@ -1,0 +1,17 @@
+﻿<action id="PriceDetailConditionTypeRef">
+  <text>
+    <![CDATA[
+declare @jRef varchar(4000)
+
+create table #t(stt int, loai_dk varchar(16), ma_so varchar(16), gt_nt0 numeric(19, 2), cong_thuc varchar(512), ghi_chu nvarchar(128))
+exec dbo.[AI_ERP$App$ConvertStringArray] @jdata, '#t'
+
+set @jRef = ''
+select @jRef = @jRef + case when @jRef <> '' then ',' else '' end + '["' + kieu_tinh + '","' + ltrim(tinh_theo) + '","' + cong_tru + '","' + kieu_cap_nhat + '"]'
+  from #t a left join bidmldkg b on a.loai_dk = b.ma_loai
+
+select '[' + @jRef + ']' as jref, @runIndex as runIndex, (isnull(@runTimes, 0) + 1) as runIndex, (isnull(@activeRow, 1)) as activeRow
+return
+]]>
+  </text>
+</action>

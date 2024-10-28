@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Cập nhật phân nhóm bộ phận</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+
+</script>
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Cập nhật phân nhóm bộ phận</p>
+<p id="p1">Cập nhật phân nhóm bộ phận là thủ tục khai báo cấu trúc thể hiện báo cáo theo cách người dùng tự dịnh nghĩa. 
+Trong thủ tục này, trước hết người dùng cần tạo cấu trúc cây, gồm tạo các nhánh và khai báo cấu trúc mẹ - con. 
+Sau đó là khai báo các bộ phận cần nhóm cho các nhánh. Khi khai báo cần chú ý "Stt sắp xếp", 
+thứ tự của trường này sẽ có ảnh hưởng đến kết quả hiển thị.</p>
+<p id="pic"><img src="vie/hrDeptCategoryDefinition.png"/></p>
+<p class="node">Mã phân nhóm mẹ</p>
+<p class="node_d">Khai báo cấu trúc mẹ - con cho các nhánh để tạo cấu trúc cây.</p>
+<p class="node">Stt sắp xếp</p>
+<p class="node_d">Số thứ tự sắp xếp rất quan trọng với kết quả hiển thị. Vì chương trình cho phép khai báo bộ phận lồng nhau 
+(hoặc trùng) giữa các nhánh nên nhánh nào có thứ tự thấp hơn sẽ được ưu tiên thể hiện.</p>
+
+<p class="e">
+Ví dụ:<br/>
+Sơ đồ tổ chức:
+- A (giám đốc, bộ phận gốc: CTY)<br/>
+- B (phó giám đốc, bộ phận gốc: CTY)<br/>
+- C (trợ lý giám đốc, bộ phận: HC(thuộc CTY))<br/>
+- D (Trưởng chi nhánh, bộ phận: CN1(thuộc CTY))<br/>
+- E0 (Kế toán trưởng, bộ phận: KT(thuộc CTY))<br/>
+- E1 (Kế toán viên, bộ phận: NVKT(thuộc KT))<br/>
+- F0 (Tổ trưởng, bộ phận: SXCN1(thuộc CN1))<br/>
+- F1 (Công nhân, bộ phận: CNSXCN1(thuộc SXCN1))<br/>
+<br/>
+Cấu trúc mong muốn và cách khai báo:<br/>
+1. Ban Giám đốc (Phân nhóm 01: số thứ tự 01, bộ phận CTY): A<br/>
+2. Quản lý bậc trung (Phân nhóm 02 thuộc 01, số thứ tự 10, bộ phận CN1+KT)<br/>
+3. Hành chính (Phân nhóm 03 thuộc 02, số thứ tự 20, bộ phận HC+KT)<br/>
+4. Quản lý sx (Phân nhóm 04 thuộc 02, số thứ tự 30, bộ phận SXCN1)<br/>
+5. Công nhân (Phân nhóm 05 thuộc 04, số thứ tự 40, bộ phận CNSXCN1)
+</p>
+<p class="tip">
+- Tại sao nhánh 1 có bộ phận gốc (cao nhất trong sơ đồ tổ chức) nhưng chỉ có "- A" và "- B" mà không phải là toàn bộ nhân viên? <br/>
+Trả lời: Vì các nhánh phụ thuộc đã khai báo các bộ phận này, nên sẽ ưu tiên thể hiện thuộc nhánh thấp hơn. <br/>
+Tương tự với lập luận đó ta thấy rằng: các phân nhóm có số thứ tự cao sẽ loại các đối tượng có trong các phân nhóm có số thấp hơn.
+</p>
+<p class="node">Trạng thái</p>
+<p class="node_d">Nếu trạng thái là không còn sử dụng, sẽ không được chọn nhập khi xem báo cáo.</p>
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

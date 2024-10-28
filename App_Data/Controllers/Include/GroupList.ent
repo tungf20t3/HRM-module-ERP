@@ -1,0 +1,33 @@
+﻿<!ENTITY % Conditional.GroupListEditLog SYSTEM "..\Include\ListEditLog.txt">
+
+<![%Conditional.GroupListEditLog;[
+  <!ENTITY GroupListEditLog "1">
+]]>
+
+
+<!ENTITY GroupListUnitRight "0">
+<!ENTITY GroupListEditLog "0">
+<!ENTITY GroupListNotUpdate "0">
+<!ENTITY GroupListType "loai_nh">
+<!ENTITY GroupListCode "ma_nh">
+
+<!ENTITY GroupListParameterUpdated "$&GroupListType;.OldValue, @&GroupListType;">
+<!ENTITY GroupListParameterDeleting "@&GroupListType;, @&GroupListType;">
+
+<!ENTITY GroupListUpdating "
+declare @r tinyint, @m nvarchar(512)
+exec dbo.AI_ERP$App$GroupList$Update &GroupListTableRef;, &GroupListFieldRef;, &GroupListParameterUpdated;, $&GroupListCode;.OldValue, @&GroupListCode;, @@language, @@userID, @@admin, 'Updating', '&GroupListUnitRight;&GroupListEditLog;&GroupListNotUpdate;', @r output, @m output
+if isnull(@r, 0) &lt;&gt; 0 begin
+  select '' as field, @m as message
+  return
+end
+">
+<!ENTITY GroupListUpdated "exec dbo.AI_ERP$App$GroupList$Update &GroupListTableRef;, &GroupListFieldRef;, &GroupListParameterUpdated;, $&GroupListCode;.OldValue, @&GroupListCode;, @@language, @@userID, @@admin, @@action, '&GroupListUnitRight;&GroupListEditLog;&GroupListNotUpdate;'">
+<!ENTITY GroupListDeleting "
+declare @r tinyint, @m nvarchar(512)
+exec dbo.AI_ERP$App$GroupList$Update &GroupListTableRef;, &GroupListFieldRef;, &GroupListParameterDeleting;, @&GroupListCode;, @&GroupListCode;, @@language, @@userID, @@admin, @@action, '&GroupListUnitRight;&GroupListEditLog;&GroupListNotUpdate;', @r output, @m output
+if isnull(@r, 0) &lt;&gt; 0 begin
+  select '' as field, @m as message
+  return
+end
+">

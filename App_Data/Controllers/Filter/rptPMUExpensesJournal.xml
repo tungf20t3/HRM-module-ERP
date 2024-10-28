@@ -1,0 +1,200 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY ReportDataTypeField SYSTEM "..\Include\XML\ReportDataTypeField.xml">
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptPivotFilter SYSTEM "..\Include\Javascript\PivotFilter.txt">
+  <!ENTITY ReportCircularTypeFieldExtend SYSTEM "..\Include\XML\Circular\A04195\ReportCircularTypeFieldExtend.xml">
+
+  <!ENTITY defaultForm "DTSOCPQL">
+
+  <!ENTITY XMLWhenFilterQuerying SYSTEM "..\Include\XML\WhenFilterQuerying.xml">
+  <!ENTITY DynamicFieldFilterPara ", '#$query'">
+  <!ENTITY % ReferenceNumber SYSTEM "..\Include\ReferenceNumber.ent">
+  %ReferenceNumber;
+
+  <!ENTITY LineCounter "7">
+  <!ENTITY ExtensionCounter "3">
+  <!ENTITY Delta14 "0">
+  <!ENTITY Delta24 "0">
+  <!ENTITY CircularCategoryIndex "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Voucher Date from"></header>
+      <footer v="Ngày từ/đến" e="Date from/to"></footer>
+      <clientScript><![CDATA[onchange="onChangeDateFrom(this);"]]></clientScript>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+    <field name="ngay_mo_so" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="Ngày mở sổ" e="Date Opened"></header>
+    </field>
+    <field name="so_ct1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Chứng từ từ số" e="Voucher No. from"></header>
+      <footer v="Chứng từ từ/đến số" e="Voucher No. from/to"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ct2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Chứng từ đến số" e="Voucher No. to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="maxLength" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vv" allowNulls="false" categoryIndex="1">
+      <header v="Công trình, vụ việc" e="Project, Job"></header>
+      <items style="AutoComplete" controller="Job" reference="ten_vv%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_vv%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="tk" categoryIndex="1">
+      <header v="Tài khoản đối ứng" e="Reference Account"></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_tk%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh" categoryIndex="1">
+      <header v="Khách hàng" e="Customer"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1=1"/>
+    </field>
+
+    &ReportCircularTypeFieldExtend;
+
+    <field name="form" allowNulls="false" categoryIndex="1">
+      <header v="Chọn báo cáo" e="Select Report"></header>
+      <items style="DropDownList">
+        <item value="">
+          <text v="" e=""/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="110-: [ngay_mo_so].Label, [ngay_mo_so]"/>
+      <item value="11011: [so_ct1].Description, [so_ct1], [so_ct2], [maxLength]"/>
+      <item value="110100: [ma_vv].Label, [ma_vv], [ten_vv%l]"/>
+      <item value="110100: [tk].Label, [tk], [ten_tk%l]"/>
+      <item value="110100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000-: [chon_tt].Label, [chon_tt]"/>
+      <item value="11000: [form].Label, [form]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130, 0">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @form nvarchar(4000), @name nvarchar(4000)
+select @form = '', @name = ''
+select @form = @form + rtrim(form) + char(255), @name = @name + case when lower(@@language) = 'v' then rtrim(ten_maubc) else rtrim(ten_maubc2) end + char(255) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA['
+select @form = left(@form, len(@form) - 1), @name = left(@name, len(@name) - 1)
+select 'this._itemValue=''' + rtrim(@form) + ''';this._itemText=''' + dbo.AI_ERP$Function$EncodeScript(@name) + ''';initForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    &XMLWhenFilterQuerying;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @ngay_ct1 as date_from, @ngay_ct2 as date_to, @ngay_mo_so as ngay_mo_so
+exec rs_rptPMUExpensesJournal @ngay_ct1, @ngay_ct2, @so_ct1, @so_ct2, @maxLength, @ma_vv, @tk, @ma_kh, @ma_dvcs, @form, @mau_bc, @@language, @@userID, @@admin
+]]>&DynamicFieldFilterPara;&ReferenceParameters;
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptPivotFilter;
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  var o = f.getItem('maxLength');
+  o.value = o.maxLength;
+  if (!f.getItemValue('ngay_mo_so')) {onChangeDateFrom(f.getItem('ngay_ct1'));}
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(j,d){var b=d.object,f=d.type.Context,i=d.type.Result;switch(f){case"Checking":var a=b.grid,g=b.getItem("ngay_ct1").value,h=b.getItem("ngay_ct2").value,e=b.getItemValue("chon_tt");a._hiddenForms=[{Form:[0,1,5,6],Value:e=="2"},{Form:[2,3,7,8],Value:e!="2"}];a._alterTitle=[null,[["%d1",g,true],["%d2",h,true]]];var c=b.getItemValue("mau_bc");if(!a._v)a._v=c;if(a._v!=c){remove$GridReport$Filter(a);a._v=c}}}function initForm(b){for(var e=b.getItem("form"),c=b._itemValue.split(String.fromCharCode(255)),d=b._itemText.split(String.fromCharCode(255)),a=0;a<c.length;a++)e.options[a]=new Option(d[a],c[a])}function onChangeDateFrom(b){var a=b.parentForm;a.setItemValue("ngay_mo_so",a.getItemValue("ngay_ct1"))}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

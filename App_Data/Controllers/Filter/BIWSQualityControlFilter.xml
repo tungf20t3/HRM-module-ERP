@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "BIWSQualityControl">
+  <!ENTITY c11 "Từ ngày">
+  <!ENTITY c12 "Date from">
+  <!ENTITY c21 "Số">
+  <!ENTITY c22 "Number">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'BIWSQualityControlFilter', 'Filter', 'WSTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+
+<dir table="bim14$000000" code="stt_rec" order="ngay_ct, so_ct" id="KD6" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn dữ liệu kiểm định" e="Select Inspection Data"></title>
+  <fields>
+    &FlowMultiFilterFields;
+
+    <field name="loai_ct" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    &XMLFlowFilterViews;
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @so_ct <> '' begin
+  declare @fields nvarchar(128), @keyFlow nvarchar(4000), @keyMaster nvarchar(4000), @$none nvarchar(512), @inspectionKey nvarchar(1024), @p varchar(6), @t varchar(128)
+
+  select @keyMaster = '',
+    @keyFlow = 'exists(select 1 from bim14$%Partition m14 with(nolock) where m14.stt_rec = a.stt_rec and m14.ma_kh like ''' + replace(rtrim(@ma_kh), '''', '''''') + '%'')',
+    @fields = 'status', @$none = case when @@language = 'v' then N'Không có dữ liệu kiểm định theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+  ]]>&CheckRelativeProcess;<![CDATA[
+  declare @vcID varchar(32), @vcNumber varchar(32), @vcFields nvarchar(512), @retrieveID char(13), @i int, @l int, @c smalldatetime, @d smalldatetime, @s nvarchar(4000), @unit varchar(128)
+  select @vcNumber = ltrim(rtrim(@so_ct)), @unit = case when @ma_dvcs = '' then @@unit else @ma_dvcs end
+  select @i = len(@vcNumber), @l = character_maximum_length from information_schema.columns where table_name = '@@table' and column_name = 'so_ct'
+  select @vcNumber = space(@l - @i) + @vcNumber, @c = @ngay_ct1
+
+  if @stt_rec_ct <> '' begin
+    select @retrieveID = @stt_rec_ct
+    goto Retrieve
+  end else begin
+    declare @keySite nvarchar(1024)
+    select @keySite = ''
+    if @@admin = 0 and exists(select 1 from dmct where ma_ct = @@id and xin_site_rights = 1) and exists(select 1 from syssiterights where user_id = @@userID) begin
+      select @keySite = @keySite + rtrim(b.id) + '$%$' from syssiterights a join dmkho b on a.ma_kho = b.ma_kho where a.user_id = @@userID order by b.id
+      if @keySite <> '' select @keySite = '#00#%$' + left(@keySite, len(@keySite) - 1)
+    end
+
+    select top 0 stt_rec into #t from bii14$000000
+    select @inspectionKey = dbo.AI_ERP$Function$BI$GetInspectionFilter('ma_nguon', '', @@userID, @@admin)
+    while (month(@c) + year(@c)*12) <= (month(@ngay_ct2) + year(@ngay_ct2)*12) begin
+      select @t = 'bii14$' + convert(char(6), @c, 112), @p = convert(char(6), @c, 112), @c = dateadd(month, 1, @c)
+      if exists(select 1 from information_schema.tables where table_name = @t) begin
+        select @s = '
+insert into #t
+  select top 1 stt_rec
+  from bii14$%Partition a
+  where a.ngay_ct between ''' + convert(char(8), @ngay_ct1, 112) + ''' and ''' + convert(char(8), @ngay_ct2, 112) + ''' and a.so_ct = ''' + replace(@vcNumber, '''', '''''') + ''' and a.ma_dvcs = ''' + replace(@unit, '''', '''''') + '''
+    and (a.status = ''1'' and exists(select 1 from bim14$%Partition m14 with(nolock) where m14.stt_rec = a.stt_rec and m14.chuyen_ton_kho in (' + case when @loai_ct in ('1', '6') then '''0''' when @loai_ct in ('9') then '''1''' else '''0'',''1''' end + ')))
+    and ' + @keyFlow + case when @inspectionKey is not null then ' and ' + @inspectionKey else '' end + case when @keySite <> '' then ' and ''' + @keySite + ''' like e$' else '' end + ' order by a.stt_rec
+'
+        select @s = replace(@s, '%Partition', @p)
+        exec sp_executesql @s
+      end
+
+      if exists(select 1 from #t where (isnull(stt_rec, '') <> '')) begin
+        select @retrieveID = stt_rec from #t
+        drop table #t
+        goto Retrieve
+      end
+    end
+    drop table #t
+    select 'so_ct' as field, @$none as message
+    return
+  end
+
+  Retrieve:
+  select @vcID = @retrieveID, @d = ngay_ct from bic14$000000 where stt_rec = @retrieveID
+  select cast('' as nvarchar(512)) as fields into #r from bim14$000000
+  select @t = 'bim14$'+ convert(varchar(6), (select ngay_ct from bic14$000000 where stt_rec = @retrieveID), 112)
+  if exists(select 1 from information_schema.tables where table_name = @t) begin
+    select @s = 'insert into #r select ' + @fields + ' as fields from ' + rtrim(@t) + ' where stt_rec = ''' + replace(@retrieveID, '''', '') + ''''
+    exec sp_executesql @s
+  end
+  select @vcFields = fields from #r
+  drop table #r
+
+  select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, ''' + replace(replace(@vcNumber, '\', '\\'), '''', '\''') + ''', ''' + @vcID + ''', ''' + replace(replace(@vcFields, '\', '\\'), '''', '\''') + ''', ''' + convert(char(8), @d, 112) + ''');' as script
+  return
+end else begin
+  select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, '''', '''', '''', '''', '']]>&Identity;<![CDATA[MultiForm'', [''' + convert(char(8), @ngay_ct1, 112) + ''']);' as script
+  return
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {f.getItem('so_ct')._idle = 9;}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f._looking.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);
+
+  var g = f.grid, w = g.get_element().parentForm, d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs'), t = w.getItemValue('loai_ct');
+  g._custID = w.getItemValue('ma_kh');
+  g._custName = w.getItemValue('ten_kh%l');
+  f.setItemValues('ngay_ct2, ma_kh, ma_dvcs, loai_ct', [d2, g._custID, u, t]);
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Filter$Before$Loading(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1')) e.type.cancelEvent = true;
+  else {
+    var g = f.grid, w = g.get_element().parentForm;
+    var d1 = f.getItemValue('ngay_ct1'), d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs'), t = w.getItemValue('loai_ct');
+
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: d1},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: d2},
+      {Name: 'ma_kh', Type: 'String', Value: g._custID},
+      {Name: 'ma_dvcs', Type: 'String', Value: u},
+      {Name: 'loai_ct', Type: 'String', Value: t}
+    ];
+    sender.set_memvars(a);
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, c, d, k, e, h, l) {
+  var g = f.grid;
+  if (c != '') {
+    g._voucher$Retrieve$ID = d;
+    g._voucher$Retrieve$Number = c;
+    g._voucher$Retrieve$Fields = k;
+    g._voucher$Retrieve$Date = $func.formatStringToDate(e);
+  } else {
+    g._filter$Fields = l;
+  }
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g, h);
+}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g, h) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this,\'' + (h ? h : '') + '\')';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g, h) {
+  if (h != '') {
+    g.showForm(h);
+  } else {
+    g.showForm(']]>&Identity;<![CDATA[Form');
+  }
+  g._memvars = [];
+}
+]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

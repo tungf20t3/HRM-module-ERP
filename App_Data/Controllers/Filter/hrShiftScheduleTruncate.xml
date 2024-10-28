@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir table="hrca$000000" code="stt_rec_nv" order="stt_rec_nv" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xóa đăng ký ca của nhân viên đã nghỉ" e="Delete shift schedule of the leaved employees"></title>
+
+  <fields>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Nghỉ trước ngày" e="Leaved before date"></header>
+    </field>
+
+    <field name="type" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Kiểu xóa" e="Type"></header>
+      <footer v="1 - Chỉ nhân viên chưa đăng ký ca, 2 - Tất cả" e="1 - Only employees was not declared, 2 - All"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="thang" type="Decimal" dataFormatString="#0" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_bp" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vtr" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bac_ql" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="employeeID" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 10, 60, 100, 230, 0, 0, 0"/>
+      <item value="11001111: [tu_ngay].Label, [tu_ngay], [thang], [nam], [bp_ref], [bac_ql]"/>
+      <item value="111000111: [type].Label, [type], [type].Description, [ma_bp], [ma_nv], [ma_vtr]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'showing$ShiftScheduleTruncate(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$ShiftScheduleTruncate(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$ShiftScheduleTruncate(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @den_ngay smalldatetime
+select @den_ngay = dateadd(month, ((year(@tu_ngay) - 1900) * 12) + month(@tu_ngay), -1)
+exec hs_ShiftScheduleTruncate @tu_ngay, @den_ngay, @bp_ref, @ma_vtr, @ma_nv, @bac_ql, @type, @@userID, @@admin
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function showing$ShiftScheduleTruncate(a){a._controlFocus=a.getItem("type")}function active$ShiftScheduleTruncate(a){a.add_onResponseComplete(on$ShiftScheduleTruncate$ResponseComplete);init$ShiftScheduleTruncate(a);a.setReadOnlyFields("tu_ngay")}function close$ShiftScheduleTruncate(a){a.remove_onResponseComplete(on$ShiftScheduleTruncate$ResponseComplete)}function init$ShiftScheduleTruncate(a){var b=a.grid;a.getItem("thang").value=b._month;a.getItem("nam").value=b._year;a.getItem("ma_bp").value=b._dept;a.getItem("ma_nv").value=b._staff;a.getItem("ma_vtr").value=b._pos;a.getItem("bac_ql").value=b._grade;a.getItem("bp_ref").value=b._deptRef;a.setItemValue("tu_ngay",new Date(b._year,b._month-1,1))}function on$ShiftScheduleTruncate$ResponseComplete(c,a){var c=a.object,e=c.grid,b=a.type.Context,d=a.type.Result;switch(b){}}]]>
+    </text>
+  </script>
+</dir>

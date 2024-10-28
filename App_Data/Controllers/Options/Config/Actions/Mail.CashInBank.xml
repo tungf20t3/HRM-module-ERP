@@ -1,0 +1,189 @@
+﻿<template>
+  <action id="CashInBank" alias="" subject="" table="" v="Báo cáo số dư tại quỹ và ngân hàng" e="Cash in Bank and on Hand Balance">
+    <fields>
+      <field name="h_title">
+        <header v="BÁO CÁO SỐ DƯ TẠI QUỸ VÀ NGÂN HÀNG" e="CASH IN BANK AND ON HAND BALANCE"/>
+      </field>
+      <field name="h_den_ngay">
+        <header v="Đến ngày" e="Date"/>
+      </field>
+      <field name="h_tk">
+        <header v="Tài khoản" e="Account"/>
+      </field>
+      <field name="h_ten_tk">
+        <header v="Tên tài khoản" e="Account Name"/>
+      </field>
+      <field name="info1">
+        <header v="Vui lòng không trả lời thư (Email) này." e="This is an automatically generated email - Please do not reply to this message."/>
+      </field>
+      <field name="info2">
+        <header v="Xin cảm ơn!" e="Thank you!"/>
+      </field>
+      <field name="h_so_du">
+        <header v="Số dư" e="Balance"/>
+      </field>
+    </fields>
+
+    <query id="report">
+
+      <command id="run">
+        <text>
+          <![CDATA[
+exec AI_ERP$Service$GetAccessRight '@@id', '@@sysid'
+]]>
+        </text>
+      </command>
+
+      <command id="language">
+        <text>
+          <![CDATA[
+select '@@d_language' as d_language
+]]>
+        </text>
+      </command>
+
+      <command id="email">
+        <text>
+          <![CDATA[
+select '@@email' as email_to, '' as email_cc, '' as email_bcc, '@@phone' as phone, '@@simulation' as simulation
+]]>
+        </text>
+      </command>
+
+      <command id="master">
+        <text>
+          <![CDATA[
+declare @ngay_bc datetime, @ed int, @ngay int, @current smalldatetime, @y int, @m int, @d int, @eom smalldatetime
+
+select @current = getdate()
+select @y = year(@current), @m = month(@current), @d = day(@current)
+select @eom = dateadd(month, 1, cast(rtrim(@y) + replace(str(@m, 2), ' ', '0') + '01' as smalldatetime)) - 1
+
+select @ed = day(@eom)
+
+select @ngay = case when ngay_cuoi_thang_bc = 0 then c_ngay_bc else @ed end from dmthongbao where ma_tb = '@@ma_tb' and status = '1'
+if @ngay > @ed select @ngay = @ed
+
+select @ngay_bc = case
+  when type = 0 then d_ngay_bc
+  when type = 1 then dateadd(day, c_ngay_bc_w - datepart(dw, @current), @current) + 1
+  when type = 2 then case
+    when @d = @eom then @eom
+    else dateadd(day, @ngay  - @d, @current)
+  end
+  else @current
+end
+from dmthongbao where ma_tb = '@@ma_tb' and status = '1'
+select convert(varchar(10), @ngay_bc, 103) as date_from
+]]>
+        </text>
+      </command>
+
+      <command id="detail">
+        <text>
+          <![CDATA[
+declare @q nvarchar(4000), @ngay_bc datetime, @amountFormat varchar(32), @ed int, @ngay int, @current smalldatetime, @y int, @m int, @d int, @eom smalldatetime
+
+select @current = getdate()
+select @y = year(@current), @m = month(@current), @d = day(@current)
+select @eom = dateadd(month, 1, cast(rtrim(@y) + replace(str(@m, 2), ' ', '0') + '01' as smalldatetime)) - 1
+
+select @ed = day(@eom)
+
+select @ngay = case when ngay_cuoi_thang_bc = 0 then c_ngay_bc else @ed end from dmthongbao where ma_tb = '@@ma_tb' and status = '1'
+if @ngay > @ed select @ngay = @ed
+
+select @ngay_bc = case
+  when type = 0 then d_ngay_bc
+  when type = 1 then dateadd(day, c_ngay_bc_w - datepart(dw, @current), @current) + 1
+  when type = 2 then case
+    when @d = @eom then @eom
+    else dateadd(day, @ngay  - @d, @current)
+  end
+  else @current
+end
+from dmthongbao where ma_tb = '@@ma_tb' and status = '1'
+
+-- Exec stored
+select top 1 @q = 'exec @@appDatabaseName..' + replace(replace(replace(replace(replace(replace(rtrim(stored) + ' ' + rtrim(para),
+			'$ngay_bc', '''' + convert(char(8), @ngay_bc, 112) + ''''),
+			'$tk', '''' + replace(rtrim(tk), '''', '''''') + ''''),
+			'$ma_dvcs', '''' + replace(rtrim('@@ma_dvcs'), '''', '''''') + ''''),
+			'$language', '''' + replace(rtrim('@@d_language'), '''', '''''') + ''''),
+			'$userid', '''' + replace(rtrim('@@uid'), '''', '''''') + ''''),
+			'$admin', '''' + replace(rtrim('@@admin'), '''', '''''') + '''')
+	from vdmtb where ma_tb = '@@ma_tb' and status = '1'
+exec sp_executesql @q
+
+select @amountFormat = rtrim(val) from @@appDatabaseName..options where name = 'm_ip_tien'
+declare @t table(field varchar(32), format varchar(128))
+insert into @t select 'du', @amountFormat
+select * from @t
+]]>
+
+        </text>
+      </command>
+
+      <command id="footer">
+        <text>
+          <![CDATA[
+declare @t table(field varchar(32), format varchar(128))
+insert into @t select 't_tt_nt', '### ### ### ##0'
+select * from @t
+]]>
+        </text>
+      </command>
+
+    </query>
+
+    <body>
+      <header>
+        <text>
+          <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body>
+  <div style="font-family:Verdana;font-size:14pt;color:#444444;font-style:bold;">{!h_title}</div>
+  <p>{!h_den_ngay} <span style="color: #0563c1;">{!date_from}</span></p>
+
+  <table class="ts" border="1" cellspacing="1" cellpadding="1">
+    <tbody>
+      <tr class="h">
+        <td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tk}</td>
+        <td style="width:400px;]]>&HeaderColor;<![CDATA[">{!h_ten_tk}</td>
+        <td style="width:150px;]]>&HeaderColor;<![CDATA[">{!h_so_du}</td>
+      </tr>
+]]>
+        </text>
+      </header>
+
+      <detail>
+        <text>
+          <![CDATA[
+<tr class="h">
+	<td class="{!s0}">{!tk}</td>
+	<td class="{!s1}">{!ten_tk}</td>
+	<td class="{!s3}">{!du}</td>
+</tr>
+              ]]>
+        </text>
+      </detail>
+
+      <footer>
+        <text>
+          <![CDATA[
+    </tbody>
+  </table>
+	  <br/>
+  <table class="ts" border="0" cellpadding="4" cellspacing="1">
+    <tr class="h"><td style="width:100%;text-align:left;">{!info1}</td></tr>
+    <tr class="h"><td style="width:100%;text-align:left;">{!info2}</td></tr>
+  </table>
+</body>
+</html>
+]]>
+        </text>
+      </footer>
+    </body>
+
+  </action>
+</template>

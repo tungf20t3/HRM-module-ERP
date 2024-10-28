@@ -1,0 +1,32 @@
+﻿<![CDATA[
+#IF @@view = 0 #THEN
+  #IF @@action = 'Edit' #THEN
+    declare @$checkVoucherHandle varchar(32), @ownerID int, @fullEdit bit
+    select @$checkVoucherHandle = status, @ownerID = user_id0 from @@inquiry$partition$current where stt_rec = @stt_rec
+    if @$checkVoucherHandle = ']]>&APVStatusPending;<![CDATA[' and exists(select 1 from dmnsdtd a left join dmquyentd b on a.ma_quyen = b.ma_quyen and a.loai_duyet = b.loai_duyet left join dmquyentdct2 c on a.ma_quyen = c.ma_quyen and a.loai_duyet = c.loai_duyet where a.[status] = '1' and b.[status] = '1' and a.loai_duyet = ']]>&APVApprovalType;<![CDATA[' and a.[user_id] = @@userID and c.u_status = @$u_status and ((a.ngay_hl_tu <= @$date$APV$Check) and (a.ngay_hl_den is null or dateadd(day, 1, a.ngay_hl_den) >= @$date$APV$Check))) select @$checkVoucherHandle = '1'
+    if exists(select 1 from dmttct where ma_ct = @@id and status = @$checkVoucherHandle and xedit = 1) begin
+      select @message as script, '$NotAuthorized' as message
+      return
+    end
+    if (@@admin <> 1) and (@$checkVoucherHandle is not null) and exists(select 1 from dmttct where ma_ct = @@id and status = @$checkVoucherHandle and right_yn = 1) begin
+      if not exists(select 1 from @@sysDatabaseName..sysactionrights where user_id = @@userID and ma_ct = @@id and action_id = @$checkVoucherHandle and right_yn = 1) begin
+        select @message as script, '$NotAuthorized' as message
+        return
+      end
+      if exists(select 1 from @@sysDatabaseName..sysstatusrights where user_id = @@userID and ma_ct = @@id and status_id = @$checkVoucherHandle and r_edit = 1) begin
+        select @message as script, '$NotAuthorized' as message
+        return
+      end
+    end
+    #IF @@admin <> 1 #THEN
+      if @ownerID <> @@userID begin
+        exec @@sysDatabaseName.dbo.AI_ERP$System$GetShareAccess @@id, @@userID, @@admin, 1, @fullEdit output
+        if (@fullEdit = 0) begin
+          select @message as script, '$NotAuthorized' as message
+          return
+        end
+      end
+    #END
+  #END
+#END
+]]>

@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identification "rptBIPriceComparisonGraph">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY GraphLabelIndex "4">
+
+  <!ENTITY GraphObject "ma_vt">
+  <!ENTITY GraphObjectField.v "Mã hàng">
+  <!ENTITY GraphObjectField.e "Item">
+
+  <!ENTITY % Graph SYSTEM "..\Include\Graph.ent">
+  %Graph;
+
+  <!ENTITY GraphTitle.v "So sánh giá">
+  <!ENTITY GraphTitle.e "Price Comparison Chart">
+  <!ENTITY GraphTitleField.v "[]">
+  <!ENTITY GraphTitleField.e "[]">
+  <!ENTITY GraphDataField "[['gia_nt']]">
+
+  <!ENTITY GraphDataIndex "[0]">
+]>
+
+<dir type="Report" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="So sánh giá" e="Price Comparison"></title>
+  <fields>
+    &GraphFields;
+  </fields>
+
+  <views>
+    &GraphViews;
+  </views>
+
+  <commands>
+    &GraphCommands;
+  </commands>
+
+  <response>
+    <action id="GetData">
+      <text>
+        <![CDATA[
+exec bs_rptBIPriceComparison @ma_bp0, @ma_vung, @ngay_tu, @ngay_den, @ngay_so_sanh, @ma_vt, @loai_dvt, @loai_gia, @loai_sl, @so_luong1, @so_luong2, @loai_tc, @ma_nh0, @kieu_bc, @loai_ct, @mau_bc, @@language, @@userID, @@admin, '1', @object_value
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  <script>
+    <text>
+      &GraphScript;
+      &OutlineEntry;
+      <![CDATA[function GetData(b,c){var a=b.grid;b.request("GetData","GetData",[["ma_bp0","String",$func.findMemvar("ma_bp0",a._memvars).NewValue],["ma_vung","String",$func.findMemvar("ma_vung",a._memvars).NewValue],["ngay_tu","DateTime",$func.findMemvar("ngay_tu",a._memvars).NewValue],["ngay_den","DateTime",$func.findMemvar("ngay_den",a._memvars).NewValue],["ngay_so_sanh","DateTime",$func.findMemvar("ngay_so_sanh",a._memvars).NewValue],["ma_vt","String",$func.findMemvar("ma_vt",a._memvars).NewValue],["loai_dvt","String",$func.findMemvar("loai_dvt",a._memvars).NewValue],["loai_gia","String",$func.findMemvar("loai_gia",a._memvars).NewValue],["loai_sl","String",$func.findMemvar("loai_sl",a._memvars).NewValue],["so_luong1","Decimal",$func.findMemvar("so_luong1",a._memvars).NewValue],["so_luong2","Decimal",$func.findMemvar("so_luong2",a._memvars).NewValue],["loai_tc","String",$func.findMemvar("loai_tc",a._memvars).NewValue],["ma_nh0","String",$func.findMemvar("ma_nh0",a._memvars).NewValue],["kieu_bc","String",$func.findMemvar("kieu_bc",a._memvars).NewValue],["loai_ct","String",$func.findMemvar("loai_ct",a._memvars).NewValue],["mau_bc","String",$func.findMemvar("mau_bc",a._memvars).NewValue],["object_value","String",c]])}]]>
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.SelectionOutline{outline-style:dotted;outline-width:1px;}
+.]]>&Identification;<![CDATA[:hover{text-decoration:underline}
+.]]>&Identification;<![CDATA[{cursor:pointer;position:relative;width:64px!important;color:#3171c6;font-family:verdana;font-size:11px;}]]>
+      &GraphStyle;
+    </text>
+  </css>
+</dir>

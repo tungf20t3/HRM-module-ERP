@@ -1,0 +1,267 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY SiteGroupConflict "
+if @r is not null begin
+  select @siteGroupConflict as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+  <!ENTITY Permissions " not exists(select 1 from sysunitrights c where b.ma_dvcs = c.ma_dvcs and r_edit = 1 and c.user_id = @@userID)">
+
+  <!ENTITY % Tiny.SiteGroup SYSTEM "..\..\Include\Tiny.SiteGroup.ent">
+  %Tiny.SiteGroup;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "declare @filename varchar(128)
+select @filename = case when @@language = 'v' then 'Site' else 'Site2' end
+">
+
+  <!ENTITY Controller "Site">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % BIMode SYSTEM "..\..\Include\BIMode.ent">
+  %BIMode;
+  <!ENTITY % BIMode.Site SYSTEM "..\..\Include\BIMode.Site">
+  %BIMode.Site;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$SiteImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$SiteImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmchua"/>
+    <table value="dmchua" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    <listTable value="#k1"/>
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C001">
+      <header v="Nhóm kho đã khai báo trên đơn vị khác, không cập nhật được." e="Cannot update the site group. It has already been used by another unit." />
+    </var>
+  </variable>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+        <![CDATA[if ]]>&Tiny.SiteGroup.Import.Index;<![CDATA[ = 1 select '1' as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[ else select '0' as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[]]>
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        <field name="ma_dvcs" column="A" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;not exists(select 1 from dmkho b where @@table.ma_kho = b.ma_kho) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)&And;exists(select 1 from dmkho b where @@table.ma_kho = b.ma_kho) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_edit = 1)" condition="&And;if @@admin = 0 begin&And;if @@admin = 0 begin if @type = '1' begin" tag="&And;end&And;end end" errorCode="00001&And;00002&And;00002"/>
+        <field name="ma_kho" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+        <field name="ten_kho" column="C" allowNulls="false"/>
+        <field name="ten_kho2" column="D"/>
+        <field name="dai_ly_yn" column="E" type="Boolean" defaultValue="false"/>
+
+        <field name="ma_nh" column="" upperCase="true"/>
+
+        <field name="id" column="None" insertValue="(cast(stt as int) + rtrim(@max))" updateValue="None"/>
+        <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+        <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+        <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+        <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+        <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+      </fields>
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;not exists(select 1 from dmkho b where @@table.ma_kho = b.ma_kho) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)&And;exists(select 1 from dmkho b where @@table.ma_kho = b.ma_kho) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_edit = 1)" condition="&And;if @@admin = 0 begin&And;if @@admin = 0 begin if @type = '1' begin" tag="&And;end&And;end end" errorCode="00001&And;00002&And;00002"/>
+    &BI.Import.Field.Site;
+    <field name="ma_kho" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ten_kho" column="C" allowNulls="false"/>
+    <field name="ten_kho2" column="D"/>
+    <field name="dai_ly_yn" column="E" type="Boolean" defaultValue="false"/>
+    <field name="ma_nh" column="F" upperCase="true" check="(@siteMethod = 1 and ma_nh = '') or (ma_nh &lt;&gt; '' and ma_nh not in (select rtrim(ma_nh) from dmnhkho where status = '1'))" errorCode="00001"/>
+    <field name="dia_chi" column="G"/>
+
+    <field name="id" column="None" insertValue="(cast(stt as int) + rtrim(@max))" updateValue="None"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục kho hàng" e="Warehouse/Site List"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      &BI.Import.Template.Site;
+      <field name="ma_kho" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã kho" e="Site Code"/>
+      </field>
+      <field name="ten_kho" width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên kho" e="Description"/>
+      </field>
+      <field name="ten_kho2" width="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="dai_ly_yn" width="12">
+        <text v="Đại lý" e="Agent"/>
+      </field>
+      <field name="ma_nh" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Nhóm kho" e="Site Group"/>
+      </field>
+      <field name="dia_chi" width="50">
+        <text v="Địa chỉ" e="Address"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'Site', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @siteGroupConflict nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @r int, @siteMethod varchar(1)
+
+-- Site Group
+select @siteMethod = rtrim(val) from options where name = 'm_gia_nh_kho'
+select @siteMethod = isnull(@siteMethod, '0')
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> đã có hoặc lồng nhau.' else 'The value of cell <span class="Highlight">%invalidCell</span> is invalid or already exists.' end
+select @siteGroupConflict = case when @@language = 'v' then N'Nhóm kho tại ô <span class="Highlight">%invalidCell</span> đã khai báo trên đơn vị khác, không cập nhật được.' else N'Cannot update the site group <span class="Highlight">%invalidCell</span>. It has already been used by another unit.' end
+
+create index i on @@table (ma_kho)
+
+-- Delete
+if @type = '0' delete @@table from @@table a join dmkho b on a.ma_kho = b.ma_kho
+
+-- Checking
+]]>&Checking;<![CDATA[
+select @field = 'ma_kho'
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, @message from @@table where ma_kho like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ma_kho like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+select @field = 'ma_nh'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, 'C001' from @@table a join dmkho b with(nolock) on a.ma_nh <> '' and a.ma_nh = rtrim(b.ma_nh) and a.ma_dvcs <> b.ma_dvcs
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table a join dmkho b with(nolock) on a.ma_nh <> '' and a.ma_nh = rtrim(b.ma_nh) and a.ma_dvcs <> b.ma_dvcs]]>&SiteGroupConflict;<![CDATA[
+end
+
+-- Gather
+select a.* into #k from @@table a join dmkho b on a.ma_kho = b.ma_kho
+delete @@table where ma_kho in (select ma_kho from #k)
+select identity(int, 1, 1) as stt, ma_dvcs, ma_kho, ten_kho, ten_kho2, dai_ly_yn, ma_nh, dia_chi]]>&BI.Import.FieldPlant.Site;<![CDATA[ into #k1 from @@table
+
+-- Checking
+select @field = 'ma_kho'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_kho <> b.ma_kho and a.ma_kho like rtrim(b.ma_kho) + ''%''
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, dmkho b with (index(PK_dmkho)) where a.ma_kho like rtrim(b.ma_kho) + ''%''
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from dmkho a, @@table b with (index(i)) where a.ma_kho like rtrim(b.ma_kho) + ''%''
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_kho <> b.ma_kho and a.ma_kho like rtrim(b.ma_kho) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  select top 1 @r = a.stt from @@table a, dmkho b with (index(PK_dmkho)) where a.ma_kho like rtrim(b.ma_kho) + '%']]>&Duplicate;<![CDATA[
+  select @q = 'select top 1 @r = b.stt from dmkho a, @@table b with (index(i)) where a.ma_kho like rtrim(b.ma_kho) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+end
+
+if @@admin = 0 begin
+  if @type = '1' begin
+    select @field = 'ma_dvcs'
+    if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from #k a join dmkho b on a.ma_kho = b.ma_kho where ]]>&Permissions;<![CDATA[
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(a.stt) from #k a join dmkho b on a.ma_kho = b.ma_kho where ]]>&Permissions;<![CDATA[
+      ]]>&Error;<![CDATA[
+    end
+  end
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+declare @max int
+select @max = isnull(max(id), 0) from dmkho
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+</import>

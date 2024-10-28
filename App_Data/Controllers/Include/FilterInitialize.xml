@@ -1,0 +1,13 @@
+﻿<![CDATA[
+declare @$primeAlias varchar(32), @$primeJoin varchar(4000), @$primeFilter nvarchar(4000), @$detailPartition varchar(4000), @$detailAlias varchar(4000), @$detailFilter nvarchar(4000)
+create table #_f(i int identity(1, 1), datasource varchar(32), type tinyint, filterkey nvarchar(4000), alias varchar(32), xtype tinyint, refKey varchar(128), exRefKey varchar(128), refdatasource varchar(32), refalias varchar(32), fieldKey varchar(128), joinClause varchar(512))
+select @$primeAlias = '', @$primeJoin = '', @$primeFilter = '', @$detailPartition = '', @$detailAlias = '', @$detailFilter = ''
+
+if object_id('tempdb..#filter') is not null begin
+  insert into #_f(datasource, type, filterkey, xtype, refKey, exRefKey, refdatasource, fieldKey, joinClause)
+	select isnull(b.xtable, ''), '1', replace(case when b.conditionalreplace is null then a.conditional else replace(a.conditional, char(255) + a.field, replace(replace(b.conditionalreplace, b.name, a.field), '%2', '%l')) end, char(255) + a.field, case when charindex(char(254), isnull(b.exname, '')) > 0 then '' else '%[a].' end + isnull(replace(replace(b.exname, '%2', '%l'), char(254), ''), a.field)), case when b.conditionalreplace is null then a.type else 0 end, b.fieldkey, b.exfieldkey, b.reftable, b.reffieldkey, isnull(b.joinclause, '')
+      from #filter a join @@sysDatabaseName..sysfilterdeclares b on b.controller = ]]>&Controller;<![CDATA[ and a.field = replace(b.name, '%2', '%l')
+end
+
+if exists(select 1 from #_f) exec AI_ERP$System$GetDynamicFilter @@userID, @@admin, @$primeAlias output, @$primeJoin output, @$primeFilter output, @$detailPartition output, @$detailAlias output, @$detailFilter output
+]]>

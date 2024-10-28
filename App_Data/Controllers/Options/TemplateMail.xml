@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE message [
+  <!ENTITY InitFunction "parent.on$Compose$Init">
+  <!ENTITY CompleteFunction "parent.on$Compose$Complete">
+  <!ENTITY FailureFunction "parent.on$Compose$Fail">
+  <!ENTITY CheckAuthorize "
+if @@admin = 0 begin
+  declare @id varchar(32), @r int, @c nvarchar(256), @u int
+  select @id = '', @r = 0, @c = '@@controller', @u = @@userID while @r = 0 and (@id is not null) and exists(select 1 from @@sysDatabaseName..command where sysid = @c and menu_id &gt; @id) begin select @id = min(menu_id) from @@sysDatabaseName..command where sysid = @c and menu_id &gt; @id
+  if exists(select 1 from @@sysDatabaseName..userinfo where id = @u and patindex('&#37;' + rtrim(@id) + '&#37;', r_access) &lt;&gt; 0) select @r = 1 end
+  if @r = 0 return
+end">
+]>
+<message xmlns="urn:schemas-ai-erp:data-template">
+  <template  id="SOCompose" controller="SOTran" prime="m64$" code="DXA" complete="&CompleteFunction;" init="&InitFunction;" fail="&FailureFunction;" v="Xác nhận đơn hàng ngày {!ngay_ct}" e="Order Confirmation Request {!ngay_ct}">
+    <query>
+      <text>
+        &CheckAuthorize;
+        <![CDATA[
+declare @stt_rec varchar(32), @period varchar(6), @q nvarchar(4000), @controller varchar(128)
+select @controller = '@@controller', @stt_rec = filename, @period = description from @@sysDatabaseName..ticket where ticket = @@ticket and user_id = @@userID
+
+select @q = 'select stt_rec, ma_ct, convert(varchar(10), a.ngay_ct, 103) as ngay_ct, ltrim(rtrim(so_ct)) as so_ct, ''' + @period + ''' as period, case when '@@language' = ''v'' then b.ten_kh else b.ten_kh2 end as ten_kh,
+  case when '@@language' = ''v'' then c.ten_dvcs else c.ten_dvcs2 end as ten_dvcs from @@prime' + @period + ' a join dmkh b on a.ma_kh = b.ma_kh join dmdvcs c on a.ma_dvcs = c.ma_dvcs where a.stt_rec = ''' + @stt_rec + ''''
+exec sp_executesql @q
+]]>
+      </text>
+    </query>
+
+    <body>
+      <v>
+        <text>
+          <![CDATA[
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css">
+      .Text{font-family:verdana;font-size:11px;padding:0 4px 0 4px;line-height:22px;}
+    </style>
+  </head>
+  <body spellcheck="false">
+    <div spellcheck="false" class="Text">Kính gửi quý khách: <b>{!ten_kh}</b></div></br>
+    <div spellcheck="false" class="Text"><b>{!ten_dvcs} </b>gửi thư này để xác nhận thông tin đơn hàng của quý khách vào ngày <b>{!ngay_ct}</b>.</div>
+    <div spellcheck="false" class="Text">Thông tin chi tiết về đơn hàng xin vui lòng xem các tệp tin đính kèm.</div>
+    <div spellcheck="false" class="Text">Trân trọng kính chào.</div></br>
+    <div spellcheck="false" class="Text"><b>{!ten_dvcs}</b></div>
+  </body>
+</html>
+]]>
+        </text>
+      </v>
+
+      <e>
+        <text>
+          <![CDATA[
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css">
+      .Text{font-family:verdana;font-size:11px;padding:0 4px 0 4px;line-height:22px;}
+    </style>
+  </head>
+  <body spellcheck="false" >
+    <div spellcheck="false" class="Text">Dear: <b>{!ten_kh}</b></div></br>
+    <div spellcheck="false" class="Text">We would like to send you the request to confirm your order on <b>{!ngay_ct}</b>.</div>
+    <div spellcheck="false" class="Text">Please find more details in the attached files.</div>
+    <div spellcheck="false" class="Text">Please check and confirm the contents.</div></br>
+    <div spellcheck="false" class="Text">Best regards.</div></br>
+    <div spellcheck="false" class="Text"><b>{!ten_dvcs}</b></div>
+  </body>
+</html>
+]]>
+        </text>
+      </e>
+
+    </body>
+  </template>
+
+  <template id="SQCompose" controller="SQTran" prime="m61$" code="SQ1" complete="&CompleteFunction;" init="&InitFunction;" fail="&FailureFunction;" v="Thông tin báo giá ngày {!ngay_ct}" e="Quotation Information {!ngay_ct}">
+    <query>
+      <text>
+        &CheckAuthorize;
+        <![CDATA[
+declare @stt_rec varchar(32), @period varchar(6), @q nvarchar(4000)
+select @stt_rec = filename, @period = description from @@sysDatabaseName..ticket where ticket = @@ticket and user_id = @@userID
+
+select @q = 'select stt_rec, ma_ct, convert(varchar(10), a.ngay_ct, 103) as ngay_ct, ltrim(rtrim(so_ct)) as so_ct, ''' + @period + ''' as period, case when '@@language' = ''v'' then b.ten_kh else b.ten_kh2 end as ten_kh,
+  case when '@@language' = ''v'' then c.ten_dvcs else c.ten_dvcs2 end as ten_dvcs from @@prime' + @period + ' a join dmkh b on a.ma_kh = b.ma_kh join dmdvcs c on a.ma_dvcs = c.ma_dvcs where a.stt_rec = ''' + @stt_rec + ''''
+exec sp_executesql @q
+]]>
+      </text>
+    </query>
+
+    <body>
+      <v>
+        <text>
+          <![CDATA[
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css">
+      .Text{font-family:verdana;font-size:11px;padding:0 4px 0 4px;line-height:22px;}
+    </style>
+  </head>
+  <body spellcheck="false" >
+    <div spellcheck="false" class="Text">Kính gửi quý khách: <b>{!ten_kh}</b></div></br>
+    <div spellcheck="false" class="Text"><b>{!ten_dvcs}</b> xin gửi đến quý khách thông tin báo giá ngày <b>{!ngay_ct}</b>.</div>
+    <div spellcheck="false" class="Text">Nội dung chi tiết về báo giá xin vui lòng xem các tệp tin đính kèm.</div>
+    <div spellcheck="false" class="Text">Quý khách vui lòng kiểm tra, đối chiếu nội dung.</div>
+    <div spellcheck="false" class="Text">Trân trọng kính chào.</div></br>
+    <div spellcheck="false" class="Text"><b>{!ten_dvcs}</b></div>
+  </body>
+</html>
+]]>
+        </text>
+      </v>
+
+      <e>
+        <text>
+          <![CDATA[
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css">
+      .Text{font-family:verdana;font-size:11px;padding:0 4px 0 4px;line-height:22px;}
+    </style>
+  </head>
+  <body spellcheck="false" >
+    <div spellcheck="false" class="Text">Dear: <b>{!ten_kh}</b></div></br>
+    <div spellcheck="false" class="Text">We would like to send you the quotation information on <b>{!ngay_ct}</b>.</div>
+    <div spellcheck="false" class="Text">Please find more details in the attached files.</div>
+    <div spellcheck="false" class="Text">Please check and confirm the contents.</div></br>
+    <div spellcheck="false" class="Text">Best regards.</div></br>
+    <div spellcheck="false" class="Text"><b>{!ten_dvcs}</b></div>
+  </body>
+</html>
+]]>
+        </text>
+      </e>
+    </body>
+  </template>
+
+  <template id="PQCompose" controller="PQTran" prime="m92$" code="PQ1" complete="&CompleteFunction;" init="&InitFunction;" fail="&FailureFunction;" v="Thông tin đề nghị báo giá ngày {!ngay_ct}" e="Request for Quotation Information {!ngay_ct}">
+    <query>
+      <text>
+        &CheckAuthorize;
+        <![CDATA[
+declare @stt_rec varchar(32), @period varchar(6), @q nvarchar(4000)
+select @stt_rec = filename, @period = description from @@sysDatabaseName..ticket where ticket = @@ticket and user_id = @@userID
+
+select @q = 'select stt_rec, ma_ct, convert(varchar(10), a.ngay_ct, 103) as ngay_ct, ltrim(rtrim(so_ct)) as so_ct, ''' + @period + ''' as period, case when '@@language' = ''v'' then b.ten_kh else b.ten_kh2 end as ten_kh,
+  case when '@@language' = ''v'' then c.ten_dvcs else c.ten_dvcs2 end as ten_dvcs from @@prime' + @period + ' a join dmkh b on a.ma_kh = b.ma_kh join dmdvcs c on a.ma_dvcs = c.ma_dvcs where a.stt_rec = ''' + @stt_rec + ''''
+exec sp_executesql @q
+]]>
+      </text>
+    </query>
+
+    <body>
+      <v>
+        <text>
+          <![CDATA[
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css">
+      .Text{font-family:verdana;font-size:11px;padding:0 4px 0 4px;line-height:22px;}
+    </style>
+  </head>
+  <body spellcheck="false">
+    <div spellcheck="false" class="Text">Kính gửi quý nhà cung cấp: <b>{!ten_kh}</b></div></br>
+    <div spellcheck="false" class="Text"><b>{!ten_dvcs}</b> xin gửi đến quý nhà cung cấp thông tin đề nghị báo giá ngày <b>{!ngay_ct}</b>.</div>
+    <div spellcheck="false" class="Text">Nội dung chi tiết về đề nghị báo giá xin vui lòng xem các tệp tin đính kèm.</div>
+    <div spellcheck="false" class="Text">Quý nhà cung cấp vui lòng kiểm tra, đối chiếu nội dung.</div>
+    <div spellcheck="false" class="Text">Trân trọng kính chào.</div></br>
+    <div spellcheck="false" class="Text"><b>{!ten_dvcs}</b></div>
+  </body>
+</html>
+]]>
+        </text>
+      </v>
+
+      <e>
+        <text>
+          <![CDATA[
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css">
+      .Text{font-family:verdana;font-size:11px;padding:0 4px 0 4px;line-height:22px;}
+    </style>
+  </head>
+  <body spellcheck="false">
+    <div spellcheck="false" class="Text">Dear: <b>{!ten_kh}</b></div></br>
+    <div spellcheck="false" class="Text">We would like to send you the request for quotation information on <b>{!ngay_ct}</b>.</div>
+    <div spellcheck="false" class="Text">Please find more details in the attached files.</div>
+    <div spellcheck="false" class="Text">Please check and confirm the contents.</div></br>
+    <div spellcheck="false" class="Text">Best regards.</div></br>
+    <div spellcheck="false" class="Text"><b>{!ten_dvcs}</b></div>
+  </body>
+</html>
+]]>
+        </text>
+      </e>
+    </body>
+  </template>
+
+</message>

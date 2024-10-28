@@ -1,0 +1,36 @@
+﻿<!ENTITY % Conditional.CheckRelative SYSTEM "..\Include\CheckRelative.txt">
+
+<![%Conditional.CheckRelative;[
+  <!ENTITY CheckRelativeProcess "
+declare @checkRelative tinyint
+exec @@sysDatabaseName..AI_ERP$Check$Relative @@userID, @@admin, &CheckRelativeParameter;, @checkRelative out
+if @checkRelative = 0 begin
+  &CheckRelativeQuery;
+end
+">
+
+  <!ENTITY CheckRelativeCall "
+declare @checkRelative tinyint
+exec @@sysDatabaseName..AI_ERP$Check$Relative @@userID, @@admin, @$relController, @$relType, @$relParent, @checkRelative out
+if @checkRelative = 0 begin
+  &CheckRelativeQuery;
+end
+">
+
+  <!ENTITY CheckRelativeFilter "@@0">
+  <!ENTITY CheckRelativeConditional "
+declare @checkRelative tinyint
+exec @@sysDatabaseName..AI_ERP$Check$Relative @@userID, @@admin, &CheckRelativeParameter;, @checkRelative out
+if @checkRelative = 0 begin
+  select '&amp;ÿ;1=0'
+end else select '&amp;ÿ;1=1'
+">
+]]>
+
+<!ENTITY CheckRelativeProcess "">
+
+<!ENTITY CheckRelativeDeclare "declare @$relController varchar(64), @$relType varchar(64), @$relParent varchar(64)">
+<!ENTITY CheckRelativeCall "">
+
+<!ENTITY CheckRelativeFilter "">
+<!ENTITY CheckRelativeConditional "">

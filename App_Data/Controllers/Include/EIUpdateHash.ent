@@ -1,0 +1,33 @@
+﻿<!ENTITY EIUpdateHashChecking SYSTEM "..\Include\Command\EIUpdateHashChecking.txt">
+<!ENTITY EICheckHashAction SYSTEM "..\Include\EICheckHashAction.txt">
+<!ENTITY EIAllowChangeHash "declare @eiUseChangeHash tinyint
+select @eiUseChangeHash = case when exists(select 1 from options where name = 'm_use_change_fe_password' and val = '1') then '1' else '0' end">
+<!ENTITY EIScriptAllowChangeHash "';this._$EIAllowChangeHash=' + rtrim(@eiUseChangeHash)">
+
+<!ENTITY EICheckHashResponseComplete "
+case 'CheckHash':
+  if (result[0].Value == 1) {
+    f._$checkHash = 1;
+    f.executeDialog(2);
+  } else {
+    var g = f.grid;
+    var v = (g._language == 'v'), id = g.get_id(), fid = f.get_id();
+    g._$profile = result[1].Value;
+    g._$userName = result[2].Value;
+    g._$profileName = result[3].Value;
+    g._$unit = f.getItemValue('ma_dvcs');
+    g._$filterFormID = fid;
+    var msg = (v ? 'Mật khẩu tài khoản phát hành hóa đơn điện tử đã quá hạn, bạn có muốn thay đổi không?' : 'e-Invoice account password has expired. Do you want to change?');
+    $message.show(msg, 0, String.format('show$Form$UpdateHash($find(\'{0}\'));', id), String.format('ignore$UpdateHash($find(\'{0}\'));', fid));
+  }
+  break;
+">
+<!ENTITY EICheckHashShowFormScript "
+function show$Form$UpdateHash(g) {
+  g.showForm('EIUpdateHash');
+}
+function ignore$UpdateHash(f) {
+  f._$checkHash = 1;
+  f.executeDialog(2);
+}
+ ">

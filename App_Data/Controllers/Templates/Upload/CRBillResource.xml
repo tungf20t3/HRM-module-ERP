@@ -1,0 +1,280 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY ErrorDate "
+if @r is not null begin
+  select replace(@overlapped, '&#37;s', @@delta + @r) as message
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'CRBillResourceDetail' else 'CRBillResourceDetail2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$CRBillResourceImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$CRBillResourceImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="phnl, ctnl"/>
+    <dependence value="phnl, ctnl, inl"/>
+    <listTable value="#m1, #d1, #i1"/>
+    <temporary value="#m2, #d2, #i2" alias="b, b, b"/>
+    <alias value="master, detail, inquiry"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C011">
+      <header v="Ngày hiệu lực giao hoặc trùng nhau." e="The effective date range overlapped or duplicated." />
+    </var>
+  </variable>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_sp" column="A" allowNulls="false" upperCase="true" updateValue="None" resource="master, inquiry" check="ma_sp not in (select ma_vt from dmvt where kieu_hd &lt;&gt; 0 and loai_vt in ('41', '51'))" errorCode="00001"/>
+    <field name="dvt_sp" column="C" reference="0.dvt" relation="dvt" resource="master"/>
+    <field name="ma_nl" column="D" allowNulls="false" reference="1" upperCase="true" resource="detail" check="ma_nl not in (select ma_nl from crdmnl)" errorCode="00001"/>
+    <field name="dvt" column="F" reference="1" resource="detail"/>
+
+    <field name="cach_tinh" column="G" allowNulls="false" reference="1" resource="detail" check="cach_tinh not in ('1', '2')" errorCode="00002"/>
+    <field name="cong_suat" column="H" type="Decimal" resource="detail"/>
+    <field name="tg_cai_dat" column="I" type="Decimal" resource="detail"/>
+    <field name="tg_bo_sung" column="J" type="Decimal" resource="detail"/>
+    <field name="so_ngay" column="K" type="Decimal" resource="detail"/>
+    <field name="ngay_hl_tu" column="L" type="DateTime" insertValue="ngay_ct1" relation="ngay_ct1" resource="detail" check="ngay_hl_tu is not null and ngay_hl_den is not null and ngay_hl_tu &gt; ngay_hl_den" errorCode="00002"/>
+    <field name="ngay_hl_den" column="M" type="DateTime" insertValue="ngay_ct2" relation="ngay_ct2" resource="detail"/>
+
+    <field name="stt_rec" column="None" updateValue="None" resource="master, detail, inquiry"/>
+    <field name="stt_rec0" column="None" updateValue="None" resource="detail"/>
+    <field name="line_nbr" column="None" type="Int" updateValue="None" resource="detail"/>
+
+    <field name="ma_ct" column="None" insertValue="@voucherID" updateValue="None" resource="master, detail"/>
+    <field name="he_so" column="None" type="Decimal" updateValue="b.he_so&And;he_so" resource="master, detail"/>
+
+    <field name="c$" column="None" resource="inquiry"/>
+    <field name="m$" column="None" resource="inquiry"/>
+    <field name="d$" column="None" resource="inquiry"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None" resource="master, inquiry"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="@datetime0" updateValue="None" resource="master"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="@datetime0" updateValue="@datetime0" resource="master"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@user" updateValue="None" resource="master, inquiry"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@user" updateValue="@user" resource="master"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Định mức sử dụng nguồn lực" e="Bill of Resource"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_sp" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã sản phẩm" e="Product Code"/>
+      </field>
+      <field name="ten_sp" width ="32" afterField="ma_sp" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên sản phẩm" e="Product Name"/>
+      </field>
+      <field name="dvt_sp" width ="12">
+        <text v="Đơn vị tính" e="UOM"/>
+      </field>
+      <field name="ma_nl" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nguồn lực" e="Resource ID"/>
+      </field>
+      <field name="ten_nl" width ="32" afterField="ma_nl" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên nguồn lực" e="Resource Description"/>
+      </field>
+      <field name="dvt" width ="12">
+        <text v="Đơn vị tính" e="UOM"/>
+      </field>
+      <field name="cach_tinh" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Cách tính" e="Time Basic"/>
+      </field>
+      <field name="cong_suat" width ="16">
+        <text v="Năng suất" e="Q'ty per"/>
+      </field>
+      <field name="tg_cai_dat" width ="16">
+        <text v="Thời gian cài đặt" e="Setup Time"/>
+      </field>
+      <field name="tg_bo_sung" width ="16">
+        <text v="Thời gian bổ sung" e="Offset Time"/>
+      </field>
+      <field name="so_ngay" width ="16">
+        <text v="Thời gian thực hiện sản xuất" e="Production Leadtime"/>
+      </field>
+      <field name="ngay_hl_tu" width ="16">
+        <text v="Hiệu lực từ ngày" e="Effective start"/>
+      </field>
+      <field name="ngay_hl_den" width ="16">
+        <text v="Đến ngày" e="Effective end"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @field varchar(32), @wsID varchar(1), @datetime0 datetime, @overlapped nvarchar(512)
+declare @user int, @admin bit, @r int, @i int, @k int, @currentID int, @count int, @voucherID varchar(8)
+
+select @wsID = rtrim(val) from options where rtrim(name) = 'm_ws_id'
+select @i = 1, @admin = @@admin, @user = @@userID, @voucherID = 'CR1', @datetime0 = getdate()
+select @overlapped = case when @@language = 'v' then N'Ngày hiệu lực giao hoặc trùng nhau tại dòng <span class="Highlight">%s</span>.' else N'The effective date range overlapped or duplicated at row <span class="Highlight">%s</span>.' end
+
+if @admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'CRBillResource', 'Edit') = 0 select @type = '0'
+end
+
+-- Update
+update @@table set dvt_sp = b.dvt from @@table a join dmvt b on a.ma_sp = b.ma_vt where a.dvt_sp = ''
+update @@table set dvt = b.dvt from @@table a join crdmnl b on a.ma_nl = b.ma_nl where a.dvt = ''
+
+-- Check
+]]>&Checking;<![CDATA[
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'dvt_sp', stt, '00001' from @@table a left join vdmvtqddvt b on a.dvt_sp = b.dvt and (a.ma_sp = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_sp = c.ma_vt and a.dvt_sp = c.dvt where a.dvt <> '' and b.dvt is null and c.dvt is null
+  ]]>&w1;<![CDATA['dvt_sp']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'dvt', stt, '00001' from @@table a left join crdmnl b on a.dvt = b.dvt and a.ma_nl = b.ma_nl where b.dvt is null
+  ]]>&w1;<![CDATA['dvt']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'dvt_sp', @r = min(stt) from @@table a left join vdmvtqddvt b on a.dvt_sp = b.dvt and (a.ma_sp = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_sp = c.ma_vt and a.dvt_sp = c.dvt where a.dvt <> '' and b.dvt is null and c.dvt is null]]>&Error;<![CDATA[
+  select @field = 'dvt', @r = min(stt) from @@table a left join crdmnl b on a.dvt = b.dvt and a.ma_nl = b.ma_nl where b.dvt is null]]>&Error;<![CDATA[
+end
+
+if @type = '0' delete @@table from @@table a where exists(select 1 from phnl b where a.ma_sp = b.ma_sp)
+
+select a.* into #k from @@table a join phnl b on a.ma_sp = b.ma_sp
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_sp = b.ma_sp)
+
+-- Date
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_hl_tu', a.stt, 'C011' from @@table a where exists(select 1 from @@table b where b.ma_sp = a.ma_sp and b.ma_nl = a.ma_nl and (b.ngay_hl_tu = a.ngay_hl_tu or (b.ngay_hl_tu is null and a.ngay_hl_tu is null)) and (b.ngay_hl_den = a.ngay_hl_den or (b.ngay_hl_den is null and a.ngay_hl_den is null)) group by b.ma_sp, b.ma_nl, b.ngay_hl_tu, b.ngay_hl_den having count(b.stt) > 1)
+  ]]>&w1;<![CDATA['ngay_hl_tu']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['C011']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_hl_tu', a.stt, 'C011' from @@table a, @@table b where a.ma_sp = b.ma_sp and a.ma_nl = b.ma_nl and (a.ngay_hl_tu <> b.ngay_hl_tu or a.ngay_hl_den <> b.ngay_hl_den) and a.ngay_hl_tu <= b.ngay_hl_den and a.ngay_hl_den >= b.ngay_hl_tu
+  ]]>&w1;<![CDATA['ngay_hl_tu']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['C011']]>&w4;<![CDATA[ group by a.stt
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_hl_tu', a.stt, 'C011' from @@table a, (select d.ma_sp, c.ma_nl, c.ngay_ct1 as ngay_hl_tu, c.ngay_ct2 as ngay_hl_den from ctnl c left join phnl d on c.stt_rec = d.stt_rec) b where a.ma_sp = b.ma_sp and a.ma_nl = b.ma_nl and (a.ngay_hl_tu <> b.ngay_hl_tu or a.ngay_hl_den <> b.ngay_hl_den) and a.ngay_hl_tu <= b.ngay_hl_den and a.ngay_hl_den >= b.ngay_hl_tu
+  ]]>&w1;<![CDATA['ngay_hl_tu']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['C011']]>&w4;<![CDATA[ group by a.stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table group by ma_sp, ma_nl, ngay_hl_tu, ngay_hl_den having count(stt) > 1]]>&ErrorDate;<![CDATA[
+  select @r = min(a.stt) from @@table a, @@table b where a.ma_sp = b.ma_sp and a.ma_nl = b.ma_nl and (a.ngay_hl_tu <> b.ngay_hl_tu or a.ngay_hl_den <> b.ngay_hl_den) and a.ngay_hl_tu <= b.ngay_hl_den and a.ngay_hl_den >= b.ngay_hl_tu]]>&ErrorDate;<![CDATA[
+  select @r = min(a.stt) from @@table a, (select d.ma_sp, c.ma_nl, c.ngay_ct1 as ngay_hl_tu, c.ngay_ct2 as ngay_hl_den from ctnl c left join phnl d on c.stt_rec = d.stt_rec) b where a.ma_sp = b.ma_sp and a.ma_nl = b.ma_nl and (a.ngay_hl_tu <> b.ngay_hl_tu or a.ngay_hl_den <> b.ngay_hl_den) and a.ngay_hl_tu <= b.ngay_hl_den and a.ngay_hl_den >= b.ngay_hl_tu]]>&ErrorDate;<![CDATA[
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+select top 0 a.stt_rec, a.stt_rec0, a.line_nbr, a.ma_nl, a.dvt, a.cach_tinh, a.cong_suat, a.tg_cai_dat, a.tg_bo_sung, a.so_ngay, a.ngay_ct1, a.ngay_ct2 into #d1 from ctnl a
+
+select @count = count(*) from @@table
+
+if @count > 0 begin
+  select top 0 stt_rec, ma_sp, cast(0 as int) as stt, identity(int, 1, 1) as id into #id1 from phnl
+  insert into #id1(stt_rec, ma_sp, stt) select '', ma_sp, min(stt) from @@table group by ma_sp
+
+  select @k = count(*) from #id1
+  select @currentID = stt_rec from dmstt
+
+  update dmstt set stt_rec = stt_rec + @count
+  update #id1 set stt_rec = @wsID + replace(str(id + rtrim(@currentID) , 9), ' ', '0') + @voucherID
+
+  insert into #d1
+    select b.stt_rec, replace(str((a.stt - b.stt) + 1, 3), ' ', '0'), (a.stt - b.stt) + 1, a.ma_nl, a.dvt, a.cach_tinh, a.cong_suat, a.tg_cai_dat, a.tg_bo_sung, a.so_ngay, a.ngay_hl_tu, a.ngay_hl_den
+      from @@table a join #id1 b on a.ma_sp = b.ma_sp order by a.ma_sp, a.stt
+
+  select top 0 a.stt_rec, a.ma_sp, a.dvt as dvt_sp, b.nhieu_dvt, a.he_so into #m1 from phnl a, dmvt b
+  insert into #m1 select b.stt_rec, a.ma_sp, a.dvt_sp, c.nhieu_dvt, 1 from @@table a join #id1 b on a.stt = b.stt join dmvt c on a.ma_sp = c.ma_vt
+
+  update #m1 set he_so = b.he_so from #m1 a join vdmvtqddvt b on (a.ma_sp = b.ma_vt or b.ma_vt = '*') and a.dvt_sp = b.dvt where a.nhieu_dvt = 1
+
+  select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, c$, m$, d$, ma_sp, cast(0 as int) as stt, identity(int, 1, 1) as id into #i1 from inl
+  insert into #i1 select a.stt_rec, null, '', '', rtrim(a.ma_sp) + a.stt_rec, '#10$' + rtrim(a.ma_sp), '', a.ma_sp, a.stt from #id1 a
+  select @q = dbo.AI_ERP$Function$Update$Inquiry('#i1', '#d1', 'd$', 'ma_nl', '#10$', 'stt_rec', default, default, default, default, default)
+  exec sp_executesql @q
+
+  -- Insert
+  @@inserting(master);
+  @@inserting(detail);
+  @@inserting(inquiry);
+end
+
+if @type = '1' begin
+  select @k = count(*) from #k
+
+  if @k > 0 begin
+    select top 0 stt_rec, ma_sp, cast(0 as int) as stt, identity(int, 1, 1) as id into #id2 from phnl
+    insert into #id2 select b.stt_rec, a.ma_sp, min(a.stt) from #k a join phnl b on a.ma_sp = b.ma_sp group by a.ma_sp, b.stt_rec
+
+    select top 0 a.stt_rec, a.stt_rec0, a.line_nbr, a.ma_nl, a.dvt, a.cach_tinh, a.cong_suat, a.tg_cai_dat, a.tg_bo_sung, a.so_ngay, a.ngay_ct1, a.ngay_ct2 into #d2 from ctnl a
+    insert into #d2
+    select b.stt_rec, replace(str((a.stt - b.stt) + 1, 3), ' ', '0'), (a.stt - b.stt) + 1, a.ma_nl, a.dvt, a.cach_tinh, a.cong_suat, a.tg_cai_dat, a.tg_bo_sung, a.so_ngay, a.ngay_hl_tu, a.ngay_hl_den
+      from #k a join #id2 b on a.ma_sp = b.ma_sp order by a.ma_sp, a.stt
+
+    select top 0 a.stt_rec, a.ma_sp, a.dvt as dvt_sp, b.nhieu_dvt, a.he_so into #m2 from phnl a, dmvt b
+    insert into #m2 select b.stt_rec, a.ma_sp, a.dvt_sp, c.nhieu_dvt, 1 from #k a join #id2 b on a.stt = b.stt join dmvt c on a.ma_sp = c.ma_vt
+
+    update #m2 set he_so = b.he_so from #m2 a join vdmvtqddvt b on (a.ma_sp = b.ma_vt or b.ma_vt = '*') and a.dvt_sp = b.dvt where a.nhieu_dvt = 1
+
+    select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, c$, m$, d$, ma_sp, cast(0 as int) as stt, identity(int, 1, 1) as id into #i2 from inl
+    insert into #i2 select a.stt_rec, null, '', '', rtrim(a.ma_sp) + a.stt_rec, '#10$' + rtrim(a.ma_sp), '', a.ma_sp, a.stt from #id2 a join #k b on a.stt = b.stt
+    select @q = dbo.AI_ERP$Function$Update$Inquiry('#i2', '#d2', 'd$', 'ma_nl', '#10$', 'stt_rec', default, default, default, default, default)
+    exec sp_executesql @q
+
+    -- Update
+    update phnl set @@list(master); from phnl a join #m2 b on a.stt_rec = b.stt_rec
+
+    delete ctnl where stt_rec in (select distinct stt_rec from #id2)
+
+    truncate table #d1
+    insert into #d1 select * from #d2
+    @@inserting(detail);
+
+    update inl set @@list(inquiry); from inl a join #i2 b on a.stt_rec = b.stt_rec
+  end
+end
+]]>
+    </text>
+  </processing>
+
+</import>

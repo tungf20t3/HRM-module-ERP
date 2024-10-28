@@ -1,0 +1,22 @@
+﻿  <queries>
+    <query event="Declare">
+      <text>&DeclareCommandFilter;</text>
+    </query>
+
+    <query event="Finding">
+      <text>
+        <![CDATA[
+declare @$id char(3), @$master varchar(16), @$prime varchar(16), @$inquiry varchar(16)
+if @loai_du_lieu <> '1' or not exists(select 1 from options where name = 'm_instock_split' and val = '1')
+  select @$id = @@id, @$master = @@master, @$prime = @@prime, @$inquiry = @@inquiry
+else
+  select @$id = 'PNI', @$master = replace(@@master, '75$', '55$'), @$prime = replace(@@prime, '75$', '55$'), @$inquiry = replace(@@inquiry, '75$', '55$'), @$primeJoin = replace(@$primeJoin, '75$', '55$')
+
+exec AI_ERP$App$Voucher$Finding
+@$id, @$master, @$prime, @$inquiry, @@partition, @@expression, @@increase, @@extension, @@refresh, @@pageIndex, @@pageCount, @@lastPage, @@lastCount, @@firstItem, @@lastItem,
+@@keyMaster, @@keyDetail, 'stt_rec', @@textList, @@textExternal,
+'a', @@textOrderBy, @@admin, @@userID, 1,
+@ngay_ct1, @ngay_ct2, @so_ct1, @so_ct2, @status, @user_id0, @ma_dvcs]]>
+      </text>
+    </query>
+  </queries>

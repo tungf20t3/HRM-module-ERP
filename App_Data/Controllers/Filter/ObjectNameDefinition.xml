@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir database="Sys" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Khai báo tên đối tượng" e="Object Name Definition"></title>
+  <fields>
+    <field name="ma_nhom" clientDefault="01">
+      <header v="Nhóm" e="Group"></header>
+      <items style="DropDownList">
+        <item value="01">
+          <text v="Đối tượng quản trị" e="Management Object"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11000: [ma_nhom].Label, [ma_nhom]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'var f = this; f._controlFocus = f.getItem(''ma_nhom'');'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+if not exists(select 1 from userinfo where id = @@userID and admin = 1) begin
+  select '' as script, '$NotAuthorized' as message
+  return
+end
+select 'active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,b){var c=b.object,e=b.type.Context,f=b.type.Result;switch(e){case"Checking":var a=c.grid,d=c.getItem("ma_nhom");a._group=c.getItemValue("ma_nhom");a._alterTitle=[null,[["%s",$func.trim(d.options[d.selectedIndex].text),true]]];a.set_externalKey([{Name:"ma_nhom",Opr:"=",Value:a._group,Type:"String",Ignore:false}])}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

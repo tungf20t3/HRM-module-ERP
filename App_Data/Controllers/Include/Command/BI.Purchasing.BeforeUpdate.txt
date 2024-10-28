@@ -1,0 +1,22 @@
+﻿<![CDATA[
+if @@admin = 0 begin
+  if $]]>&BI.Purchasing.SourceTable;<![CDATA[.NewValue <> $]]>&BI.Purchasing.SourceTable;<![CDATA[.OldValue begin
+    if exists(select 1 from ]]>&BI.Purchasing.SourceTable;<![CDATA[ a where ]]>&k;<![CDATA[ = $]]>&k;<![CDATA[.OldValue and not exists(select 1 from @]]>&BI.Purchasing.SourceTable;<![CDATA[ b where b.]]>&BI.Purchasing.Field;<![CDATA[ = a.]]>&BI.Purchasing.Field;<![CDATA[) and ]]>&BI.Purchasing.KeyExtension;<![CDATA[ not exists(select 1 from ]]>&BI.Purchasing.TableRight;<![CDATA[ c where c.]]>&BI.Purchasing.Field;<![CDATA[ = a.]]>&BI.Purchasing.Field;<![CDATA[ and c.user_id = @@userID and c.r_access = 1)) begin
+      select ']]>&BI.Purchasing.SourceTable;<![CDATA[' as field, case when @@language = 'v' then N'Tồn tại ]]>&BI.Purchasing.Message.v;<![CDATA[ trong các ]]>&BI.Purchasing.Message.v;<![CDATA[ vừa cập nhật không hợp lệ, không thể lưu được.' else N'Some ]]>&BI.Purchasing.Message.e;<![CDATA[ codes are invalid or you are not authorized to execute this function.' end as message
+      return
+    end
+    if exists(select 1 from @]]>&BI.Purchasing.SourceTable;<![CDATA[ a where not exists(select 1 from @]]>&BI.Purchasing.SourceTable;<![CDATA[ b where b.]]>&k;<![CDATA[ = $]]>&k;<![CDATA[.OldValue and b.]]>&BI.Purchasing.Field;<![CDATA[ = a.]]>&BI.Purchasing.Field;<![CDATA[) and ]]>&BI.Purchasing.KeyExtension;<![CDATA[ not exists(select 1 from ]]>&BI.Purchasing.TableRight;<![CDATA[ c where c.]]>&BI.Purchasing.Field;<![CDATA[ = a.]]>&BI.Purchasing.Field;<![CDATA[ and c.user_id = @@userID and c.r_access = 1)) begin
+      select ']]>&BI.Purchasing.SourceTable;<![CDATA[' as field, case when @@language = 'v' then N'Tồn tại ]]>&BI.Purchasing.Message.v;<![CDATA[ trong các ]]>&BI.Purchasing.Message.v;<![CDATA[ vừa cập nhật không hợp lệ, không thể lưu được.' else N'Some ]]>&BI.Purchasing.Message.e;<![CDATA[ codes are invalid or you are not authorized to execute this function.' end as message
+      return
+    end
+  end
+end
+if @]]>&k;<![CDATA[ <> $]]>&k;<![CDATA[.OldValue begin
+  if $]]>&BI.Purchasing.SourceTable;<![CDATA[.NewValue = $]]>&BI.Purchasing.SourceTable;<![CDATA[.OldValue
+    update ]]>&BI.Purchasing.SourceTable;<![CDATA[ set ]]>&k;<![CDATA[ = @]]>&k;<![CDATA[ where ]]>&k;<![CDATA[ = $]]>&k;<![CDATA[.OldValue
+end
+
+update @]]>&BI.Purchasing.SourceTable;<![CDATA[ set ]]>&k;<![CDATA[ = @]]>&k;<![CDATA[
+if $]]>&BI.Purchasing.SourceTable;<![CDATA[.NewValue <> $]]>&BI.Purchasing.SourceTable;<![CDATA[.OldValue
+  delete ]]>&BI.Purchasing.SourceTable;<![CDATA[ where ]]>&k;<![CDATA[ = $]]>&k;<![CDATA[.OldValue
+]]>

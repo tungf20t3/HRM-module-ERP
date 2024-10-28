@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "SFCOperationTransfer">
+]>
+
+<dir table="sfdccd$000000" code="stt_rec" order="ngay_ct, so_ct" cache="true" id="SF4" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Chứng từ từ ngày" e="Voucher Date from"></header>
+      <footer v="Ngày chứng từ từ/đến" e="Voucher Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Chứng từ đến ngày" e="Voucher Date to"></header>
+    </field>
+    <field name="ma_px" filterSource="master" operation="10">
+      <header v="Phân xưởng đi" e="Sending Shop"></header>
+      <items style="AutoComplete" controller="SFCShop" reference="ten_px%l" key="status = '1'" check="1=1" information="ma_px$sfdmxuong.ten_px%l" row="1"/>
+    </field>
+    <field name="ten_px%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_lsx" filterSource="master" operation="15">
+      <header v="Ycsx chuyển đi" e="Sending Work Order"></header>
+      <items style="AutoComplete" controller="SFCWorkOrder" reference="ten_lsx%l" key="status in ('2', '3', '4')" check="status in ('2', '3', '4')" information="ma_lsx$vcs2.ten_lsx%l" row="1"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&Controller;<![CDATA[$SendingWorkOrder(this);"]]></clientScript>
+    </field>
+    <field name="ten_lsx%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_cd_tu" filterSource="master" operation="30">
+      <header v="Công đoạn chuyển đi" e="Sending Operation"></header>
+      <items style="AutoComplete" controller="SFCWorkOrderOperationList" reference="ten_cd_tu%l" key="ma_lsx = '{$%c[ma_lsx]}'" check="ma_lsx = '{$%c[ma_lsx]}'" information="ma_cd$vsfctwo.ten_cd%l" row="1"/>
+    </field>
+    <field name="ten_cd_tu%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_pxn" filterSource="master" operation="50">
+      <header v="Phân xưởng đến" e="Receiving Shop"></header>
+      <items style="AutoComplete" controller="SFCShop" reference="ten_pxn%l" key="status = '1'" check="1=1" information="ma_px$sfdmxuong.ten_px%l" row="1"/>
+    </field>
+    <field name="ten_pxn%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_lsxn" filterSource="master" operation="25">
+      <header v="Ycsx chuyển đến" e="Receiving Work Order"></header>
+      <items style="AutoComplete" controller="SFCWorkOrder" reference="ten_lsxn%l" key="status in ('2', '3', '4')" check="status in ('2', '3', '4')" information="ma_lsx$vcs2.ten_lsx%l" row="1"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&Controller;<![CDATA[$ReceivingWorkOrder(this);"]]></clientScript>
+    </field>
+    <field name="ten_lsxn%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_cd_den" filterSource="master" operation="35">
+      <header v="Công đoạn chuyển đến" e="Receiving Operation"></header>
+      <items style="AutoComplete" controller="SFCWorkOrderOperationList" reference="ten_cd_den%l" key="ma_lsx = '{$%c[ma_lsxn]}'" check="ma_lsx = '{$%c[ma_lsxn]}'" information="ma_cd$vsfctwo.ten_cd%l" row="1"/>
+    </field>
+    <field name="ten_cd_den%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt"  filterSource="master" operation="20">
+      <header v="Mã sản phẩm" e="Product"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1' and loai_vt in ('41', '51')" check="loai_vt in ('41', '51')" information="ma_vt$dmvt.ten_vt%l"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="user_id0" dataFormatString="0, 1" clientDefault="1" align="right" inactivate="true" categoryIndex="-1">
+      <header v="Người sử dụng" e="User"></header>
+      <footer v="1 - Lọc theo người sử dụng, 0 - Không" e="1 - Filter by User, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="40">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="1101-: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="11010: [ma_px].Label, [ma_px], [ten_px%l]"/>
+      <item value="11010: [ma_lsx].Label, [ma_lsx], [ten_lsx%l]"/>
+      <item value="11010: [ma_cd_tu].Label, [ma_cd_tu], [ten_cd_tu%l]"/>
+      <item value="11010: [ma_pxn].Label, [ma_pxn], [ten_pxn%l]"/>
+      <item value="11010: [ma_lsxn].Label, [ma_lsxn], [ten_lsxn%l]"/>
+      <item value="11010: [ma_cd_den].Label, [ma_cd_den], [ten_cd_den%l]"/>
+      <item value="11010: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11010: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="11100: [user_id0].Label, [user_id0], [user_id0].Description"/>
+
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'init$]]>&Controller;<![CDATA[$Filter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Controller;<![CDATA[$Filter(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Controller;<![CDATA[$Filter$(f) {
+  var g = f.grid, fields = f.grid._searchInfor.Fields;
+  if (g._dvUserFilterType != null) $func.findField('user_id0', fields).ClientDefault = g._dvUserFilterType;
+}
+function active$]]>&Controller;<![CDATA[$Filter(f) {
+  f.setReferenceKeyFilter('ma_cd_tu');
+  f.setReferenceKeyFilter('ma_cd_den');
+}
+function onChange$]]>&Controller;<![CDATA[$SendingWorkOrder(o) {o.parentForm.setReferenceKeyFilter('ma_cd_tu');}
+function onChange$]]>&Controller;<![CDATA[$ReceivingWorkOrder(o) {o.parentForm.setReferenceKeyFilter('ma_cd_den');}
+]]>
+    </text>
+  </script>
+</dir>

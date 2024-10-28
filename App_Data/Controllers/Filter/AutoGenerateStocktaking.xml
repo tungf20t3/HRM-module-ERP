@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu từ" e="Counting Date from"></header>
+      <footer v="Ngày yêu cầu từ/đến" e="Counting Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu đến" e="Counting Date to"></header>
+    </field>
+    <field name="so_ct" align="right" allowNulls="false">
+      <header v="Số yêu cầu" e="Voucher No."></header>
+      <items style="AutoComplete" controller="StocktakingRequisition" key="(ngay_ct between @d1 and @d2)" check="(ngay_ct between @d1 and @d2)"/>
+      <clientScript><![CDATA[onchange=onChange$Filter$Unit(this);]]></clientScript>
+    </field>
+    <field name="ma_dvcs" allowNulls="false">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="((@@admin = 1) or (ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and (r_new = 1 or r_edit = 1 or r_del = 1 or r_access = 1)))) and status = '1'" check="((@@admin = 1) or (ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and (r_new = 1 or r_edit = 1 or r_del = 1 or r_access = 1))))"/>
+      <clientScript><![CDATA[onchange=onChange$Filter$Unit(this);]]></clientScript>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho">
+      <header v="Mã kho" e="Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="(ma_dvcs = '{$%c[ma_dvcs]}') and (not exists(select 1 from syssiterights where user_id = @@userID) or ma_kho in (select ma_kho from syssiterights where user_id = @@userID)) and status = '1'" check="(ma_dvcs = '{$%c[ma_dvcs]}') and (not exists(select 1 from syssiterights where user_id = @@userID) or ma_kho in (select ma_kho from syssiterights where user_id = @@userID))"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="type" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Loại chênh lệch" e="Type of Variance"></header>
+      <footer v="1 - Chênh lệch thiếu, 2 - Chênh lệch thừa" e="1 - Shortage, 2 - Exceeding"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="1101-: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="110--: [so_ct].Label, [so_ct]"/>
+      <item value="11010: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="11010: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="11100: [type].Label, [type], [type].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @vcID varchar(33)
+select @vcID = stt_rec from kkyc where so_ct = @so_ct
+exec rs_AutoGenerateStocktakingView @vcID, @ma_dvcs, @ma_kho, @type, @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$none nvarchar(512), @vcDate smalldatetime, @vcID varchar(33)
+select @vcDate = ngay_ct, @vcID = stt_rec from kkyc with(index(so_ct)) where so_ct = @so_ct and ngay_ct between @ngay_ct1 and @ngay_ct2
+if @vcDate is null begin
+  select @$none = case when @@language = 'v' then N'Không có yêu cầu kiểm kê theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+  select 'so_ct' as field, isnull(@$none, '') as message
+end
+select '' as message, '' as field, 'this.grid._$k=''' + rtrim(@vcID) + ''';' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function init$VoucherFilter$(a){a.getItem("so_ct")._idle}function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);a._looking=a.getItem("so_ct")._controlBehavior;a._looking.add_loading(onclick$VoucherFilter$Before$Loading);onChange$Filter$Unit(a.getItem("ma_dvcs"))}function close$VoucherFilter$(a){try{a._looking.remove_loading(on$VoucherFilter$Before$Loading)}catch(b){}try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(f,c){var a=c.object,d=c.type.Context,e=c.type.Result,b=a.grid;switch(d){case"Checking":var g=[];b._$u=a.getItemValue("ma_dvcs"),b._$t=a.getItemValue("type"),b._$s=a.getItemValue("ma_kho");b._alterTitle=[null,[["%s",a.getItemValue("so_ct").toUpperCase(),true]]]}}function onclick$VoucherFilter$Before$Loading(c,f){var b=c._element.parentForm;if(!b.validFields("ngay_ct1")||!b.validFields("ngay_ct2"))f.type.cancelEvent=true;else{var g=b.grid,h=g.get_element().parentForm,d=b.getItemValue("ngay_ct1"),e=b.getItemValue("ngay_ct2");a=[{Name:"d1",Type:"DateTime",Value:d},{Name:"d2",Type:"DateTime",Value:e}];c.set_memvars(a)}}function onChange$Filter$Unit(a){a.parentForm.setReferenceKeyFilter("ma_kho")}]]>
+    </text>
+  </script>
+</dir>

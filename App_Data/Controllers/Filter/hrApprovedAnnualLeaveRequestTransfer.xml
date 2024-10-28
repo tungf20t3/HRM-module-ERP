@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "hrApprovedAnnualLeaveRequestTransfer">
+]>
+
+<dir table="hrphepdd" code="stt_rec" order="stt_rec" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chuyển dữ liệu sang cập nhật nghỉ, vắng mặt" e="Update Leave Input"></title>
+
+  <fields>
+    <field name="loai_nghi" allowNulls="false">
+      <header v="Loại nghỉ" e="Leave Type"></header>
+      <items style="AutoComplete" controller="hrLeaveType" reference="ten_loai%l" key="status = '1' and tinh_chat = '2'" check="tinh_chat = '2'"/>
+    </field>
+    <field name="ten_loai%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_ca" allowNulls="false">
+      <header v="Ca" e="Shift"></header>
+      <items style="AutoComplete" controller="hrWorkingShift" reference="ten_ca%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_ca%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_gio" type="Decimal" dataFormatString="#0.00" clientDefault="0" allowNulls="false">
+      <header v="Số giờ" e="Hours"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="type" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Kiểu sao chép" e="Type"></header>
+      <footer v="1 - Chép đè, 0 - Không" e="1 - Overwrite, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 330"/>
+      <item value="1101: [loai_nghi].Label, [loai_nghi], [ten_loai%l]"/>
+      <item value="1101: [ma_ca].Label, [ma_ca], [ten_ca%l]"/>
+      <item value="110-: [so_gio].Label, [so_gio]"/>
+      <item value="1110: [type].Label, [type], [type].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[$Transfer(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$Transfer(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, g = f.grid;
+if (f._checked) {
+  f.request('TransferLeave', 'TransferLeave', [['s', 'Infinite', g._$k.join(',')], 'loai_nghi', 'ma_ca', 'so_gio', 'type']);
+  f._checked = false;
+}
+
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[$Transfer(f) {f.add_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);}
+function close$]]>&Identity;<![CDATA[$Transfer(f) {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);}
+function on$]]>&Identity;<![CDATA[$ResponseComplete(f, e) {
+  var f = e.object, g = f.grid, context = e.type.Context, result = e.type.Result, v = (g._language == 'v'), id;
+  switch (context) {
+    case 'TransferLeave':
+      var msg = ((result[0].Value) ? (v ? 'Chương trình đã thực hiện xong.' : 'The process was completed successfully.') : (v ? 'Phát sinh lỗi trong quá trình thực hiện.' : 'The process was failed.'));
+      id = ((result[0].Value) ? g._id : f.get_id());
+      $message.show(msg, String.format(((result[0].Value) ? '$find(\'{0}\')._focusWhenTabChanged();' : '$find(\'{0}\').focus(\'{1}\');'), id, 'ma_nv2'));
+      if (result[0].Value) {
+        f.cancelDialog();
+        if (g._$k != null) g._$k = [];
+        g.goToPage(-1);
+      }
+      break;
+    default:
+	    break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="TransferLeave">
+      <text>
+        <![CDATA[
+declare @c bit
+select * into #$keys from @s
+exec hs_ApprovedAnnualLeaveRequestTransfer '', @loai_nghi, @ma_ca, @so_gio, @type, @c output, @@userID, @@admin
+select isnull(@c, 0) as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

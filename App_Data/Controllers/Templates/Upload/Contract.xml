@@ -1,0 +1,243 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY PaymentContractFields SYSTEM "Include\PaymentContractFields.txt">
+  <!ENTITY PaymentContractFieldsCompact SYSTEM "Include\PaymentContractFieldsCompact.txt">
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % Nested SYSTEM "..\..\Include\Nested.ent">
+  %Nested;
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+  <!ENTITY Controller "Contract">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "
+declare @filename varchar(128), @compactMode char(1)
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') select @compactMode = '1' else select @compactMode = '0'
+if @@language = 'v' select @filename = case when @compactMode = '0' then 'Contract.xlsx' else 'Contract3.xlsx' end
+else select @filename = case when @compactMode = '0' then 'Contract2.xlsx' else 'Contract4.xlsx' end">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$ContractImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$ContractImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmhd"/>
+    <table value="dmhd" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="00003">
+      <header v="Giá trị &Contract.Nested.Message.v;." e="The value is &Contract.Nested.Message.e;." />
+    </var>
+  </variable>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+        <![CDATA[
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') select '1' as view_index]]>&ExportImportTemplateQueryReturnFileName; <![CDATA[ else select '0' as view_index
+]]>&ExportImportTemplateQueryReturnFileName;
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        &PaymentContractFieldsCompact;
+      </fields>
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    &PaymentContractFields;
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục hợp đồng" e="Contract List"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_hd" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã hợp đồng" e="Contract"/>
+      </field>
+      <field name="ten_hd"  width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên hợp đồng" e="Description"/>
+      </field>
+      <field name="ten_hd2" width="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="loai_hd" width="16">
+        <text v="Loại hợp đồng" e="Contract Type"/>
+      </field>
+      <field name="ngay_hd" width="16">
+        <text v="Ngày ký" e="Date Signed"/>
+      </field>
+      <field name="so_hd" width="16">
+        <text v="Số hợp đồng" e="Contract Number"/>
+      </field>
+      <field name="hd_sd_pslk" width="16">
+        <text v="Theo dõi số dư" e="Balance Tracking"/>
+      </field>
+      <field name="ma_nt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã ngoại tệ" e="Currency"/>
+      </field>
+      <field name="tien_nt" width="16">
+        <text v="Tiền ngoại tệ" e="FC Amount"/>
+      </field>
+      <field name="tien" width="16">
+        <text v="Tiền hạch toán" e="Base Currency Amount"/>
+      </field>
+      <field name="ngay_hd1" width="16">
+        <text v="Ngày bắt đầu" e="Start Date"/>
+      </field>
+      <field name="ngay_hd2" width="16">
+        <text v="Ngày kết thúc" e="End Date"/>
+      </field>
+      <field name="ma_kh" width="16">
+        <text v="Khách hàng" e="Customer"/>
+      </field>
+      <field name="ma_nvbh" width="16">
+        <text v="Nhân viên" e="Employee"/>
+      </field>
+      <field name="ma_bp" width="16">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="nh_hd1" width="16">
+        <text v="Nhóm 1" e="Group 1"/>
+      </field>
+      <field name="nh_hd2" width="16">
+        <text v="Nhóm 2" e="Group 2"/>
+      </field>
+      <field name="nh_hd3" width="16">
+        <text v="Nhóm 3" e="Group 3"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'Contract', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @field varchar(32), @irregularChars varchar(128), @r int
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> ]]>&Contract.Nested.Message.v;<![CDATA[.' else 'The value of cell <span class="Highlight">%invalidCell</span> is ]]>&Contract.Nested.Message.e;<![CDATA[.' end
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+
+-- Check
+create index i on @@table (ma_hd)
+
+if @type = '0' delete @@table from @@table a join dmhd b on a.ma_hd = b.ma_hd
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_hd', stt, @message from @@table where ma_hd like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_hd', @r = min(stt) from @@table where ma_hd like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select a.* into #k from @@table a join dmhd b with (nolock) on a.ma_hd = b.ma_hd
+delete @@table where ma_hd in (select ma_hd from #k)
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  if @type = '1' ]]>&InsertErrorTable;<![CDATA[ select 'ma_hd', stt, '00001' from #k where ma_hd not in (select ma_hd from dmhd with (nolock))]]>&w1;<![CDATA['ma_hd']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  if @type = '1' select @field = 'ma_hd', @r = min(stt) from #k where ma_hd not in (select ma_hd from dmhd with (nolock))]]>&Error;<![CDATA[
+end
+
+--
+select @field = 'ma_hd'
+]]>&Contract.Nested.Key.b;<![CDATA[
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_hd <> b.ma_hd and a.ma_hd like rtrim(b.ma_hd) + ''%''
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a with (index(i)), dmhd b with (nolock index(PK_dmhd)) where a.ma_hd like rtrim(b.ma_hd) + ''%''
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from dmhd a with (nolock index(PK_dmhd)), @@table b with (index(i)) where a.ma_hd like rtrim(b.ma_hd) + ''%''
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_hd <> b.ma_hd and a.ma_hd like rtrim(b.ma_hd) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = a.stt from @@table a with (index(i)), dmhd b with (nolock index(PK_dmhd)) where a.ma_hd like rtrim(b.ma_hd) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = b.stt from dmhd a with (nolock index(PK_dmhd)), @@table b with (index(i)) where a.ma_hd like rtrim(b.ma_hd) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+
+</import>

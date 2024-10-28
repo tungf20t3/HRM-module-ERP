@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir id="2" type="Report" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu từ" e="Counting Date from"></header>
+      <footer v="Ngày yêu cầu từ/đến" e="Counting Date from/to"></footer>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu đến" e="Counting Date to"></header>
+    </field>
+    <field name="so_ct" align="right" allowNulls="false">
+      <header v="Số yêu cầu" e="Voucher No."></header>
+      <items style="AutoComplete" controller="StocktakingRequisition" key="(ngay_ct between @d1 and @d2)" check="(ngay_ct between @d1 and @d2)"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="126">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="1101: [tu_ngay].Description, [tu_ngay], [den_ngay]"/>
+      <item value="110---: [so_ct].Label, [so_ct]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$GenerateStocktaking$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @vcDate smalldatetime, @isLocked tinyint
+select @vcDate = ngay_ct from kkyc with(index(so_ct)) where so_ct = @so_ct and ngay_ct between @tu_ngay and @den_ngay
+
+if @vcDate is null begin
+  select 'so_ct' as field, case when @@language = 'V' then N'Không có yêu cầu kiểm kê theo điều kiện đang lọc.' else N'No data matching filter condition.' end as message
+  return
+end
+
+select @isLocked = case when @vcDate <= ngay_ks_kk then 1 else 0 end from dmstt
+select '' as field, '' as message, 'on$Filter$Retrieve$QueryComplete(this, ' + rtrim(@isLocked) + ');' as script
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @q nvarchar(4000), @d smalldatetime, @d2 smalldatetime, @h char(5), @t varchar(9), @n int, @stt_rec varchar(33),
+  @h_line1 as nvarchar(128), @h_line2 as nvarchar(128), @h_line3 as nvarchar(128), @h_line4 as nvarchar(128),
+  @unitKey nvarchar(4000), @siteKey nvarchar(4000), @key nvarchar(4000)
+
+select @h_line1 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC097'
+select @h_line2 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC098'
+select @h_line3 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC099'
+select @h_line4 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC100'
+select @stt_rec = replace(stt_rec, '''', ''), @d = ngay_ct, @d2 = ngay_lct, @h = tg_kk from kkyc with(index(so_ct)) where so_ct = @so_ct
+select @t = 'kkss$' + rtrim(year(@d)), @n = 0
+
+set @key = 'a.stt_rec = ''' + @stt_rec + ''''
+set @unitKey = dbo.AI_ERP$Function$System$GetUnitFilter('ma_dvcs', '', @@userID, @@admin)
+if @unitKey is not null set @key = @key + ' and ' + @unitKey
+
+exec AI_ERP$System$GetSiteFilter 'a.ma_kho', '', @unitKey, @@userID, @@admin, @siteKey output
+if @siteKey is not null set @key = @key + ' and ' + @siteKey
+
+set @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+
+select top 0 identity(int, 1, 1) as stt, a.stt_rec, a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo, a.ton_hd into #kkss from kkss$0000 a
+select top 0 5 as sysorder, cast(0 as int) as stt, a.stt_rec, a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo, a.ton_hd, b.ho_ten, b.chuc_vu, b.dai_dien, b.nhiem_vu into #kq from kkss$0000 a, kkycbkk b
+
+if object_id(@t) is not null begin
+  set @q = 'insert into #kkss (stt_rec, ma_vt, ma_kho, ma_vi_tri, ma_lo, ton_hd) select a.stt_rec, a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo, a.ton_hd'
+  set @q = @q + ' from kkss$' + rtrim(year(@d)) + ' a with(nolock) join dmkho b on a.ma_kho = b.ma_kho where ' + @key + ' order by a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo'
+  exec sp_executesql @q
+end
+select ma_kho, min(stt) as stt into #sx from #kkss group by ma_kho
+
+if not exists (select 1 from #kkss) begin
+  insert into #kq (sysorder, stt_rec, ma_kho, ma_vi_tri, ma_lo, ma_vt, ho_ten, chuc_vu, dai_dien, nhiem_vu)
+    select 4, '', '', '', '', '', ho_ten, chuc_vu, dai_dien, nhiem_vu from kkycbkk with(nolock) where stt_rec = @stt_rec order by line_nbr
+  insert into #kq (sysorder, stt, stt_rec, ma_kho, ma_vi_tri, ma_lo, ma_vt, ton_hd) select 5, 1, '', '', '', '', '', 0
+end else begin
+  insert into #kq (sysorder, stt_rec, ma_kho, ma_vi_tri, ma_lo, ma_vt, ho_ten, chuc_vu, dai_dien, nhiem_vu)
+    select 4, '', a.ma_kho, '', '', '', max(b.ho_ten), max(b.chuc_vu), max(b.dai_dien), max(b.nhiem_vu)
+      from #kkss a cross join kkycbkk b with(nolock)
+      where b.stt_rec = @stt_rec group by a.ma_kho, b.line_nbr order by a.ma_kho, b.line_nbr
+  insert into #kq (sysorder, stt, stt_rec, ma_kho, ma_vi_tri, ma_lo, ma_vt, ton_hd)
+    select 5, a.stt - b.stt + 1, a.stt_rec, a.ma_kho, a.ma_vi_tri, a.ma_lo, a.ma_vt, a.ton_hd
+      from #kkss a join #sx b on a.ma_kho = b.ma_kho order by a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo
+end
+
+select replace(left(@h, 2), '00', '0') as gio, replace(right(@h, 2), '00', '') as phut,
+  replace(str(day(@d), 2), ' ', '0') as ngay_kk, replace(str(month(@d), 2), ' ', '0') as thang_kk, cast(year(@d) as char(4)) as nam_kk,
+  @h_line1 as h_line1, @h_line2 as h_line2, @h_line3 as h_line3, @h_line4 as h_line4, (select count(1) from #kq where sysorder = 4) as bkk_yn,
+  dateadd(day, case @h when '00:00' then -1 else 0 end, @d) as ngaykk
+
+select 1 as sysprint, 1 as systotal, a.*, case when @@language = 'V' then ten_vt else ten_vt2 end as ten_vt, b.dvt, case when @@language = 'V' then ten_kho else ten_kho2 end as ten_kho
+  from #kq a left join dmvt b with(nolock) on a.ma_vt = b.ma_vt left join dmkho c with(nolock) on a.ma_kho = c.ma_kho order by a.ma_kho, a.sysorder, a.stt
+select 0 as tag, a.ma_kho, a.ma_vt, case when @@language = 'V' then ten_vt else ten_vt2 end as ten_vt, b.dvt, a.ma_vi_tri, a.ma_lo, a.ton_hd,
+    rtrim(a.ma_kho) + ' ' + rtrim(a.ma_vi_tri) + ' ' + rtrim(a.ma_lo) + ' ' + rtrim(a.ma_vt) as xKey
+  from #kkss a join dmvt b with(nolock) on a.ma_vt = b.ma_vt order by a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function init$GenerateStocktaking$(a){a.getItem("so_ct")._idle=9}function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);a._looking=a.getItem("so_ct")._controlBehavior;a._looking.add_loading(onclick$GenerateStocktaking$Before$Loading)}function close$VoucherFilter$(a){try{a._looking.remove_loading(on$GenerateStocktaking$Before$Loading)}catch(b){}try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(f,b){var c=b.object,d=b.type.Context,e=b.type.Result;switch(d){case"Checking":var a=c.grid;a._so_ct=c.getItemValue("so_ct");a._alterTitle=[null,[["%s",a._so_ct.toUpperCase(),true]]];if(a._$k!=null)a._$k=[]}}function onclick$GenerateStocktaking$Before$Loading(c,f){var b=c._element.parentForm;if(!b.validFields("tu_ngay")||!b.validFields("den_ngay"))f.type.cancelEvent=true;else{var g=b.grid,h=g.get_element().parentForm,d=b.getItemValue("tu_ngay"),e=b.getItemValue("den_ngay");a=[{Name:"d1",Type:"DateTime",Value:d},{Name:"d2",Type:"DateTime",Value:e}];c.set_memvars(a)}}function on$Filter$Retrieve$QueryComplete(a,c){var b=a.grid;if(c==1)b._denyMessage=a._language=="v"?"Đã khóa số liệu, kiểm tra lại ngày khóa số liệu kiểm kê.":"Data is locked, you must modify stocktaking data closing date.";else b._denyMessage=null}]]>
+    </text>
+  </script>
+</dir>

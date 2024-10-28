@@ -1,0 +1,393 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY CheckVoucherRightBeforeProcess SYSTEM "Include\CheckVoucherRightBeforeProcess.txt">
+  <!ENTITY Detail "42">
+  <!ENTITY Code "HD6">
+  <!ENTITY TransferID "VATran">
+  <!ENTITY And "&#13;">
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY LockedDate "
+if @r is not null begin
+  select replace(@locked, '&#37;s', @@delta + @r) as message
+  return
+end
+">
+
+  <!ENTITY % Authentication SYSTEM "..\..\Include\Authentication.ent">
+  %Authentication;
+
+  <!ENTITY % VoucherGoodsType.VATran SYSTEM "..\..\Include\VoucherGoodsType.VATran">
+  %VoucherGoodsType.VATran;
+  <!ENTITY % VoucherGoodsType SYSTEM "..\..\Include\VoucherGoodsType.ent">
+  %VoucherGoodsType;
+
+  <!ENTITY % VoucherDeleteLog SYSTEM "..\..\Include\VoucherDeleteLog.ent">
+  %VoucherDeleteLog;
+
+  <!ENTITY % ConfigDynamicEvents SYSTEM "..\..\Include\ConfigImportDynamicEvents.ent">
+  %ConfigDynamicEvents;
+  <!ENTITY ConfigDynamicVoucherType "">
+  <!ENTITY ConfigDynamicType "3">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.VATran;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'VAMaster' else 'VAMaster2' end as file_name">
+
+  <!ENTITY % ImportSqlCondition SYSTEM "..\..\Include\ImportSqlCondition.ent">
+  %ImportSqlCondition;
+
+  <!ENTITY ImportOverwriteMainTable "m&Detail;$000000">
+  <!ENTITY ImportOverwriteLogTable "o&Detail;$000000">
+  <!ENTITY % ImportOverwriteCommand SYSTEM "..\..\Include\ImportOverWriteVoucher.VATran">
+  %ImportOverwriteCommand;
+  <!ENTITY % ImportOverwrite SYSTEM "..\..\Include\ImportOverwriteVoucher.ent">
+  %ImportOverwrite;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Voucher"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$VAMasterImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$VAMasterImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="m&Detail;$000000, d&Detail;$000000"/>
+    <dependence value="m&Detail;$000000, d&Detail;$000000, i&Detail;$000000," alias="m, d, i"/>
+    <listTable value="#m&Detail;, #d&Detail;, #i&Detail;"/>
+    <alias value="master, detail, inquiry"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C001">
+      <header v="Số chứng từ và ngày đã tồn tại." e="The voucher number and dated already exists." />
+    </var>
+    <var id="C002">
+      <header v="Số chứng từ, ngày và đơn vị đã tồn tại." e="The voucher number, dated and unit already exists." />
+    </var>
+    <var id="C003">
+      <header v="Đã khóa số liệu, kiểm tra lại ngày chứng từ." e="Data is locked, please check the date of voucher." />
+    </var>
+    &ImportOverwriteVariable;
+    &ImportLockedDateVariable;
+  </variable>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    &Tiny.External.Import.View.VATran;
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Hóa đơn điều chỉnh giá dịch vụ" e="Service Price Adjustment Invoice"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ma_kh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã khách" e="Customer"/>
+      </field>
+      <field name="ten_kh" afterField="ma_kh" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên khách hàng" e="Customer Name"/>
+      </field>
+
+      <field name="ma_gd" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã giao dịch" e="Transaction Code"/>
+      </field>
+
+      <field name="ngay_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày" e="Voucher Date"/>
+      </field>
+      <field name="so_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số chứng từ" e="Invoice Number"/>
+      </field>
+      <field name="so_seri" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ký hiệu" e="Serial Number"/>
+      </field>
+      <field name="dien_giai" width="50">
+        <text v="Diễn giải" e="Memo"/>
+      </field>
+      <field name="tk" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Tk công nợ" e="AR-AP Account"/>
+      </field>
+
+      <field name="ma_tt" width="16">
+        <text v="Mã thanh toán" e="Credit Term"/>
+      </field>
+
+      <field name="tk_no" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tk đối ứng" e="Ref Account"/>
+      </field>
+
+      <field name="dvt" width="10">
+        <text v="Đvt" e="UOM"/>
+      </field>
+      <field name="loai" width ="10">
+        <text v="Loại" e="Type"/>
+      </field>
+      <field name="so_luong" width="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="gia_nt" width="16">
+        <text v="Giá" e="Price"/>
+      </field>
+      <field name="tien_nt2" width="16">
+        <text v="Tiền" e="Amount"/>
+      </field>
+
+      <field name="ma_nt" width="16">
+        <text v="Mã nt" e="Currency"/>
+      </field>
+      <field name="ty_gia" width="16">
+        <text v="Tỷ giá" e="Ex. Rate"/>
+      </field>
+
+      <field name="ma_thue" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã thuế" e="Tax Code"/>
+      </field>
+
+      <field name="tk_thue" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Tk thuế" e="Tax Account"/>
+      </field>
+      <field name="ma_kh2" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Cục thuế" e="Tax Authority"/>
+      </field>
+      <field name="dien_giai2" width="50">
+        <text v="Diễn giải" e="Description"/>
+      </field>
+
+      <field name="ma_vv" width="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_bp" width="16">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="so_lsx" width="16">
+        <text v="Lsx" e="MO"/>
+      </field>
+      <field name="ma_sp" width="16">
+        <text v="Sản phẩm" e="Product"/>
+      </field>
+      <field name="ma_hd" width ="16">
+        <text v="Hợp đồng" e="Contract"/>
+      </field>
+      <field name="ma_phi" width ="16">
+        <text v="Phí" e="Expense"/>
+      </field>
+      <field name="ma_ku" width ="16">
+        <text v="Khế ước" e="Loan Contract"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      &CheckVoucherRightBeforeProcess;
+      <![CDATA[
+declare @q nvarchar(4000), @duplicate nvarchar(512), @locked nvarchar(512), @field varchar(32), @wsID varchar(8), @voucherID varchar(8)
+declare @master varchar(16), @detail varchar(16), @inquiry varchar(16), @baseCurrency varchar(8), @datetime0 char(21), @d0 datetime
+declare @user int, @admin bit, @r int, @max1 int, @max2 int, @count int, @roundPrice int, @roundAmount int, @roundFAmount int
+
+select @d0 = getdate(), @datetime0 = convert(char(8), @d0, 112) + ' ' + convert(char(12), @d0, 114), @status = left(replace(@status, '''', ''), 1)
+select @admin = @@admin, @user = @@userID, @master = 'm]]>&Detail;<![CDATA[$000000', @detail = 'd]]>&Detail;<![CDATA[$000000', @inquiry = 'i]]>&Detail;<![CDATA[$000000', @voucherID = ']]>&Code;<![CDATA['
+
+select @locked = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày chứng từ tại dòng <span class="Highlight">%s</span>.' else N'Data is locked, please check the date of voucher at row <sn class="Highlight">%s</span>.' end
+select @duplicate = case when @@language = 'v' then N'Chứng từ số <span class="Highlight">%s1</span> ngày <span class="Highlight">%s2</span> tại dòng <span class="Highlight">%s3</span> đã tồn tại.' else 'The voucher number <span class="Highlight">%s1</span> dated <span class="Highlight">%s2</span> at row <span class="Highlight">%s3</span> already exists.' end
+
+select @wsID = rtrim(val) from options where name = 'm_ws_id'
+select @baseCurrency = rtrim(val) from options where name = 'm_ma_nt0'
+select @roundPrice = cast(rtrim(val) as int) from options where name = 'm_round_gia'
+select @roundAmount = cast(rtrim(val) as int) from options where name = 'm_round_tien'
+select @roundFAmount = cast(rtrim(val) as int) from options where name = 'm_round_tien_nt'
+
+select @max1 = character_maximum_length from information_schema.columns where table_name = @master and column_name = 'so_ct'
+select @max2 = character_maximum_length from information_schema.columns where table_name = @detail and column_name = 'so_lsx'
+
+-- Checking
+update @@table set so_ct = space(@max1 - len(rtrim(ltrim(so_ct)))) + rtrim(ltrim(so_ct))
+]]>&ImportOverwriteData;<![CDATA[
+if @check$Unit <> '1' begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C001' from @@table a join m]]>&Detail;<![CDATA[$000000 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct]]>&ImportSqlWhere;&VoucherLogImportExtendKey;&ImportOverwriteCheckKey;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(stt) from @@table a join m]]>&Detail;<![CDATA[$000000 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct]]>&ImportSqlWhere;&VoucherLogImportExtendKey;&ImportOverwriteCheckKey;<![CDATA[
+  end
+end else begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C002' from @@table a join m]]>&Detail;<![CDATA[$000000 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.ma_dvcs = b.ma_dvcs]]>&ImportSqlWhere;&VoucherLogImportExtendKey;&ImportOverwriteCheckKey;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(stt) from @@table a join m]]>&Detail;<![CDATA[$000000 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.ma_dvcs = b.ma_dvcs]]>&ImportSqlWhere;&VoucherLogImportExtendKey;&ImportOverwriteCheckKey;<![CDATA[
+  end
+end
+
+if @r is not null and @$mode <> 1 begin
+  if @check$Unit <> '1' select replace(replace(replace(@duplicate, '%s1', so_ct), '%s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '%s3', @@delta + @r) as message from @@table where stt = @r
+  else select replace(replace(replace(replace(@duplicate$Unit, '%s1', so_ct), '%s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '%s3', rtrim(ma_dvcs)), '%s4', @@delta + @r) as message from @@table where stt = @r
+  return
+end
+
+-- Update
+update @@table set so_lsx = space(@max2 - len(ltrim(rtrim(so_lsx)))) + ltrim(rtrim(so_lsx)),
+    ma_nt = case when a.ma_nt <> '' then a.ma_nt else @baseCurrency end,
+    tk = case when a.tk <> '' then a.tk else c.tk end,
+    tk_thue = case when a.tk_thue <> '' then a.tk_thue else case when e.loai_ct = '1' then rtrim(d.tk_thue_no) else rtrim(d.tk_thue_co) end end,
+    ma_tt = case when a.ma_tt <> '' then a.ma_tt else c.ma_tt end
+  from @@table a left join dmkh c on a.ma_kh = c.ma_kh left join dmthue d on a.ma_thue = d.ma_thue left join dmmagd e on a.ma_gd = e.ma_gd and e.ma_ct = @voucherID
+
+select top 0 ma_dvcs, ngay_ct, so_ct into #unit from m]]>&Detail;<![CDATA[$000000
+insert into #unit select ma_dvcs, ngay_ct, so_ct from @@table group by ma_dvcs, ngay_ct, so_ct
+
+-- Locked Date
+]]>&ImportLockedDateCheck;<![CDATA[
+
+-- Checking
+@@checking(1);
+
+]]>&ConfigDynamicImportChecking;<![CDATA[
+
+]]>&ImportOverwriteChecking;&EndErrorMode;<![CDATA[
+
+-- Gather
+select top 0 stt_rec, ngay_ct, so_ct, cast(0 as int) as stt, identity(int, 1, 1) as id into #id from m]]>&Detail;<![CDATA[$000000
+insert into #id(stt_rec, ngay_ct, so_ct, stt) select '', a.ngay_ct, a.so_ct, min(a.stt) from @@table a]]>&ImportOverwriteIdentiyDataCondition;<![CDATA[ group by a.ngay_ct, a.so_ct order by a.ngay_ct, a.so_ct
+
+select identity(int, 1, 1) as id, cast(stt as int) as stt, convert(varchar(8), ngay_ct, 112) + so_ct as c, cast(0 as int) as ln into #ln from @@table order by ngay_ct, so_ct, stt
+exec AI_ERP$App$UpdateLineNumber
+create index i on #ln(stt)
+
+select @count = count(*) from #id
+exec AI_ERP$App$UpdateIdentityNumber @wsID, @voucherID, @count, @@userID
+]]>&ImportOverwriteProcess;<![CDATA[
+
+select top 0 stt_rec, stt_rec0, line_nbr, ngay_ct, so_ct, dvt, so_luong, gia_nt, gia, tien_nt2, tien2, ma_thue, thue_suat, tk_thue, thue_nt, thue, tk_no, ma_kh2, dien_giai, ma_vv, ma_bp, so_lsx, ma_sp, ma_hd, ma_phi, ma_ku]]>&VoucherGoodsTypeImportFieldDetail;<![CDATA[ into #d]]>&Detail;<![CDATA[ from d]]>&Detail;<![CDATA[$000000
+insert into #d]]>&Detail;<![CDATA[ select b.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln), i.ln, a.ngay_ct, a.so_ct,
+    a.dvt, a.so_luong, a.gia_nt, round(a.gia_nt * a.ty_gia, @roundPrice), a.tien_nt2, round(a.tien_nt2 * a.ty_gia, @roundAmount),
+    a.ma_thue, d.thue_suat, a.tk_thue, round(a.tien_nt2 * (d.thue_suat / 100), case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(a.tien_nt2 * a.ty_gia * (d.thue_suat / 100), @roundAmount),
+    a.tk_no, a.ma_kh2, a.dien_giai2, a.ma_vv, a.ma_bp, a.so_lsx, a.ma_sp, a.ma_hd, a.ma_phi, a.ma_ku]]>&VoucherGoodsTypeImportFieldDetailInsert;<![CDATA[
+  from @@table a join #id b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct left join dmthue d on a.ma_thue = d.ma_thue join #ln i on a.stt = i.stt
+  order by a.ngay_ct, a.so_ct, a.stt
+]]>&VoucherGoodsTypeImportDetailUpdate;<![CDATA[
+select top 0 stt_rec, status, ma_dvcs, ngay_ct, so_ct, loai_ct, ma_gd, so_seri, dien_giai, ong_ba, tk, ma_tt, ma_kh, ma_nt, ty_gia, t_tien_nt2, t_tien2, t_thue_nt, t_thue]]>&VoucherGoodsTypeImportFieldMaster;<![CDATA[ into #m]]>&Detail;<![CDATA[ from m]]>&Detail;<![CDATA[$000000
+insert into #m]]>&Detail;<![CDATA[ select b.stt_rec, @status, a.ma_dvcs, a.ngay_ct, a.so_ct, f.loai_ct, a.ma_gd, a.so_seri, a.dien_giai, '', a.tk, a.ma_tt, a.ma_kh, a.ma_nt, a.ty_gia, d.t_tien_nt2, d.t_tien2, d.t_thue_nt, d.t_thue]]>&VoucherGoodsTypeImportFieldMasterInsert;<![CDATA[
+  from @@table a
+    join #id b on a.stt = b.stt
+    join #unit c on a.ngay_ct = c.ngay_ct and a.so_ct = c.so_ct
+    ]]>&VoucherGoodsTypeImportMasterJoin;<![CDATA[join (select stt_rec, sum(tien_nt2) as t_tien_nt2, sum(tien2) as t_tien2, sum(thue_nt) as t_thue_nt, sum(thue) as t_thue from #d]]>&Detail;&VoucherGoodsTypeImportMasterWhere;<![CDATA[ group by stt_rec) d on b.stt_rec = d.stt_rec
+    left join dmmagd f on a.ma_gd = f.ma_gd and f.ma_ct = @voucherID
+]]>&VoucherGoodsTypeImportMasterUpdate;<![CDATA[
+select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, status, user_id0, c$, m$, d$, identity(int, 1, 1) as id into #i]]>&Detail;<![CDATA[ from i]]>&Detail;<![CDATA[$000000
+insert into #i]]>&Detail;<![CDATA[ select stt_rec, ngay_ct, so_ct, ma_dvcs, @status, @user, convert(varchar(12), ngay_ct, 112) + so_ct + stt_rec, '#10$' + rtrim(ma_kh) + '#20$' + rtrim(tk) + '#30$' + rtrim(ma_nt), '' from #m]]>&Detail;<![CDATA[
+select @q = dbo.AI_ERP$Function$Update$Inquiry('#i]]>&Detail;<![CDATA[', '#d]]>&Detail;<![CDATA[', 'd$', 'tk_no, ma_thue', '#10$, #20$', 'stt_rec', default, default, default, default, default)
+exec sp_executesql @q
+
+select distinct month(ngay_ct) as m, year(ngay_ct) as y into #k from #id
+
+-- Insert
+@@inserting(master);
+
+@@inserting(detail);
+
+@@inserting(inquiry);
+]]>&ESImportInsert;<![CDATA[
+]]>&ImportOverwriteInserting;<![CDATA[
+
+insert into ctgt21 (stt_rec, ngay_ct, ngay_lct, ten_kh, dia_chi, ma_so_thue)
+  select a.stt_rec, a.ngay_ct, a.ngay_ct, b.ten_kh, b.dia_chi, b.ma_so_thue from #m]]>&Detail;<![CDATA[ a join dmkh b on a.ma_kh = b.ma_kh
+
+declare @External nvarchar(4000), @Statement nvarchar(4000), @Numeric varchar(4000), @String varchar(4000), @fieldSelect varchar(4000)
+
+if @status <> '0' begin
+  ]]>&VoucherGoodsTypeImportPost;<![CDATA[
+  select * into #detailpost from #d]]>&Detail;<![CDATA[ where line_nbr = 1
+
+  --Tax
+  select @External = 'ten_vt = c.dien_giai, tk_du = c.tk, tk_thue_co = b.tk_thue, t_thue_nt = case when c.loai_ct = ''1'' then -b.thue_nt else b.thue_nt end, t_thue = case when c.loai_ct = ''1'' then -b.thue else b.thue end, t_tien_nt2 = case when c.loai_ct = ''1'' then -b.tien_nt2 else b.tien_nt2 end, t_tien2 = case when c.loai_ct = ''1'' then -b.tien2 else b.tien2 end, status = ''' + @status + ''',ma_ct = ''' + @voucherID + ''', ngay_lct = b.ngay_ct, datetime0 = ''' + @datetime0 + ''', datetime2 = ''' + @datetime0 + ''', user_id0 = ' + rtrim(@user) + ', user_id2 = ' + rtrim(@user)
+  select @Statement = '', @Numeric = 'nam, ky, sl_td1, sl_td2, sl_td3, s4, s5, s6', @String = 'ma_nvbh, ghi_chu, ma_nk, ma_mau_ct, ma_td1, ma_td2, ma_td3, gc_td1, gc_td2, gc_td3, s1, s2, s3'
+  ]]>&VoucherGoodsTypeImportPostTax;<![CDATA[
+  exec AI_ERP$Voucher$Import$PostTax '#m]]>&Detail;<![CDATA[', '#d]]>&Detail;<![CDATA[', '#k', @Numeric, @String, @External, @Statement, '1'
+
+  -- cttt50
+  select *, t_tien_nt2 + t_thue_nt as t_tt_nt, t_tien2 + t_thue as t_tt, @voucherID as ma_ct, @datetime0 as datetime0, @datetime0 as datetime2, @user as user_id0, @user as user_id2 into #malloc from #m]]>&Detail;<![CDATA[ where loai_ct = '1'
+  select *, tien_nt2 + thue_nt as tt_nt, tien2 + thue as tt into #dalloc from #d]]>&Detail;<![CDATA[
+  exec AI_ERP$Voucher$Import$Allocation @voucherID, '0', '#malloc', '#dalloc', 't_tt_nt', 't_tt', 'tt_nt', 'tt', 'cttt50', '', ''
+
+  -- Payment
+  delete #detailpost from #detailpost a join #m]]>&Detail;<![CDATA[ b on a.stt_rec = b.stt_rec and b.loai_ct <> '2'
+  select @External = 'status = ''' + @status + ''', ma_ct = ''' + @voucherID + ''', ngay_ct0 = b.ngay_ct, dien_giai = c.dien_giai, t_tt_nt = c.t_tien_nt2 + c.t_thue_nt, t_tt = c.t_tien2 + c.t_thue, t_tien_nt2 = c.t_tien_nt2, t_tien2 = c.t_tien2, datetime0 = ''' + @datetime0 + ''', datetime2 = ''' + @datetime0 + ''', user_id0 = ' + rtrim(@user) + ', user_id2 = ' + rtrim(@user)
+  select @Statement = '', @Numeric = 'tt, tt_nt, sl_td1, sl_td2, sl_td3, s4, s5, s6', @String = 'ma_td1, ma_td2, ma_td3, gc_td1, gc_td2, gc_td3, s1, s2, s3'
+  exec AI_ERP$Voucher$Import$PostPayment '#m]]>&Detail;<![CDATA[', '#detailpost', 'tk', @Numeric, @String, @External, @Statement, '0', '1', '0'
+end
+
+if @status = '1' begin
+  select @fieldSelect = 'stt_rec, ma_dvcs, ''' + @voucherID + ''' , ngay_ct, so_ct, t_tien_nt2 + t_thue_nt, t_tien2 + t_thue, ma_nt, ty_gia, dien_giai,''' + @datetime0 + ''',' + rtrim(@user)
+  exec AI_ERP$Voucher$Import$PostLater '#m]]>&Detail;<![CDATA[', @voucherID, @fieldSelect, ''
+end
+
+if @status = '2' begin
+  declare @glGroup varchar(128), @glAcctField varchar(128), @glAcctFieldRef varchar(128), @glAmountField varchar(128), @glFCAmountField varchar(128), @glKey varchar(512), @glNoAccList varchar(128), @glNoAccListRef varchar(128), @cNoAccounts varchar(128), @glGroups varchar(128)
+
+  select @cNoAccounts = replace(rtrim(val), '''', '''''') from options where name = 'm_tk_tk_vt'
+
+  if exists(select 1 from options where name = 'm_post_hh_hddt' and val = '1') begin
+    select @glAcctField = 'tk_no,tk,tk_thue', @glAcctFieldRef = 'tk,tk_no,tk', @glAmountField = 'tien2,tien2,thue', @glFCAmountField = 'tien_nt2,tien_nt2,thue_nt', @glKey = 'loai<>''90'',loai=''90'',thue_suat <> 0', @glNoAccList = '0,0', @glNoAccListRef = '0,0', @glGroups = '1,1,0'
+    exec sp_executesql N'update #d]]>&Detail;<![CDATA[ set tien_nt2 = -tien_nt2, tien2 = -tien2 where loai = ''90'''
+  end else begin
+    select @glAcctField = 'tk_no,tk_thue', @glAcctFieldRef = 'tk,tk', @glAmountField = 'tien2,thue', @glFCAmountField = 'tien_nt2,thue_nt', @glKey = '1=1,thue_suat <> 0', @glNoAccList = '0', @glNoAccListRef = '0', @glGroups = '1,0'
+  end
+  select @Numeric = 'gt_no, gt_co, gt_dd, ct_nxt, nam, ky, sl_td1, sl_td2, sl_td3, s4, s5, s6', @String = 's1, s2, s3, so_ct0, head_item, so_ctgs, ma_nk, so_lo, so_dh, gc_td1, gc_td2, gc_td3', @External = 'ong_ba = b.ong_ba, ma_gd = b.ma_gd, dien_giai_h = b.dien_giai, datetime0 = ''' + @datetime0 + ''', datetime2 = ''' + @datetime0 + ''', user_id0 = ' + rtrim(@user) + ', user_id2 = ' + rtrim(@user)
+  select @Statement = @Statement + char(13) + 'update #gl set dien_giai = b.dien_giai from #gl a join #m]]>&Detail;<![CDATA[ b on a.stt_rec = b.stt_rec join #dGL c on a.stt_rec = c.stt_rec and (a.tk = c.tk_thue or a.tk_du = c.tk_thue)'
+  select @glGroup = groupby from @@sysDatabaseName..voucherinfo where ma_ct = @voucherID
+
+  select stt_rec, stt_rec0, line_nbr, ngay_ct, so_ct, tien_nt2, tien2, tk_no, thue_nt, thue, tk_thue, thue_suat, cast('' as varchar(32)) as ma_kh2, dien_giai, ma_vv, ma_bp, so_lsx, ma_sp, ma_hd, ma_phi, ma_ku]]>&VoucherGoodsTypeImportFieldDetail;<![CDATA[ into #dGL0 from #d]]>&Detail;<![CDATA[
+  update #d]]>&Detail;<![CDATA[ set ma_kh2 = '' where tk_thue in (select tk from dmtk where tk_cn = 0)
+
+  select a.*, b.tk, b.ma_dvcs, b.ma_kh, case when a.ma_kh2 <> '' then a.ma_kh2 else b.ma_kh end as ma_kh_ref, @voucherID as ma_ct, b.loai_ct, b.ma_gd, b.ong_ba, b.ngay_ct as ngay_lct, b.ma_nt, b.ty_gia, b.dien_giai as dien_giai_h into #dGL from #dGL0 a join #m]]>&Detail;<![CDATA[ b on a.stt_rec = b.stt_rec where (not (@cNoAccounts <> '' and dbo.ff_inlist(b.tk, @cNoAccounts) = 1)) and b.loai_ct = '1'
+
+  exec AI_ERP$Voucher$Import$PostGL '#m]]>&Detail;<![CDATA[', '#dGL', @voucherID, @glAcctField, @glAcctFieldRef, @glAmountField, @glFCAmountField, @glKey, @glNoAccList, @glNoAccListRef, @glGroup, @Numeric, @String, @External, @Statement, '#k', @glGroups
+
+  select @glAcctField = 'tk,tk_no,tk', @glAcctFieldRef = 'tk_no,tk,tk_thue'
+  truncate table #dGL
+  insert into #dGL select a.*, b.tk, b.ma_dvcs, b.ma_kh, case when a.ma_kh2 <> '' then a.ma_kh2 else b.ma_kh end as ma_kh_ref, @voucherID as ma_ct, b.loai_ct, b.ma_gd, b.ong_ba, b.ngay_ct as ngay_lct, b.ma_nt, b.ty_gia, b.dien_giai as dien_giai_h from #dGL0 a join #m]]>&Detail;<![CDATA[ b on a.stt_rec = b.stt_rec where (not (@cNoAccounts <> '' and dbo.ff_inlist(b.tk, @cNoAccounts) = 1)) and b.loai_ct = '2'
+  exec AI_ERP$Voucher$Import$PostGL '#m]]>&Detail;<![CDATA[', '#dGL', @voucherID, @glAcctField, @glAcctFieldRef, @glAmountField, @glFCAmountField, @glKey, @glNoAccList, @glNoAccListRef, @glGroup, @Numeric, @String, @External, @Statement, '#k', @glGroups
+end
+]]>
+    </text>
+  </processing>
+
+</import>

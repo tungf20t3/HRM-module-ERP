@@ -1,0 +1,287 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Code "T03">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % CheckTaxCode SYSTEM "..\..\Include\CheckImportTaxCode.ent">
+  %CheckTaxCode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+
+  <!ENTITY s1 "Số hóa đơn &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt;">
+  <!ENTITY s2 "The invoice number &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt;">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$InputVATEntryImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$InputVATEntryImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="ctgt30"/>
+    <table value="ctgt30" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;not exists(select 1 from ctgt30 b where @@table.ngay_ct0 = b.ngay_ct0 and @@table.so_ct0 = b.so_ct0 and @@table.so_seri0 = b.so_seri0 and @@table.ma_mau_ct = b.ma_mau_ct and @@table.ma_so_thue = b.ma_so_thue and @@table.ma_thue = b.ma_thue and b.ma_ct = @voucherID and status = '1') and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from ctgt30 b where @@table.ngay_ct0 = b.ngay_ct0 and @@table.so_ct0 = b.so_ct0 and @@table.so_seri0 = b.so_seri0 and @@table.ma_mau_ct = b.ma_mau_ct and @@table.ma_so_thue = b.ma_so_thue and @@table.ma_thue = b.ma_thue and b.ma_ct = @voucherID and status = '1') and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;if (@admin &lt;&gt; 1) begin&And;if (@admin &lt;&gt; 1 and @type = '1') begin" tag="&And;end&And;end" errorCode="00001&And;00001&And;00001"/>
+    <field name="ngay_ct" column="." type="DateTime" allowNulls="false"/>
+    <field name="so_ct" column="." upperCase="true"/>
+    <field name="ngay_ct0" column="." type="DateTime" isPrimaryKey="true" updateValue="None"/>
+    <field name="so_ct0" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="so_seri0" column="." isPrimaryKey="true" upperCase="true" updateValue="None"/>
+    <field name="mau_bc" column="." upperCase="true" check="mau_bc not in (select mau_bc from dmmaubc3)" errorCode="00001"/>
+    <field name="ma_tc" column="." upperCase="true" check="ma_tc not in (select ma_tc from v20dmtcthue)" errorCode="00001"/>
+    <field name="ma_mau_ct" column="." isPrimaryKey="true" upperCase="true" updateValue="None" check="ma_mau_ct &lt;&gt; '' and ma_mau_ct not in (select ma_mau_ct from dmmauct)" errorCode="00001"/>
+
+    <field name="ma_kh" column="." upperCase="true" check="ma_kh &lt;&gt; '' and ma_kh not in (select ma_kh from dmkh where cc_yn = 1)" errorCode="00001"/>
+    <field name="ten_kh" column="." check="ten_kh = ''" errorCode="00001"/>
+    <field name="dia_chi" column="."/>
+    <field name="ma_so_thue" column="." isPrimaryKey="true" upperCase="true" updateValue="None"/>
+    <field name="ten_vt" column="."/>
+
+    <field name="so_luong" column="." type="Decimal"/>
+    <field name="gia" column="." type="Decimal"/>
+    <field name="t_tien" column="." type="Decimal"/>
+
+    <field name="ma_thue" isPrimaryKey="true" upperCase="true" updateValue="None" column="." check="ma_thue not in (select ma_thue from dmthue)" errorCode="00001"/>
+    <field name="t_thue" column="." type="Decimal"/>
+    <field name="tk_thue_no" upperCase="true" column="." check="tk_thue_no not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+    <field name="tk_du" upperCase="true" column="." check="tk_du &lt;&gt; '' and tk_du not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+
+    <field name="ma_kho" upperCase="true" column="." check="ma_kho &lt;&gt; '' and not exists(select 1 from dmkho b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_kho = b.ma_kho)" errorCode="00001"/>
+    <field name="ma_vv" upperCase="true" column="." check="ma_vv &lt;&gt; '' and ma_vv not in (select ma_vv from dmvv)" errorCode="00001"/>
+    <field name="ma_kh2" upperCase="true" column="." check="ma_kh &lt;&gt; '' and ma_kh not in (select ma_kh from dmkh)" errorCode="00001"/>
+    <field name="ghi_chu" column="."/>
+
+    <field name="thue_suat" column="" type="Decimal"/>
+
+    <field name="stt_rec" column=""/>
+    <field name="ma_ct" column="None" insertValue="@voucherID" updateValue="None"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <variable>
+    <var id="C001">
+      <header v="Số hóa đơn đã tồn tại." e="The invoice number already exists." />
+    </var>
+    &TaxCodeImportVariable;
+    &ImportLockedDateVariable;
+  </variable>
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật hóa đơn GTGT đầu vào" e="VAT Invoice Input Entry"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ngay_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày chứng từ" e="Voucher Date"/>
+      </field>
+      <field name="ngay_ct0" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hóa đơn" e="Invoice Date"/>
+      </field>
+      <field name="so_ct" width="16">
+        <text v="Số chứng từ" e="Voucher Number"/>
+      </field>
+      <field name="so_ct0" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số hóa đơn" e="Invoice Number"/>
+      </field>
+      <field name="so_seri0" width="16">
+        <text v="Ký hiệu" e="Series"/>
+      </field>
+      <field name="mau_bc" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mẫu báo cáo" e="Report Form"/>
+      </field>
+      <field name="ma_tc" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã tính chất" e="Tax Type"/>
+      </field>
+      <field name="ma_mau_ct" width="16">
+        <text v="Mẫu hóa đơn" e="Invoice Form"/>
+      </field>
+      <field name="ma_kh" width="16">
+        <text v="Mã khách" e="Customer"/>
+      </field>
+      <field name="ten_kh" width="32" starColor="&EIT.StarColor.Sub;">
+        <text v="Tên khách hàng" e="Customer Name"/>
+      </field>
+      <field name="dia_chi" width="32">
+        <text v="Địa chỉ" e="Address"/>
+      </field>
+      <field name="ma_so_thue" width="32">
+        <text v="Mã số thuế" e="Tax Code"/>
+      </field>
+      <field name="ten_vt" width="32">
+        <text v="Tên vật tư" e="Item"/>
+      </field>
+
+      <field name="so_luong" width="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="gia" width="16">
+        <text v="Đơn giá" e="Unit Price"/>
+      </field>
+      <field name="t_tien" width="16">
+        <text v="Tổng tiền" e="Total Amount"/>
+      </field>
+
+      <field name="ma_thue" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã thuế" e="Tax Code"/>
+      </field>
+      <field name="thue_suat" width="16">
+        <text v="Thuế suất" e="Tax Rate"/>
+      </field>
+
+      <field name="t_thue" width="16">
+        <text v="Tiền thuế" e="Tax Amount"/>
+      </field>
+      <field name="tk_thue_no" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Tài khoản thuế" e="Tax Account"/>
+      </field>
+      <field name="tk_du" width="16">
+        <text v="Tài khoản đối ứng" e="Corr. Tax Account"/>
+      </field>
+
+      <field name="ma_kho" width="16">
+        <text v="Kho nhập" e="Site"/>
+      </field>
+      <field name="ma_vv" width="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_kh2" width="16">
+        <text v="Cục thuế" e="Tax Authority"/>
+      </field>
+      <field name="ghi_chu" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @duplicate nvarchar(512), @field varchar(32), @user int, @admin bit, @r int, @wsID varchar(8), @voucherID varchar(8), @locked nvarchar(512)
+declare @count int, @m int, @checkInvoices char(1)
+
+select @voucherID = ']]>&Code;<![CDATA['
+select @locked = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày chứng từ tại dòng <span class="Highlight">%s</span>.' else N'Data is locked, please check the date of voucher at row <span class="Highlight">%s</span>.' end
+select @duplicate = case when @@language = 'v' then N']]>&s1;<![CDATA[ đã tồn tại.' else ']]>&s2;<![CDATA[ already exists.' end
+
+select @checkInvoices = rtrim(val) from options where name = 'm_kthd_tdv'
+select @wsID = rtrim(val) from options where name = 'm_ws_id'
+select @admin = @@admin, @user = @@userID from dmstt
+select @m = character_maximum_length from information_schema.columns where table_name = 'wrkcolumns' and column_name = 'so_ct'
+
+if @admin <> 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'InputVATEntry', 'Edit') = 0 select @type = '0'
+  end
+end
+
+
+select @count = count(*) from @@table
+select ma_dvcs, ngay_ct, so_ct into #unit from @@table
+
+-- Locked Date
+]]>&ImportLockedDateCheck;<![CDATA[
+]]>&CommandCheckTaxCodeImport;<![CDATA[
+
+update @@table set so_ct = space(@m - len(rtrim(so_ct))) + ltrim(so_ct), so_ct0 = space(@m - len(rtrim(so_ct0))) + ltrim(so_ct0), ngay_ct0 = case when a.ngay_ct0 is null then a.ngay_ct else a.ngay_ct0 end,
+    ten_kh = case when a.ten_kh <> '' then a.ten_kh else isnull(rtrim(b.ten_kh), '') end,
+    thue_suat = c.thue_suat, tk_thue_no = case when a.tk_thue_no = '' then isnull(rtrim(c.tk_thue_no3), '') else rtrim(a.tk_thue_no) end
+  from @@table a
+    left join dmkh b on a.ma_kh = b.ma_kh
+    left join dmthue c on a.ma_thue = c.ma_thue
+
+-- Checking
+]]>&Checking;<![CDATA[
+if @checkInvoices = '1' begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C001' from @@table a join (select ma_so_thue, ngay_ct0, so_seri0, so_ct0 from @@table group by ma_so_thue, ngay_ct0, so_seri0, so_ct0 having count(1) > 1) b on a.ngay_ct0 = b.ngay_ct0 and a.ma_so_thue = b.ma_so_thue and a.so_seri0 = b.so_seri0 and a.so_ct0 = b.so_ct0
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C001' from @@table a where exists (select 1 from ctgt30 b where (a.ma_dvcs <> b.ma_dvcs or a.ma_mau_ct <> b.ma_mau_ct) and a.ngay_ct0 = b.ngay_ct0 and a.ma_so_thue = b.ma_so_thue and a.so_seri0 = b.so_seri0 and a.so_ct0 = b.so_ct0 and b.ma_ct = @voucherID)
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(stt) from @@table a group by ma_so_thue, ngay_ct0, so_seri0, so_ct0 having count(1) > 1
+    if @r is not null begin
+      select replace(replace(@duplicate, '%s1', so_ct0), '%s2', @@delta + @r) as message from @@table where stt = @r
+      return
+    end
+    select @r = min(stt) from @@table a where exists (select 1 from ctgt30 b where (a.ma_dvcs <> b.ma_dvcs or a.ma_mau_ct <> b.ma_mau_ct) and a.ngay_ct0 = b.ngay_ct0 and a.ma_so_thue = b.ma_so_thue and a.so_seri0 = b.so_seri0 and a.so_ct0 = b.so_ct0 and b.ma_ct = @voucherID)
+    if @r is not null begin
+      select replace(replace(@duplicate, '%s1', so_ct0), '%s2', @@delta + @r) as message from @@table where stt = @r
+      return
+    end
+  end
+end
+-- Delete
+if @type = '0' delete @@table from @@table a where exists(select 1 from ctgt30 b where a.ma_dvcs = b.ma_dvcs and a.ngay_ct0 = b.ngay_ct0 and a.so_ct0 = b.so_ct0 and a.so_seri0 = b.so_seri0 and a.ma_mau_ct = b.ma_mau_ct and a.ma_so_thue = b.ma_so_thue and a.ma_thue = b.ma_thue and b.ma_ct = @voucherID)
+
+select @field = 'ma_dvcs'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from @@table where @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)
+  ]]>&Error;<![CDATA[
+end
+
+]]>&EndErrorMode;<![CDATA[
+update @@table set stt_rec = b.stt_rec
+  from @@table a join (select c.ma_dvcs, c.ngay_ct0, c.so_ct0, c.so_seri0, c.ma_mau_ct, c.ma_so_thue, c.ma_thue, min(c.stt_rec) as stt_rec from ctgt30 c join @@table d on c.ma_dvcs = d.ma_dvcs and c.ngay_ct0 = d.ngay_ct0 and c.so_ct0 = d.so_ct0 and c.so_seri0 = d.so_seri0 and c.ma_mau_ct = d.ma_mau_ct and c.ma_so_thue = d.ma_so_thue and c.ma_thue = d.ma_thue where c.ma_ct = @voucherID and c.status = '1' group by c.ma_dvcs, c.ngay_ct0, c.so_ct0, c.so_seri0, c.ma_mau_ct, c.ma_so_thue, c.ma_thue) b on a.ma_dvcs = b.ma_dvcs and a.ngay_ct0 = b.ngay_ct0 and a.so_ct0 = b.so_ct0 and a.so_seri0 = b.so_seri0 and a.ma_mau_ct = b.ma_mau_ct and a.ma_so_thue = b.ma_so_thue and a.ma_thue = b.ma_thue
+
+-- Gather
+select a.* into #k from @@table a join ctgt30 b on a.ma_dvcs = b.ma_dvcs and a.ngay_ct0 = b.ngay_ct0 and a.so_ct0 = b.so_ct0 and a.so_seri0 = b.so_seri0 and a.ma_mau_ct = b.ma_mau_ct and a.ma_so_thue = b.ma_so_thue and a.ma_thue = b.ma_thue
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.ngay_ct0 = b.ngay_ct0 and a.so_ct0 = b.so_ct0 and a.so_seri0 = b.so_seri0 and a.ma_mau_ct = b.ma_mau_ct and a.ma_so_thue = b.ma_so_thue and a.ma_thue = b.ma_thue)
+
+-- Insert
+if @count > 0 begin
+  exec AI_ERP$App$UpdateIdentityNumber @wsID, @voucherID, @count, @user, '@@table', 'stt_rec', 'stt'
+  ]]>&Inserting;<![CDATA[
+end
+
+-- Update
+if @type = '1' begin
+  update ctgt30 set @@list from ctgt30 a, #k b where a.ma_dvcs = b.ma_dvcs and a.ngay_ct0 = b.ngay_ct0 and a.so_ct0 = b.so_ct0 and a.so_seri0 = b.so_seri0 and a.ma_mau_ct = b.ma_mau_ct and a.ma_so_thue = b.ma_so_thue and a.ma_thue = b.ma_thue and a.status = '1'
+end
+]]>
+    </text>
+  </processing>
+
+</import>

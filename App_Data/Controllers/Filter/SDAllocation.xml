@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterFields SYSTEM "..\Include\XML\FlowFilterFields.txt">
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "SDInvoice">
+  <!ENTITY c11 "Hóa đơn từ ngày">
+  <!ENTITY c12 "Date from">
+  <!ENTITY c21 "Số hóa đơn">
+  <!ENTITY c22 "Invoice Number">
+  <!ENTITY ext "81">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'SDAllocation', 'Filter', 'SDTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+
+<dir table="m81$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn hóa đơn" e="Filter Condition"></title>
+  <fields>
+    &XMLFlowFilterFields;
+  </fields>
+
+  <views>
+    &XMLFlowFilterViews;
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @fields nvarchar(64), @keyFlow nvarchar(4000), @$none nvarchar(512), @keyMaster nvarchar(4000)
+select @keyMaster = '%#10$' + rtrim(@ma_kh) + '#%', @fields = 'so_seri + char(255) + ma_kh'
+select @keyFlow = 'status in (''1'', ''2'')', @$none = case when @@language = 'v' then N'Không có hóa đơn theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+]]>
+        &CheckRelativeProcess;
+        &XMLFlowFilterCheck;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {f.getItem('so_ct')._idle = ]]>&IdleLookupFilter;<![CDATA[;}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f._looking.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);
+
+  var g = f.grid, w = g.get_element().parentForm, d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs');
+  g._custID = w.getItemValue('ma_kh');
+  g._custName = w.getItemValue('ten_kh%l');
+  f.setItemValues('ngay_ct2, ma_kh, ma_dvcs', [d2, g._custID, u]);
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Filter$Before$Loading(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1')) e.type.cancelEvent = true;
+  else {
+    var g = f.grid, w = g.get_element().parentForm;
+    var d1 = f.getItemValue('ngay_ct1'), d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs');
+
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: d1},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: d2},
+      {Name: 'ma_kh', Type: 'String', Value: g._custID},
+      {Name: 'ma_dvcs', Type: 'String', Value: u}
+    ];
+    sender.set_memvars(a);
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, c, d, k, e) {
+  var w = f.grid.get_element().parentForm, z = k.split(String.fromCharCode(255)), d22 = w.getItem('d22')._controlBehavior;
+  var p = d22._getColumnOrder('tk_no'), v1 = d22._getItem(1, p), v2 = d22._getItem(1, d22._getColumnOrder('ten_tk%l'));
+
+  var addControl = (v1.addControl || v1.label);
+  var vcAccDebit = (!addControl || v2.checked)  ? $func.trim(d22._getItemValue(1, p)) : '';
+
+  Array.add(f._memvars, {Name: 'vcCode', OldValue: null, NewValue: 'HDA', Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'vcID', OldValue: null, NewValue: d, Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'e', OldValue: null, NewValue: e.substring(0, 6), Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'vcAccDebit', OldValue: null, NewValue: vcAccDebit, Modified: true, Items: []});
+
+  w.setItemValues('stt_rec_hd, so_ct_hd, so_seri_hd, ngay_ct_hd', [d, c, $func.trim(z[0]), $func.formatStringToDate(e)]);
+  w._customerIdentity = $func.trim(z[1]);
+
+  var element = f.grid.get_element();
+  element.field.AllowContain = true;
+  element.field.FilterSource = '';
+}
+]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

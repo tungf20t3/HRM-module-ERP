@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY k "a.ngay_ct = b.ngay_ct and a.so_dh = b.so_dh and a.ma_sp = b.ma_sp and a.ma_kho = b.ma_kho">
+  <!ENTITY And "&#13;">
+  <!ENTITY SiteRight "
+exec AI_ERP$System$CheckImportSiteRights '@@table', 'ma_kho', 'stt', @user, @admin, @r output, default, @$mode, @$errorCount output
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  &Error;
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'MRPProductionPlanning' else 'MRPProductionPlanning2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$MRPProductionPlanningImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$MRPProductionPlanningImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="mctkhsx"/>
+    <table value="mctkhsx" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ngay_ct" column="A" isPrimaryKey="true" allowNulls="false" type="DateTime" updateValue="None"/>
+    <field name="so_dh" column="B" isPrimaryKey="true" upperCase="true" updateValue="None"/>
+    <field name="ma_sp" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_sp not in (select ma_vt from dmvt where loai_vt in ('41', '51', '61') and kieu_hd &lt;&gt; '0')" errorCode="00001"/>
+    <field name="dvt" column="E"/>
+    <field name="ma_kho" column="F" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_kho not in (select ma_kho from dmkho)" errorCode="00001"/>
+    <field name="so_luong" column="G" type="Decimal"/>
+
+    <field name="status" column="H" allowNulls="false" check="status not in ('0', '1', '3', '4')" errorCode="00001"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Kế hoạch sản xuất" e="Production Planning"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ngay_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày" e="Date"/>
+      </field>
+      <field name="so_dh" width ="16">
+        <text v="Số đơn hàng" e="Order No."/>
+      </field>
+      <field name="ma_sp" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã sản phẩm" e="Product"/>
+      </field>
+      <field name="ten_sp" width ="32" afterField="ma_sp" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên sản phẩm" e="Product Name"/>
+      </field>
+      <field name="dvt" width ="12">
+        <text v="Đvt" e="UOM"/>
+      </field>
+      <field name="ma_kho" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã kho" e="Site"/>
+      </field>
+      <field name="so_luong" width ="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="status" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Trạng thái" e="Status"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @field varchar(32), @user int, @admin bit, @r int, @unit varchar(32)
+select @admin = @@admin, @user = @@userID, @unit = @@unit
+update @@table set so_dh = space(datalength(so_dh) - len(rtrim(so_dh))) + rtrim(so_dh)
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select @field = 'ma_kho'
+if @admin <> 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'MRPProductionPlanning', 'Edit') = 0 select @type = '0'
+  end
+
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table a where not exists(select 1 from mctkhsx b where ]]>&k;<![CDATA[) and not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1))
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+
+    if @type = '1' begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table a where exists(select 1 from mctkhsx b where ]]>&k;<![CDATA[) and not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit= 1))
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end
+  end else begin
+    select @r = min(stt) from @@table a where not exists(select 1 from mctkhsx b where ]]>&k;<![CDATA[)
+      and not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1))]]>&Error;<![CDATA[
+
+    if @type = '1' begin
+        select @r = min(a.stt) from @@table a where exists(select 1 from mctkhsx b where ]]>&k;<![CDATA[)
+          and not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit= 1))]]>&Error;<![CDATA[
+    end
+  end
+
+  ]]>&SiteRight;<![CDATA[
+end
+
+-- Update
+update @@table set dvt = case when a.dvt <> '' then a.dvt else b.dvt end from @@table a left join dmvt b on a.ma_sp = b.ma_vt
+
+select @field = 'dvt'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_sp = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_sp = c.ma_vt and a.dvt = c.dvt where a.dvt <> '' and b.dvt is null and c.dvt is null
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'dvt', @r = min(stt) from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_sp = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_sp = c.ma_vt and a.dvt = c.dvt where a.dvt <> '' and b.dvt is null and c.dvt is null]]>&Error;<![CDATA[
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+if @type = '0' delete @@table from @@table a where exists(select 1 from mctkhsx b where ]]>&k;<![CDATA[)
+
+select ngay_ct, so_dh, ma_sp, ma_kho, 1 as he_so into #r from @@table
+update #r set he_so = isnull(b.he_so, 1) from @@table a join vdmvtqddvt b on (a.ma_sp = b.ma_vt or b.ma_vt = '*') and a.dvt = b.dvt left join dmvt c on a.ma_sp = c.ma_vt where c.nhieu_dvt = 1
+
+select a.* into #k from @@table a join mctkhsx b on ]]>&k;<![CDATA[
+delete @@table from @@table a where exists(select 1 from #k b where ]]>&k;<![CDATA[)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  ]]>&Updating;<![CDATA[ where ]]>&k;<![CDATA[
+end
+
+update mctkhsx set he_so = b.he_so from mctkhsx a join #r b on ]]>&k;<![CDATA[
+]]>
+    </text>
+  </processing>
+
+</import>

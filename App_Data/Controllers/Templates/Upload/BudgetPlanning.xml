@@ -1,0 +1,227 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'BudgetPlanning' else 'BudgetPlanning2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BudgetPlanningImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BudgetPlanningImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="glns"/>
+    <table value="glns" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;not exists(select 1 from glns b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_bp = b.ma_bp and @@table.ma_vv = b.ma_vv and @@table.ma_ct = b.ma_ct and b.nam = @nam) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from glns b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_bp = b.ma_bp and @@table.ma_vv = b.ma_vv and @@table.ma_ct = b.ma_ct and b.nam = @nam) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;if (@admin &lt;&gt; 1) begin&And;if (@admin &lt;&gt; 1 and @type = '1') begin" tag="&And;end&And;end" errorCode="00001&And;00002&And;00002"/>
+    <field name="ma_bp" column="B" isPrimaryKey="true" upperCase="true" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from dmbp)" updateValue="None" errorCode="00001"/>
+    <field name="ma_vv" column="C" isPrimaryKey="true" upperCase="true" check="ma_vv &lt;&gt; '' and ma_vv not in (select ma_vv from dmvv)" updateValue="None" errorCode="00001"/>
+    <field name="ma_ct" column="D" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_ct not in (select ma_ct from dmctns)" updateValue="None" errorCode="00001"/>
+    <field name="lan" column="E" isPrimaryKey="true" type="Decimal" defaultvalue="0"/>
+    <field name="tien_nt" column="F" type="Decimal"/>
+    <field name="tien" column="G" type="Decimal"/>
+    <field name="tien_nt01" column="H" type="Decimal"/>
+    <field name="tien01" column="I" type="Decimal"/>
+    <field name="tien_nt02" column="J" type="Decimal"/>
+    <field name="tien02" column="K" type="Decimal"/>
+    <field name="tien_nt03" column="L" type="Decimal"/>
+    <field name="tien03" column="M" type="Decimal"/>
+    <field name="tien_nt04" column="N" type="Decimal"/>
+    <field name="tien04" column="O" type="Decimal"/>
+    <field name="tien_nt05" column="P" type="Decimal"/>
+    <field name="tien05" column="Q" type="Decimal"/>
+    <field name="tien_nt06" column="R" type="Decimal"/>
+    <field name="tien06" column="S" type="Decimal"/>
+    <field name="tien_nt07" column="T" type="Decimal"/>
+    <field name="tien07" column="U" type="Decimal"/>
+    <field name="tien_nt08" column="V" type="Decimal"/>
+    <field name="tien08" column="W" type="Decimal"/>
+    <field name="tien_nt09" column="X" type="Decimal"/>
+    <field name="tien09" column="Y" type="Decimal"/>
+    <field name="tien_nt10" column="Z" type="Decimal"/>
+    <field name="tien10" column="AA" type="Decimal"/>
+    <field name="tien_nt11" column="AB" type="Decimal"/>
+    <field name="tien11" column="AC" type="Decimal"/>
+    <field name="tien_nt12" column="AD" type="Decimal"/>
+    <field name="tien12" column="AE" type="Decimal"/>
+
+    <field name="nam" column="None" type="Decimal" insertValue="@nam" updateValue="None"/>
+    <field name="t_tien" column="None" type="Decimal" insertValue="(tien01 + tien02 + tien03 + tien04 + tien05 + tien06 + tien07 + tien08 + tien09 + tien10 + tien11 + tien12)" updateValue="(b.tien01 + b.tien02 + b.tien03 + b.tien04 + b.tien05 + b.tien06 + b.tien07 + b.tien08 + b.tien09 + b.tien10 + b.tien11 + b.tien12)"/>
+    <field name="t_tien_nt" column="None" type="Decimal" insertValue="(tien_nt01 + tien_nt02 + tien_nt03 + tien_nt04 + tien_nt05 + tien_nt06 + tien_nt07 + tien_nt08 + tien_nt09 + tien_nt10 + tien_nt11 + tien_nt12)" updateValue="(b.tien_nt01 + b.tien_nt02 + b.tien_nt03 + b.tien_nt04 + b.tien_nt05 + b.tien_nt06 + b.tien_nt07 + b.tien_nt08 + b.tien_nt09 + b.tien_nt10 + b.tien_nt11 + b.tien_nt12)"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Dự toán ngân sách" e="Budget Planning"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ma_bp" width="16">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="ma_vv" width="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã chỉ tiêu" e="Article Code"/>
+      </field>
+      <field name="lan" width="16">
+        <text v="Lần chỉnh sửa" e="Revision"/>
+      </field>
+
+      <field name="tien_nt" width="16">
+        <text v="Kế hoạch năm nt" e="FC Annual Planning"/>
+      </field>
+      <field name="tien" width="16">
+        <text v="Kế hoạch năm" e="Annual Planning"/>
+      </field>
+      <field name="tien_nt01" width="16">
+        <text v="Kỳ 01 nt" e="FC Period 01"/>
+      </field>
+      <field name="tien01" width="16">
+        <text v="Kỳ 01" e="Period 01"/>
+      </field>
+      <field name="tien_nt02" width="16">
+        <text v="Kỳ 02 nt" e="FC Period 02"/>
+      </field>
+      <field name="tien02" width="16">
+        <text v="Kỳ 02" e="Period 02"/>
+      </field>
+      <field name="tien_nt03" width="16">
+        <text v="Kỳ 03 nt" e="FC Period 03"/>
+      </field>
+      <field name="tien03" width="16">
+        <text v="Kỳ 03" e="Period 03"/>
+      </field>
+      <field name="tien_nt04" width="16">
+        <text v="Kỳ 04 nt" e="FC Period 04"/>
+      </field>
+      <field name="tien04" width="16">
+        <text v="Kỳ 04" e="Period 04"/>
+      </field>
+      <field name="tien_nt05" width="16">
+        <text v="Kỳ 05 nt" e="FC Period 05"/>
+      </field>
+      <field name="tien05" width="16">
+        <text v="Kỳ 05" e="Period 05"/>
+      </field>
+      <field name="tien_nt06" width="16">
+        <text v="Kỳ 06 nt" e="FC Period 06"/>
+      </field>
+      <field name="tien06" width="16">
+        <text v="Kỳ 06" e="Period 06"/>
+      </field>
+      <field name="tien_nt07" width="16">
+        <text v="Kỳ 07 nt" e="FC Period 07"/>
+      </field>
+      <field name="tien07" width="16">
+        <text v="Kỳ 07" e="Period 07"/>
+      </field>
+      <field name="tien_nt08" width="16">
+        <text v="Kỳ 08 nt" e="FC Period 08"/>
+      </field>
+      <field name="tien08" width="16">
+        <text v="Kỳ 08" e="Period 08"/>
+      </field>
+      <field name="tien_nt09" width="16">
+        <text v="Kỳ 09 nt" e="FC Period 09"/>
+      </field>
+      <field name="tien09" width="16">
+        <text v="Kỳ 09" e="Period 09"/>
+      </field>
+      <field name="tien_nt10" width="16">
+        <text v="Kỳ 10 nt" e="FC Period 10"/>
+      </field>
+      <field name="tien10" width="16">
+        <text v="Kỳ 10" e="Period 10"/>
+      </field>
+      <field name="tien_nt11" width="16">
+        <text v="Kỳ 11 nt" e="FC Period 11"/>
+      </field>
+      <field name="tien11" width="16">
+        <text v="Kỳ 11" e="Period 11"/>
+      </field>
+      <field name="tien_nt12" width="16">
+        <text v="Kỳ 12 nt" e="FC Period 12"/>
+      </field>
+      <field name="tien12" width="16">
+        <text v="Kỳ 12" e="Period 12"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @user int, @admin bit
+select @admin = @@admin, @user = @@userID
+
+if @admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'BudgetPlanning', 'Edit') = 0 select @type = '0'
+end
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Delete
+if @type = '0' delete @@table from @@table a where exists(select 1 from glns b where b.nam = @nam and a.ma_dvcs = b.ma_dvcs and a.ma_bp = b.ma_bp and a.ma_vv = b.ma_vv and a.ma_ct = b.ma_ct and a.lan = b.lan)
+select a.* into #k from @@table a join glns b on b.nam = @nam and a.ma_dvcs = b.ma_dvcs and a.ma_bp = b.ma_bp and a.ma_vv = b.ma_vv and a.ma_ct = b.ma_ct and a.lan = b.lan
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.ma_bp = b.ma_bp and a.ma_vv = b.ma_vv and a.ma_ct = b.ma_ct and a.lan = b.lan)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ and a.nam = @nam end
+]]>
+    </text>
+  </processing>
+</import>

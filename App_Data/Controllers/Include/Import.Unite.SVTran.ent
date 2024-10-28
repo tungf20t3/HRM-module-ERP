@@ -1,0 +1,144 @@
+﻿<!ENTITY % Conditional.Unite  SYSTEM "..\Include\Import.Unite.SVTran.txt">
+<!ENTITY % Conditional.ImportTax SYSTEM "..\Include\ImportTax.txt">
+<!ENTITY % Conditional.GenerateImportTemplate SYSTEM "..\Include\GenerateImportTemplate.txt">
+<!ENTITY % Conditional.COGS SYSTEM "..\Include\COGS.txt">
+<!ENTITY % Conditional.DiscountRate SYSTEM "..\Include\DiscountRate.txt">
+
+<![%Conditional.COGS;[
+  <!ENTITY ListFieldSumValues.COGS ", sum(tien_nt) as t_tien_nt, sum(tien) as t_tien">
+  <!ENTITY ListFieldDetailValues.COGS ", a.px_gia_dd, a.gia_nt, round(a.gia_nt * a.ty_gia, @roundPrice), a.tien_nt, round(a.tien_nt * a.ty_gia, @roundAmount)">
+
+  <!ENTITY Unite.ExcludeColumns.COGS "">
+  <!ENTITY SVTranGLCOGS.ext.Unite "">
+  <!ENTITY SVTranUpdateStock.ext.COGS ", gia_nt1 = b.gia_nt, gia1 = b.gia, tien_xuat = b.tien, tien_nt_x = b.tien_nt">
+  <!ENTITY SVTranFieldZeroStock.COGS "">
+]]>
+
+<![%Conditional.DiscountRate;[
+  <!ENTITY ListFieldSumValues.DiscountRate ", sum(tien_nt2 - ck_nt) as t_tien_nt2, sum(tien2 - ck) as t_tien2, sum(ck_nt) as t_ck_nt, sum(ck) as t_ck">
+  <!ENTITY ListFieldDetailValues.DiscountRate ", a.tl_ck, a.tk_ck, a.ck_nt, round(a.ck_nt * a.ty_gia, @roundAmount)">
+
+  <!ENTITY Unite.ExcludeColumns.DiscountRate "">
+  <!ENTITY Unite.ListFieldDetailValues.ImportTax ", round((a.tien_nt2 - a.ck_nt) * (d.thue_suat / 100), case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(((a.tien_nt2 - a.ck_nt) * a.ty_gia) * (d.thue_suat / 100), @roundAmount)">
+  <!ENTITY SVTranFieldZeroStock.DiscountRate "">
+]]>
+<!ENTITY SVTranFieldZeroStock.COGS ", px_gia_dd, gia_nt1, gia1, gia, tien_xuat, tien_nt_x">
+<!ENTITY SVTranFieldZeroStock.DiscountRate ", ck, ck_nt">
+<!ENTITY SVTranUpdateStock.ext.COGS "">
+
+<![%Conditional.GenerateImportTemplate;[
+  <!ENTITY DownloadExcludeColumn ", @$excludeColumns as exclude_column">
+
+  <![%Conditional.ImportTax;[
+    <!ENTITY ImportTaxExcludeColumns.ImportTax "">
+
+    <!ENTITY Unite.ExcludeColumns.ImportTax "">
+
+    <!ENTITY ListFieldDetailValues.ImportTax ", thue_nt, round(a.thue_nt * a.ty_gia, @roundAmount)">
+  ]]>
+  <!ENTITY ImportTaxExcludeColumns.ImportTax "thue_nt">
+  <!ENTITY ListFieldDetailValues.ImportTax "&Unite.ListFieldDetailValues.ImportTax;">
+]]>
+<!ENTITY ImportTaxExcludeColumns.ImportTax "">
+<!ENTITY DownloadExcludeColumn "">
+
+<!ENTITY Unite.ExcludeColumns.COGS "select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end + '&ImportTaxExcludeColumns.COGS;'">
+<!ENTITY Unite.ExcludeColumns.DiscountRate "select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end + '&ImportTaxExcludeColumns.DiscountRate;'">
+<!ENTITY Unite.ExcludeColumns.ImportTax "select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end + '&ImportTaxExcludeColumns.ImportTax;'">
+
+<!ENTITY UpdateLocationLot "
+declare @localtionCheck bit, @lotCheck bit
+select @localtionCheck = 1, @lotCheck = 1
+&ControlLocationLotLoading;
+  select @lotCheck = @$Lot, @localtionCheck = @$location
+  if @$location = 0 or @$Lot = 0 begin
+  select @q = 'update @@table set ' + (
+    select case
+      when @$location = 0 and @$Lot = 0 then 'ma_lo = '''', ma_vi_tri = '''''
+      when @$location = 1 and @$Lot = 0 then 'ma_lo = '''''
+      when @$location = 0 and @$Lot = 1 then 'ma_vi_tri = '''''
+    end)
+    exec sp_executesql @q
+  end
+end
+">
+
+<![%Conditional.Unite;[
+  <!ENTITY SVTranViewIndex "14">
+  <!ENTITY SVTranFields.f SYSTEM "..\Templates\Upload\Include\SVTranFields.f">
+  <!ENTITY ListFieldMaster.ext ", t_ck_nt, t_ck, t_tien_nt, t_tien">
+  <!ENTITY ListFieldMasterValues.ext ", d.t_tien_nt2, d.t_tien2&ListFieldMasterValues.DiscountRate;&ListFieldMasterValues.COGS;">
+
+  <!ENTITY Unite.Command "
+declare @compactMode char(1)
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') set @compactMode = '1' else set @compactMode = '0'
+
+declare @$excludeColumns varchar(512)
+set @$excludeColumns = ''
+
+&Unite.ExcludeColumns.COGS;
+&Unite.ExcludeColumns.DiscountRate;
+&Unite.ExcludeColumns.ImportTax;
+
+if exists(select 1 from options where name = 'm_compact_mode' and rtrim(val) = '1') begin
+  select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end + 'ma_lo, ma_vi_tri'
+end else begin
+  if exists(select 1 from options where name = 'm_instock_split' and val = '1') begin
+    declare @$locationExt bit, @$lotExt bit
+    if '&Code;' &lt;&gt; '' and object_id('dmctvtrlo') is not null begin
+      exec sp_executesql N'select @location = vi_tri_yn, @lot = lo_yn from dmctvtrlo where ma_ct = ''&Code;''', N'@location bit output, @lot bit output', @$locationExt output, @$lotExt output
+    end
+    if @$locationExt is null select @$locationExt = cast(rtrim(val) as bit) from options where name = 'm_kt_td_vitri_yn'
+    if @$lotExt is null select @$lotExt = cast(rtrim(val) as bit) from options where name = 'm_kt_td_lo_yn'
+
+    if @$locationExt = 0 or @$lotExt = 0 begin
+      select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end +
+        case
+          when @$locationExt = 0 and @$lotExt = 0 then 'ma_vi_tri, ma_lo'
+          when @$locationExt = 1 and @$lotExt = 0 then 'ma_lo'
+          when @$locationExt = 0 and @$lotExt = 1 then 'ma_vi_tri'
+        end
+    end
+  end
+end
+select &SVTranViewIndex; as view_index&DownloadExcludeColumn;
+return
+">
+  <!ENTITY SVTranGLCOGS.ext.Unite "">
+  <!ENTITY ListFieldDetailValues.COGS ", 0, 0, 0, 0, 0">
+  <!ENTITY ListFieldDetailValues.DiscountRate ", 0, '', 0, 0">
+  <!ENTITY SVTranImportTaxUpdate "&ImportTaxUpdate.DiscountRate;&UpdateLocationLot;">
+  <!ENTITY ListFieldSumValues.ext "&ListFieldSumValues.DiscountRate;&ListFieldSumValues.COGS;">
+  <!ENTITY ListFieldDetail.ext ", thue_nt, thue, tl_ck, tk_ck, ck_nt, ck, px_gia_dd, gia_nt, gia, tien_nt, tien">
+  <!ENTITY SVTranGLCOGS.ext "&SVTranGLCOGS.ext.Unite;">
+  <!ENTITY ListFieldDetailValues.ext "&ListFieldDetailValues.ImportTax;&ListFieldDetailValues.DiscountRate;&ListFieldDetailValues.COGS;">
+  <!ENTITY SVTranFieldZeroStock.ext "&SVTranFieldZeroStock.COGS;&SVTranFieldZeroStock.DiscountRate;">
+  <!ENTITY SVTranUpdateStock.ext "&SVTranUpdateStock.ext.COGS;">
+]]>
+
+<!ENTITY Unite.Command "
+declare @filename varchar(128), @compactMode char(1)
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') select @compactMode = '1' else select @compactMode = '0'
+&ImportTaxDownloadQuery.SVTran;
+declare @xLocation bit, @xLot bit, @xSplit bit
+&ControlLocationLotLoading;
+  select @xLocation = isnull(@$location, 0), @xLot = isnull(@$lot, 0), @xSplit = 1
+end
+&ExportImportTemplateQuery;
+if isnull(@xSplit, 0) = 0
+  if exists(select 1 from options where name = 'm_compact_mode' and rtrim(val) = '1')
+    select '&Tag.Compact.ext;' as view_index&ImportTaxDownloadHiddenColumn;&ImportTaxDownloadExcludeColumn;&ExportImportTemplateQueryReturnFileName;
+  else
+    select '&Tag.ext;' as view_index&ImportTaxDownloadHiddenColumn;&ImportTaxDownloadExcludeColumn;&ExportImportTemplateQueryReturnFileName;
+else begin
+  select case
+    when @xLocation = 0 and @xLot = 0 then &Tag.Compact.ext;
+    when @xLocation = 1 and @xLot = 0 then &Tag.Location.ext;
+    when @xLocation = 0 and @xLot = 1 then &Tag.Lot.ext;
+    when @xLocation = 1 and @xLot = 1 then &Tag.ext;
+  end as view_index&ImportTaxDownloadHiddenColumn;&ImportTaxDownloadExcludeColumn;&ExportImportTemplateQueryReturnFileName;
+end
+  ">
+<!ENTITY SVTranImportTaxUpdate "&UpdateLocationLot;">
+<!ENTITY SVTranFields.f "">
+<!ENTITY Unite.ListFieldDetailValues.ImportTax ", round(a.tien_nt2 * (d.thue_suat / 100), case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(a.tien_nt2 * a.ty_gia * (d.thue_suat / 100), @roundAmount)">

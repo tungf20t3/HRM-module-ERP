@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày từ" e="Date from"></header>
+      <footer v="Từ/đến ngày" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày đến" e="Date to"></header>
+    </field>
+    <field name="tuy_chon" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Tùy chọn" e="Options"></header>
+      <footer v="1 - Hiển thị chứng từ đã xóa, 2 - Xóa nhật ký chứng từ theo điều kiện lọc" e="1 - Maintain, 2 - Remove"/>
+      <items style="Mask"></items>
+      <clientScript><![CDATA[onchange=onChange$VoucherFilter$Options(this);]]></clientScript>
+    </field>
+    <field name="ma_ct" onDemand="true">
+      <header v="Mã chứng từ" e="Voucher Code"></header>
+      <items style="AutoComplete" controller="VoucherExtension" reference="ten_ct%l" key="x_logs = '1' and wedition &lt;&gt; '9' and status = '1'" check="x_logs = '1' and wedition &lt;&gt; '9'"/>
+    </field>
+    <field name="ten_ct%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 25, 75, 100, 100, 130"/>
+      <item value="1101--: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="111000: [tuy_chon].Label, [tuy_chon], [tuy_chon].Description"/>
+      <item value="110100: [ma_ct].Label, [ma_ct], [ten_ct%l]"/>
+      <item value="11000-: [ma_dvcs].Label, [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+#IF @@admin <> 1 #THEN
+  select '' as field, '$NotAuthorized' as message
+  return
+#END
+select 'active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterClosing;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+#IF @@admin <> 1 #THEN
+  return
+#END
+if @tuy_chon = '2' begin
+  declare @r tinyint, @m nvarchar(4000)
+  exec dbo.AI_ERP$Voucher$Maintain$Log$Delete @ngay_tu, @ngay_den, @ma_ct, @ma_dvcs, @@language, @@userID, @@admin, '2', @r output, @m output
+  select 'ngay_tu' as field, case when isnull(@m, '') <> '' then @m else case @@language when 'V' then N'Chương trình đã thực hiện xong.' else N'The process was completed successfully.' end end as message
+  return
+end
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+if @@admin <> 1 return
+exec dbo.AI_ERP$Voucher$Maintain$Log$Delete @ngay_tu, @ngay_den, @ma_ct, @ma_dvcs, @@language, @@userID, @@admin, 0
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");setItemAllowNulls(a,"ma_ct",a.getItemValue("tuy_chon")=="1")}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(f,c){var b=c.object,d=c.type.Context,e=c.type.Result;switch(d){case"Checking":var a=b.grid;a._$dFrom=b.getItemValue("ngay_tu"),a._$dTo=b.getItemValue("ngay_den"),a._$vList=b.getItemValue("ma_ct"),a._$uList=b.getItemValue("ma_dvcs");a._alterTitle=[null,[["%c",a._$vList,true],["%n",b.getItemValue("ten_ct%l"),true],["%d1",b.getItem("ngay_tu").value,true],["%d2",b.getItem("ngay_den").value,true]]];if(a._$k!=null)a._$k=[],a._$v=[]}}function onChange$VoucherFilter$Options(a){setItemAllowNulls(a.parentForm,"ma_ct",a.parentForm.getItemValue("tuy_chon")=="1")}function setItemAllowNulls(e,g,f){for(var c=g.split(","),d,a,b=0;b<c.length;b++)if($func.trim(c[b])!=""){d=e.getItem($func.trim(c[b]));d.field.AllowNulls=!f;a=d.parentNode.parentNode;if(f){Sys.UI.DomElement.addCssClass(a,"Required");Sys.UI.DomElement.addCssClass(a,e._id)}else Sys.UI.DomElement.removeCssClass(a,"Required")}}]]>
+    </text>
+  </script>
+</dir>

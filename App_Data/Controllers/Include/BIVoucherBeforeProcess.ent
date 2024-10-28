@@ -1,0 +1,33 @@
+﻿<![%Conditional.BIVoucherBeforeProcess;[
+  <!ENTITY BIMode.CommandWhenVoucherBeforeNew "
+#IF @@admin &lt;&gt; 1 #THEN
+  if not exists(select 1 from bisyspurorgrights where user_id = @@userID and ma_bp0 = @ma_bp0 and r_new = 1) begin
+    select 'ma_bp0' as field, '$NotAuthorized' as message
+    return
+  end
+#END">
+  <!ENTITY BIMode.CommandWhenVoucherBeforeEdit "
+#IF @@admin &lt;&gt; 1 #THEN
+  #IF @@view = 0 and @@action = 'Edit' #THEN
+    declare @$denyEdit nvarchar(512), @$checkVoucherPurOrg varchar(32)
+    select @$denyEdit = '$NotAuthorized', @$checkVoucherPurOrg = ma_bp0 from @@prime$partition$current where stt_rec = @stt_rec
+    if not exists(select 1 from bisyspurorgrights where user_id = @@userID and ma_bp0 = @$checkVoucherPurOrg and r_edit = 1) begin
+      select '' as field, @$denyEdit as message
+      return
+    end
+  #END
+#END">
+  <!ENTITY BIMode.CommandWhenVoucherBeforeDelete "
+#IF @@admin &lt;&gt; 1 #THEN
+  declare @$denyDelete nvarchar(512), @$checkVoucherPurOrg varchar(32)
+  select @$denyDelete = '$NotAuthorized', @$checkVoucherPurOrg = ma_bp0 from @@prime$partition$current where stt_rec = @stt_rec
+  if not exists(select 1 from bisyspurorgrights where user_id = @@userID and ma_bp0 = @$checkVoucherPurOrg and r_del = 1) begin
+    select '' as field, @$denyDelete as message
+    return
+  end
+#END">
+]]>
+
+<!ENTITY BIMode.CommandWhenVoucherBeforeNew "">
+<!ENTITY BIMode.CommandWhenVoucherBeforeEdit "">
+<!ENTITY BIMode.CommandWhenVoucherBeforeDelete "">

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIPRIRMultiForm">
+  <!ENTITY ParentController "PRTran">
+  <!ENTITY GridController "BIPRIRMultiGrid">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+
+  <!ENTITY OtherCopyField "">
+
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+
+  <!ENTITY % BIMode.PickPrice SYSTEM "..\Include\BIMode.PickPrice">
+  %BIMode.PickPrice;
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn giá" e="Get Info Record"></title>
+
+  <fields>
+    &FlowMultiFormField;
+  </fields>
+
+  <views>
+    &FlowMultiFormView;
+  </views>
+
+  <commands>
+    &FlowMultiFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &BI.PickPrice.MultiForm.Script;
+      <![CDATA[
+function on$]]>&Identity;<![CDATA[$TransferData(f, g) {
+  var z = f.grid, w = z.get_element().parentForm, a = g._$k[0];
+  var x1 = g._getColumnOrder('gia_nt'), x2 = g._getColumnOrder('so_ct');
+  var r = z._activeRow, l1 = z._getColumnOrder('so_luong'), l2 = z._getColumnOrder('gia_nt'), l3 = z._getColumnOrder('so_tham_chieu');
+
+  z._setItemValue(r, l2, a[x1 - 1]);
+  z._setItemValue(r, l3, $func.trim(a[x2 - 1]));
+
+  if (z._getItemValue(r, l1) > 0) {
+    var o = z._getItem(r, l3);
+    o.row = r;
+    z.validExpression(o, [z.$a.gia, z.$a.tien_nt, z.$a.tien], [z.$a.t_tien_nt, z.$a.t_tien], null, 'tien_nt');
+  }
+
+  z._focusWhenTabChanged();
+  f.cancelDialog();
+}
+]]>
+    </text>
+  </script>
+</dir>

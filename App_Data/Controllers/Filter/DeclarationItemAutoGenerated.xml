@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+<dir table="dmvtxktd" code="ma_dvcs, ma_vt" order="ma_dvcs, ma_vt" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_dvcs" dataFormatString="@upperCaseFormat">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="@@admin = 1 or ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1) and status = '1'" check="@@admin = 1 or ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="loai_vt" dataFormatString="1, 2, *" clientDefault="*" align="right">
+      <header v="Loại vật tư" e="Item Type"></header>
+      <footer v="1 - Thành phẩm, 2 - Nguyên vật liệu, * - Tất cả" e="1 - Finished Product, 2 - Material, * - All"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11010: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="11100: [loai_vt].Label, [loai_vt], [loai_vt].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(sender) {sender.add_onResponseComplete(on$Filter$ResponseComplete);}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array(), unit = $func.trim(f.getItemValue('ma_dvcs')), type = $func.trim(f.getItemValue('loai_vt'));
+      var i = type == 1 ? 0 : 1, name = f.getItem('loai_vt').field.FooterText.split(", ");
+      if (unit) Array.add(k, {Name: 'ma_dvcs', Opr: 'like', Value: unit + '%', Type: 'String', Ignore: false});
+      if (type == 1) {
+        g._alterTitle = [null, [['%s', name[i], true]]];
+        Array.add(k, {Name: 'type', Opr: '=', Value: 1, Type: 'String', Ignore: false});
+      } else if (type == 2) {
+        g._alterTitle = [null, [['%s', name[i], true]]];
+        Array.add(k, {Name: 'type', Opr: '=', Value: 2, Type: 'String', Ignore: false});  
+      } else g._alterTitle = [null, [['%s', name[2], true]]];
+      g.set_externalKey(k);
+      break;
+    default:
+      break;
+    }
+}
+]]>
+    </text>
+  </script>
+</dir>

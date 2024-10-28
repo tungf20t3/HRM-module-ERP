@@ -1,0 +1,309 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BIInspectionPlanImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BIInspectionPlanImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="bikddactinh, bikddactinhct, biikddactinh"/>
+    <dependence value="bikddactinh, bikddactinhct, biikddactinh"/>
+    <listTable value="#bikddactinh, #bikddactinhct, #biikddactinh"/>
+    <alias value="master, detail, inquiry"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C001">
+      <header v="Công đoạn và mã đặc tính không được trùng nhau." e="Operation and characteristic must not be duplicated."/>
+    </var>
+    <var id="C002">
+      <header v="Thông tin Số lượng mẫu, Tỷ lệ mẫu không được để trống hoặc nhập đồng thời." e="Both Sample Qty and Sample Size field must be either contain value or empty."/>
+    </var>
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_vt" column="." allowNulls="false" upperCase="true" resource="master, inquiry" check="ma_vt not in (select ma_vt from dmvt)" errorCode="00001"/>
+    <field name="ma_vung" column="." allowNulls="false" upperCase="true" resource="master, inquiry" check="ma_vung not in (select ma_vung from bidmvung where (@admin = 1 or not exists(select 1 from bisysplantrights where user_id = @user) or ma_vung in (select ma_vung from bisysplantrights where user_id = @user)))" errorCode="00001"/>
+    <field name="ma_loai" column="." allowNulls="false" upperCase="true" resource="master, inquiry" check="ma_loai not in (select ma_loai from bikddmloai where kd_dac_tinh = '1')" errorCode="00001"/>
+    <field name="ngay_ct" column="." allowNulls="false" type="DateTime" resource="master, inquiry"/>
+    <field name="sd_diem_kd" column="." defaultValue="0" resource="master" check="sd_diem_kd not in ('0', '1')" errorCode="00002"/>
+    <field name="qd_tung_phan" column="." defaultValue="0" resource="master" check="qd_tung_phan not in ('0', '1')" errorCode="00002"/>
+    <field name="dien_giai" column="." resource="master"/>
+
+    <field name="ma_cd" reference="1" column="." allowNulls="false" resource="detail" upperCase="true"/>
+    <field name="ten_cd" reference="1" column="." allowNulls="false" resource="detail"/>
+    <field name="ten_cd2" reference="1" column="." resource="detail"/>
+
+    <field name="ma_dac_tinh" reference="1" column="." resource="detail" upperCase="true" check="ma_dac_tinh not in (select ma_dac_tinh from bikddmdactinh)" errorCode="00001"/>
+    <field name="so_luong_mau" column="." reference="1" type="Decimal" resource="detail"/>
+    <field name="ty_le_mau" column="." reference="1" type="Decimal" check="not(trong_so between -999.99 and 999.99)" resource="detail"/>
+    <field name="pp_kd" reference="1" column="." resource="detail"/>
+    <field name="tinh_diem_cl" reference="1" type="Boolean" column="." resource="detail"/>
+    <field name="trong_so" column="." reference="1" resource="detail" type="Decimal" check="not(trong_so between -999 and 999)" errorCode="00002"/>
+    <field name="ghi_chu" reference="1" column="." resource="detail"/>
+
+    <field name="ma_nguon" column="" resource="master, inquiry"/>
+
+    <field name="stt_rec" column="None" resource="master, detail, inquiry"/>
+    <field name="stt_rec0" column="None" resource="detail"/>
+    <field name="line_nbr" column="None" type="Int" resource="detail"/>
+    <field name="ma_ct" column="None" resource="master, detail"/>
+
+    <field name="gia_tri_tu" column="None" reference="1" type="Decimal" resource="detail"/>
+    <field name="gia_tri_den" column="None" reference="1" type="Decimal" resource="detail"/>
+    <field name="gt_muc_tieu" column="None" reference="1" type="Decimal" resource="detail"/>
+    <field name="yeu_cau" reference="1" column="None" resource="detail"/>
+
+    <field name="c$" column="None" resource="inquiry"/>
+    <field name="m$" column="None" resource="inquiry"/>
+    <field name="d$" column="None" resource="inquiry"/>
+
+    <field name="status" column="None" insertValue="@status" expression="' + @status + '" resource="master, inquiry"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="@datetime0" expression="''' + @datetime0 + '''" resource="master"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="@datetime0" expression="''' + @datetime0 + '''" resource="master"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master, inquiry"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Khai báo chi tiết kiểm định theo đặc tính" e="Inspection Plan"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_vt" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã hàng" e="Item"></text>
+      </field>
+      <field name="ma_vung" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã vùng" e="Plant"></text>
+      </field>
+      <field name="ma_loai" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại kiểm định" e="Inspection Type"></text>
+      </field>
+      <field name="ngay_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày hiệu lực" e="Effective Date"></text>
+      </field>
+      <field name="sd_diem_kd" width ="12">
+        <text v="Sử dụng điểm kđ" e="Use Inspection Point"/>
+      </field>
+      <field name="qd_tung_phan" width ="12">
+        <text v="Kiểu quyết định" e="Decision Type"/>
+      </field>
+      <field name="dien_giai" width="50">
+        <text v="Diễn giải" e="Memo"/>
+      </field>
+
+      <field name="ma_cd" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Công đoạn" e="Operation"/>
+      </field>
+      <field name="ten_cd" width ="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên công đoạn" e="Operation Name"/>
+      </field>
+      <field name="ten_cd2" width ="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="ma_dac_tinh" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã đặc tính" e="Characteristic"/>
+      </field>
+      <field name="so_luong_mau" width ="16">
+        <text v="Số lượng mẫu" e="Sample Size (Quantity)"/>
+      </field>
+      <field name="ty_le_mau" width ="16">
+        <text v="Tỷ lệ mẫu (%)" e="Sample Size (%)"/>
+      </field>
+      <field name="pp_kd" width ="16">
+        <text v="Phương pháp kiểm định" e="Inspection Method"/>
+      </field>
+      <field name="tinh_diem_cl" width ="12">
+        <text v="Tính điểm chất lượng" e="Q-Score apply"/>
+      </field>
+      <field name="trong_so" width ="16">
+        <text v="Trọng số" e="Weight"/>
+      </field>
+
+      <field name="ghi_chu" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @q nvarchar(4000), @field varchar(32), @wsID varchar(1), @datetime0 datetime, @irregular nvarchar(4000), @irregularChars varchar(128), @inputDetailDuplicate nvarchar(512), @notAuthorized nvarchar(512)
+declare @user int, @admin bit, @r int, @k int, @voucherID varchar(8), @d0 varchar(8)
+select @wsID = rtrim(val) from options where rtrim(name) = 'm_ws_id'
+select @admin = @@admin, @user = @@userID, @voucherID = 'KD7', @datetime0 = getdate(), @d0 = convert(varchar(8), getdate(), 112)
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @inputDetailDuplicate = case when @@language = 'v' then N'Công đoạn <span class="Highlight">%s1</span> và mã đặc tính <span class="Highlight">%s2</span> tại dòng <span class="Highlight">%s3</span> trùng nhau trong chi tiết.'
+  else 'Operation <span class="Highlight">%s1</span> and characteristic <span class="Highlight">%s2</span> at row <span class="Highlight">%s3</span> already exists.' end
+select @notAuthorized = case @@language when 'v' then N'Chưa có <span class="Highlight">quyền thực hiện chức năng này</span> hoặc <span class="Highlight">truy cập bị từ chối</span>. Liên hệ với người quản trị hệ thống nếu bạn có thể được truy cập vào chức năng này.'
+  else N'You are <span class="Highlight">not authorized</span> or you <span class="Highlight">do not have permission</span> to execute this action. Contact the System administrator if you believe you should be able to execute this action.' end
+-- Check
+]]>&Checking;<![CDATA[
+
+select @field = 'ma_cd'
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, @message from @@table where ma_cd like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ma_cd like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, a.msg from (select min(a.stt) as stt, 'C001' as msg from @@table a group by ma_vt, ma_vung, ma_loai, ngay_ct, ma_cd, ma_dac_tinh having count(ma_cd) > 1) a
+  where not exists(select 1 from #errorTable e where e.field in ('ma_cd']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['C001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select top 1 @field = @field, @r = min(a.stt) from @@table a group by ma_vt, ma_vung, ma_loai, ngay_ct, ma_cd, ma_dac_tinh having count(ma_cd) > 1
+    if @r is not null begin
+    select replace(replace(replace(@inputDetailDuplicate, '%s1', ma_cd), '%s2', ma_dac_tinh), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+
+select @field = 'so_luong_mau'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, 'C002' from @@table a where ((so_luong_mau = ty_le_mau and ty_le_mau = 0) or (so_luong_mau <> 0 and ty_le_mau <> 0))
+  ]]>&w1;<![CDATA['so_luong_mau']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['C002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select top 1 @field = @field, @r = min(a.stt) from @@table a where ((so_luong_mau = ty_le_mau and ty_le_mau = 0) or (so_luong_mau <> 0 and ty_le_mau <> 0))]]>&Error;<![CDATA[
+end
+
+if @admin <> 1 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'BIInspectionPlan', 'Edit') = 0 select @type = '0'
+end
+
+-- update
+update @@table set trong_so = 0 where tinh_diem_cl = 0
+update @@table set ma_nguon = b.ma_nguon from @@table a left join bikddmloai b on a.ma_loai = b.ma_loai
+
+if @type = '0' delete @@table from @@table a join bikddactinh b on a.ma_vt = b.ma_vt and a.ma_vung = b.ma_vung and a.ma_loai = b.ma_loai and a.ngay_ct = b.ngay_ct
+
+-- stt_rec0, line_nbr
+select identity(int, 1, 1) as id, cast(stt as int) as stt, convert(char(8), ngay_ct, 112) + rtrim(ma_vt) + rtrim(ma_vung) + rtrim(ma_loai) as c, cast(0 as int) as ln into #ln from @@table order by ngay_ct, ma_vt, ma_vung, ma_loai, stt
+exec AI_ERP$App$UpdateLineNumber
+create index i on #ln(stt)
+
+select a.*, b.stt_rec into #k from @@table a join bikddactinh b on a.ma_vt = b.ma_vt and a.ma_vung = b.ma_vung and a.ma_loai = b.ma_loai and a.ngay_ct = b.ngay_ct
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_vt = b.ma_vt and a.ma_vung = b.ma_vung and a.ma_loai = b.ma_loai and a.ngay_ct = b.ngay_ct)
+
+if @@admin = 0 begin
+  if exists (select 1 from @@table where ma_loai not in (select a.ma_loai from bikddmloai a where exists(select 1 from bisysinspectionrights b where a.ma_nguon = b.ma_nguon and b.user_id = @user and b.r_new = 1))) or (@type = '1' and exists (select 1 from #k where ma_loai not in (select a.ma_loai from bikddmloai a where exists(select 1 from bisysinspectionrights b where a.ma_nguon = b.ma_nguon and b.user_id = @user and b.r_edit = 1)))) begin
+    if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTableCell;<![CDATA[ select 'E', 1, 'notAuthorized'
+    set @$errorCount = @$errorCount - @@rowcount; set rowcount 0;
+    ]]>&EndErrorMode;<![CDATA[
+    end else begin
+      select @notAuthorized as message, '' as field
+    end
+    return
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+
+select top 0 a.stt_rec, ma_dvcs, ma_ct, so_ct, ngay_ct, ma_vt, ma_vung, ma_nguon, ma_loai, ma_lo_trinh, sd_diem_kd, qd_tung_phan, dien_giai into #bikddactinh from bikddactinh a
+select top 0 stt_rec, stt_rec0, line_nbr, ma_ct, so_ct, ma_cd, ten_cd, ten_cd2, ma_ccv, ma_dac_tinh, gia_tri_tu, gia_tri_den, gt_muc_tieu, yeu_cau, so_luong_mau, ty_le_mau, pp_kd, tinh_diem_cl, trong_so, ghi_chu into #bikddactinhct from bikddactinhct
+select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, status, user_id0, c$, m$, d$, ma_vt, ma_vung, ma_nguon, ma_loai, ma_lo_trinh, identity(int, 1, 1) as id into #biikddactinh from biikddactinh
+
+if exists(select 1 from @@table) begin
+  select top 0 stt_rec, ma_dvcs, ma_vt, ma_vung, ma_loai, ngay_ct, cast(0 as int) as stt, identity(int, 1, 1) as id into #id1 from bikddactinh
+  insert into #id1 select '', '', ma_vt, ma_vung, ma_loai, ngay_ct, min(stt) from @@table group by ngay_ct, ma_vt, ma_vung, ma_loai
+
+  select @k = count(*) from #id1
+  exec AI_ERP$App$UpdateIdentityNumber @wsID, @voucherID, @k, @@userID, '#id1'
+
+  insert into #bikddactinh
+    select b.stt_rec, '', @voucherID, '', a.ngay_ct, a.ma_vt, a.ma_vung, a.ma_nguon, a.ma_loai, '', a.sd_diem_kd, a.qd_tung_phan, a.dien_giai
+      from @@table a join #id1 b on a.stt = b.stt
+
+  insert into #bikddactinhct
+    select b.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln), i.ln, @voucherID, '', a.ma_cd, a.ten_cd, a.ten_cd2, '', a.ma_dac_tinh,
+        dt.gia_tri_tu, dt.gia_tri_den, dt.gt_muc_tieu, dt.yeu_cau, a.so_luong_mau, a.ty_le_mau, a.pp_kd, a.tinh_diem_cl, a.trong_so, a.ghi_chu
+      from @@table a join #id1 b on a.ma_vt = b.ma_vt and a.ma_vung = b.ma_vung and a.ma_loai = b.ma_loai and a.ngay_ct = b.ngay_ct join #ln i on a.stt = i.stt
+        left join bikddmdactinh dt on a.ma_dac_tinh = dt.ma_dac_tinh
+end
+
+if exists(select 1 from #k) begin
+  select stt_rec, min(stt) as stt into #id2 from #k group by stt_rec
+
+  --
+  update bikddactinh set ma_nguon = b.ma_nguon, sd_diem_kd = b.sd_diem_kd, qd_tung_phan = b.qd_tung_phan, dien_giai = b.dien_giai, datetime2 = @datetime0, user_id2 = @user
+    from bikddactinh a join #k b on a.stt_rec = b.stt_rec join #id2 c on b.stt = c.stt
+
+  delete biikddactinh from biikddactinh a join #id2 b on a.stt_rec = b.stt_rec
+  delete bikddactinhct from bikddactinhct a join #id2 b on a.stt_rec = b.stt_rec
+
+  insert into #bikddactinh
+    select a.stt_rec, '', @voucherID, '', a.ngay_ct, a.ma_vt, a.ma_vung, a.ma_nguon, a.ma_loai, '', a.sd_diem_kd, a.qd_tung_phan, a.dien_giai
+      from #k a join #id2 b on a.stt = b.stt left join dmvt c on a.ma_vt = c.ma_vt
+
+  insert into #bikddactinhct
+    select b.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln), i.ln, @voucherID, '', a.ma_cd, a.ten_cd, a.ten_cd2, '', a.ma_dac_tinh,
+        dt.gia_tri_tu, dt.gia_tri_den, dt.gt_muc_tieu, dt.yeu_cau, a.so_luong_mau, a.ty_le_mau, a.pp_kd, a.tinh_diem_cl, a.trong_so, a.ghi_chu
+      from #k a join #id2 b on a.stt_rec = b.stt_rec join #ln i on a.stt = i.stt
+        left join bikddmdactinh dt on a.ma_dac_tinh = dt.ma_dac_tinh
+end
+
+--
+insert into #biikddactinh
+  select stt_rec, ngay_ct, '', ma_dvcs, 1, @user, rtrim(ma_vt) + rtrim(ma_vung) + rtrim(ma_loai) + convert(char(8), ngay_ct, 112) + stt_rec,
+    '#10$' + rtrim(ma_vt) + '#20$' + rtrim(ma_vung) + '#30$' + rtrim(ma_loai), '', ma_vt, ma_vung, ma_nguon, ma_loai, '' from #bikddactinh
+select @q = dbo.AI_ERP$Function$Update$Inquiry('#biikddactinh', '#bikddactinhct', 'd$', 'ma_cd', '#10$', 'stt_rec', default, default, default, default, default)
+exec sp_executesql @q
+
+--
+delete #bikddactinh from #bikddactinh a join #k b on a.stt_rec = b.stt_rec
+
+-- Insert/Update
+@@inserting(master);
+@@inserting(detail);
+@@inserting(inquiry);
+]]>
+    </text>
+  </processing>
+
+</import>

@@ -1,0 +1,258 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY LineCounter "10">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_bc" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" align="left" defaultValue="new Date()">
+      <header v="Ngày báo cáo" e="Report Date"></header>
+    </field>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày vào cty từ" e="Date in from"></header>
+      <footer v="Ngày vào cty từ/đến" e="Date in from/to"></footer>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày vào cty đến" e="Date in to"></header>
+    </field>
+    <field name="loai_tn" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Loại" e="Type"/>
+      <footer v="1 - Tháng, 2 - Tuần" e="1 - Month, 2 - Week"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="nam" type="Int16" dataFormatString="#0" clientDefault="1" allowNulls="false">
+      <header v ="Thời gian nhỏ nhất" e ="Minimum"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="khoang_cach" type="Int16" dataFormatString="#0" allowNulls="false" clientDefault="1">
+      <header v ="Khoảng cách" e ="Step"/>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="ma_bp" onDemand="true" categoryIndex="1">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hreDepartment" reference="ten_bp%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_bp1" onDemand="true" categoryIndex="1">
+      <header v="Nhóm bộ phận 1" e="Department Group 1"></header>
+      <footer v="Nhóm bộ phận" e="Department Group"/>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nh_bp1%l" key="status = '1' and loai_nh = 1" check="loai_nh = 1"/>
+    </field>
+    <field name="ten_nh_bp1%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_bp2" onDemand="true" categoryIndex="1">
+      <header v="Nhóm bộ phận 2" e="Department Group 2"></header>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nh_bp2%l" key="status = '1' and loai_nh = 2" check="loai_nh = 2"/>
+    </field>
+    <field name="ten_nh_bp2%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_bp3" onDemand="true" categoryIndex="1">
+      <header v="Nhóm bộ phận 3" e="Department Group 3"></header>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nh_bp3%l" key="status = '1' and loai_nh = 3" check="loai_nh = 3"/>
+    </field>
+    <field name="ten_nh_bp3%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="nh_nv1" onDemand="true" categoryIndex="1">
+      <header v="Nhóm nhân viên 1" e="Employee Group 1"></header>
+      <footer v="Nhóm nhân viên" e="Employee Group"/>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv1%l" key="status = '1' and loai_nh = 1" check="loai_nh = 1"/>
+    </field>
+    <field name="ten_nh_nv1%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_nv2" onDemand="true" categoryIndex="1">
+      <header v="Nhóm nhân viên 2" e="Employee Group 2"></header>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv2%l" key="status = '1' and loai_nh = 2" check="loai_nh = 2"/>
+    </field>
+    <field name="ten_nh_nv2%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_nv3" onDemand="true" categoryIndex="1">
+      <header v="Nhóm nhân viên 3" e="Employee Group 3"></header>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv3%l" key="status = '1' and loai_nh = 3" check="loai_nh = 3"/>
+    </field>
+    <field name="ten_nh_nv3%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_loai" onDemand="true" categoryIndex="1">
+      <header v="Loại phân nhóm" e="Category Type"></header>
+      <items style="AutoComplete" controller="hrDeptCategoryType" reference="ten_loai%l" key="status = '1'" check="1 = 1"/>
+      <clientScript><![CDATA[onchange=onChange$Filter$CategoryType(this);]]></clientScript>
+    </field>
+    <field name="ten_loai%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_pn" onDemand="true" categoryIndex="1">
+      <header v="Phân nhóm" e="Department Category"></header>
+      <items style="AutoComplete" controller="hrDepartmentCategory" reference="ten_pn%l" key="ma_loai = '{$%c[ma_loai]}' and status = '1'" check="ma_loai = '{$%c[ma_loai]}'"/>
+    </field>
+    <field name="ten_pn%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="bac_bp" type="Decimal" dataFormatString="###0" categoryIndex="1">
+      <header v="Bậc bộ phận" e="Department Level"></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="ma_vtr" onDemand="true" categoryIndex="1">
+      <header v="Vị trí công việc" e="Position"></header>
+      <items style="AutoComplete" controller="hrPosition" reference="ten_vtr%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vtr%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vtr1" onDemand="true" categoryIndex="1">
+      <header v="Nhóm vị trí công việc 1" e="Position Group 1"></header>
+      <footer v="Nhóm vị trí công việc" e="Position Group"/>
+      <items style="AutoComplete" controller="hrPositionGroup" reference="ten_nh_vtr1%l" key="status = '1' and loai_nh = 1" check="loai_nh = 1"/>
+    </field>
+    <field name="ten_nh_vtr1%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vtr2" onDemand="true" categoryIndex="1">
+      <header v="Nhóm vị trí công việc 2" e="Position Group 2"></header>
+      <items style="AutoComplete" controller="hrPositionGroup" reference="ten_nh_vtr2%l" key="status = '1' and loai_nh = 2" check="loai_nh = 2"/>
+    </field>
+    <field name="ten_nh_vtr2%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vtr3" onDemand="true" categoryIndex="1">
+      <header v="Nhóm vị trí công việc 3" e="Position Group 3"></header>
+      <items style="AutoComplete" controller="hrPositionGroup" reference="ten_nh_vtr3%l" key="status = '1' and loai_nh = 3" check="loai_nh = 3"/>
+    </field>
+    <field name="ten_nh_vtr3%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_bac" onDemand="true" categoryIndex="1">
+      <header v="Bậc quản lý" e="Job Grade"></header>
+      <items style="AutoComplete" controller="hrManagerLevel" reference="ten_bac%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bac%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="mau_bc" external="true" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130, 0, 0, 0"/>
+      <item value="110: [ngay_bc].Label, [ngay_bc]"/>
+      <item value="1101: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="1110000: [loai_tn].Label, [loai_tn], [loai_tn].Description"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="11: [khoang_cach].Label, [khoang_cach]"/>
+      <item value="1101001: [ma_bp].Label, [ma_bp], [ten_bp%l], [ten_nh_bp1%l]"/>
+      <item value="11011-1: [nh_bp1].Description, [nh_bp1], [nh_bp2], [nh_bp3], [ten_nh_bp2%l]"/>
+      <item value="11011-111: [nh_nv1].Description, [nh_nv1], [nh_nv2], [nh_nv3], [ten_nh_nv1%l], [ten_nh_nv2%l], [ten_nh_nv3%l]"/>
+      <item value="110100: [ma_loai].Label, [ma_loai], [ten_loai%l]"/>
+      <item value="110100: [ma_pn].Label, [ma_pn], [ten_pn%l]"/>
+      <item value="110: [bac_bp].Label, [bac_bp]"/>
+
+      <item value="1101001: [ma_vtr].Label, [ma_vtr], [ten_vtr%l], [ten_nh_bp3%l]"/>
+      <item value="11011-1: [nh_vtr1].Description, [nh_vtr1], [nh_vtr2], [nh_vtr3], [ten_nh_vtr1%l]"/>
+      <item value="1101001: [ma_bac].Label, [ma_bac], [ten_bac%l], [ten_nh_vtr2%l]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @h_loai_ky nvarchar(33), @h_tu nvarchar(33), @h_den nvarchar(33), @h_total nvarchar(33)
+select @h_tu = case when @@language = 'V' then N'Từ ' else 'From' end, @h_den = case when @@language = 'V' then N'đến' else 'to' end
+select @h_total = case when @@language = 'V' then N'Tổng cộng' else 'Total' end
+if @loai_tn = '1' select @h_loai_ky = case when @@language = 'V' then N' tháng' else N' Month' end
+  else select @h_loai_ky = case when @@language = 'V' then N' tuần' else N' Week' end
+
+select '< ' + rtrim(@nam) + @h_loai_ky as h_cot1,
+  (rtrim(@h_tu) + ' ' + rtrim(@nam) + ' ' + @h_den + ' ' + rtrim(@nam + @khoang_cach)) as h_cot2,
+  (rtrim(@h_tu) + ' ' + rtrim(@nam + @khoang_cach) + ' ' + @h_den + ' ' + rtrim(@nam + @khoang_cach *2)) as h_cot3,
+  ('>= ' + rtrim(@nam + @khoang_cach * 2) + @h_loai_ky + case when @@language = 'V' then '' else 's' end) as h_cot4,
+  @h_total as h_cot5, @ngay_bc as ngay_bc
+
+exec hs_rptEmpProbationPeriodByDept @ngay_bc, @ngay_tu, @ngay_den, @loai_tn, @nam, @khoang_cach, 4, @ma_bp, @nh_bp1, @nh_bp2, @nh_bp3, @nh_nv1, @nh_nv2, @nh_nv3, @ma_loai, @ma_pn, @bac_bp, @ma_vtr, @nh_vtr1, @nh_vtr2, @nh_vtr3, @ma_bac, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  if (!f.getItemValue('ngay_bc')) f.setItemValue('ngay_bc', new Date());
+  f.live(f.getItem('ngay_bc'));
+  f.setReferenceKeyFilter('ma_pn');
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,c){var b=c.object,d=c.type.Context,f=c.type.Result;switch(d){case"Checking":var a=b.grid,e=b.getItem("ngay_bc").value;a._alterTitle=[null,[["%d",e,true]]];a._typeSeniority=b.getItemValue("loai_tn"),a._time=b.getItemValue("nam"),a._gap=b.getItemValue("khoang_cach");if(a._fields.length>0)try{init$GridReport$(a)}catch(h){}}}function onChange$Filter$CategoryType(a){a.parentForm.setReferenceKeyFilter("ma_pn")}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

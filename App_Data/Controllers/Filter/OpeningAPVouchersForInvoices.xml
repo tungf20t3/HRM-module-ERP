@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="cttt39" code="stt_rec" order="ma_dvcs, ngay_ct, ma_kh" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc chứng từ đầu kỳ thanh toán cho các hóa đơn" e="Opening AP Vouchers for Invoices Filter"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày từ/đến" e="Date from/to"></header>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh">
+      <header v="Nhà cung cấp" e="Supplier"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="cc_yn = 1 and status = '1'" check="cc_yn = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 100, 230"/>
+      <item value="111: [ngay_ct1].Label, [ngay_ct1], [ngay_ct2]"/>
+      <item value="1110: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="1110: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(sender) {sender.add_onResponseComplete(on$Filter$ResponseComplete);}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function addExternalKey(f, k, c) {
+  var v = $func.trim(f.getItemValue(c));
+  if (v != '') Array.add(k, {Name: c, Opr: 'like', Value: v += '%', Type: 'String', Ignore: false});
+}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array();
+      Array.add(k, {Name: 'ngay_ct', Opr: '>=', Value: f.getItemValue('ngay_ct1'), Type: 'DateTime', Ignore: false});
+      Array.add(k, {Name: 'ngay_ct', Opr: '<=', Value: f.getItemValue('ngay_ct2'), Type: 'DateTime', Ignore: false});
+      addExternalKey(f, k, 'ma_kh');
+      addExternalKey(f, k, 'ma_dvcs');
+      g.set_externalKey(k);
+      break;
+    default:
+        break;
+  }
+}
+]]>
+    </text>
+  </script>
+</dir>

@@ -1,0 +1,59 @@
+﻿<![CDATA[
+function addGridFieldsEnvironment(f, c, r, g, t) {
+  c.addEventListener("change", function(){overGridFields(f, g, t)}, false);
+  r.addEventListener("change", function(){validEnvironment(g);}, false);
+}
+
+function overGridFields(f, n, t, v) {
+  var r = t.split(":"), u = r[0].split(","), s = r[1].split(","), e, o;
+  for (var i = 0; i < u.length; i++) { e = $func.trim(u[i]), o = $func.trim(s[i]); }
+  if (v) {setGridHiddenFieldsOnly(n, o, e, (f._baseCurrency == f.getItemValue('ma_nt')));}
+  else {setGridHiddenFields(n, o, e, (f._baseCurrency == f.getItemValue('ma_nt')));}
+}
+
+function setGridHiddenFields(g, s, r, v) {
+  var a = s.split(','), u = r.split(',');
+  for (var i = 0; i < a.length; i++) {
+    var cs = g._getColumnOrder($func.trim(a[i])), cd = g._getColumnOrder($func.trim(u[i]));
+    var field = g._fields[cs - 1], fieldds = g._fields[cd - 1];
+    swap(g, field, cs, fieldds, cd, v);
+    g._setColumnVisible(cs, !v);
+    if (v){
+      for (var j = 1; j <= g._rowCount; j++) {
+        g._setItemValue(j, cd, g._getItemValue(j, cs));
+      }
+    }
+  }
+  if (v) validEnvironment(g);
+}
+
+function setGridHiddenFieldsOnly(g, s, r, v) {
+  var a = s.split(','), u = r.split(',');
+  for (var i = 0; i < a.length; i++) {
+    var cs = g._getColumnOrder($func.trim(a[i])), cd = g._getColumnOrder($func.trim(u[i]));
+    var field = g._fields[cs - 1], fieldds = g._fields[cd - 1];
+    swap(g, field, cs, fieldds, cd, v);
+    g._setColumnVisible(cs, !v);
+  }
+}
+
+function swap(g, f1, i1, f2, i2, v) {
+  if (v) {
+    g._setHeaderItemText(i1, f2.HeaderText);
+    g._setHeaderItemText(i2, f1.HeaderText);
+  } 
+  else {
+    g._setHeaderItemText(i1, f1.HeaderText);
+    g._setHeaderItemText(i2, f2.HeaderText);
+  }
+}
+
+function validEnvironment(g) {
+  for (var i = 1; i <= g._rowCount; i++) {
+    var o = g._getItem(i, g._getColumnOrder('thue_mt'));
+    o.row = i;
+    ]]>&EnvironmentTaxValidExpression;<![CDATA[
+  }
+}
+function on$Voucher$EnvironmentTaxGridRender(sender, eventArgs) { overGridFields(sender.get_element().parentForm, eventArgs.grid, 'thue_mt_nt : thue_mt', 1);}
+]]>

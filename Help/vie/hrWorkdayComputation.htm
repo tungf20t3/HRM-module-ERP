@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Tính công  </title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Tính công</p>
+
+<p id="pic"><img src="Vie\hrWorkdaycomputation.png"/></p>
+<p id="td2">Lập luận về tính công</p>
+<p class="node">Xét quyền thực hiện của người dùng đăng nhập hiện hành</p>
+<p class="node_d">
+Xét quyền theo đơn vị: người dùng đăng nhập phải có quyền "mới" theo đơn vị thì mới thực hiện được chức năng này cho đơn vị cần tính;<br/>
+Xét quyền theo bộ phận: Người sử dụng phải được gán quyền theo bộ phận thì mới thực hiện được chức năng này cho bộ phận cần tính;<br/>
+Xét quyền chức năng: người dùng đăng nhập phải có quyền (được chọn khi phân quyền) thì mới thực hiện được chức năng này.
+</p>
+
+<p class="node">Khóa số liệu</p>
+<p class="node_d">
+Kể từ ngày khóa số liệu trở về trước, không thể xử lý tính toán trong số liệu của bộ phận đã khóa, 
+nếu buộc phải hiệu chỉnh số liệu một đơn vị đã khóa, phải “Mở” bằng cách khóa với ngày của kỳ trước đó hoặc bỏ trống ngày khóa sổ hoặc xóa khai 
+báo khóa sổ. Chương trình sẽ so sánh giữa "Khóa số liệu đến ngày" và "Ngày đến" trên màn hình thực thi. Xem thêm: <br/>
+- Khóa số liệu<br/>
+- Khóa số liệu theo đơn vị cơ sở<br/>
+- Khóa số liệu theo bộ phận
+</p>
+<p class="node"> Khái niệm "ngày hôm trước - hôm sau"</p>
+<p class="node_d">Trong trường hợp nhân viên làm việc các ca liên ngày, thì phải biết chính xác giờ ra của ngày hôm trước, vì vậy khi khai 
+báo chi tiết ca phải xác định giờ ra có thuộc ngay hôm sau hay không</p>
+<p class="tip"> Xem "Cập nhật giờ vào, ra cho nhân viên", "Khai báo chi tiết ca"</p>
+<p class="node">Số phút tối thiểu / Số giờ tối đa </p>
+<p class="node_d">
+Số phút tối thiểu, số giờ tối đa được cập nhật cho chi tiết ca khai báo trong chức năng "Khai báo chi tiết ca" và "Đăng ký tăng ca"</p>
+<ul class="lo_2">
+- Nếu "Số giờ công" (công thường hoặc tăng ca) tính được + (cộng) số phút cộng thêm &gt; (lớn hơn) "Số giờ tối đa": chương trình tính ra 
+"Số giờ công" = (bằng) "Số giờ tối đa";<br/>
+- Nếu "Số giờ công" (công thường hoặc tăng ca) tính được &lt; (nhỏ hơn) "Số phút tối thiểu": chương trình tính ra "Số giờ công" =0 (bằng 0) 
+và không tính "Số phút đi muộn, số phút về sớm", đồng thời cũng không cộng "Số phút thêm" cho chi tiết ca đó.</ul>
+<p class="note">
+Chương trình ưu tiên xét số phút tối thiểu và số giờ tối đa trong đăng ký tăng ca trước, nếu không có sẽ xét trong khai báo chi tiết ca. 
+Áp dụng đối với:<br/>
++ Đăng ký tăng ca có chọn chi tiết ca: công thường và công tăng ca;<br/>
++ Đăng ký tăng ca không chọn chi tiết ca: công tăng ca.</p>
+<p class="node">Số phút đi muộn cho phép", "Số phút về sớm cho phép"</p>
+<p class="node_d">Số phút đi muộn/về sớm cho phép dùng để bù thời gian để làm tròn công trong trường hợp nhân viên được phép. Nếu thời gian
+đi muộn/về sớm nhỏ hơn hoặc bằng số phút khai báo, khi tính công chương trình sẽ cộng vào để đủ giờ công.  
+</p>
+<p class="note">Lưu ý: <br>
+- Nếu chi tiết ca có giới hạn giờ tối đa, sau khi bù xong mới phân bổ giờ tối đa để bảo đảm số giờ tối đa;<br>
+- Bù muộn vào khoảng thời gian đầu, về sớm bù vào khoảng thời gian cuối cùng.
+</p>
+
+<p class="node">Số phút chờ tối đa giữa các ca liên ngày</p>
+<p class="node_d">Ngoài ra, vì có khả năng giờ ra ngày hôm trước (thực tế) sẽ trùng hoặc lồng giờ vào ngày hôm sau (giờ khai báo trong chi 
+tiết ca)
+ nên cần phải giới hạn thời gian tối đa nhân viên phải chấm công ra (Danh mục ca làm việc - Số phút chờ tối đa). 
+ Cụ thể, giờ ra thực tế trừ đi thời gian tối đa phải trước giờ vào của ca làm việc ngày hôm sau.
+</p>
+<p class="e"> Ví dụ<br/>
+Ca đêm ngày hôm trước kết thúc lúc 6 giờ sáng, ca ngày hôm sau bắt đầu lúc 7 giờ.<br/> 
+Nhưng có khả năng nhân viên chấm công ra trễ hơn như sau:<br/>
+- Ngày 02/01/2013 vào 22:00-00 - ra 03/01/2013 06:59-00 (sáng hôm sau)<br/>
+- Ngày 03/01/2013 vào 07:00-00 - ra 11:00-00<br/>
+Trong trường hợp này, nếu không có "Số phút chờ tối đa", chương trình không thể tính được. Giả sử, nếu khai báo "Số phút chờ tối đa" là 60 phút, chương trình sẽ tính được vì
+03/01/2013 06:59-00 trừ đi 60 phút là thời điểm 03/01/2013 05:59-00 (trước 6 giờ).
+</p>
+<p class="node">Tăng ca ngày lễ, ngày nghỉ</p>
+<p class="node_d">Với các ca nghỉ lễ, ngày nghỉ, nếu không đi làm, mặc nhiên chương trình sẽ tính công nghỉ lễ, nếu có đi làm, chương trình sẽ tính công tăng ca ngày nghỉ.
+</p>
+
+<p class="node">Bộ phận tính công</p>
+<p class="node_d">Nhân viên có thể làm việc tại nhiều bộ phận trong tháng, cần lưu ý các trường hợp sau để nhập liệu đúng.
+</p>
+<ul class="lo_2">
+- Trường hợp 1: nếu không nhập trong phần “Điều chỉnh bộ phận tính công cho nhân viên”: 
+Chương trình sẽ xét “Bộ phận” trong “Quá trình làm việc tại công ty”. Điều kiện xét là quá trình làm việc có “Tính chất” = 1 – Công việc chính, 
+“Loại thay đổi” = 1 hoặc 2, có “Ngày bắt đầu” &lt; “Đến ngày” (tính công). Chỉ xét các “Bộ phận” gần nhất trước ngày tính công ("Từ ngày"). 
+Trường hợp không có quá trình nào thì tính theo “Bộ phận hiện hành”.
+<br/>
+-	Trường hợp 2: nếu có nhập trong phần “Điều chỉnh bộ phận tính công cho nhân viên”:
+Chương trình ưu tiên tính toán theo “Bộ phận” khai báo trong phần điều chỉnh bộ phận tính công cho nhân viên (“Ngày hiệu lực từ/đến”);
+Nếu ngày trong kỳ tính công không thuộc “Ngày hiệu lực từ/đến”, chương trình sẽ xét như trường hợp 1.
+</ul>
+<p id="td3">Các khai báo phục vụ tính công
+</p>
+<p class="node">Khai báo thông tin chấm công
+</p>
+<p class="node_d">Cung cấp công mặc nhiên trong các trường hợp nghỉ lễ theo qui định (không có số liệu chấm công). 
+Nếu không nhập ở đây thì công nghỉ sẽ được lấy ở chức năng “Khai báo ngày nghỉ, ngày lễ”.
+</p>
+<p class="node">Danh mục ca, chi tiết ca</p>
+<ul class="lo_2">
+- Cung cấp các tham số dùng để xác định chính xác giờ vào ra của thông tin chấm công;<br/> 
+- Cung cấp mã công thực hiện;<br/>
+- Ngoài ra, còn dùng để xác định ca thuộc hôm trước. </ul>
+<p class="node">Đăng ký ca làm việc</p>
+<p class="node_d">Dựa vào số liệu chấm công từ máy chấm công (Cập nhật giờ vào ra, điều chỉnh giờ vào ra) chương trình sẽ so sánh với ca khai báo để xác định công làm việc;<br/>
+</p>
+<p class="node">Đăng ký tăng ca</p>
+<p class="node_d">Dựa vào số liệu chấm công từ máy chấm công (Cập nhật giờ vào ra, điều chỉnh giờ vào ra) chương trình sẽ so sánh với công khai báo tăng ca để xác định công tăng ca;<br/>
+</p>
+
+<p class="tip">
+Sau khi khai báo ca và chi tiết ca, người dùng có thể áp dụng đăng ký ca, đăng ký tăng ca trong 
+các trường hợp sau để tính ra được công thường cũng như công tăng ca:<br/>
+- TH1 - đăng ký ca làm việc cho nhân viên:<br/>
++ Khai báo ca C1 (tính chất "Trong giờ quy định"), chi tiết CT1, CT2 (công thường);<br/>
++ Khai báo ca C2 (tính chất "Tăng ca"), chi tiết CT3, CT4 (công tăng ca).<br/>
+
+- TH2 - đăng ký ca làm việc và đăng ký tăng ca cho nhân viên:<br/>
++ Khai báo ca C1 (tính chất "Trong giờ quy định"), chi tiết CT1, CT2 (công thường): đăng ký ca làm việc;<br/>
++ Khai báo ca C1 (tính chất "Trong giờ quy định"), chi tiết CT3, CT4 (công tăng ca): đăng ký tăng ca.<br/>
+
+- TH3 - đăng ký tăng ca cho nhân viên:<br/>
++ Khai báo ca C1 (tính chất "Trong giờ quy định"), chi tiết CT1, CT2 (công thường);<br/>
++ Khai báo ca C1 (tính chất "Trong giờ quy định"), chi tiết CT3, CT4 (công tăng ca).<br/>
+Tuy nhiên đối với TH3, nếu đăng ký tăng ca trong một tháng (có cả ngày nghỉ thứ 7, chủ nhật) thì chương trình chỉ tính đúng khi thực tế 
+không có tăng ca vào các ngày nghỉ, nếu có phải tách đăng ký tăng ca giữa ca ngày thường và ca ngày nghỉ.</p>
+<p id="td3">Các dữ liệu phục vụ tính công</p>
+<p class="node">Khai báo ngày nghỉ, ngày lễ</p>
+<p class="node_d">Chương trình sẽ tự động tạo ra phát sinh ca/công được khai báo trong ngày nghỉ, ngày lễ. Những ngày này nhân viên không có số liệu chấm công từ máy.
+</p>
+<p class="node"> Khai báo lịch nghỉ</p>
+<p class="node_d">Dùng để khai báo các ngày nghỉ hàng tuần (không phải ngày lễ), nếu có số liệu chấm công vào những ngày này và có khai báo tăng ca, chương trình sẽ tính công tăng ca. 
+</p>
+<p class="node">Cập nhật phát sinh nghỉ, vắng mặt</p>
+<p class="node_d">Chương trình sẽ tự động tạo ra phát sinh ca/công được khai báo trong Cập nhật phát sinh nghỉ, vắng mặt. Những ngày này nhân viên không có số liệu chấm công từ máy. 
+<br/>Trong trường hợp khai báo nhiều ngày (từ ngày tới ngày), nếu "Mức độ ưu tiên" là "Theo công khai báo" thì chương trình sẽ ưu tiên tính theo “Mã công” 
+khai báo ở chức năng này, 
+ngược lại nếu "Theo công ngày nghỉ, ngày lễ khi trùng ngày" thì tính theo “Mã công” khai báo ở phần “Khai báo ngày nghỉ, ngày lễ”. 
+</p>
+<p class="node">Chấm công làm việc (Lấy dữ liệu chấm công) hoặc cập nhật giờ vào ra</p>
+<p class="node_d">Chương trình sẽ sắp xếp các cặp "giờ vào/giờ ra" để tính toán số giờ công dựa vào các tham số: </p>
+<ul class="lo_2">
+	- Số giờ công một ngày: Tính toán giờ vào giờ ra từ số liệu chấm công thực tế, từ đó tính được số giờ làm thực tế.<br/>
+	- Số giây tối thiểu giữa hai lần chấm công: các phát sinh chấm công cùng loại nếu có khoảng cách nhỏ hơn tham số này sẽ được loại bỏ bớt theo nguyên tắc giờ vào trễ nhất và giờ ra sớm nhất. 
+</ul>
+
+<p class="node">Điều chỉnh giờ vào ra</p>
+<p class="node_d">Nếu có dữ liệu điều chỉnh giờ vào ra, chương trình sẽ lấy từ đây thay vì từ dữ liệu chấm công.
+
+</p>
+<p class="node">Điều chỉnh công làm việc</p>
+<p class="node_d">Ưu tiên lấy bộ phận, ngày, ca, chi tiết ca, mã công, giờ vào/ra và số giờ công, số phút đi muộn, số phút về sớm, mã tăng ca ở chức năng này;
+</p>
+<p class="note">Chương trình sẽ tính toán giờ công và lấy mã công cho nhân viên dựa trên thứ tự ưu tiên như sau: <br/>
+- Điều chỉnh công làm việc;<br/>
+- Chấm công;<br/>
+- Khai báo ngày nghỉ, ngày lễ, (hoặc) Cập nhật phát sinh nghỉ.
+</p>
+<p class="node">Điều chỉnh dữ liệu chấm công </p>
+<p class="node_d">
+Xem thêm <a href="hrTimekeepingAdjusting.htm"> Điều chỉnh dữ liệu chấm công </a>
+
+<p id="td2">Các báo cáo thực hiện sau tính công</p>
+<p id="td3">Báo cáo quản lý chấm công</p>
+<p class="node">Danh sách nhân viên sai số liệu chấm công</p>
+<p class="node_d">Những trường hợp chấm công sai sẽ được thể hiện trong báo cáo này sau khi tính công. Những trường hợp sai có thể liệt kê như sau:</p>
+<ul class="lo_2">
+	- Thiếu giờ vào hoặc ra;<br/>
+	- Dư giờ vào hoặc ra nhưng khoảng cách giữa 2 lần chấm cùng loại (vào hoặc ra) lớn hơn tham số "Số giây tối thiểu giữa hai lần chấm công";<br/>
+	- Giờ vào sau giờ ra trong 1 cặp chấm công (vào-ra).
+</ul>
+
+<p class="node">Báo cáo đi muộn, về sớm / 
+Báo cáo thống kê số lần đi muộn, về sớm
+</p>
+<p class="node_d">Từ số liệu thô, nếu nằm ngoài các trường hợp thể hiện trong "Danh sách nhân viên sai số liệu chấm công", chương trình sẽ tính toán dựa trên các 
+tham số liên quan để tính được số giờ đi trễ về sớm. 
+<br/>Các tham số liên quan như:</p>
+<ul class="lo_2">
+	- Số giây tối thiểu giữa hai lần chấm công;<br/>
+	- Số giờ công một ngày.<br/>
+</ul>
+
+<p class="node_d">Các thông số cấu hình liên quan như:</p>
+<ul class="lo_2">
+	- Cập nhật thông tin chấm công nhân viên - Số giờ (Tương đương Số giờ công một ngày);<br/>
+	- Danh mục ca làm việc - Số phút làm tròn;<br/>
+	- Danh mục ca làm việc - Kiểu làm tròn;<br/>
+	- Danh mục ca làm việc - Số phút chờ tối đa: Dùng trong trường hợp nhân viên làm trong các ca liên ngày;<br/>
+	- Danh mục chi tiết ca - Số phút đi muộn/Số phút về sớm: Số phút được phép đi muộn/về sớm của ca, quá thời gian này sẽ bị tính đi trễ về sớm;<br/>
+	- Danh mục chi tiết ca - Số phút thêm: Trong trường hợp đặc biệt, nhân viên được nghỉ sớm nhưng vẫn được tính đủ công làm việc thì khai báo số phút cộng thêm ở chức năng này.
+</ul>
+
+
+<p id="td3">Báo cáo quản lý phép, nghỉ</p>
+<p class="node">Báo cáo chi tiết nghỉ theo mã công / Báo cáo tổng hợp nghỉ theo mã công</p>
+<p class="node_d">Chương trình tính công sẽ tổng hợp từ nguồn thông tin nghỉ, vắng mặt.</p>
+<p class="node">Báo cáo chi tiết nhân viên nghỉ phép / Bảng theo dõi số ngày nghỉ phép trong năm</p>
+<p class="node_d">Chương trình tính công sẽ tổng hợp từ nguồn thông tin nghỉ, vắng mặt với mã công khai báo trong tham số "Mã công nghỉ phép".
+
+</p>
+<p class="node">Báo cáo phép năm</p>
+<p class="node_d">Chương trình tính công sẽ tổng hợp từ nguồn:</p>
+<ul class="lo_2">
+	- Cập nhật số dư phép, hoặc số dư phép chuyển từ năm trước;<br/>	
+	- Thông tin nghỉ, vắng mặt với mã công khai báo trong tham số "Mã công nghỉ phép";<br/>
+	- Khai báo số phép cộng thêm cho bộ phận/nhân viên;<br/>
+</ul>
+
+<p class="node_d">Ngoài ra còn dựa trên các tham số:</p>
+<ul class="lo_2">
+- Số năm thâm niên được cộng thêm ngày phép: dựa vào ngày vào công ty trong thông tin nhân viên để xác định số năm thâm niên, quy tắc là tính đủ ngày 1 năm;<br/>
+- Số ngày phép được nghỉ trong năm;<br/>
+- Số ngày phép được nghỉ một tháng:  dựa vào ngày vào công ty trong thông tin nhân viên để xác định số năm thâm niên, quy tắc là tính đủ ngày 1 tháng.
+</ul>
+
+<p id="td3">Báo cáo quản lý công làm việc</p>
+<p class="node">Bảng chấm công</p>
+<p class="node_d">Chương trình tính công sẽ tổng hợp từ nguồn:</p>
+<ul class="lo_2">
+	- Số liệu chấm công từ máy chấm công, Cập nhật giờ vào ra, điều chỉnh giờ vào ra, điều chỉnh công;<br/>
+	- Thông tin nghỉ, vắng mặt: chương trình tự động tạo ra công và thời gian tương ứng với khai báo nghỉ;<br/>
+	- Cập nhật thông tin nhân viên nghỉ theo chế độ: chương trình tự động tạo ra công và thời gian tương ứng với khai báo;<br/>
+	- Đăng ký ca làm việc cho nhân viên: Dựa vào số liệu chấm công từ máy chấm công (Cập nhật giờ vào ra, điều chỉnh giờ vào ra, điều chỉnh công) chương trình sẽ so sánh với công khai báo để xác định công làm việc;<br/>
+	- Đăng ký tăng ca cho nhân viên: Dựa vào số liệu chấm công từ máy chấm công (Cập nhật giờ vào ra, điều chỉnh giờ vào ra, điều chỉnh công), chương trình sẽ so sánh với đăng ký tăng ca để xác định công tăng ca.
+</ul>
+
+<p class="node">Bảng kê chi tiết kết quả chấm công</p>
+<ul class="lo_2">
+- Bảng chấm công: Số liệu tính toán được mô tả trong "Bảng chấm công";<br/>
+- Danh mục chi tiết ca: Bóc tách các ca lớn thành các ca nhỏ.
+</ul>
+<p class="node">Bảng tổng hợp công nhân viên</p>
+<p class="node_d">Báo cáo tổng hợp theo bộ phận, nhân viên, số ngày, số giờ chi tiết theo công làm việc.</p>
+<p id="td2">Các chức năng xử lý cần tính công trước khi thực hiện</p>
+<ul class="lo_2">
+- Kết chuyển ngày phép sang năm sau;<br/>
+- Tính lương.
+</ul>
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

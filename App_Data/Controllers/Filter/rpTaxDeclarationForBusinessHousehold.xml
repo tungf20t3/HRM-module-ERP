@@ -1,0 +1,381 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY defaultTable "TKTHKD">
+  <!ENTITY defaultForm "TKTHKD">
+]>
+
+<dir table="v20dmmaubc" code="ma_maubc, form" order="ma_maubc, form" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc mẫu báo cáo" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_maubc" categoryIndex="1" allowNulls="false" defaultValue="&defaultTable;" clientDefault="&defaultTable;" hidden="true" readOnly="true">
+      <header v="Mã mẫu báo cáo" e="Report Code"></header>
+    </field>
+    <field name="ten_ma_maubc%l" categoryIndex="1" readOnly="true" external="true" defaultValue="Default" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="form" allowNulls="false" defaultValue="&defaultForm;" clientDefault="&defaultForm;">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="AutoComplete" controller="ReportForm" reference="ten_form%l" key="form in (select form from v20dmmaubc where ma_maubc = '{$%c[ma_maubc]}')" check="form in (select form from v20dmmaubc where ma_maubc = '{$%c[ma_maubc]}')" information="form$ReportForm.ten_maubc%l"/>
+      <clientScript><![CDATA[onchange=onChange$Filter$ReportForm(this);]]></clientScript>
+    </field>
+    <field name="ten_form%l" categoryIndex="1" readOnly="true" external="true" defaultValue="Default">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="loai" external="true" dataFormatString="1, 2, 3" clientDefault="2" align="right" allowContain="true" defaultValue="Default">
+      <header v="Loại" e="Type"></header>
+      <footer v="1 - Tạo mẫu, 2 - Sửa mẫu, 3 - Xóa mẫu" e="1 - New, 2 - Edit, 3 - Delete"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange=onChange$Filter$FormType(this);]]></clientScript>
+    </field>
+
+    <field name="ten_maubc" categoryIndex="1">
+      <header v="Tên mẫu báo cáo" e="Report Name"></header>
+    </field>
+    <field name="ten_maubc2" categoryIndex="1">
+      <header v="Tên khác" e="Other Name"></header>
+    </field>
+    <field name="xoa_yn" categoryIndex="1" type="Boolean" external="true" allowContain="true" defaultValue="true">
+      <header v="" e=""></header>
+      <footer v="Xác nhận xóa mẫu báo cáo" e="Confirm delete"></footer>
+      <items style="CheckBox"/>
+    </field>
+
+
+    <field name="cua_hang" categoryIndex="3" maxLength="110">
+      <header v="Tên cửa hàng/thương hiệu" e="Name of the shop/Trade mark"></header>
+    </field>
+    <field name="cua_hang2" categoryIndex="3" maxLength="110">
+      <header v="Tên khác" e="Other Name"></header>
+    </field>
+    <field name="nganh_nghe" categoryIndex="3">
+      <header v="Ngành nghề kinh doanh" e="Business sectors"></header>
+      <items style="Lookup" controller="TaxBusinessSectors" key="status = '1'" check="1=1"/>
+    </field>
+
+    <field name="dien_tich" type="Decimal" dataFormatString="### ##0.00" categoryIndex="3">
+      <header v="Diện tích kinh doanh" e="Business area"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="thue_yn" type="Boolean" categoryIndex="3">
+      <header v="Đi thuê" e="Leased"></header>
+      <items style="CheckBox"/>
+    </field>
+    <field name="sl_ld" type="Decimal" dataFormatString="## ##0" categoryIndex="3">
+      <header v="Số lượng lao động" e="Number of Employees"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="hoat_dong_tu" dataFormatString="HH:ss" align="right" categoryIndex="3">
+      <header v="Thời gian hoạt động từ" e="Daily working time from"></header>
+      <footer v="Thời gian hoạt động từ/đến" e="Daily working time from/to"></footer>
+    </field>
+    <field name="hoat_dong_den" dataFormatString="HH:ss" align="right" categoryIndex="3">
+      <header v="Thời gian hoạt động đến" e="Daily working time to"></header>
+    </field>
+
+    <field name="kinh_doanh_tinh" onDemand="true" categoryIndex="5">
+      <header v="Tỉnh/thành" e="Province/City"></header>
+      <items style="AutoComplete" controller="hrProvinceCity" reference="ten_tinh%l" key="status = '1'" check="1 = 1" information="ma_tinh$hrdmtinh.ten_tinh%l" new="Default"/>
+      <clientScript><![CDATA[onchange=onChange$Filter$Item(this);]]></clientScript>
+    </field>
+    <field name="ten_tinh%l" categoryIndex="5" readOnly="true" external="true" defaultValue="Default">
+      <header v="" e=""></header>
+    </field>
+    <field name="kinh_doanh_quan" onDemand="true" categoryIndex="5">
+      <header v="Quận/huyện" e="District"></header>
+      <items style="AutoComplete" controller="hrDistrict" reference="ten_quan%l" key="ma_tinh = '{$%c[kinh_doanh_tinh]}' and status = '1'" check="ma_tinh = '{$%c[kinh_doanh_tinh]}'" information="ma_quan$hrdmquan.ten_quan%l"/>
+      <clientScript><![CDATA[onchange=onChange$Filter$Item(this);]]></clientScript>
+    </field>
+    <field name="ten_quan%l" categoryIndex="5" readOnly="true" external="true" defaultValue="Default">
+      <header v="" e=""></header>
+    </field>
+    <field name="kinh_doanh_phuong" onDemand="true" categoryIndex="5">
+      <header v="Phường/xã" e="Ward/Commune"></header>
+      <items style="AutoComplete" controller="hrWardCommune" reference="ten_phuong%l" key="ma_tinh = '{$%c[kinh_doanh_tinh]}' and ma_quan = '{$%c[kinh_doanh_quan]}' and status = '1'" check="ma_tinh = '{$%c[kinh_doanh_tinh]}' and ma_quan = '{$%c[kinh_doanh_quan]}'" information="ma_phuong$hrdmphuong.ten_phuong%l"/>
+    </field>
+    <field name="ten_phuong%l" categoryIndex="5" readOnly="true" external="true" defaultValue="Default">
+      <header v="" e=""></header>
+    </field>
+    <field name="kinh_doanh_so" categoryIndex="5" maxLength="110">
+      <header v="Số nhà/đường phố" e="House No/Street"></header>
+    </field>
+    <field name="kinh_doanh_so2" categoryIndex="5" maxLength="110">
+      <header v="Khác" e="Other"></header>
+    </field>
+    <field name="bien_gioi_yn" type="Boolean" categoryIndex="5">
+      <header v="Kinh doanh tại chợ biên giới" e="Operating at Border Market"></header>
+      <items style="CheckBox"/>
+    </field>
+
+    <field name="cu_tru_tinh" onDemand="true" categoryIndex="7">
+      <header v="Tỉnh/thành" e="Province/City"></header>
+      <items style="AutoComplete" controller="hrProvinceCity" reference="ten_cu_tru_tinh%l" key="status = '1'" check="1 = 1" information="ma_tinh$hrdmtinh.ten_tinh%l" new="Default"/>
+      <clientScript><![CDATA[onchange=onChange$Filter$Item(this);]]></clientScript>
+    </field>
+    <field name="ten_cu_tru_tinh%l" categoryIndex="7" readOnly="true" external="true" defaultValue="Default">
+      <header v="" e=""></header>
+    </field>
+    <field name="cu_tru_quan" onDemand="true" categoryIndex="7">
+      <header v="Quận/huyện" e="District"></header>
+      <items style="AutoComplete" controller="hrDistrict" reference="ten_cu_tru_quan%l" key="ma_tinh = '{$%c[cu_tru_tinh]}' and status = '1'" check="ma_tinh = '{$%c[cu_tru_tinh]}'" information="ma_quan$hrdmquan.ten_quan%l"/>
+      <clientScript><![CDATA[onchange=onChange$Filter$Item(this);]]></clientScript>
+    </field>
+    <field name="ten_cu_tru_quan%l" categoryIndex="7" readOnly="true" external="true" defaultValue="Default">
+      <header v="" e=""></header>
+    </field>
+    <field name="cu_tru_phuong" onDemand="true" categoryIndex="7">
+      <header v="Phường/xã" e="Ward/Commune"></header>
+      <items style="AutoComplete" controller="hrWardCommune" reference="ten_cu_tru_phuong%l" key="ma_tinh = '{$%c[cu_tru_tinh]}' and ma_quan = '{$%c[cu_tru_quan]}' and status = '1'" check="ma_tinh = '{$%c[cu_tru_tinh]}' and ma_quan = '{$%c[cu_tru_quan]}'" information="ma_phuong$hrdmphuong.ten_phuong%l"/>
+    </field>
+    <field name="ten_cu_tru_phuong%l" categoryIndex="7" readOnly="true" external="true" defaultValue="Default">
+      <header v="" e=""></header>
+    </field>
+    <field name="cu_tru_so" categoryIndex="7" maxLength="110">
+      <header v="Số nhà/đường phố" e="House No/Street"></header>
+    </field>
+    <field name="cu_tru_so2" categoryIndex="7" maxLength="110">
+      <header v="Khác" e="Other"></header>
+    </field>
+
+    <field name="h_line1" categoryIndex="9">
+      <header v="Thông tin" e="Information"></header>
+      <footer v="&lt;div class=&quot;LabelDescription&quot;&gt;Thông tin&lt;/div&gt;" e="&lt;div class=&quot;LabelDescription&quot;&gt;Information&lt;/div&gt;"></footer>
+    </field>
+    <field name="h_line12" categoryIndex="9">
+      <header v="Thông tin khác" e="Other Information"></header>
+      <footer v="&lt;div class=&quot;LabelDescription&quot;&gt;Thông tin khác&lt;/div&gt;" e="&lt;div class=&quot;LabelDescription&quot;&gt;Other Information&lt;/div&gt;"></footer>
+    </field>
+    <field name="h_line2" categoryIndex="9">
+      <header v="" e=""></header>
+    </field>
+    <field name="h_line22" categoryIndex="9">
+      <header v="" e=""></header>
+    </field>
+    <field name="h_line3" categoryIndex="9">
+      <header v="" e=""></header>
+    </field>
+    <field name="h_line32" categoryIndex="9">
+      <header v="" e=""></header>
+    </field>
+    <field name="h_line4" categoryIndex="9">
+      <header v="" e=""></header>
+    </field>
+    <field name="h_line42" categoryIndex="9">
+      <header v="" e=""></header>
+    </field>
+    <field name="h_line5" categoryIndex="9">
+      <header v="" e=""></header>
+    </field>
+    <field name="h_line52" categoryIndex="9">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="184">
+      <item value="145, 20, 80, 100, 200, 5"/>
+      <item value="110100: [form].Label, [form], [ten_form%l]"/>
+      <item value="111000: [loai].Label, [loai], [loai].Description"/>
+
+      <item value="110001: [ten_maubc].Label, [ten_maubc], [ma_maubc]"/>
+      <item value="11000-: [ten_maubc2].Label, [ten_maubc2]"/>
+      <item value="-1100-: [xoa_yn], [xoa_yn].Description"/>
+
+      <item value="110000: [cua_hang].Label, [cua_hang]"/>
+      <item value="110000: [cua_hang2].Label, [cua_hang2]"/>
+      <item value="11000-: [nganh_nghe].Label, [nganh_nghe]"/>
+      <item value="110--: [dien_tich].Label, [dien_tich]"/>
+      <item value="11---: [thue_yn].Label, [thue_yn]"/>
+      <item value="110--: [sl_ld].Label, [sl_ld]"/>
+      <item value="1101-: [hoat_dong_tu].Description, [hoat_dong_tu], [hoat_dong_den]"/>
+
+      <item value="11010: [kinh_doanh_tinh].Label, [kinh_doanh_tinh], [ten_tinh%l]"/>
+      <item value="11010: [kinh_doanh_quan].Label, [kinh_doanh_quan], [ten_quan%l]"/>
+      <item value="11010: [kinh_doanh_phuong].Label, [kinh_doanh_phuong], [ten_phuong%l]"/>
+      <item value="11000: [kinh_doanh_so].Label, [kinh_doanh_so]"/>
+      <item value="11000: [kinh_doanh_so2].Label, [kinh_doanh_so2]"/>
+      <item value="11---: [bien_gioi_yn].Label, [bien_gioi_yn]"/>
+
+      <item value="11010: [cu_tru_tinh].Label, [cu_tru_tinh], [ten_cu_tru_tinh%l]"/>
+      <item value="11010: [cu_tru_quan].Label, [cu_tru_quan], [ten_cu_tru_quan%l]"/>
+      <item value="11010: [cu_tru_phuong].Label, [cu_tru_phuong], [ten_cu_tru_phuong%l]"/>
+      <item value="11000: [cu_tru_so].Label, [cu_tru_so]"/>
+      <item value="11000: [cu_tru_so2].Label, [cu_tru_so2]"/>
+
+      <item value="1-1: [h_line1].Desciption, [h_line12].Desciption"/>
+      <item value="1-1: [h_line1], [h_line12]"/>
+      <item value="1-1: [h_line2], [h_line22]"/>
+      <item value="1-1: [h_line3], [h_line32]"/>
+      <item value="1-1: [h_line4], [h_line42]"/>
+      <item value="1-1: [h_line5], [h_line52]"/>
+      <categories>
+        <category index="1" columns="145, 20, 80, 100, 205, 0">
+          <header v="Thông tin chung" e="General Information"/>
+        </category>
+        <category index="3" columns="145, 20, 80, 100, 100, 105">
+          <header v="Hộ kinh doanh" e="Business Household"/>
+        </category>
+        <category index="5" columns="145, 20, 80, 100, 205">
+          <header v="Địa chỉ kinh doanh" e="Address of Business Location"/>
+        </category>
+        <category index="7" columns="145, 20, 80, 100, 205">
+          <header v="Địa chỉ cư trú" e="Address"/>
+        </category>
+        <category index="9" columns="271, 8, 271">
+          <header v="Khác" e="Other"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Declare">
+      <text>
+        <![CDATA[
+declare @$recordHasBeenChanged nvarchar(4000)
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Mẫu báo cáo <span class="Highlight">%s</span> đã được xóa.' else N'Report form <span class="Highlight">%s</span> has been deleted.' end
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @c varchar(1), @defaultForm varchar(33)
+select @c = char(255)
+select top 1 @defaultForm = rtrim(upper(form)) from @@table where ma_maubc = ']]>&defaultTable;<![CDATA[' and (kieu_bc = 0) and nd_yn = 1
+if @defaultForm is null select top 1 @defaultForm = rtrim(upper(form)) from @@table where ma_maubc = ']]>&defaultTable;<![CDATA[' and (kieu_bc = 0)
+
+select 'this._formData$Value=''' + replace(replace(a.ten_maubc, '\', '\\'), '''', '\''') + @c + replace(replace(a.ten_maubc2, '\', '\\'), '''', '\''') + @c +
+    replace(rtrim(a.h_line1), '''', '\''') + @c + replace(rtrim(a.h_line12), '''', '\''') + @c +
+    replace(rtrim(a.h_line2), '''', '\''') + @c + replace(rtrim(a.h_line22), '''', '\''') + @c +
+    replace(rtrim(a.h_line3), '''', '\''') + @c + replace(rtrim(a.h_line32), '''', '\''') + @c +
+    replace(rtrim(a.h_line4), '''', '\''') + @c + replace(rtrim(a.h_line42), '''', '\''') + @c +
+    replace(rtrim(a.h_line5), '''', '\''') + @c + replace(rtrim(a.h_line52), '''', '\''') + @c +
+
+    replace(rtrim(isnull(b.cua_hang, '')), '''', '\''') + @c + replace(rtrim(isnull(b.cua_hang2, '')), '''', '\''') + @c +
+    replace(rtrim(isnull(b.nganh_nghe, '')), '''', '\''') + @c + replace(rtrim(isnull(b.dien_tich, 0)), '''', '\''') + @c +
+    replace(rtrim(isnull(b.thue_yn, 0)), '''', '\''') + @c + replace(rtrim(isnull(b.sl_ld, 0)), '''', '\''') + @c +
+    replace(rtrim(isnull(b.hoat_dong_tu, '00:00')), '''', '\''') + @c + replace(rtrim(isnull(b.hoat_dong_den, '00:00')), '''', '\''') + @c +
+
+    replace(rtrim(isnull(b.kinh_doanh_tinh, '')), '''', '\''') + @c + replace(replace(isnull(c.ten_tinh, ''), '\', '\\'), '''', '\''') + @c + replace(replace(isnull(c.ten_tinh2, ''), '\', '\\'), '''', '\''') + @c +
+    replace(rtrim(isnull(b.kinh_doanh_quan, '')), '''', '\''') + @c + replace(replace(isnull(d.ten_quan, ''), '\', '\\'), '''', '\''') + @c + replace(replace(isnull(d.ten_quan2, ''), '\', '\\'), '''', '\''') + @c +
+    replace(rtrim(isnull(b.kinh_doanh_phuong, '')), '''', '\''') + @c + replace(replace(isnull(e.ten_phuong, ''), '\', '\\'), '''', '\''') + @c + replace(replace(isnull(e.ten_phuong2, ''), '\', '\\'), '''', '\''') + @c +
+    replace(rtrim(isnull(b.kinh_doanh_so, '')), '''', '\''') + @c + replace(rtrim(isnull(b.kinh_doanh_so2, '')), '''', '\''') + @c + replace(rtrim(isnull(b.bien_gioi_yn, 0)), '''', '\''') + @c +
+
+    replace(rtrim(isnull(b.cu_tru_tinh, '')), '''', '\''') + @c + replace(replace(isnull(f.ten_tinh, ''), '\', '\\'), '''', '\''') + @c + replace(replace(isnull(f.ten_tinh2, ''), '\', '\\'), '''', '\''') + @c +
+    replace(rtrim(isnull(b.cu_tru_quan, '')), '''', '\''') + @c + replace(replace(isnull(g.ten_quan, ''), '\', '\\'), '''', '\''') + @c + replace(replace(isnull(g.ten_quan2, ''), '\', '\\'), '''', '\''') + @c +
+    replace(rtrim(isnull(b.cu_tru_phuong, '')), '''', '\''') + @c + replace(replace(isnull(h.ten_phuong, ''), '\', '\\'), '''', '\''') + @c + replace(replace(isnull(h.ten_phuong2, ''), '\', '\\'), '''', '\''') + @c +
+    replace(rtrim(isnull(b.cu_tru_so, '')), '''', '\''') + @c + replace(rtrim(isnull(b.cu_tru_so2, '')), '''', '\''') + ''';this._defaultForm = ''' + @defaultForm + ''';loadFormFilter(this);' as message
+  from @@table a
+    left join tkthkdtsmbc b on a.ma_maubc = b.ma_maubc and a.form = b.form
+    left join hrdmtinh c on b.kinh_doanh_tinh = c.ma_tinh left join hrdmquan d on b.kinh_doanh_tinh = d.ma_tinh and b.kinh_doanh_quan = d.ma_quan left join hrdmphuong e on b.kinh_doanh_tinh = e.ma_tinh and b.kinh_doanh_quan = e.ma_quan and b.kinh_doanh_phuong = e.ma_phuong
+    left join hrdmtinh f on b.cu_tru_tinh = f.ma_tinh left join hrdmquan g on b.cu_tru_tinh = g.ma_tinh and b.cu_tru_quan = g.ma_quan left join hrdmphuong h on b.cu_tru_tinh = h.ma_tinh and b.cu_tru_quan = h.ma_quan and b.kinh_doanh_phuong = h.ma_phuong
+  where a.form = ']]>&defaultForm;<![CDATA['
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterClosing;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @$loai = 3 begin
+  if @$xoa_yn = 1 and exists(select 1 from v20dmmaubc where form = @form and ma_maubc = @ma_maubc and loai_maubc = 0) begin
+    delete v20dmmaubc where form = @form and ma_maubc = @ma_maubc
+    delete ]]>&defaultTable;<![CDATA[ where form = @form
+    delete tkthkdtsmbc where form = @form and ma_maubc = @ma_maubc
+    select 'form' as field, case when @@language = 'v' then N'Mẫu báo cáo đã được xóa.' else 'Data has been deleted successfully.' end as message
+    return
+  end else begin
+    select 'form' as field, case when @@language = 'v' then N'Không thể xóa mẫu báo cáo. Mẫu đã bị xóa hoặc đây là mẫu chuẩn hoặc chưa xác nhận thông tin cần xóa.' else 'Cannot delele this item. You have not confirmed yet or invalid report form.' end as message
+    return
+  end
+end
+
+if not exists (select 1 from v20dmmaubc where ma_maubc = @ma_maubc and form = @form) begin
+  select 'form' as field, replace(@$recordHasBeenChanged, '%s', rtrim(case when @@language ='v' then @ten_maubc else @ten_maubc2 end)) as message
+  return
+end
+
+if @$loai = 2 begin
+  update v20dmmaubc set ten_maubc = @ten_maubc, ten_maubc2 = @ten_maubc2, h_line1 = @h_line1, h_line12 = @h_line12, h_line2 = @h_line2, h_line22 = @h_line22, h_line3 = @h_line3, h_line32 = @h_line32, h_line4 = @h_line4, h_line42 = @h_line42, h_line5 = @h_line5, h_line52 = @h_line52
+    where ma_maubc = @ma_maubc and form = @form
+  delete tkthkdtsmbc where ma_maubc = @ma_maubc and form = @form
+  insert into tkthkdtsmbc (ma_maubc, form, cua_hang, cua_hang2, nganh_nghe, dien_tich, thue_yn, sl_ld, hoat_dong_tu, hoat_dong_den, kinh_doanh_tinh, kinh_doanh_quan, kinh_doanh_phuong, kinh_doanh_so, kinh_doanh_so2, bien_gioi_yn, cu_tru_tinh, cu_tru_quan, cu_tru_phuong, cu_tru_so, cu_tru_so2)
+    values (@ma_maubc, @form, @cua_hang, @cua_hang2, @nganh_nghe, @dien_tich, @thue_yn, @sl_ld, @hoat_dong_tu, @hoat_dong_den, @kinh_doanh_tinh, @kinh_doanh_quan, @kinh_doanh_phuong, @kinh_doanh_so, @kinh_doanh_so2, @bien_gioi_yn, @cu_tru_tinh, @cu_tru_quan, @cu_tru_phuong, @cu_tru_so, @cu_tru_so2)
+end
+
+if @$loai = 1 begin
+  declare @max int, @f varchar(64)
+  set @max = 65
+  while @max < 90 begin
+    select @f = @ma_maubc + char(@max)
+    if exists(select 1 from v20dmmaubc where ma_maubc = @ma_maubc and form = @f) set @max = @max + 1
+      else break
+  end
+
+  select @f = @ma_maubc + char(@max)
+  if exists (select 1 from v20dmmaubc where ma_maubc = @ma_maubc and form = @f) begin
+    select 'loai' as field, case when @@language = 'v' then N'Không thể tạo mẫu báo cáo.' else 'Cannot create this item.' end as message, 'recoverForm$Data(this);' as script
+    return
+  end
+
+  insert into v20dmmaubc(ma_maubc, form, ten_maubc, ten_maubc2, title, title2, h_line1, h_line12, h_line2, h_line22, h_line3, h_line32, h_line4, h_line42, h_line5, h_line52, loai_maubc, datetime0, datetime2, user_id0, user_id2, ma_td1, ma_td2, ma_td3, sl_td1, sl_td2, sl_td3, ngay_td1, ngay_td2, ngay_td3, gc_td1, gc_td2, gc_td3, s1, s2, s3, s4, s5, s6, s7, s8, s9)
+    values (@ma_maubc, @f, @ten_maubc, @ten_maubc2, upper(@ten_maubc), upper(@ten_maubc2), @h_line1, @h_line12, @h_line2, @h_line22, @h_line3, @h_line32, @h_line4, @h_line42, @h_line5, @h_line52, 0, null, null, 0, 0, '', '', '', 0, 0, 0, null, null, null, '', '', '', '', '', '', 0, 0, 0, null, null, null)
+
+  insert into tkthkdtsmbc (ma_maubc, form, cua_hang, cua_hang2, nganh_nghe, dien_tich, thue_yn, sl_ld, hoat_dong_tu, hoat_dong_den, kinh_doanh_tinh, kinh_doanh_quan, kinh_doanh_phuong, kinh_doanh_so, kinh_doanh_so2, bien_gioi_yn, cu_tru_tinh, cu_tru_quan, cu_tru_phuong, cu_tru_so, cu_tru_so2)
+    values (@ma_maubc, @f, @cua_hang, @cua_hang2, @nganh_nghe, @dien_tich, @thue_yn, @sl_ld, @hoat_dong_tu, @hoat_dong_den, @kinh_doanh_tinh, @kinh_doanh_quan, @kinh_doanh_phuong, @kinh_doanh_so, @kinh_doanh_so2, @bien_gioi_yn, @cu_tru_tinh, @cu_tru_quan, @cu_tru_phuong, @cu_tru_so, @cu_tru_so2)
+
+  select * into #t from ]]>&defaultTable;<![CDATA[ where form = @form
+  update #t set form = @f
+  insert into ]]>&defaultTable;<![CDATA[ select * from #t
+  drop table #t
+  select '' as field, '' as message, 'before$LoadGridReportForm(this, ''' + @f + ''');' as script
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function onTabChanged(a){a.parentForm.focusWhenTabChanged(["ten_maubc","cua_hang","kinh_doanh_tinh","cu_tru_tinh","h_line1"])}function loadFormFilter(a){a._tabContainer.add_activeTabChanged(onTabChanged);a._tabContainer._loaded=true;a.add_onResponseComplete(on$Filter$ResponseComplete);setFormDefaultValue(a);a.setReferenceKeyFilter("kinh_doanh_quan");a.setReferenceKeyFilter("kinh_doanh_phuong");a.setReferenceKeyFilter("cu_tru_quan");a.setReferenceKeyFilter("cu_tru_phuong")}function close$VoucherFilter$(a){try{a.remove_activeTabChanged(onTabChanged)}catch(b){}try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function setFormDefaultValue(a){var e=a.grid;if(e._formCode)a._defaultForm=e._formCode;a.setItemValue("form",[a._defaultForm]);if(a._saveData$Value)a._formData$Value=a._saveData$Value;for(var c=a._formData$Name="ten_maubc, ten_maubc2, h_line1, h_line12, h_line2, h_line22, h_line3, h_line32, h_line4, h_line42, h_line5, h_line52, cua_hang, cua_hang2, nganh_nghe, dien_tich, thue_yn, sl_ld, hoat_dong_tu, hoat_dong_den, kinh_doanh_tinh, ten_tinh, ten_tinh2, kinh_doanh_quan, ten_quan, ten_quan2, kinh_doanh_phuong, ten_phuong, ten_phuong2, kinh_doanh_so, kinh_doanh_so2, bien_gioi_yn, cu_tru_tinh, ten_cu_tru_tinh, ten_cu_tru_tinh2, cu_tru_quan, ten_cu_tru_quan, ten_cu_tru_quan2, cu_tru_phuong, ten_cu_tru_phuong, ten_cu_tru_phuong2, cu_tru_so, cu_tru_so2".split(","),d=a._formData$Value.split(String.fromCharCode(255)),b=0;b<c.length;b++)if($func.trim(c[b])=="thue_yn"||$func.trim(c[b])=="bien_gioi_yn")a.setItemValue($func.trim(c[b]),d[b]=="1"||d[b]=="true"?true:false);else a.setItemValue($func.trim(c[b]),d[b]);a.getItem("ten_form%l").value=a.getItem("ten_maubc%l").value;a.getItem("xoa_yn").disabled=true;a._formDefault$Value=$func.trim(a.getItemValue("form"))}function saveFormDefaultValue(a){if($func.trim(a.getItemValue("form"))==a._formDefault$Value){for(var c=[],b=0;b<a._formData$Name.length;b++)Array.add(c,a.getItemValue($func.trim(a._formData$Name[b])));a._saveData$Value=c.join(String.fromCharCode(255))}}function onChange$Filter$ReportForm(b){var a=b.parentForm;a.getItem("xoa_yn").checked=false;a.request("ReportForm","ReportForm",["form"])}function onChange$Filter$FormType(b){var a=b.parentForm;a.getItem("xoa_yn").disabled=a.getItem("loai").value!=3;if(a.getItem("loai").value!=3)a.getItem("xoa_yn").checked=false}function onChange$Filter$Item(b){var a=b.parentForm,c=b.field.Name;switch(c){case"kinh_doanh_tinh":a.setReferenceKeyFilter("kinh_doanh_quan");a.setReferenceKeyFilter("kinh_doanh_phuong");break;case"kinh_doanh_quan":a.setReferenceKeyFilter("kinh_doanh_phuong");break;case"cu_tru_tinh":a.setReferenceKeyFilter("cu_tru_quan");a.setReferenceKeyFilter("cu_tru_phuong");break;case"cu_tru_quan":a.setReferenceKeyFilter("cu_tru_phuong")}}function on$Filter$ResponseComplete(h,c){var a=c.object,g=c.type.Context,e=c.type.Result;switch(g){case"Checking":var d=a.grid,f=a.getItemValue("loai");if(f!=3){before$LoadGridReportForm(a,a.getItemValue("form"));d._formName=$func.trim(a.getItem("ten_maubc%l").value);d._alterTitle=[null,[["%s",d._formName.toString(),true]]];a._formDefault$Value=$func.trim(a.getItemValue("form"));if(f==1)a._saveData$ValueTemp=a._saveData$Value;saveFormDefaultValue(a)}break;case"ReportForm":for(var b=0;b<a._formData$Name.length;b++)a.setItemValue($func.trim(a._formData$Name[b]),e[b].Value?e[b].Value:"");a.setReferenceKeyFilter("kinh_doanh_quan");a.setReferenceKeyFilter("kinh_doanh_phuong");a.setReferenceKeyFilter("cu_tru_quan");a.setReferenceKeyFilter("cu_tru_phuong")}}function before$LoadGridReportForm(d,c){var a=d.grid,b=[];a._formCode=c;Array.add(b,{Name:"form",Opr:"=",Value:a._formCode,Type:"String",Ignore:false});a.set_externalKey(b)}function recoverForm$Data(a){a._saveData$Value=a._saveData$ValueTemp}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="ReportForm">
+      <text>
+        <![CDATA[
+if exists(select 1 from v20dmmaubc where form = @form) begin
+  select a.ten_maubc, a.ten_maubc2, a.h_line1, a.h_line12, a.h_line2, a.h_line22, a.h_line3, a.h_line32, a.h_line4, a.h_line42, a.h_line5, a.h_line52,
+      b.cua_hang, b.cua_hang2, b.nganh_nghe, b.dien_tich, b.thue_yn, b.sl_ld, isnull(b.hoat_dong_tu, '00:00') as hoat_dong_tu, isnull(b.hoat_dong_den, '00:00') as hoat_dong_den,
+      b.kinh_doanh_tinh, c.ten_tinh, c.ten_tinh2, b.kinh_doanh_quan, d.ten_quan, d.ten_quan2, b.kinh_doanh_phuong, e.ten_phuong, e.ten_phuong2, b.kinh_doanh_so, b.kinh_doanh_so2, b.bien_gioi_yn,
+      b.cu_tru_tinh, f.ten_tinh as ten_cu_tru_tinh, f.ten_tinh2 as ten_cu_tru_tinh2, b.cu_tru_quan, g.ten_quan as ten_cu_tru_quan, g.ten_quan2 as ten_cu_tru_quan2, b.cu_tru_phuong, h.ten_phuong as ten_cu_tru_phuong, h.ten_phuong2 as ten_cu_tru_phuong2, b.cu_tru_so, b.cu_tru_so2
+    from v20dmmaubc a
+      left join tkthkdtsmbc b on a.ma_maubc = b.ma_maubc and a.form = b.form
+      left join hrdmtinh c on b.kinh_doanh_tinh = c.ma_tinh left join hrdmquan d on b.kinh_doanh_tinh = d.ma_tinh and b.kinh_doanh_quan = d.ma_quan left join hrdmphuong e on b.kinh_doanh_tinh = e.ma_tinh and b.kinh_doanh_quan = e.ma_quan and b.kinh_doanh_phuong = e.ma_phuong
+      left join hrdmtinh f on b.cu_tru_tinh = f.ma_tinh left join hrdmquan g on b.cu_tru_tinh = g.ma_tinh and b.cu_tru_quan = g.ma_quan left join hrdmphuong h on b.cu_tru_tinh = h.ma_tinh and b.cu_tru_quan = h.ma_quan and b.kinh_doanh_phuong = h.ma_phuong
+    where a.form = @form
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+
+  <css>
+    <text>
+      <![CDATA[
+.LabelDescription{text-align:left;color:#73A6DE;width:100%;}
+]]>
+    </text>
+  </css>
+</dir>

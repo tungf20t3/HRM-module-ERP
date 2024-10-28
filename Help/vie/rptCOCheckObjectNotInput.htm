@@ -1,0 +1,109 @@
+﻿
+<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ 
+<meta name="generator" content="Adobe RoboHelp 8" />
+
+<meta name="OriginalFile" content="COAdjustOpeningWIPBalanceItem.doc" />
+
+<title>Kiểm tra giá thành</title>
+
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+
+</script>
+
+<style type="text/css">
+
+
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+
+</head>
+<body>
+<p id="td1">Kiểm tra giá thành</p>  
+<p id="p1">
+Do bài toán giá thành được xây dựng mang tính chất tổng quát cao, các tính toán đòi hỏi số liệu cập nhật phải chuẩn xác. Do vậy, trước 
+khi tính toán, cần phải thực hiện các bước kiểm tra thật cẩn thận để bảo đảm kiểm soát được số liệu tính toán là đúng hay sai. Việc phát 
+hiện ra sai sót trong kết quả tính và việc tìm ra nguyên nhân thường mất rất nhiều thời gian do liên quan quá nhiều quy trình tính toán 
+và mang tính chất lặp lại.<br/>
+Trong phạm vi tài liệu hướng dẫn này, chỉ trình bày những thao tác kiểm tra số liệu thông thường xảy ra nhất mà người sử dụng cuối cùng 
+có thể thực hiện được bằng việc hỗ trợ qua các báo cáo hoặc truy vấn nhanh của chương trình. Trong các trường hợp phức tạp hơn, phải thực 
+hiện kiểm tra cấp thấp hơn bằng các công cụ cơ sở dữ liệu.</p>
+
+<p id="td2">	Chứng từ chưa nhập theo đối tượng tập hợp chi phí</p>
+<p id="p2">Trong chức năng kiểm tra này, chương trình cho phép lọc ra những chứng từ không hợp lệ để người sử dụng có thể sửa lại cho hợp lý.
+Căn cứ để chương trình kiểm tra là dựa vào kiểu tập hợp chi phí của các mã yếu tố trong danh mục yếu tố chi phí. </p>
+<p class="e">
+Ví dụ :  Sản phẩm A có yếu tố chi phí nguyên vật liệu chính được tập hợp theo công đoạn – Lsx. Nhưng trong quá trình nhập liệu, người dùng lập phiếu xuất kho nguyên vật liệu sản xuất cho sản phẩm A không nhập trường Bộ phận hoặc Lsx. Khi đó người dùng kiểm tra chức năng này sẽ thấy những phiếu xuất kho đó, có thể chỉnh sửa lại cho đúng trước khi thực hiện tính giá thành.
+</p>
+<p id="td2">	Kiểm tra đối tượng tính giá thành trong phiếu xuất và phiếu nhập</p>
+<p id="p2">Kiểm tra giữa việc xuất kho NVL tập hợp trực tiếp cho các đối tượng tính giá thành (Bộ phận – LSX - Sản phẩm) có phù hợp với 
+việc nhập kho bán sản phẩm tương ứng hay không. Chương trình sẽ hiện ra các chứng từ xuất kho NVL và nhập kho sản phẩm hoàn thành mà xảy 
+ra tình trạng có xuất kho nhưng không có nhập kho tương ứng và ngược lại.</p>
+<p class="e">
+Đối tượng tính giá thành được xác định theo “Công đoạn - Đơn hàng (LSX) - Sản phẩm”
+Sản phẩm A sản xuất tại  công đoạn 1.Trong quá trình nhập liệu người dùng cập nhật phiếu xuất kho nguyên vật liệu sản xuất cho sản phẩm 
+A hoăc phiếu nhập kho sản phẩm A có thể  cập nhật sai công đoạn, LSX. Sau khi tính giá thành kiểm tra kết Thẻ giá thành không có kết quả, 
+kiểm tra chức năng này để biết những chứng từ cập nhật sai, chỉnh sửa lại cho hợp lý để tính toán lại giá thành.
+</p>
+
+<p id="td2">	Vật tư xuất sản xuất nhưng chưa khai báo định mức</p>
+<p id="p2">Trong bài toán giá thành mà vật tư không được chỉ trực tiếp cụ thể cho đối tượng tập hợp giá thành nào mà phải phân bổ qua định 
+mức vật tư, khi chạy chức năng “Vật tư xuất sản xuất nhưng chưa khai báo định mức”, chương trình sẽ báo những phiếu xuất kho vật tư cho sản 
+xuất không nằm trong danh sách các vật tư trong chi tiết tổng tất cả các định mức hiệu lực.</p>
+<p id="td2">	Vật tư có khai báo định mức nhưng các thành phẩm không sản xuất (có SLSX = 0)</p>
+<p id="p2">Dùng để kiểm tra trong trường hợp một vật tư có xuất cho sản xuất nhưng không tồn tại ít nhất một sản phẩm nhận chi phí (không 
+nhập bất kỳ sản phẩm nào có dùng vật tư đó)<br/>
+Sử dụng trong bài toán giá thành mà vật tư không được chỉ trực tiếp cụ thể cho đối tượng tập hợp giá thành nào mà phải phân bổ qua định mức 
+vật tư.</p>
+<p id="td2">	Các yếu tố có DDĐK hoặc phát sinh nhưng không có dở dang cuối kỳ và nhập kho (SLNK + SLCK = 0)</p>
+<p id="p2">Trường hợp sai sót này do chưa nhập phiếu nhập hoặc số lượng nhập dở dang cuối kỳ.</p>
+
+<p id="td2">	Các yếu tố không phân bổ được trong kỳ</p>
+<p id="p2">Dùng để kiểm tra trong trường hợp một yếu tố chi phí có phát sinh trong kỳ nhưng không tồn tại ít nhất một sản phẩm nào nhận 
+chi phí.</p>
+
+<p id="td2">	Thành phẩm nhập kho sai với thành phẩm trong lệnh sản xuất</p>
+<p id="p2">Trong bài toán có đối tượng tập hợp giá thành là lệnh sản xuất, nếu phiếu nhập kho thành phẩm không nằm trong danh sách các 
+sản phẩm trong chi tiết tổng tất cả các lệnh hiệu lực thì chương trình sẽ báo.<br/>
+Trường hợp sai sót này có thể do bộ phận sản xuất thực hiện nhập kho với mã không chính xác.</p>
+<p id="td2">	Lệnh sản xuất có DDĐK - không nhập TP nhưng khai báo kết lệnh</p>
+<p id="p2">   Chương trình sẽ kiểm tra ngày hiệu lực của lệnh sản xuất (được khai báo trong chức năng “lệnh sản xuất”) để so sánh với kỳ 
+phát sinh của số liệu. Nếu lệnh sản xuất có dở dang đầu kỳ nhưng không nhập thành phẩm trong kỳ mà đã khai báo kết thúc lệnh trong kỳ, 
+chức năng này sẽ cảnh báo đối với những lệnh sản xuất đó.</p>
+
+<p id="td2">	Các lệnh sản xuất đã kết thúc kỳ trước nhưng vẫn có phát sinh</p>
+<p id="p2">Chương trình sẽ kiểm tra ngày hiệu lực của lệnh sản xuất (được khai báo trong chức năng “lệnh sản xuất”) để so sánh với kỳ 
+phát sinh của số liệu. Trong trường hợp thời điểm hiệu lực bé hơn chương trình sẽ thông báo.</p>
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

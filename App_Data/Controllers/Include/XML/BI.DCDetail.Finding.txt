@@ -1,0 +1,26 @@
+﻿  <query event="Finding">
+      <text>
+        <![CDATA[
+declare @s nvarchar(4000), @roundAmount int
+select @roundAmount = cast(rtrim(val) as int) from options where name = 'm_round_tien'
+select a.tk_no, a.tien_nt, a.tien, a.dh_so, a.dh_ln, a.stt_rec_dh, a.stt_rec0dh, b.ten_tk as ten_tk_no into #r from d52$000000 a left join dmtk b on a.tk_no = b.tk where 1 = 0
+select @s = 'insert into #r (tk_no, tien_nt, tien, dh_so, dh_ln, stt_rec_dh, stt_rec0dh, ten_tk_no)'
+select @s = @s + char(13) + 'select ''' + rtrim(replace(@tk_ex, '''', '')) + ''', (a.tien_ut - a.tien_da_ut), round((a.tien_ut - a.tien_da_ut) * @$ty_gia, @$roundAmount)'
+select @s = @s + char(13) + ', rtrim(a.so_ct), 1, rtrim(stt_rec), ''001'',case when '@@language' = ''v'' then b.ten_tk else b.ten_tk2 end'
+select @s = @s + char(13) + ' from ' + case when @vcCode = 'PO1' then 'm94$' when @vcCode = 'PO2' then 'm95$' else 'bim06$' end + case when patindex('%[^0-9]%', @e) > 0 then '000000' else left(@e, 6) end + ' a left join dmtk b on ''' + rtrim(@tk_ex) + ''' = b.tk where a.stt_rec = ''' + replace(@vcID, '''', '') + ''' and a.tien_ut > a.tien_da_ut'
+select @s = replace(replace(@s, '@$ty_gia', @ty_gia), '@$roundAmount', @roundAmount)
+exec sp_executesql @s
+
+select rtrim(tk_no) as tk_no, rtrim(ten_tk_no) as ten_tk_no, '' as so_hd, null as ngay_hd, 0 as tien_hd_nt, 0 as da_tt_nt, 0 as cl_nt,
+    '' as ma_nt_i, 0 as ty_gia_hd, 0 as tt_qd, '' as dien_giai,
+    tien_nt, '' as ma_thue, '' as ten_thue, 0 as thue_suat, '' as tk_thue, '' as ten_tk_thue_no, 0 as thue_nt, 0 as thue,
+    tien_nt as tt_nt, tien as tt, '' as ma_kh2, '' as ten_kh2, '' as tk_cn,
+    tien, dh_so, dh_ln, stt_rec_dh, stt_rec0dh,
+    '' as ma_vv, '' as ten_vv, '' as ma_bp, '' as ten_bp, '' as so_lsx, '' as ten_lsx,
+    '' as ma_sp, '' as ten_sp, '' as ma_hd, '' as ten_hd, '' as ma_phi, '' as ten_phi, '' as ma_ku, '' as ten_ku,
+    '' as stt_rec, '' as stt_rec0, 1 as line_nbr, '' as stt_rec_tt
+  from #r
+drop table #r
+]]>
+      </text>
+    </query>

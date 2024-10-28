@@ -1,0 +1,228 @@
+﻿<template>
+  <action id="DuePurchaseInvoiceReport" alias="" subject="" table="" v="Báo cáo các hóa đơn sắp đến hạn thanh toán" e="Due Invoice Report">
+    <fields>
+      <field name="h_title">
+        <header v="BÁO CÁO HÓA ĐƠN SẮP ĐẾN HẠN THANH TOÁN" e="DUE INVOICE REPORT"/>
+      </field>
+      <field name="h_tk" type="String">
+        <header v="Tài khoản:" e="Account:"/>
+      </field>
+      <field name="h_ngay_bc" type="String">
+        <header v="ngày báo cáo:" e="Report Date:"/>
+      </field>
+      <field name="h_so_ngay_cb" type="String">
+        <header v="số ngày cảnh báo:" e="Days of Warning:"/>
+      </field>
+      <field name="h_so_hd" type="String">
+        <header v="Số" e="Number"/>
+      </field>
+      <field name="h_ngay_hd" type="String">
+        <header v="Ngày" e="Date"/>
+      </field>
+      <field name="h_dien_giai">
+        <header v="Diễn giải" e="Description"></header>
+      </field>
+      <field name="h_tien_hd" type="String">
+        <header v="Tiền trên hđ" e="Amount on Invoice"/>
+      </field>
+      <field name="h_da_tra" type="String">
+        <header v="Đã trả" e="Paid"/>
+      </field>
+      <field name="h_phai_tra" type="String">
+        <header v="Phải trả" e="Payable"/>
+      </field>
+      <field name="h_den_han" type="String">
+        <header v="Ngày đến hạn" e="Due Date"/>
+      </field>
+      <field name="h_so_ngay" type="String">
+        <header v="Số ngày" e="Days"/>
+      </field>
+      <field name="info1">
+        <header v="Vui lòng không trả lời thư (Email) này." e="This is an automatically generated email - Please do not reply to this message."/>
+      </field>
+      <field name="info2">
+        <header v="Xin cảm ơn!" e="Thank you!"/>
+      </field>
+    </fields>
+
+    <query id="report">
+
+      <command id="run">
+        <text>
+          <![CDATA[
+exec AI_ERP$Service$GetAccessRight '@@id', '@@sysid'
+]]>
+        </text>
+      </command>
+
+      <command id="language">
+        <text>
+          <![CDATA[
+select '@@d_language' as d_language
+]]>
+        </text>
+      </command>
+
+      <command id="email">
+        <text>
+          <![CDATA[
+select '@@email' as email_to, '' as email_cc, '' as email_bcc, '@@phone' as phone, '@@simulation' as simulation
+]]>
+        </text>
+      </command>
+
+      <command id="master">
+        <text>
+          <![CDATA[
+declare @tk varchar(32), @ngay_bc datetime, @so_ngay_cb int, @ed int, @ngay int, @current smalldatetime, @y int, @m int, @d int, @eom smalldatetime
+
+select @current = getdate()
+select @y = year(@current), @m = month(@current), @d = day(@current)
+select @eom = dateadd(month, 1, cast(rtrim(@y) + replace(str(@m, 2), ' ', '0') + '01' as smalldatetime)) - 1
+
+select @ed = day(@eom)
+
+select @ngay = case when ngay_cuoi_thang_bc = 0 then c_ngay_bc else @ed end from dmthongbao where ma_tb = '@@ma_tb' and status = '1'
+if @ngay > @ed select @ngay = @ed
+
+select @tk = tk, @so_ngay_cb = so_ngay, @ngay_bc = case
+  when type = 0 then d_ngay_bc
+  when type = 1 then dateadd(day, c_ngay_bc_w - datepart(dw, @current), @current) + 1
+  when type = 2 then case
+    when @d = @eom then @eom
+    else dateadd(day, @ngay  - @d, @current)
+  end
+  else @current
+end
+from dmthongbao where ma_tb = '@@ma_tb' and status = '1'
+select convert(varchar(10), @ngay_bc, 103) as date_from, @tk as tk, @so_ngay_cb as so_ngay
+]]>
+        </text>
+      </command>
+
+      <command id="detail">
+        <text>
+          <![CDATA[
+declare @q nvarchar(4000), @ngay_bc datetime, @amountFormat varchar(32), @ed int, @ngay int, @current smalldatetime, @y int, @m int, @d int, @eom smalldatetime
+
+select @current = getdate()
+select @y = year(@current), @m = month(@current), @d = day(@current)
+select @eom = dateadd(month, 1, cast(rtrim(@y) + replace(str(@m, 2), ' ', '0') + '01' as smalldatetime)) - 1
+
+select @ed = day(@eom)
+
+select @ngay = case when ngay_cuoi_thang_bc = 0 then c_ngay_bc else @ed end from dmthongbao where ma_tb = '@@ma_tb' and status = '1'
+if @ngay > @ed select @ngay = @ed
+
+select @ngay_bc = case
+  when type = 0 then d_ngay_bc
+  when type = 1 then dateadd(day, c_ngay_bc_w - datepart(dw, @current), @current) + 1
+  when type = 2 then case
+    when @d = @eom then @eom
+    else dateadd(day, @ngay  - @d, @current)
+  end
+  else @current
+end
+from dmthongbao where ma_tb = '@@ma_tb' and status = '1'
+
+select top 1 @q = 'exec @@appDatabaseName..' + replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(rtrim(stored) + ' ' + rtrim(para),
+			'$ngay_bc', '''' + convert(char(8), @ngay_bc, 112) + ''''),
+			'$tk', '''' + replace(rtrim(tk), '''', '''''') + ''''),
+			'$so_ngay', '''' + replace(rtrim(so_ngay), '''', '''''') + ''''),
+			'$ma_kh', '''' + replace(rtrim(ma_kh), '''', '''''') + ''''),
+			'$nh_kh1', '''' + replace(rtrim(''), '''', '''''') + ''''),
+			'$nh_kh2', '''' + replace(rtrim(''), '''', '''''') + ''''),
+			'$nh_kh3', '''' + replace(rtrim(''), '''', '''''') + ''''),
+			'$nhom', '''' + replace(rtrim(0), '''', '''''') + ''''),
+			'$ma_dvcs', '''' + replace(rtrim('@@ma_dvcs'), '''', '''''') + ''''),
+			'$language', '''' + replace(rtrim('@@d_language'), '''', '''''') + ''''),
+			'$userid', '''' + replace(rtrim('@@uid'), '''', '''''') + ''''),
+			'$admin', '''' + replace(rtrim('@@admin'), '''', '''''') + '''')
+	from vdmtb where ma_tb = '@@ma_tb' and status = '1'
+exec sp_executesql @q
+
+
+select @amountFormat = rtrim(val) from @@appDatabaseName..options where name = 'm_ip_tien'
+declare @t table(field varchar(32), format varchar(128))
+insert into @t select 't_tt0', @amountFormat
+insert into @t select 'da_tt', @amountFormat
+insert into @t select 'cl', @amountFormat
+insert into @t select 'so_ngay_dh', '### ##0'
+select * from @t
+]]>
+
+        </text>
+      </command>
+
+      <command id="footer">
+        <text>
+          <![CDATA[
+declare @t table(field varchar(32), format varchar(128))
+insert into @t select 't_tt_nt', '### ### ### ##0'
+select * from @t
+]]>
+        </text>
+      </command>
+
+    </query>
+
+    <body>
+      <header>
+        <text>
+          <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body>
+  <div style="font-family:Verdana;font-size:14pt;color:#444444;font-style:bold;">{!h_title}</div>
+  <p>{!h_tk} <span style="color: #0563c1;">{!tk}</span>, {!h_ngay_bc} <span style="color: #0563c1;">{!date_from}</span>, {!h_so_ngay_cb} <span style="color: #0563c1;">{!so_ngay}</span></p>
+  <table class="ts" border="1" cellspacing="1" cellpadding="1">
+    <tbody>
+      <tr class="h">
+        <td style="width:50px;]]>&HeaderColor;<![CDATA[">{!h_so_hd}</td>
+				<td style="width:50px;]]>&HeaderColor;<![CDATA[">{!h_ngay_hd}</td>
+				<td style="width:200px;]]>&HeaderColor;<![CDATA[">{!h_dien_giai}</td>
+        <td style="width:150px;]]>&HeaderColor;<![CDATA[">{!h_tien_hd}</td>
+				<td style="width:150px;]]>&HeaderColor;<![CDATA[">{!h_da_tra}</td>
+				<td style="width:150px;]]>&HeaderColor;<![CDATA[">{!h_phai_tra}</td>
+				<td style="width:50px;]]>&HeaderColor;<![CDATA[">{!h_den_han}</td>
+				<td style="width:50px;]]>&HeaderColor;<![CDATA[">{!h_so_ngay}</td>
+      </tr>
+]]>
+        </text>
+      </header>
+
+      <detail>
+        <text>
+          <![CDATA[
+<tr class="h">
+	<td class="{!s3}">{!so_ct}</td>
+	<td class="{!s0}" style="text-align:center;">{!ngay_ct0}</td>
+	<td class="{!s1}">{!ten_dg}</td>
+	<td class="{!s3}">{!t_tt0}</td>
+	<td class="{!s3}">{!da_tt}</td>
+	<td class="{!s3}">{!cl}</td>
+	<td class="{!s0}" style="text-align:center;">{!ngay_dh}</td>
+	<td class="{!s3}">{!so_ngay_dh}</td>
+</tr>
+              ]]>
+        </text>
+      </detail>
+
+      <footer>
+        <text>
+          <![CDATA[
+    </tbody>
+  </table>
+	<br/>
+  <table class="ts" border="0" cellpadding="4" cellspacing="1">
+    <tr class="h"><td style="width:100%;text-align:left;">{!info1}</td></tr>
+    <tr class="h"><td style="width:100%;text-align:left;">{!info2}</td></tr>
+  </table>
+</body>
+</html>
+]]>
+        </text>
+      </footer>
+    </body>
+
+  </action>
+</template>

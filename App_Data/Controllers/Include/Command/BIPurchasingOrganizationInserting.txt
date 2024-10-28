@@ -1,0 +1,8 @@
+﻿      <![CDATA[
+if @@admin = 0 begin
+  if exists (select ma_bp0 from @]]>&BIPurchasingOrganizationTable;<![CDATA[ where ma_bp0 not in (select ma_bp from bidmbp0 where (not exists(select 1 from bisyspurorgrights where user_id = @@userID) or ma_bp0 in (select ma_bp0 from bisyspurorgrights where user_id = @@userID)))) begin
+    select ']]>&BIPurchasingOrganizationTable;<![CDATA[' as field, case when @@language = 'v' then N'Tồn tại đơn vị mua trong các đơn vị mua vừa cập nhật không hợp lệ, không thể lưu được.' else N'Some purchasing organization codes are invalid or you are not authorized to execute this function.' end as message
+    return
+  end
+end
+]]>

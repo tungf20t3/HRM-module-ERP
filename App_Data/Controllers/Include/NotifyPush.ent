@@ -1,0 +1,15 @@
+﻿<!ENTITY % Conditional.NotifyPush SYSTEM "..\Include\NotifyPush.txt">
+<!ENTITY % Conditional.Device SYSTEM "..\Include\Device.txt">
+
+<![%Conditional.NotifyPush;[
+  <![%Conditional.Device;[    
+    <!ENTITY NotifyPushSetInvoke "set @invoke = isnull(@invoke, '') + case when isnull(@invoke, '') &lt;&gt; '' then '&amp;' + char(255) + ';' else '' end + case when @$notifySystem is null then 'PushNotifyFCM.PushNotify.SendMessageListID(0, ' + @$notifyCode + ',@@userID)' + '&amp;' + char(255) + ';' else '' end + 'NotifyPush.NotifyMain.Push(' + @$notifyCode + ',)'">
+    <!ENTITY NotifyPushFlag "1, 1">
+  ]]>
+  <!ENTITY NotifyPushSetInvoke "set @invoke = isnull(@invoke, '') + case when isnull(@invoke, '') &lt;&gt; '' then '&amp;' + char(255) + ';' else '' end + 'NotifyPush.NotifyMain.Push(' + @$notifyCode + ',)'">
+  <!ENTITY NotifyPushFlag "1, 0">
+]]>
+
+<!ENTITY NotifyPushDeclare "declare @$notifyCode nvarchar(4000), @$notifySystem tinyint">
+<!ENTITY NotifyPushSetInvoke "">
+<!ENTITY NotifyPushFlag "0, 0">

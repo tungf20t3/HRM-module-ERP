@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY CommandCheckLockedDate SYSTEM "..\Include\Command\CheckLockedDate.txt">
+  <!ENTITY CommandCheckVoucherHandleBeforeSave SYSTEM "..\Include\Command\CheckVoucherHandleBeforeSave.txt">
+  <!ENTITY XMLVoucherBookAndNumberFields SYSTEM "..\Include\XML\VoucherBookAndNumberFields.txt">
+  <!ENTITY CommandWhenVoucherLoading SYSTEM "..\Include\Command\WhenVoucherLoading.txt">
+  <!ENTITY ScriptVoucherNumber SYSTEM "..\Include\Javascript\VoucherNumber.txt">
+  <!ENTITY CommandSetVoucherNumber SYSTEM "..\Include\Command\SetVoucherNumber.txt">
+  <!ENTITY XMLGetVoucherNumber SYSTEM "..\Include\XML\GetVoucherNumber.xml">
+  <!ENTITY CommandGetVoucherNumber SYSTEM "..\Include\Command\GetVoucherNumber.txt">
+  <!ENTITY CommandQueryVoucherNumber SYSTEM "..\Include\Command\QueryVoucherNumber.txt">
+  <!ENTITY CommandScatterVoucherNumber SYSTEM "..\Include\Command\ScatterVoucherNumber.txt">
+  <!ENTITY VoucherNumberLoading SYSTEM "..\Include\Javascript\WhenVoucherNumberLoading.txt">
+  <!ENTITY VoucherNumberReading SYSTEM "..\Include\Javascript\WhenVoucherNumberReading.txt">
+]>
+
+<dir id="PT0" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Phân bổ" e="Allocation"></title>
+  <fields>
+    <field name="stt_rec" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh" inactivate="true">
+      <header v="Mã khách" e="Customer"></header>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="dia_chi" inactivate="true">
+      <header v="Địa chỉ" e="Address"></header>
+    </field>
+    <field name="dien_giai">
+      <header v="Diễn giải" e="Description"></header>
+    </field>
+
+    <field name="ma_nk" clientDefault="Default" inactivate="true">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="VoucherBook" reference="ten_nk%l" key="status = '1' and ma_dvcs = @u and ((@d &gt;= ngay_hl_tu or ngay_hl_tu is null) and (@d &lt;= ngay_hl_den or ngay_hl_den is null)) and ma_nk in (select ma_nk from v20dmctnk where ma_ct = @@id and (lstuser = '' or charindex(',' + rtrim(@@userName) + ',', ',' + replace(lstuser, ' ', '') + ',') &gt; 0))"/>
+      <handle reference="so_ct"/>
+    </field>
+    <field name="ten_nk%l" clientDefault="Default" readOnly="true" hidden="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="so_ct" dataFormatString="@upperCaseFormat" align="right" allowNulls="false">
+      <header v="Số chứng từ" e="Voucher Number"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_lct" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Ngày lập" e="Create Date"></header>
+      <clientScript><![CDATA[onchange="onChange$Form$Date(this);"]]></clientScript>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" inactivate="true">
+      <header v="Ngày chứng từ" e="Voucher Date"></header>
+    </field>
+
+    <field name="ma_nt" filterSource="detail" aliasName="b" inactivate="true">
+      <header v="Mã ngoại tệ" e="Currency"></header>
+    </field>
+    <field name="ten_nt%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs" aliasName="c" disabled="true">
+      <header v="Đơn vị" e="Unit"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 100, 230, 100, 0"/>
+      <item value="11101: [ma_kh].Label, [ma_kh], [ten_kh%l], [stt_rec]"/>
+      <item value="1100: [dia_chi].Label, [dia_chi]"/>
+      <item value="1100: [dien_giai].Label, [dien_giai]"/>
+      <item value="11--1: [so_ct].Label, [so_ct], [ma_nk]"/>
+      <item value="11: [ngay_lct].Label, [ngay_lct]"/>
+      <item value="11: [ngay_ct].Label, [ngay_ct]"/>
+      <item value="11101: [ma_nt].Label, [ma_nt], [ten_nt%l], [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'this._controlFocus = this.getItem(''dien_giai'');' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        &CommandWhenVoucherLoading;
+        &CommandGetVoucherNumber;
+        <![CDATA[
+select 'this._voucherCode='@@id';this._isVoucherBook=' + @isVoucherBook + ';this._voucherNumber=''' + @voucherNumber + ''';active$Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var g = this.grid, m = [], format = g._allocationBehavior._dateValueFormat, d = this.getItemValue('ngay_ct', null, null, true).format(format);
+g._allocationBehavior._processForm = this;
+
+add$AllocationItem(m, 'ma_dvcs', g._unit);
+add$AllocationItem(m, 'ma_ct', 'PT0');
+add$AllocationItem(m, 'ngay_lct', this.getItemValue('ngay_lct', null, null, true).format(format));
+add$AllocationItem(m, 'ngay_ct', d);
+add$AllocationItem(m, 'ma_kh', g._customer);
+
+var a = ['so_ct', 'ma_nk', 'dia_chi', 'dien_giai'];
+for (var i = 0; i < a.length; i++) {
+  add$AllocationItem(m, a[i], this.getItemValue(a[i]));
+}
+
+g._allocationBehavior._partition = d.substring(0, 6);
+g._allocationBehavior._master = m;
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        &CommandCheckLockedDate;
+        <![CDATA[
+-- CommandCheckVoucherNumber
+
+declare @$exists nvarchar(512), @$idVoucherNumber char(13), @$nextVoucherNumber nvarchar(33), @$checkVoucherNumber nvarchar(4000), @$checkVoucherBook nvarchar(4000)
+select @$checkVoucherNumber = ''
+select @$exists = case when @@language = 'v' then N'Số chứng từ <span class="Highlight">%s</span> không đúng hoặc đã có trong chứng từ.' else N'The invoice number <span class="Highlight">%s</span> is invalid or already exists.' end
+select @$checkVoucherBook = case when @@language = 'v' then N'Kiểm tra lại ngày hiệu lực của quyển chứng từ <span class="Highlight">%s</span>.' else N'Check the effective date of book vouchers <span class="Highlight">%s</span>.' end
+
+if @ma_nk <> ''
+  if not exists (select 1 from v20dmnk where ma_nk = @ma_nk and ((@ngay_ct >= ngay_hl_tu or ngay_hl_tu is null) and (@ngay_ct <= ngay_hl_den or ngay_hl_den is null))) begin
+    select replace(@$checkVoucherBook, '%s', replace(replace(replace(rtrim(@ma_nk), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')) as message
+    return
+  end
+
+declare @so_ct_tmp varchar(32)
+select @so_ct_tmp = @so_ct
+create table #checkNumber (r int)
+select @so_ct_tmp = space(datalength(@so_ct_tmp) - len(rtrim(@so_ct_tmp))) + rtrim(@so_ct_tmp), @$idVoucherNumber = case when @@action = 'New' then '' else @stt_rec end
+insert into #checkNumber exec AI_ERP$App$CheckVoucherNumber @ma_nk, @@id, @ngay_ct, @so_ct_tmp, 'c43$000000', @$idVoucherNumber, @$nextVoucherNumber output
+
+if @$nextVoucherNumber <> '' begin
+  select @$checkVoucherNumber = case when @@language = 'v' then N'<br>Số mới đề nghị là <span class="Highlight">%v</span>, bạn có chọn số chứng từ này không?' else N'<br><span class="Highlight">%v</span> is a system-generated number, do you want to use this number?' end
+  select @$checkVoucherNumber = replace(@$checkVoucherNumber, '%v', replace(replace(replace(rtrim(@$nextVoucherNumber), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'))
+end
+
+if exists(select * from #checkNumber where r = 0) begin
+  if (@$nextVoucherNumber <> '') select 'so_ct' as field, '$Firm' + replace(@$exists, '%s', replace(replace(replace(rtrim(@so_ct_tmp), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')) + @$checkVoucherNumber as message, 'this.setItemValue("so_ct", "' + replace(replace(rtrim(@$nextVoucherNumber), '\', '\\'), '"', '\"') + '");this._findButton("Ok").focus();' as script
+    else select replace(@$exists, '%s', replace(replace(replace(rtrim(@so_ct_tmp), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')) as message
+  return
+end
+
+select '' as field, '' as message, 'this.grid._allocationBehavior.process();' as script
+return
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      &ScriptVoucherNumber;
+      <![CDATA[
+function init$Form$(f) {f.getItem('ma_nk')._idle = true;}
+function active$Form$(f) {
+  f.add_onResponseComplete(on$Form$ResponseComplete);
+  objectBehavior$Voucher$Number.create(f, 'so_ct', 'ma_nk', 'ngay_ct', 'ma_dvcs');
+  set$Form$Values(f);
+  if (f._loaded) f.raiseResponseComplete(new AI_ERP.AjaxControlExtender.EventArgs(f, {Context: 'Loading', Result: f.grid._dirExternalRow}));
+    else f._loaded = true;
+}
+function close$Form$(f) {
+  try {f.remove_onResponseComplete(on$Form$ResponseComplete);} catch (ex) {}
+  objectBehavior$Voucher$Number.dispose(f);
+}
+function on$Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Loading':]]>
+      &VoucherNumberLoading;<![CDATA[
+      break;
+]]>
+      &VoucherNumberReading;
+      <![CDATA[
+    default:
+        break;
+  }
+}
+function set$Form$Values(f) {
+  var g = f.grid;
+  f.setItemValues('ma_kh, ten_kh%l, dia_chi, ma_nt, ten_nt%l, ngay_ct, ngay_lct, ma_dvcs', [g._customer, g._customerName, g._customerAddress, g._currency, g._currencyName, g._date, g._date, g._unit]);
+  f.setReadOnlyFields('ma_kh, dia_chi, ma_nt');
+}
+function onChange$Form$Date(o) {
+  var f = o.parentForm;
+  f.setItemValue('ngay_ct', f.getItemValue('ngay_lct'));
+}
+function add$AllocationItem(a, name, value) {Array.add(a, {name: name, value: value});}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Reading">
+      <text>
+        &CommandSetVoucherNumber;
+      </text>
+    </action>
+
+    &XMLGetVoucherNumber;
+  </response>
+
+</dir>

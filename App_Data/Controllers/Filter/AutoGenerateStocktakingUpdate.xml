@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="ttclkktd" code="stt_rec, ma_dvcs, ma_kho, ma_vi_tri, ma_vt, ma_lo" order="ma_dvcs" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhập thông tin chênh lệch kiểm kê tự động" e="Update Auto Generation of Stock Variance Information"></title>
+  <fields>
+    <field name="stt_rec" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt">
+      <header v="Vật tư" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1=1" information="ma_vt$dmvt.ten_vt%l" new="Default"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho">
+      <header v="Kho" e="Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="status = '1'" check="1=1" information="ma_kho$dmkho.ten_kho%l"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vi_tri_x">
+      <header v="Vị trí" e="Location"></header>
+      <items style="AutoComplete" controller="Location" reference="ten_vi_tri%l" key="ma_kho = '{$%c[ma_kho]}' and status = '1'" check="ma_kho = '{$%c[ma_kho]}'" information="ma_vi_tri$dmvitri.ten_vi_tri%l"/>
+    </field>
+    <field name="ten_vi_tri%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_lo_x">
+      <header v="Lô" e="Lot"></header>
+      <items style="AutoComplete" controller="Lot" reference="ten_lo%l" key="ma_vt = '{$%c[ma_vt]}' and status = '1'" check="ma_vt = '{$%c[ma_vt]}'" information="ma_lo$dmlo.ten_lo%l"/>
+    </field>
+    <field name="ten_lo%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+
+    <field name="sl_cl" type="Decimal" dataFormatString="@quantityInputFormat">
+      <header v="Sl chênh lệch" e="Variance Q'ty"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="px_gia_dd" type="Boolean">
+      <header v="Xuất đích danh" e="Specific Cost"></header>
+      <clientScript><![CDATA[onchange=onChange$AutoGenerateStocktakingUpdate$SpecificCost(this);]]></clientScript>
+    </field>
+    <field name="gia" type="Decimal" dataFormatString="@baseCurrencyPriceInputFormat" align="right">
+      <header v="Đơn giá" e="Unit Price"></header>
+      <items style="Numeric"/>
+      <clientScript><![CDATA[onchange=onChange$AutoGenerateStocktakingUpdate$Price(this);]]></clientScript>
+    </field>
+    <field name="tien" type="Decimal" dataFormatString="@baseCurrencyAmountInputFormat" align="right">
+      <header v="Tiền" e="Amount"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="pn_gia_tb" type="Boolean">
+      <header v="Nhập giá trung bình" e="Average Cost"></header>
+    </field>
+
+    <field name="type" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vi_tri" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_lo" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="o_vi_tri" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="o_lot" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 25, 75, 100, 230, 0"/>
+      <item value="110101: [ma_kho].Label, [ma_kho], [ten_kho%l], [stt_rec]"/>
+      <item value="110101: [ma_vt].Label, [ma_vt], [ten_vt%l], [ma_dvcs]"/>
+      <item value="110101: [ma_vi_tri_x].Label, [ma_vi_tri_x], [ten_vi_tri%l], [o_vi_tri]"/>
+      <item value="110101: [ma_lo_x].Label, [ma_lo_x], [ten_lo%l], [o_lot]"/>
+      <item value="110--1: [sl_cl].Label, [sl_cl], [type]"/>
+      <item value="11----: [px_gia_dd].Label, [px_gia_dd]"/>
+      <item value="110--1: [gia].Label, [gia], [ma_vi_tri]"/>
+      <item value="110--1: [tien].Label, [tien], [ma_lo]"/>
+      <item value="11----: [pn_gia_tb].Label, [pn_gia_tb]"/>
+
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$AutoGenerateStocktakingUpdate$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$AutoGenerateStocktakingUpdate$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$recordHasBeenChanged nvarchar(512), @$updateConflict nvarchar(512)
+
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Số liệu đã được sửa hoặc xóa bởi người sử dụng khác.' else N'The record has been modified or deleted by another user.' end
+select @$updateConflict = case when @@language = 'v' then N'Số liệu đã phát sinh, không thể sửa được.' else N'edit the record. It has already been used.' end
+
+if @@admin <> 1 begin
+  if not exists(select 1 from sysunitrights where user_id = @@userID and ma_dvcs = @ma_dvcs and r_edit = 1) begin
+    select '' as field, '$NotAuthorized' as message
+    return
+  end
+end
+
+if not exists(select 1 from @@table where stt_rec = @stt_rec and ma_dvcs = @ma_dvcs and ma_kho = @ma_kho and ma_vi_tri = @ma_vi_tri and ma_lo = @ma_lo and ma_vi_tri_x = @o_vi_tri and ma_vt = @ma_vt and ma_lo_x = @o_lot and type = @type) begin
+  select '' as field, @$recordHasBeenChanged as message
+  return
+end
+
+if @ma_vi_tri_x <> @o_vi_tri or @ma_lo_x <> @o_lot begin
+  if exists(select 1 from @@table where stt_rec = @stt_rec and ma_dvcs = @ma_dvcs and ma_kho = @ma_kho and ma_vi_tri = @ma_vi_tri and ma_lo = @ma_lo and ma_vi_tri_x = @ma_vi_tri_x and ma_vt = @ma_vt and ma_lo_x = @ma_lo_x and type = @type) begin
+    select '' as field, @$updateConflict as message
+    return
+  end
+end
+
+delete @@table where stt_rec = @stt_rec and ma_dvcs = @ma_dvcs and ma_kho = @ma_kho and ma_vi_tri = @ma_vi_tri and ma_lo = @ma_lo and ma_vi_tri_x = @o_vi_tri and ma_vt = @ma_vt and ma_lo_x = @o_lot and type = @type
+insert into @@table(stt_rec, ma_dvcs, ma_kho, ma_vi_tri, ma_vt, ma_lo, ma_vi_tri_x, ma_lo_x, sl_cl, gia, gia_nt, tien, tien_nt, pn_gia_tb, px_gia_dd, type, datetime0, datetime2, user_id0, user_id2)
+  select @stt_rec, @ma_dvcs, @ma_kho, @ma_vi_tri, @ma_vt, @ma_lo, @ma_vi_tri_x, @ma_lo_x, @sl_cl, @gia, @gia, @tien, @tien, @pn_gia_tb, @px_gia_dd, @type, getDate(), getDate(), @@userID, @@userID
+
+select '' as field, '' as message, 'on$AutoGenerateStocktakingUpdate$QueryComplete(this, ''' + replace(replace(isnull(@ma_vi_tri_x, ''), '\', '\\'), '''', '\''') + ''', ''' + replace(replace(isnull(@ma_lo_x, ''), '\', '\\'), '''', '\''') + ''', ' + replace(replace(isnull(@pn_gia_tb, '0'), '\', '\\'), '''', '\''') + ', ' + replace(replace(isnull(@px_gia_dd, '0'), '\', '\\'), '''', '\''') + ', ' + replace(replace(isnull(@gia, '0'), '\', '\\'), '''', '\''') + ', ' + replace(replace(isnull(@tien, '0'), '\', '\\'), '''', '\''') + ');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$AutoGenerateStocktakingUpdate$(c){var a=c.grid,b=a._activeRow,o=$get(String.format("{0}_updateDlgOk",c.get_id())),j=a._getItemValue(b,a._$cSiteLocation),k=a._getItemValue(b,a._$cItemLot),g=a._getItemValue(b,a._$cVal),n=g=="1"||g=="4"?1:0,h=g=="3"?1:0,f=a._$t=="1"?1:0,d=["ma_vi_tri_x","ma_lo_x","px_gia_dd","gia","tien","pn_gia_tb"],m=[j,k,f&&!h,!(f&&h),!(f&&h),!f&&n];c.$a={tien:"[tien]:=[sl_cl]*[gia]"};c.setItemValues("stt_rec, ma_dvcs, type, ma_kho, ten_kho%l, ma_vt, ten_vt%l,ma_vi_tri_x, ten_vi_tri%l, ma_lo_x, ten_lo%l,sl_cl, o_vi_tri, o_lot,gia, tien, pn_gia_tb, px_gia_dd, ma_vi_tri, ma_lo",[a._$k,a._$u,a._$t,a._getItemValue(b,a._$cSite),a._getItemValue(b,a._$cSiteName),a._getItemValue(b,a._$cItem),a._getItemValue(b,a._$cItemName),a._getItemValue(b,a._$cLocation),a._getItemValue(b,a._$cLocationName),a._getItemValue(b,a._$cLot),a._getItemValue(b,a._$cLotName),a._getItemValue(b,a._$cVarQty),a._getItemValue(b,a._$cLocation),a._getItemValue(b,a._$cLot),a._getItemValue(b,a._getColumnOrder("gia")),a._getItemValue(b,a._getColumnOrder("tien")),a._getItemValue(b,a._getColumnOrder("pn_gia_tb")),a._getItemValue(b,a._getColumnOrder("px_gia_dd")),a._getItemValue(b,a._getColumnOrder("ma_vi_tri")),a._getItemValue(b,a._getColumnOrder("ma_lo"))]);c.setReadOnlyFields("ma_kho, ma_vt, sl_cl");j&&c.setReferenceKeyFilter("ma_vi_tri_x");k&&c.setReferenceKeyFilter("ma_lo_x");for(var e=0;e<d.length;e++)setItemReadOnly(c,d[e],m[e]);for(var i=0;i<d.length;i++){var l=c.getItem(d[i]);if(!l.disabled){l.focus();break}else o.focus()}}function close$AutoGenerateStocktakingUpdate$(a){a.$a=null}function onChange$AutoGenerateStocktakingUpdate$SpecificCost(b){var a=b.parentForm,c=a.getItemValue("px_gia_dd");setItemReadOnly(a,"gia",c)}function onChange$AutoGenerateStocktakingUpdate$Price(b){var a=b.parentForm;a.executeExpression([a.$a.tien]);a.live(a.getItem("tien"))}function setItemReadOnly(d,a,c){var b=d.getItem(a);b.disabled=!c;b.a&&$common.setVisible(b.a,c);"ma_vi_tri_x,ma_lo_x".indexOf(a)!=-1&&setItemAllowNulls(d,a,c)}function on$AutoGenerateStocktakingUpdate$QueryComplete(g,a,b,c,d,e,f){var h=g.grid;h._formScript="show$AutoGenerateStocktakingUpdate$QueryComplete(this, '"+a+"', '"+b+"', '"+c+"', '"+d+"', '"+e+"', '"+f+"')"}function show$AutoGenerateStocktakingUpdate$QueryComplete(a,b,c,d,e,f,g){a._setItemValue(a._activeRow,a._getColumnOrder("ma_vi_tri_x"),b);a._setItemValue(a._activeRow,a._getColumnOrder("ma_lo_x"),c);a._setItemValue(a._activeRow,a._getColumnOrder("pn_gia_tb"),d==1?true:false);a._setItemValue(a._activeRow,a._getColumnOrder("px_gia_dd"),e==1?true:false);a._setItemValue(a._activeRow,a._getColumnOrder("gia"),f);a._setItemValue(a._activeRow,a._getColumnOrder("tien"),g);a._focusWhenTabChanged()}function setItemAllowNulls(e,g,f){for(var c=g.split(","),d,a,b=0;b<c.length;b++)if($func.trim(c[b])!=""){d=e.getItem($func.trim(c[b]));d.field.AllowNulls=!f;a=d.parentNode.parentNode;if(f){Sys.UI.DomElement.addCssClass(a,"Required");Sys.UI.DomElement.addCssClass(a,e._id)}else Sys.UI.DomElement.removeCssClass(a,"Required")}}]]>
+    </text>
+  </script>
+</dir>

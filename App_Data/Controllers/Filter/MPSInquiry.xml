@@ -1,0 +1,296 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "MPSInquiry">
+  <!ENTITY c1 "&lt;div id=&quot;&Identity;&quot; class=&quot;&Identity;&quot; align=&quot;center&quot; onclick=&quot;refresh$&Identity;Form(this);&quot;&gt;">
+  <!ENTITY c2 "&lt;/div&gt;">
+]>
+
+<dir type="Report" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Truy vấn, xác nhận kế hoạch sản xuất" e="Master Production Scheduled Detail Inquiry"></title>
+
+  <fields>
+    <field name="ma_vt" allowNulls="false">
+      <header v="Mã vật tư" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="loai_vt in ('41', '51', '61') and kieu_hd &lt;&gt; '0' and status = '1'" check="loai_vt in ('41', '51', '61') and kieu_hd &lt;&gt; '0'" information="ma_vt$dmvt.ten_vt%l" new="Default"/>
+      <clientScript><![CDATA[onchange=onchange$]]>&Identity;<![CDATA[$Item$(this);]]></clientScript>
+      <footer v="&c1;Làm tươi...&c2;" e="&c1;Refresh...&c2;"/>
+    </field>
+    <field name="ten_vt%l">
+      <header v="Tên vật tư" e="Item Name"></header>
+    </field>
+    <field name="ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày hoạch định" e="Planning Date"></header>
+    </field>
+    <field name="ma_ky" readOnly ="true">
+      <header v="Kỳ hoạch định" e="Planning Bucket"></header>
+    </field>
+    <field name="ten_ky%l" external="true" disabled="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="dvt" allowNulls="false">
+      <header v="Đvt" e="UOM"/>
+      <items style="AutoComplete" controller="UOMItem" reference="ten_dvt%l" key="ma_vt = '{$%c[ma_vt]}' or ma_vt ='*'" information="dvt$vdmvtqddvt.ten_dvt%l" normal="true"/>
+    </field>
+    <field name="ten_dvt%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+    <field name="loai_vt">
+      <header v="Loại vật tư" e="Item Type"></header>
+    </field>
+    <field name="ten_loai_vt%l" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhieu_dvt" type="Boolean" readOnly="true" external="true" defaultValue="cast(0 as bit)" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="version" dataFormatString="@upperCaseFormat" onDemand="true">
+      <header v="Phiên bản" e="Version"></header>
+      <items style="AutoComplete" controller="MPSVersionList" reference="version_name%l" key="status = '1' and loai = '1'" check="1=1 and loai = '1'"/>
+    </field>
+    <field name="version_name%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="d1" external="true" readOnly="true" clientDefault="0" defaultValue="0" rows="283" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="" e=""></label >
+      <items style="Grid" controller="MPSDetail" row="1"/>
+    </field>
+
+    <field name="d2" external="true" readOnly="true" clientDefault="0" defaultValue="0" rows="283" categoryIndex="2">
+      <header v="" e=""></header>
+      <label v="" e=""></label >
+      <items style="Grid" controller="MPSBucket" row="1"/>
+    </field>
+
+    <field name="kieu_hd" dataFormatString="0, 1, 2, 3" clientDefault="1" align="right" categoryIndex="3" >
+      <header v="Kiểu hoạch định" e="Order Policy"></header>
+      <footer v="0 - Không hoạch định, 1 - Rời rạc, 2 - Cỡ lô, 3 - Cố định kỳ đặt hàng" e="0 - None, 1 - Discrete, 2 - Fixed Order Q'ty, 3 - Period Order Q'ty"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ton_at" type="Decimal" dataFormatString="@quantityInputFormat" align="right" categoryIndex="3">
+      <header v="Tồn kho an toàn" e="Safety Stock"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="co_lo" type="Decimal" dataFormatString="@quantityInputFormat" align="right" categoryIndex="3">
+      <header v="Cỡ lô" e="Lot Size"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="so_ngay_dh" type="Decimal" dataFormatString="####" align="right" categoryIndex="3">
+      <header v="Số ngày đặt lại hàng" e="Interval Days"></header>
+    </field>
+    <field name="tg_th" type="Decimal" dataFormatString="####" align="right" categoryIndex="3">
+      <header v="Tgth sản xuất" e="MFG Lead Time"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="vung_hd" type="Decimal" dataFormatString="####" align="right" categoryIndex="3">
+      <header v="Vùng cận kề" e="Time Fence"></header>
+    </field>
+    <field name="ton_kho" type="Decimal" dataFormatString="@quantityInputFormat" align="right" categoryIndex="3">
+      <header v="Tồn kho" e="Q'ty On Hand"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ngay_tinh" type="DateTime" dataFormatString="@datetimeFormat" align="left" categoryIndex="3">
+      <header v="Ngày tính" e="Date"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="343" anchor="5" split="5">
+      <item value="100, 100, 137, 100, 100, 8, 58, 50, 100"/>
+      <item value="1110--101: [ma_vt].Label, [ma_vt], [ma_vt].Description, [ngay].Label, [ngay]"/>
+      <item value="11000-101: [ten_vt%l].Label, [ten_vt%l], [ma_ky].Label, [ten_ky%l]"/>
+      <item value="11-111: [dvt].Label, [dvt], [loai_vt].Label, [ten_loai_vt%l], [ten_dvt%l]"/>
+      <item value="1110: [version].Label, [version], [version_name%l]"/>
+
+      <item value="1: [d1]"/>
+      <item value="1: [d2]"/>
+
+      <item value="1110: [kieu_hd].Label, [kieu_hd], [kieu_hd].Description"/>
+      <item value="110: [ton_at].Label, [ton_at]"/>
+      <item value="110: [co_lo].Label, [co_lo]"/>
+      <item value="110: [so_ngay_dh].Label, [so_ngay_dh]"/>
+      <item value="110: [tg_th].Label, [tg_th]"/>
+      <item value="110: [vung_hd].Label, [vung_hd]"/>
+      <item value="110: [ton_kho].Label, [ton_kho]"/>
+      <item value="110: [ngay_tinh].Label, [ngay_tinh]"/>
+
+      <categories>
+        <category index="1" columns="769, 0" anchor="1">
+          <header v="Chi tiết" e="Details"/>
+        </category>
+        <category index="2" columns="769, 0" anchor="1">
+          <header v="Theo kỳ" e="Bucketed View"/>
+        </category>
+        <category index="3" columns="120, 30, 70, 330">
+          <header v="Tham số" e="Planning Parameters"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @periodCode char(2), @periodName nvarchar(128), @d smalldatetime
+
+select @periodCode = rtrim(val) from options where name = 'm_ky_hd_nd'
+select @periodName = case when @@language = 'v' then ten_ky else ten_ky2 end from mdmky where ma_ky = @periodCode
+select @d = run_date from mplog
+select @d = isnull(@d, getdate())
+
+select 'this._date=''' + convert(varchar(8), @d, 112) + ''';this._periodCode=''' + @periodCode + ''';this._periodName=''' + replace(replace(isnull(@periodName, ''), '\', '\\'), '''', '\''') + '''; set$Form$DefaultValue(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$]]>&Identity;<![CDATA[$(f) {
+  $get(']]>&Identity;<![CDATA[').parentForm = f;
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);
+  f._tabContainer.add_activeTabChanged(onChange$]]>&Identity;<![CDATA[$Tab);
+  f._tabContainer._loaded = true;
+  var l = (f._language == 'v' ? '' : '2');
+  f.setReadOnlyFields('ngay, kieu_hd, ton_at, co_lo, so_ngay_dh, tg_th, vung_hd, ton_kho, ngay_tinh, ten_vt' + l + ', ten_loai_vt' + l);
+}
+function close$]]>&Identity;<![CDATA[$(f) {
+  try {f.remove_onResponseComplete(on$MRPInquiry$ResponseComplete);} catch (ex) {}
+  try {f._tabContainer.remove_activeTabChanged(onChange$VoucherFilter$Tab);} catch (ex) {}
+}
+function onChange$]]>&Identity;<![CDATA[$Tab(f, e) {f.parentForm.focusWhenTabChanged([['d1'], ['d2'], 'kieu_hd']);}
+function on$]]>&Identity;<![CDATA[$ResponseComplete(f, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Item':
+      f.setItemControlBehavior('dvt', result[0].Value, '', true);
+      f.setItemControlBehavior('ten_dvt%l', result[1].Value, null, false);
+      f.setItemControlBehavior('ten_loai_vt%l', result[3].Value, null, false);
+      f.setItemValues('nhieu_dvt, kieu_hd, ton_at, co_lo, so_ngay_dh, tg_th, vung_hd, ton_kho, ngay_tinh', [result[2].Value, result[4].Value, result[5].Value, result[6].Value, result[7].Value, result[8].Value, result[9].Value, result[10].Value, result[11].Value]);
+      set$Voucher$ReferenceKeyFilter$UOM(f);
+      break;
+    case 'Period'
+      g = f.getItem('d2')._controlBehavior;
+      for (var i = g._periodCount + 1; i <= g._maxColumn; i++) {
+        g._setColumnVisible(g._getColumnOrder('ky' + i), true);
+      }
+      g._periodCount = result[0].Value;
+      if (g._periodCount > g._maxColumn) g._periodCount = g._maxColumn;
+      for (var i = g._periodCount + 1; i <= g._maxColumn; i++) {
+        g._setColumnVisible(g._getColumnOrder('ky' + i), false);
+      }
+      g._$a = result[1].Value.split(',');
+      for (var i = 1; i <= g._periodCount; i++) {
+        var name = 'ky' + i, field = g._fields[g._getColumnOrder(name) - 1];
+        var header = $get(g._id + '_HeaderText_' + name);
+
+        field.HeaderText = g._$a[i-1];
+        header.innerHTML = g._$a[i-1];
+      }
+      break;
+    default:
+      break;
+  }
+}
+function set$Form$DefaultValue(f) {
+   f.setItemValues('ma_ky, ngay', [f._periodCode, $func.formatStringToDate(f._date)]);
+   f.setItemControlBehavior('ten_ky%l', f._periodName, null, null);
+   set$Voucher$ReferenceKeyFilter$UOM(f);
+}
+function onchange$]]>&Identity;<![CDATA[$Item$(o) {
+  var f = o.parentForm, name = o.field.Name;
+  switch (name) {
+    case 'ma_vt':
+      f.request('Item', 'Item', ['ma_vt'], o);
+      break;
+   default:
+      break;
+  }
+}
+function set$Voucher$ReferenceKeyFilter$UOM(f) {
+  var v = f.getItemValue('nhieu_dvt');
+  if(v) f.setReferenceKeyFilter('dvt');
+  f._setReadOnly(f.getItem('dvt'), !v);
+}
+function refresh$]]>&Identity;<![CDATA[Form(o) {
+  var f = o.parentForm, g1 = f.getItem('d1')._controlBehavior, g2 = f.getItem('d2')._controlBehavior;
+  if (!f.validFields('ma_vt') || (!f.validFields('dvt') || (!f.validFields('version')) return;
+  g1._key = f.getItemValue('ma_vt') + f.getItemValue('dvt') + f.getItemValue('version');
+  on$Change$MPSDetail(g1, f.getItemValue('ma_vt'), f.getItemValue('dvt'), f.getItemValue('version'));
+  on$Change$MPSBucket(g2, f.getItemValue('ma_vt'), $func.formatDateOrder(f.getItemValue('ngay')), f.getItemValue('dvt'), f.getItemValue('ma_ky'), f.getItemValue('version'));
+  f.request('Period', 'Period', [['ma_ky', 'String', f.getItemValue('ma_ky')]]);
+}
+]]>
+
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.]]>&Identity;<![CDATA[:hover{text-decoration:underline}
+.]]>&Identity;<![CDATA[{cursor:pointer;position:relative;width:64px!important;color:#3171c6;font-family:verdana;font-size:11px;}
+]]>
+    </text>
+  </css>
+
+  <response>
+    <action id="Item">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmvt where ma_vt = @ma_vt) begin
+  declare @drun smalldatetime, @nStockOnHand numeric(19, 3)
+  select @drun = run_date from mplog
+  select @nStockOnHand = ton_kho from mpctvtky where ma_vt = @ma_vt and ky = 0
+  select @nStockOnHand = isnull (@nStockOnHand, 0)
+  select rtrim(a.dvt) as dvt, b.ten_dvt%l, a.nhieu_dvt, ten_loai_vt%l, kieu_hd, ton_at, co_lo, so_ngay_dh, tg_th, vung_hd, @nStockOnHand as ton_kho, @drun as ngay_tinh from dmvt a left join dmdvt b on a.dvt = b.dvt left join dmloaivt c on a.loai_vt = c.ma_loai_vt where a.ma_vt = @ma_vt
+  return
+end
+]]>
+      </text>
+    </action>
+
+    <action id="Period">
+      <text>
+        <![CDATA[
+declare @n int, @i int, @h nvarchar(4000), @d smalldatetime
+select @d = run_date from mplog
+select @d = isnull(@d, getdate()), @h = ''
+select @n = val from options where name = 'm_so_ky_hd'
+
+select @i = 1
+while (@i <= @n) begin
+  select @h = @h + convert(varchar(10),  dbo.mf_GetDOP(@ma_ky, @d, @i, 1), 103) + ','
+  set @i = @i + 1
+end
+select @n as p, @h as h
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

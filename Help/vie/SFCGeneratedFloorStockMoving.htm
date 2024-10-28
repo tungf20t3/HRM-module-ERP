@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<!--
+<html style="height:100%" xmlns="http://www.w3.org/1999/xhtml">
+-->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Khai báo thông tin nhập xuất tự động từ phân xưởng</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<!--
+<body style="height:100%">
+<div style="height:95%">
+-->
+
+<p id="td1">Khai báo thông tin nhập xuất tự động từ phân xưởng</p>
+<p id="p1">Khai báo các thông tin dùng để chương trình tạo giao dịch nhập xuất kho tự động từ phân xưởng.
+Xem "Điều chuyển vật tư về kho" trong <a href="S7Tran.htm"> “Phiếu nhập xuất phân xưởng”</a>;<br/>
+Xem "Tự động nhập kho" và "Tự động xuất kho" trong <a href="SFRoutingMaintenance.htm"> “Cập nhật quy trình sản xuất”</a>,
+</p>
+<p id="p1">Trong các trường hợp giao dịch phân xưởng của công đoạn có khai báo tự động nhập kho (Cập nhật quy trình sản xuất), 
+chương trình sẽ tự động tạo chứng từ nhập kho (thực tế) trong quản lý kho.<br/>
+Trường hợp giao dịch phân xưởng của bước công đoạn có khai báo tự động xuất kho trong "Cập nhật quy trình sản xuất", 
+chương trình sẽ tự động tạo chứng từ xuất kho (thực tế) tương ứng.
+<br/>
+Do đó, cần phải khai báo các thông tin để chương trình tạo ra chứng từ nhập kho phù hợp với chứng từ phân hệ tồn kho (thực tế).
+Chương trình sẽ dựa vào 3 thông tin từ phân xưởng là Mã chứng từ, Loại chứng từ và Phân xưởng để trả về Mã khách và Mã nhập xuất cho 
+chứng từ nhập kho.
+</p>
+<p id="pic"><img src="vie/SFCGeneratedFloorStockMoving.png"/></p>
+<p class="node">Loại</p>
+<p class="node_d">Chọn loại "Nhập" cho trường hợp giao dịch phân xưởng của công đoạn có khai báo tự động nhập kho. <br/>
+ Chọn loại "Xuất" cho trường hợp giao dịch phân xưởng của bước công đoạn có khai báo tự động xuất kho.</p>
+<p class="node">Mã chứng từ / Loại chứng từ</p>
+<p class="node_d">Nhập vào Mã chứng từ / Loại chứng từ dùng để xác định mã khách và mã nhập xuất. </p>
+<p class="node">Phân xưởng</p>
+<p class="node_d">Nhập vào phân xưởng dùng để xác định mã khách và mã nhập xuất.</p>
+<p class="node">Mã khách</p>
+<p class="node_d">Nhập vào mã khách trả về trên chứng từ kho tương ứng với Mã chứng từ, Loại chứng từ và Phân xưởng.</p>
+<p class="node">Mã nhập xuất</p>
+<p class="node_d">Nhập vào Mã nhập xuất trả về trên chứng từ kho tương ứng với Mã chứng từ, Loại chứng từ và Phân xưởng.
+</p>
+<p class="note">
+- Có 2 mã chứng từ trong phân xưởng ảnh hưởng đến việc tạo ra chứng từ nhập kho: Giao dịch phân xưởng có mã giao dịch là "Vận hành"
+ (công đoạn có khai báo tự động nhập kho) và Phiếu nhập xuất phân xưởng có mã giao dịch là "Điều chuyển vật tư về kho". Ở đây chỉ giải thích 
+ liên quan giao dịch phân xưởng;<br/>
+- Trạng thái mặc định khi tạo phiếu nhập kho thực tế là lập chứng từ;<br/>
+- Với phiếu nhập tự động, mã kho sẽ là mã kho được nhập trong lệnh sản xuất. Với phiếu xuất tự động, mã kho sẽ là mã kho được khai báo theo xưởng. 
+</p>
+
+<p class="note">Phiếu xuất kho thực tế tự động:<br/>
+- Dữ liệu từ ngăn nguyên vật liệu, riêng vật tư có loại loại 41 chỉ lấy các dòng không có phân xưởng nguồn, yêu cầu sản xuất nguồn, công đoạn 
+nguồn. (vì các dòng phát sinh này được nhập xuất hết trong xưởng, không nhập kho thực tế nên không được tạo xuất kho thực tế;<br/>
+- Chỉ xuất kho tự động đối với các mã công đoạn có chọn "Tự động xuất kho" trong "Cập nhật quy trình sản xuất”.</p>
+<p class="note">Giới hạn<br/>
+   - Trường hợp nghiệp vụ "Bán thành phẩm không nhập kho mà chuyển công đoạn sau dùng tiếp ở xưởng" liên quan tính giá thành kế toán chưa có trong
+   phiên bản này.    </p>						  
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>
+<!--
+<p id="td1">
+<p id="p1">
+<p class="node">
+<p class="node_d">
+<p class="note">
+<p class="e">
+<p class="ex2">
+<ul class="lo_0">
+<p class="war">
+<p class="fml">
+<p class="tip">
+<p id="pic"><img src="/..."/></p>
+-->

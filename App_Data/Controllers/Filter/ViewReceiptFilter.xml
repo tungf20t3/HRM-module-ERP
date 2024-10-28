@@ -1,0 +1,327 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+
+  <!ENTITY Identity "ViewReceipt">
+  <!ENTITY c11 "Phiếu nhập từ ngày">
+  <!ENTITY c12 "Receipt Date from">
+
+  <!ENTITY c21 "Số phiếu nhập">
+  <!ENTITY c22 "Receipt Number">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'ViewReceiptFilter', 'Filter', '*'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+
+<dir table="r70$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xem phiếu nhập" e="View Receipt"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="&c11;" e="&c12;"></header>
+    </field>
+    <field name="loai" dataFormatString="1, 2, 3, 9" clientDefault="1" align="right">
+      <header v="Loại" e="Type"></header>
+      <footer v="1 - Hóa đơn trong nước, 2 - Nhập khẩu, 3 - Nhập kho, 9 - Đầu kỳ NTXT" e="1 - Domestic Invoice, 2 - Import, 3 - Receipt, 9 - FIFO Stock Opening Balance"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&Identity;<![CDATA[$VoucherType(this);"]]></clientScript>
+    </field>
+    <field name="ma_ct" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+      <items style="Mask"/>
+    </field>
+    <field name="so_ct" align="right" maxLength="-100" filterSource="voucherNumber" allowNulls="false">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="AutoComplete" controller="&Identity;Lookup" reference="stt_rec_id"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&Identity;<![CDATA[$VoucherNumber(this, 1);"]]></clientScript>
+    </field>
+    <field name="so_pn" align="right" maxLength="-100" filterSource="voucherNumber" allowNulls="false">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="AutoComplete" controller="VIewFIFOBalanceLookup" reference="stt_rec_id"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&Identity;<![CDATA[$VoucherNumber(this, 2);"]]></clientScript>
+    </field>
+    <field name="stt_rec_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec0" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec_id" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vi_tri" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_lo" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 100, 100, 30, 0, 0"/>
+      <item value="1101111: [ngay_ct1].Label, [ngay_ct1], [ngay_ct2], [stt_rec_id], [stt_rec_ct], [ma_vt]"/>
+      <item value="111000011: [loai].Label, [loai], [loai].Description, [ma_ct], [ma_kho]"/>
+      <item value="1101111: [so_ct].Label, [so_ct], [stt_rec_ct], [ma_dvcs], [ma_vi_tri], [ma_lo]"/>
+      <item value="110: [so_pn].Label, [so_pn]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'setItemAllowNulls(this, ''so_pn'', false);' as message
+return
+]]>
+      </text>
+    </command>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @table nvarchar(32), @q nvarchar(4000), @siteKey nvarchar(4000), @partition nvarchar(6), @$none nvarchar(512), @retrieveID varchar(128), @retrieveLine varchar(3), @key nvarchar(4000), @vcNumber varchar(32), @unitKey nvarchar(4000)
+declare @t varchar(128), @unit varchar(128), @i int, @l int, @c smalldatetime, @result nvarchar(1024), @baseCurrency varchar(32), @startYear int
+
+select @vcNumber = ltrim(rtrim(case when @loai = '9' then @so_pn else @so_ct end))
+select @i = len(@vcNumber), @l = character_maximum_length from information_schema.columns where table_name = 'r70$000000' and column_name = 'so_ct'
+select @vcNumber = space(@l - @i) + @vcNumber, @c = @ngay_ct1
+select @startYear = nam_bd from dmstt
+
+select @$none = case when @@language = 'v' then N'Không có phiếu nhập theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+]]>&CheckRelativeProcess;<![CDATA[
+
+select @unit = case when @ma_dvcs = '' then @@unit else @ma_dvcs end
+
+if @stt_rec_id = '' begin
+  create table #temp (stt_rec varchar(32), stt_rec0 varchar(32))
+  exec AI_ERP$System$GetSiteFilter 'ma_kho', @ma_kho, null, @@userID, @@admin, @siteKey output
+  if @loai = '9' begin
+    select @unitKey = dbo.AI_ERP$Function$System$GetUnitFilter('a.ma_dvcs', @unit, @@userID, @@admin)
+    select @key = 'ma_ct = '''' and nam = ' + rtrim(@startYear)
+    select @key = @key + ' and a.ngay_ct >= ''' + convert(char(8), @ngay_ct1, 112) + ''''
+    select @key = @key + ' and a.ngay_ct < ''' + rtrim(year(@ngay_ct2)) + '0101'''
+    select @key = @key + ' and a.ma_vt = ''' + replace(rtrim(@ma_vt), '''', '''''') + ''''
+    if @ma_kho <> '' select @key = @key + ' and a.ma_kho = ''' + replace(rtrim(@ma_kho), '''', '''''') + ''''
+    if @ma_vi_tri <> '' and not exists(select 1 from options where name = 'm_kt_td_vitri_yn' and val = '0')
+      select @key = @key + ' and ma_vi_tri = ''' + replace(@ma_vi_tri, '''', '''''') + ''''
+    if @ma_lo <> '' and not exists(select 1 from options where name = 'm_kt_td_lo_yn' and val = '0')
+      select @key = @key + ' and ma_lo = ''' + replace(@ma_lo, '''', '''''') + ''''
+    if @unitKey is not null select @key = @key + ' and exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and ' + replace(@unitKey, 'a.', 'c.') + ')'
+    if @siteKey is not null select @key = @key + ' and ' + @siteKey
+
+    select @q = 'insert into #temp select top 1 stt_rec_nt, stt_rec0 from cdntxt a'
+    select @q = @q + ' where so_ct = ''' + replace(@vcNumber, '''', '''''') + ''' and ' + @key
+    exec sp_executesql @q
+  end else begin
+    while (month(@c) + year(@c)*12) <= (month(@ngay_ct2) + year(@ngay_ct2)*12) begin
+      select @table = 'r70$' + convert(char(6), @c, 112), @c = dateadd(month, 1, @c)
+
+      select @q = 'insert into #temp select top 1 stt_rec, stt_rec0 from ' + @table
+      select @q = @q + ' where so_ct = ''' + replace(@vcNumber, '''', '''''') + ''' and ma_ct = ''' + replace(@ma_ct, '''', '''''') + ''''
+      select @q = @q + ' and ma_dvcs = ''' + replace(@unit, '''', '''''') + ''''
+      select @q = @q + ' and ngay_ct between ''' + convert(varchar(8), @ngay_ct1, 112) + ''' and ''' + convert(varchar(8), @ngay_ct2, 112) + ''''
+
+      select @q = @q + ' and ma_vt = ''' + replace(@ma_vt, '''', '''''') + ''''
+      if @ma_kho <> '' select @q = @q + ' and ma_kho = ''' + replace(@ma_kho, '''', '''''') + ''''
+      if @ma_vi_tri <> '' and not exists(select 1 from options where name = 'm_kt_td_vitri_yn' and val = '0')
+        select @q = @q + ' and ma_vi_tri = ''' + replace(@ma_vi_tri, '''', '''''') + ''''
+      if @ma_lo <> '' and not exists(select 1 from options where name = 'm_kt_td_lo_yn' and val = '0')
+        select @q = @q + ' and ma_lo = ''' + replace(@ma_lo, '''', '''''') + ''''
+      if @siteKey is not null select @q = @q + ' and ' + @siteKey
+
+      exec sp_executesql @q
+      if exists(select 1 from #temp) break
+    end
+  end
+  select @retrieveID = isnull(stt_rec, ''), @retrieveLine = stt_rec0 from #temp
+  drop table #temp
+
+  if @retrieveID = '' begin
+    select 'so_ct' as field, @$none as message
+    return
+  end
+end else select @retrieveID = left(@stt_rec_id, 13), @retrieveLine = right(@stt_rec_id, len(@stt_rec_id) - 14)
+
+select @retrieveID = replace(@retrieveID, '''', ''), @retrieveLine = replace(@retrieveLine, '''', '')
+select @table = c$ from dmct9 where ma_ct = @ma_ct
+
+create table #partition (partition varchar(6))
+select @q = 'insert into #partition select convert(char(6), ngay_ct, 112) from '
+select @q = @q + @table + '000000 where stt_rec = ''' + @retrieveID + ''''
+exec sp_executesql @q
+
+select @partition = partition from #partition
+drop table #partition
+
+select @baseCurrency = isnull(rtrim(val), '') from options where name = 'm_ma_nt0'
+create table #t (c varchar(1024))
+
+if @loai = '9' begin
+  declare @roundPriceFC int, @roundPrice int
+  select @roundPriceFC = val from options where name = 'm_round_gia_nt'
+  select @roundPrice = val from options where name = 'm_round_gia'
+  select @q = 'insert into #t select top 1 case when ma_nt = '''' then '' '' else ma_nt end + '',''+''' + @baseCurrency + '''+'','' + stt_rec_nt + '','' + stt_rec0 + '','' + cast(case when ton_kho01 = 0 then 0 else round(so_du_nt01/ton_kho01, ' + rtrim(@roundPriceFC) + ') end as varchar(33)) + '','' + cast(case when ton_kho01 = 0 then 0 else round(so_du01/ton_kho01, ' + rtrim(@roundPrice) + ') end as varchar(33)) as c from cdntxt a'
+  select @q = @q + char(13) + 'where stt_rec_nt =  ''' + @retrieveID + ''' and stt_rec0 = ''' + @retrieveLine + ''' and nam = ' + rtrim(@startYear)
+  exec sp_executesql @q
+end else begin
+  select @q = 'insert into #t select top 1 case when ma_nt = '''' then '' '' else ma_nt end + '',''+''' + @baseCurrency + '''+'','' + stt_rec + '','' + stt_rec0 + '','' + cast(gia_nt as varchar(33)) + '','' + cast(gia as varchar(33)) as c from r70$' + @partition
+  select @q = @q + char(13) + 'where stt_rec =  ''' + @retrieveID + ''' and stt_rec0 = ''' + @retrieveLine + ''''
+  exec sp_executesql @q
+end
+select @result = c from #t
+drop table #t
+
+if @result is null begin
+  select 'so_ct' as field, @$none as message
+  return
+end
+
+select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this,''' + @result + ''');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {
+  f.getItem('so_ct')._idle = ]]>&IdleLookupFilter;<![CDATA[;
+  f.getItem('so_pn')._idle = ]]>&IdleLookupFilter;<![CDATA[;
+}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._lookingVoucher = f.getItem('so_ct')._controlBehavior;
+  f._lookingVoucher.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);
+  f._lookingReceipt = f.getItem('so_pn')._controlBehavior;
+  f._lookingReceipt.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading2);
+  var g = f.grid, w = g.get_element().parentForm, d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs'), r = g._activeRow;
+
+  f.setItemValue('ma_ct', 'PNA');
+  f.grid._vcCode = f.getItemValue('ma_ct');
+
+  g._itemCode = g._getItemValue(r, g._getColumnOrder('ma_vt'));
+  g._locationCode = g._getItemValue(r, g._getColumnOrder('ma_vi_tri'));
+  g._lotCode = g._getItemValue(r, g._getColumnOrder('ma_lo'));
+
+  var p = g._getColumnOrder('px_gia_dd');
+  if (p != -1 && !g._getItemValue(r, p)) f._flowScript = String.format('$find(\'{0}\')._focusWhenTabChanged();', g._id);
+  f.setItemValues('ngay_ct2, ma_ct, ma_dvcs, ma_vt, ma_kho, ma_vi_tri, ma_lo', [d2, g._vcCode, u, g._itemCode, g._siteCode, g._locationCode, g._lotCode]);
+  onChange$]]>&Identity;<![CDATA[$VoucherType(f.getItem('loai'))
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {
+try {f._lookingVoucher.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);} catch (ex) {}
+try {f._lookingReceipt.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading2);} catch (ex) {}
+}
+
+function on$]]>&Identity;<![CDATA[Filter$Before$Loading(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1')) e.type.cancelEvent = true;
+  else {
+    var g = f.grid, w = g.get_element().parentForm;
+    var d1 = f.getItemValue('ngay_ct1'), d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs');
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: d1},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: d2},
+      {Name: 'ma_ct', Type: 'String', Value: g._vcCode},
+      {Name: 'ma_vt', Type: 'String', Value: g._itemCode},
+      {Name: 'ma_kho', Type: 'String', Value: g._siteCode},
+      {Name: 'ma_vi_tri', Type: 'String', Value: g._locationCode},
+      {Name: 'ma_lo', Type: 'String', Value: g._lotCode},
+      {Name: 'ma_dvcs', Type: 'String', Value: u}
+    ];
+    sender.set_memvars(a);
+  }
+}
+
+function on$]]>&Identity;<![CDATA[Filter$Before$Loading2(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1')) e.type.cancelEvent = true;
+  else {
+    var g = f.grid, w = g.get_element().parentForm;
+    var d1 = f.getItemValue('ngay_ct1'), d2 = w.getItemValue('ngay_ct'), u = w.getItemValue('ma_dvcs');
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: d1},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: d2},
+      {Name: 'ma_ct', Type: 'String', Value: g._vcCode},
+      {Name: 'ma_vt', Type: 'String', Value: g._itemCode},
+      {Name: 'ma_kho', Type: 'String', Value: g._siteCode},
+      {Name: 'ma_vi_tri', Type: 'String', Value: g._locationCode},
+      {Name: 'ma_lo', Type: 'String', Value: g._lotCode},
+      {Name: 'ma_dvcs', Type: 'String', Value: u}
+    ];
+    sender.set_memvars(a);
+  }
+}
+
+function onChange$]]>&Identity;<![CDATA[$VoucherType(o) {
+  var f = o.parentForm, t = f.getItemValue('loai'), v = (t == 1 ? 'PNA' : (t == 2 ? 'PNB' : 'PND'));
+  if (t == 9) v = '';
+  f.setItemValue('ma_ct', v);
+  f.grid._vcCode = v;
+  onChange$VoucherType(f, true);
+}
+function onChange$]]>&Identity;<![CDATA[$VoucherNumber(o, v) {
+  var f = o.parentForm, t1 = f.getItem('so_ct'), t2 = f.getItem('so_pn');;
+  if (v == 2) t1.value = t2.value else t2.value = t1.value;
+}
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, s) {
+  var g = f.grid, a = s.split(','), w = g.get_element().parentForm, v = w.getItemValue('ma_nt'), r = g._activeRow;
+  var c1 = $func.trim(a[0]), c2 = a[1];
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g);
+  if (c1 == '') c1 = c2;
+  if (g._viewReceiptField) {
+    g._setItemValue(r, g._getColumnOrder(g._viewReceiptField[0]), a[2]);
+    g._setItemValue(r, g._getColumnOrder(g._viewReceiptField[1]), a[3]);
+  }
+  else {
+    g._setItemValue(r, g._getColumnOrder('stt_rec_pn'), a[2]);
+    g._setItemValue(r, g._getColumnOrder('stt_rec0pn'), a[3]);
+  }
+  if (v == c1 || v == c2) {
+    g._setItemValue(r, g._getColumnOrder('gia_nt'), g._getItemValue(r, g._getColumnOrder('he_so'))*(v == c2 ? a[5] : a[4]));
+    var o = g._getItem(r, g._getColumnOrder('ma_vt'));
+    o.row = r;
+    g.validExpression(o, g._onchangeForeignCurrencyPriceExpression, [g.$a.t_tien_nt, g.$a.t_tien], g._onchangeTotalExpression);
+  }
+}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g) {
+  g._memvars = [];
+  g._focusWhenTabChanged();
+}
+function setItemAllowNulls(d,e,c){var b=d.getItem(e);b.field.AllowNulls=!c;var a=b.parentNode.parentNode;if(c){Sys.UI.DomElement.addCssClass(a,"Required");Sys.UI.DomElement.addCssClass(a,d._id)}else Sys.UI.DomElement.removeCssClass(a,"Required");$common.setVisible(b.parentNode.parentNode.parentNode,c)}function setItemLive(a,b,c){if(c){if(b.live){a.disabled=false;a.focus()}}else if(a.live){b.disabled=false;b.focus()}}function onFocus$VoucherType(d,c){var a=$find(d),b=a.getItem("loai").value==9,e=a.getItem("so_ct"),f=a.getItem("so_pn");setItemAllowNulls(a,"so_ct",!b);setItemAllowNulls(a,"so_pn",b);c&&setItemLive(e,f,!b);setItemDisable(a,"so_ct",b);setItemDisable(a,"so_pn",!b)}function setItemDisable(f,e,d){for(var c=e.split(","),a=0;a<c.length;a++){var b=f.getItem($func.trim(c[a]));b.a&&$common.setVisible(b.a,!d);b.disabled=d}}function onChange$VoucherType(b,a){window.setTimeout(String.format("onFocus$VoucherType('{0}', {1});",b._id,a?1:0),100)}]]>
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.Column_stt_rec, .Column_stt_rec_nt, .Column_stt_rec0, .Column_stt_rec_id{visibility:hidden;display:none;}
+]]>
+    </text>
+  </css>
+
+</dir>

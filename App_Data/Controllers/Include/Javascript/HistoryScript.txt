@@ -1,0 +1,38 @@
+﻿<![CDATA[
+function setLink$GridVoucherDetail$(g, r) {
+  if (g._rowCount == 0) return;
+  var title = (g._language == 'v' ? ']]>&History.Title.v;<![CDATA[' : ']]>&History.Title.e;<![CDATA[');
+  for (var i = (r ? r : 1); i <= g._rowCount; i++) {
+    var p = $get(String.format('{0}_gridCell_{1}.0', g.get_id(), i.toString()));
+    if ((p) && (p.childNodes[0])) set$GridVoucherDetail$ViewItem(g, p.childNodes[0], title);
+  }
+}
+
+function set$GridVoucherDetail$ViewItem(g, c, t) {
+  c.grid = g;
+  Sys.UI.DomElement.addCssClass(c, 'ViewHistory');
+  c.setAttribute('onclick', 'onclick$GridVoucherDetail$ViewHeader(this);');
+  c.setAttribute('title', t);
+}
+
+function onclick$GridVoucherDetail$ViewHeader(o) {
+  var g = o.grid, r = o.parentNode.id.split('_gridCell_')[1].split('.')[0];
+  if (g._rowCount == 0) return;
+  show$GridVoucherDetail$ViewHeader(r, g);
+}
+
+function show$GridVoucherDetail$ViewHeader(r, g) {
+  var f = g.get_element().parentForm;
+  if (f._action != 'View') return;
+  ]]>&History.Check;<![CDATA[
+  var i1 = g._getColumnOrder('ma_vt'), i2 = g._getColumnOrder('ten_vt%l'), ma_vt = g._getItemValue(r, i1), check = g._getItem(r, i2);
+  if (ma_vt == '' || (check.Checked && !check.checked)) {
+    var msg = String.format($df.getResources(f._language, 'Message.RequiredField'), g._fields[i1 - 1].Label);
+    g._errorObject = g._getItem(r, i1);
+    $message.show(msg, String.format('$find(\'{0}\').focus(\']]>&History.GridField;<![CDATA[\');$find(\'{1}\')._errorObject.focus()', f.get_id(), g.get_id()));
+    return
+  }
+  g._activeRow = r;
+  g.showForm(']]>&History.Form;<![CDATA[');
+}
+]]>

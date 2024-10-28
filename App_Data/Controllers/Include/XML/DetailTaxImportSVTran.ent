@@ -1,0 +1,82 @@
+﻿<!ENTITY % Conditional.DetailTax SYSTEM "..\..\Include\DetailTax.txt">
+<!ENTITY % Conditional.DetailTaxDiscountRate SYSTEM "..\..\Include\DiscountRate.txt">
+<!ENTITY % Conditional.Promotion SYSTEM "..\..\Include\Promotion.txt">
+
+<![%Conditional.DetailTaxDiscountRate;[
+  
+  <!ENTITY DetailTaxDiscount "
+update #ctgt20 set tien_nt2 = tien_nt2 - ck_nt where ck_nt &lt;&gt; 0
+update #ctgt20 set tien2 = tien2 - ck where ck &lt;&gt; 0      
+">
+]]>
+<!ENTITY DetailTaxDiscount "">
+
+
+<![%Conditional.DetailTax;[
+  
+  <!ENTITY DetailTaxFlag "1">
+
+  <!ENTITY DetailTaxDetailStructure ", ma_thue, thue_suat, tk_thue, ma_kh2">
+  <!ENTITY DetailTaxDetailValue ", a.ma_thue, d.thue_suat, a.tk_thue_co, a.ma_kh2">
+  <!ENTITY DetailTaxUpdateMasterValue "update #m&Detail; set ma_thue = '', tk_thue_co = '', ma_kh2 = ''">
+
+  <!ENTITY DetailTaxAfterInsertDetail "
+set @q = 'update ' + @detailTable + ' set ma_thue = b.ma_thue, thue_suat = b.thue_suat, tk_thue = b.tk_thue, ma_kh2 = b.ma_kh2 from ' + @detailTable + ' a join #d&Detail; b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0 where ' + replace(@insKey, '&#37;a.', 'a.')
+exec sp_executesql @q
+">
+  <!ENTITY DetailTaxMasterTaxValue ", d.t_thue_nt, d.t_thue">
+
+  <!ENTITY DetailTaxPostTax "
+select * into #ctgt20 from #d&Detail;
+
+&DetailTaxDiscount;
+  
+select c.ma_thue, e.ten_vt into #tenvt
+  from (select a.ma_thue, min(b.line_nbr) as line_nbr from (select ma_thue, max(tien2) as tien2 from #ctgt20 group by ma_thue) a join #ctgt20 b on a.ma_thue = b.ma_thue and a.tien2 = b.tien2 group by a.ma_thue) c
+    join #ctgt20 d on c.ma_thue = d.ma_thue and c.line_nbr = d.line_nbr join dmvt e on d.ma_vt = e.ma_vt
+
+select @Statement = @Statement + char(13) + 'update #outputvat set ten_vt = b.ten_vt from #outputvat a join #tenvt b on a.ma_thue = b.ma_thue'
+">
+
+
+  <!ENTITY DetailTaxPostTaxExternal "tk_du = c.tk, tk_thue_co = b.tk_thue, t_tien_nt2 = b.tien_nt2, t_tien2 = b.tien2, t_thue_nt = b.thue_nt, t_thue = b.thue">
+  <!ENTITY DetailTaxPostTaxTable "'#ctgt20'">
+
+  <!ENTITY DetailTaxPostInventoryUpdateField ", thue_suat = b.thue_suat, tk_thue_co = b.tk_thue">
+  <!ENTITY DetailTaxPostInventoryUpdateZero "">
+
+  <!ENTITY DetailTaxPostGLAcctField ",tk_thue_no">
+  <!ENTITY DetailTaxPostGLAcctFieldRef ",tk_thue">
+  <!ENTITY DetailTaxPostGL "
+select @Statement = @Statement + char(13) + 'update #gl set ma_kh = b.ma_kh2 from #gl a join #d&Detail; b on a.stt_rec = b.stt_rec and a.tk = b.tk_thue and b.ma_kh2 &lt;&gt; '''''
+update #d&Detail; set ma_kh2 = '' where tk_thue in (select tk from dmtk where tk_cn = 0)
+">
+]]>
+
+
+<!ENTITY DetailTaxFlag "0">
+<!ENTITY DetailTaxDetailStructure "">
+<!ENTITY DetailTaxDetailValue "">
+<!ENTITY DetailTaxUpdateMasterValue "&TaxAllocate;">
+
+<!ENTITY DetailTaxAfterInsertDetail "">
+<!ENTITY DetailTaxMasterTaxValue "&InsertMasterTaxField;">
+
+<!ENTITY DetailTaxPostTax "">
+
+<![%Conditional.Promotion;[
+  <!ENTITY DetailTaxPostTaxExternal "tk_du = c.tk, tk_thue_co = c.tk_thue_co, t_tien_nt2 = c.t_tien_nt2 + c.t_km_nt, t_tien2 = c.t_tien2 + c.t_km, t_thue_nt = c.t_thue_nt + c.t_thue_km_nt, t_thue = c.t_thue + c.t_thue_km">
+]]>
+<!ENTITY DetailTaxPostTaxExternal "tk_du = c.tk, tk_thue_co = c.tk_thue_co, t_tien_nt2 = c.t_tien_nt2, t_tien2 = c.t_tien2">
+
+<!ENTITY DetailTaxPostTaxTable "'#detailpost'">
+
+<!ENTITY DetailTaxPostInventoryUpdateField "">
+<!ENTITY DetailTaxPostInventoryUpdateZero ", thue_suat">
+
+<!ENTITY DetailTaxPostGLAcctField ",tk_thue_no">
+<!ENTITY DetailTaxPostGLAcctFieldRef ",tk_thue_co">
+<!ENTITY DetailTaxPostGL "
+select @Statement = @Statement + char(13) + 'update #gl set ma_kh = b.ma_kh2 from #gl a join #m&Detail; b on a.stt_rec = b.stt_rec and a.tk = b.tk_thue_co and b.ma_kh2 &lt;&gt; '''''
+update #m&Detail; set ma_kh2 = '' where tk_thue_co in (select tk from dmtk where tk_cn = 0)
+">

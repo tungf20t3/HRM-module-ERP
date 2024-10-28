@@ -1,0 +1,286 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY LotVoucherBalanceFields SYSTEM "Include\LotVoucherBalanceFields.txt">
+  <!ENTITY LotVoucherBalanceFieldsCompact SYSTEM "Include\LotVoucherBalanceFieldsCompact.txt">
+  <!ENTITY LotVoucherBalanceFieldsLocation SYSTEM "Include\LotVoucherBalanceFieldsLocation.txt">
+  <!ENTITY LotVoucherBalanceFieldsLot SYSTEM "Include\LotVoucherBalanceFieldsLot.txt">
+  <!ENTITY ControlLocationLotLoading SYSTEM "..\..\Include\Command\ControlLocationLotLoading.txt">
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY And "&#13;">
+  <!ENTITY Code "">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY SiteRight "
+exec AI_ERP$System$CheckImportSiteRights '@@table', 'ma_kho', 'stt', @user, @admin, @r output, default, @$mode, @$errorCount output
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  &Error;
+end">
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.LotVoucherBalance;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "declare @filename varchar(128)
+if @@language = 'v' select @filename = case when @compactMode = '0' then 'LotVoucherBalance.xlsx' else 'LotVoucherBalance3.xlsx' end
+else select @filename = case when @compactMode = '0' then 'LotVoucherBalance2.xlsx' else 'LotVoucherBalance4.xlsx' end
+if @xSplit = 1 begin
+  select @filename = case
+    when @$location = 0 and @$Lot = 0 then case when @@language = 'v' then 'LotVoucherBalance3.xlsx' else 'LotVoucherBalance4.xlsx' end
+    when @$location = 1 and @$Lot = 0 then case when @@language = 'v' then 'LotVoucherBalance5.xlsx' else 'LotVoucherBalance6.xlsx' end
+    when @$location = 0 and @$Lot = 1 then case when @@language = 'v' then 'LotVoucherBalance7.xlsx' else 'LotVoucherBalance8.xlsx' end
+    when @$location = 1 and @$Lot = 1 then case when @@language = 'v' then 'LotVoucherBalance.xlsx' else 'LotVoucherBalance2.xlsx' end
+  end
+end
+">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$LotVoucherBalanceImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$LotVoucherBalanceImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="cdlo"/>
+    <table value="cdlo" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &Tiny.External.Import.Command;
+        <![CDATA[
+declare @xSplit bit, @compactMode char(1)
+]]>&ControlLocationLotLoading;<![CDATA[
+  set @xSplit = 1
+end
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') select @compactMode = '1' else select @compactMode = '0'
+]]>&ExportImportTemplateQuery;<![CDATA[
+if isnull(@xSplit, 0) <> 1
+  if @compactMode = 1 select '1' as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[ else select '0' as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[
+else begin
+  if @xSplit = 1 begin
+    select case
+      when @$location = 0 and @$Lot = 0 then 1
+      when @$location = 1 and @$Lot = 0 then 2
+      when @$location = 0 and @$Lot = 1 then 3
+      when @$location = 1 and @$Lot = 1 then 0
+    end as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[
+  end
+end
+]]>
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        &LotVoucherBalanceFieldsCompact;
+      </fields>
+      <fields identity="true" name="stt" index="2">
+        &LotVoucherBalanceFieldsLocation;
+      </fields>
+      <fields identity="true" name="stt" index="3">
+        &LotVoucherBalanceFieldsLot;
+      </fields>
+
+      &Tiny.External.Import.View.LotVoucherBalance;
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    &LotVoucherBalanceFields;
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Vào &Tiny.External.Title.v;" e="&Tiny.External.Title.e;"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_vt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã vật tư" e="Unit"/>
+      </field>
+      <field name="ten_vt" afterField="ma_vt" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên vật tư" e="Item Name"/>
+      </field>
+      <field name="ma_kho" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã kho" e="Site"/>
+      </field>
+      <field name="ma_vi_tri" width ="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã vị trí" e="Location"/>
+      </field>
+      <field name="ma_lo" width ="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã lô" e="Lot"/>
+      </field>
+      <field name="ton00" width="16">
+        <text v="Tồn đầu" e="Quantity"/>
+      </field>
+      <field name="du00" width="16">
+        <text v="Dư đầu" e="Amount"/>
+      </field>
+      <field name="du_nt00" width="16">
+        <text v="Dư đầu nt" e="FC Amount"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @field varchar(32), @user int, @admin bit, @year int, @r int
+select @admin = @@admin, @user = @@userID, @year = nam_bd from dmstt
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select @field = 'ma_kho'
+if @admin <> 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'LotVoucherBalance', 'Edit') = 0 select @type = '0'
+  end
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00002' from @@table a where not exists(select 1 from cdlo b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo and b.nam = @year)
+    and not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1))
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(a.stt) from @@table a where not exists(select 1 from cdlo b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo and b.nam = @year)
+    and not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1))]]>&Error;<![CDATA[
+end
+
+]]>&SiteRight;<![CDATA[
+
+  if @type = '1' begin
+    if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00002' from @@table a where exists(select 1 from cdlo b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo and b.nam = @year)
+        and not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit= 1))
+        ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(a.stt) from @@table a where exists(select 1 from cdlo b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo and b.nam = @year)
+        and not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit= 1))]]>&Error;<![CDATA[
+    end
+  end
+end
+
+if @type = '0' delete @@table from @@table a where exists(select 1 from cdlo b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo and b.nam = @year)
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00002' from @@table a join dmkho b on a.ma_kho = b.ma_kho join dmdvcsks c on b.ma_dvcs = c.ma_dvcs where year(c.ngay_ks) >= @year
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(a.stt) from @@table a join dmkho b on a.ma_kho = b.ma_kho join dmdvcsks c on b.ma_dvcs = c.ma_dvcs where year(c.ngay_ks) >= @year]]>&Error;<![CDATA[
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+select ma_vt, ma_kho, ma_vi_tri into #u from @@table group by ma_vt, ma_kho, ma_vi_tri
+select a.* into #k from @@table a join cdlo b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo and b.nam = @year
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+insert into cdvitri(nam, ma_kho, ma_vi_tri, ma_vt, ton00, du00, du_nt00, status, datetime0, datetime2, user_id0, user_id2)
+  select distinct @year, ma_kho, ma_vi_tri, ma_vt, 0, 0, 0, '1', getdate(), getdate(), @user, @user
+    from @@table a where not exists(select 1 from cdvitri b where a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_vt = b.ma_vt and b.nam = @year)
+
+insert into cdvt(nam, ma_kho, ma_vt, ton00, du00, du_nt00, status, datetime0, datetime2, user_id0, user_id2)
+  select distinct @year, ma_kho, ma_vt, 0, 0, 0, '1', getdate(), getdate(), @user, @user
+    from @@table a where not exists(select 1 from cdvt b where a.ma_kho = b.ma_kho and a.ma_vt = b.ma_vt and b.nam = @year)
+
+if @type = '1' begin
+  select a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo, sum(a.ton00) as ton00 into #cd1
+    from cdlo a join #k b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo
+    where a.nam = @year
+    group by a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo
+
+  update cdlo set @@list
+    from cdlo a join #k b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo where a.nam = @year
+
+  select a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo, sum(a.ton00) as ton00 into #cd2
+    from cdlo a join #k b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo
+    where a.nam = @year
+    group by a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo
+
+  update cdvt13 set ton13 = ton13 + b.ton00 - c.ton00
+    from cdvt13 a join (select ma_vt, ma_kho, sum(ton00) as ton00 from #cd2 group by ma_vt, ma_kho) b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho
+      join (select ma_vt, ma_kho, sum(ton00) as ton00 from #cd1 group by ma_vt, ma_kho) c on a.ma_vt = c.ma_vt and a.ma_kho = c.ma_kho
+
+  update cdvitri13 set ton13 = ton13 + b.ton00 - c.ton00
+    from cdvitri13 a join (select ma_vt, ma_kho, ma_vi_tri, sum(ton00) as ton00 from #cd2 group by ma_vt, ma_kho, ma_vi_tri) b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri
+      join (select ma_vt, ma_kho, ma_vi_tri, sum(ton00) as ton00 from #cd1 group by ma_vt, ma_kho, ma_vi_tri) c on a.ma_vt = c.ma_vt and a.ma_kho = c.ma_kho and a.ma_vi_tri = c.ma_vi_tri
+
+  update cdlo13 set ton13 = ton13 + b.ton00 - c.ton00
+    from cdlo13 a join #cd2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo
+      join #cd1 c on a.ma_vt = c.ma_vt and a.ma_kho = c.ma_kho and a.ma_vi_tri = c.ma_vi_tri and a.ma_lo = c.ma_lo
+
+  update cdklo13 set ton13 = ton13 + b.ton00 - c.ton00
+    from cdklo13 a join (select ma_vt, ma_kho, ma_lo, sum(ton00) as ton00 from #cd2 group by ma_vt, ma_kho, ma_lo) b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_lo = b.ma_lo
+      join (select ma_vt, ma_kho, ma_lo, sum(ton00) as ton00 from #cd1 group by ma_vt, ma_kho, ma_lo) c on a.ma_vt = c.ma_vt and a.ma_kho = c.ma_kho and a.ma_lo = c.ma_lo
+
+  update dmlo set sl_nhap = sl_nhap + b.ton00 - c.ton00 from dmlo a join #cd2 b on a.ma_vt = b.ma_vt and a.ma_lo = b.ma_lo join #cd1 c on a.ma_vt = c.ma_vt and a.ma_lo = c.ma_lo
+end
+
+update cdlo set @@list
+  from cdlo a join @@table b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo
+    where a.nam = @year
+
+update cdvitri set ton00 = b.ton00, du00 = b.du00, du_nt00 = b.du_nt00
+  from cdvitri a join (
+    select c.ma_vt, c.ma_kho, c.ma_vi_tri, sum(c.ton00) as ton00, sum(c.du00) as du00, sum(c.du_nt00) as du_nt00
+      from cdlo c join #u k on c.ma_vt = k.ma_vt and c.ma_kho = k.ma_kho and c.ma_vi_tri = k.ma_vi_tri where c.nam = @year group by c.ma_vt, c.ma_kho, c.ma_vi_tri
+  ) b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri
+  where a.nam = @year
+
+update cdvt set ton00 = b.ton00, du00 = b.du00, du_nt00 = b.du_nt00
+  from cdvt a join (
+    select c.ma_vt, c.ma_kho, sum(c.ton00) as ton00, sum(c.du00) as du00, sum(c.du_nt00) as du_nt00
+      from cdlo c join (select ma_vt, ma_kho from #u group by ma_vt, ma_kho) k on c.ma_vt = k.ma_vt and c.ma_kho = k.ma_kho where c.nam = @year group by c.ma_vt, c.ma_kho
+  ) b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho
+  where a.nam = @year
+
+insert into cdvt13(ma_vt, ma_kho, ton13, du13, du_nt13) select distinct ma_vt, ma_kho, 0, 0, 0 from @@table a where not exists(select 1 from cdvt13 b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho)
+insert into cdvitri13(ma_vt, ma_kho, ma_vi_tri, ton13, du13, du_nt13) select distinct ma_vt, ma_kho, ma_vi_tri, 0, 0, 0 from @@table a where not exists(select 1 from cdvitri13 b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri)
+insert into cdlo13(ma_vt, ma_kho, ma_vi_tri, ma_lo, ton13, du13, du_nt13) select distinct ma_vt, ma_kho, ma_vi_tri, ma_lo, 0, 0, 0 from @@table a where not exists(select 1 from cdlo13 b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo)
+insert into cdklo13(ma_vt, ma_kho, ma_lo, ton13, du13, du_nt13) select distinct ma_vt, ma_kho, ma_lo, 0, 0, 0 from @@table a where not exists(select 1 from cdklo13 b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_lo = b.ma_lo)
+
+update cdvt13 set ton13 = ton13 + b.ton00 from cdvt13 a join (select ma_vt, ma_kho, sum(ton00) as ton00 from @@table group by ma_vt, ma_kho) b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho
+update cdvitri13 set ton13 = ton13 + b.ton00 from cdvitri13 a join (select ma_vt, ma_kho, ma_vi_tri, sum(ton00) as ton00 from @@table group by ma_vt, ma_kho, ma_vi_tri) b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri
+update cdlo13 set ton13 = ton13 + b.ton00 from cdlo13 a join (select ma_vt, ma_kho, ma_vi_tri, ma_lo, sum(ton00) as ton00 from @@table group by ma_vt, ma_kho, ma_vi_tri, ma_lo) b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo
+update cdklo13 set ton13 = ton13 + b.ton00 from cdklo13 a join (select ma_vt, ma_kho, ma_lo, sum(ton00) as ton00 from @@table group by ma_vt, ma_kho, ma_lo) b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_lo = b.ma_lo
+
+update dmlo set sl_nhap = sl_nhap + b.ton00 from dmlo a join (select ma_vt, ma_lo, sum(ton00) as ton00 from @@table group by ma_vt, ma_lo) b on a.ma_vt = b.ma_vt and a.ma_lo = b.ma_lo
+]]>
+    </text>
+  </processing>
+
+</import>

@@ -1,0 +1,337 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenVoucherClosing SYSTEM "..\Include\XML\WhenVoucherClosing.xml">
+  <!ENTITY CommandRecordHasBeenChanged SYSTEM "..\Include\Command\RecordHasBeenChanged.txt">
+  <!ENTITY CommandGetIdentityNumber SYSTEM "..\Include\Command\GetIdentityNumber.txt">
+  <!ENTITY ScriptVoucherNumber SYSTEM "..\Include\Javascript\VoucherNumber.txt">
+  <!ENTITY XMLVoucherBookAndNumberFields SYSTEM "..\Include\XML\VoucherBookAndNumberFields.txt">
+
+  <!ENTITY CommandWhenVoucherLoading SYSTEM "..\Include\Command\WhenVoucherLoading.txt">
+  <!ENTITY CommandWhenVoucherBeforeEdit SYSTEM "..\Include\Command\WhenVoucherBeforeEdit.txt">
+  <!ENTITY CommandWhenVoucherBeforeDelete SYSTEM "..\Include\Command\WhenVoucherBeforeDelete.txt">
+
+  <!ENTITY CommandGetIdentityNumber SYSTEM "..\Include\Command\GetIdentityNumber.txt">
+  <!ENTITY CommandGetVoucherNumber SYSTEM "..\Include\Command\GetVoucherNumber.txt">
+  <!ENTITY CommandSetVoucherNumber SYSTEM "..\Include\Command\SetVoucherNumber.txt">
+  <!ENTITY CommandShowWarningMessage SYSTEM "..\Include\Command\ShowWarningMessage.txt">
+  <!ENTITY CommandQueryVoucherNumber SYSTEM "..\Include\Command\QueryVoucherNumber.txt">
+  <!ENTITY CommandScatterVoucherNumber SYSTEM "..\Include\Command\ScatterVoucherNumber.txt">
+  <!ENTITY ScriptVoucherInit SYSTEM "..\Include\Javascript\VoucherInit.txt">
+  <!ENTITY ScriptVoucherNumber SYSTEM "..\Include\Javascript\VoucherNumber.txt">
+  <!ENTITY VoucherNumberLoading SYSTEM "..\Include\Javascript\WhenVoucherNumberLoading.txt">
+  <!ENTITY VoucherNumberScattering SYSTEM "..\Include\Javascript\WhenVoucherNumberScattering.txt">
+  <!ENTITY VoucherNumberReading SYSTEM "..\Include\Javascript\WhenVoucherNumberReading.txt">
+
+  <!ENTITY CommandRecordHasBeenChanged SYSTEM "..\Include\Command\RecordHasBeenChanged.txt">
+  <!ENTITY CommandCheckVoucherHandleBeforeSave SYSTEM "..\Include\Command\CheckVoucherHandleBeforeSave.txt">
+  <!ENTITY CommandCheckVoucherHandleBeforeEdit SYSTEM "..\Include\Command\CheckVoucherHandleBeforeEdit.txt">
+  <!ENTITY CommandCheckVoucherHandleBeforeDelete SYSTEM "..\Include\Command\CheckVoucherHandleBeforeDelete.txt">
+
+  <!ENTITY XMLGetVoucherNumber SYSTEM "..\Include\XML\GetVoucherNumber.xml">
+  <!ENTITY XMLVoucherBookAndNumberFields SYSTEM "..\Include\XML\VoucherBookAndNumberFields.txt">
+  <!ENTITY XMLWhenInitExternalVoucherNumber SYSTEM "..\Include\XML\WhenInitExternalVoucherNumber.xml">
+  <!ENTITY CommandWhenVoucherLoading SYSTEM "..\Include\Command\WhenVoucherLoading.txt">
+
+  <!ENTITY XMLWhenVoucherNavigating SYSTEM "..\Include\XML\WhenVoucherNavigating.xml">
+
+  <!ENTITY ScriptVoucherInit SYSTEM "..\Include\Javascript\VoucherInit.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+
+  <!ENTITY Identity "BIDefectRecording">
+
+  
+  <!ENTITY Check "
+if @@admin &lt;&gt; 1 begin
+  declare @$checkVoucherInspection varchar(32), @$checkVoucherPlant varchar(32)
+  select @$checkVoucherInspection = ma_nguon, @$checkVoucherPlant = ma_vung from bic12$000000 where stt_rec = @stt_rec
+
+  if not exists(select 1 from bisysinspectionrights where user_id = @@userID and ma_nguon = @$checkVoucherInspection and r_edit = 1) begin
+    select '$NotAuthorized' as message
+    return
+  end
+  if @$checkVoucherPlant &lt;&gt; '' and exists(select 1 from bisysplantrights where user_id = @@userID) and not exists(select 1 from bisysplantrights where user_id = @@userID and ma_vung = @$checkVoucherPlant) begin
+    select '$NotAuthorized' as message
+    return
+  end
+
+  declare @$lockedDate nvarchar(512), @$denyAccess nvarchar(512), @$checkVoucherLockedDate smalldatetime, @$checkVoucherUnit varchar(32)
+    select @$denyAccess = '$NotAuthorized', @$lockedDate = null, @$checkVoucherLockedDate = null
+    select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+    select @$checkVoucherLockedDate = ngay_ct, @$checkVoucherUnit = ma_dvcs from bic12$000000 where stt_rec = @stt_rec
+    if @$checkVoucherLockedDate is not null begin
+      create table #lockedDate (r int)
+      insert into #lockedDate exec fs20_CheckLockedDateOnVoucher @@id, @$checkVoucherLockedDate, @@userID, @$checkVoucherUnit, 1
+      if not exists(select * from #lockedDate where r = 1) begin
+        select @$lockedDate as message
+        return
+      end
+    end
+    if @@admin &lt;&gt; 1 begin
+      if not exists(select 1 from sysunitrights where user_id = @@userID and ma_dvcs = @$checkVoucherUnit and r_edit = 1) begin
+        select @$denyAccess as message
+        return
+      end
+    end
+end
+">
+
+  <!ENTITY Post "
+exec bs_PostInspection '4', @@id, @stt_rec, @stt_rec_kd, @@userID, @@admin, '@@sysDatabaseName'
+">
+  
+
+  <!ENTITY % Conditional.BIMode "INCLUDE">
+  <!ENTITY BIMode.Structure.SetParameter "select @purOrg = '', @purGr = '', @plant = @ma_vung">
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+]>
+
+<dir table="bim12$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật lỗi kiểm định" e="Defect Recording"></title>
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_lo_kd" dataFormatString="@upperCaseFormat" allowNulls="false" align="right">
+      <header v="Số lô kiểm định" e="Ins. Lot"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="stt_rec_kd" readOnly="true" allowContain="true" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_lo_kd" allowNulls="false" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="Ngày lô kiểm định" e="Ins. Lot Date"></header>
+    </field>
+    <field name="ma_vt">
+      <header v="Mã hàng" e="Item"></header>
+    </field>
+    <field name="ten_vt" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_lo" external="true" defaultValue="''">
+      <header v="Mã lô" e="Lot"></header>
+    </field>
+    <field name="ten_lo" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_luong0" type="Decimal" dataFormatString="@quantityInputFormat" external="true" defaultValue="0" inactivate="true">
+      <header v="Sl lô kiểm định" e="Insp. Quantity"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ten_dvt" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nv_kd2">
+      <header v="Người kiểm tra" e="Inspector"></header>
+    </field>
+
+    <field name="ma_diem" width="100" inactivate="true">
+      <header v="Điểm kiểm định" e="Inspection Point"></header>
+    </field>
+    <field name="ten_diem" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="so_luong" type="Decimal" dataFormatString="@quantityInputFormat" align="right">
+      <header v="Sl điểm kiểm định" e="Quantity"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ten_dvt1" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="bie12" allowNulls="false" external="true" clientDefault="0" defaultValue="0" rows="259" filterSource="Tidy" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="BIDefectRecordingDetail" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+
+    <field name="ma_dvcs" onDemand="false" categoryIndex="8">
+      <header v="Đơn vị" e="Unit"></header>
+    </field>
+    <field name="ten_dvcs" readOnly="true" external="true" defaultValue="''" categoryIndex="8">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vung" onDemand="false" categoryIndex="8">
+      <header v="Mã vùng" e="Plant"></header>
+    </field>
+    <field name="ten_vung" readOnly="true" external="true" defaultValue="''" categoryIndex="8">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho" onDemand="false" categoryIndex="8">
+      <header v="Mã kho" e="Site"></header>
+    </field>
+    <field name="ten_kho" readOnly="true" external="true" defaultValue="''" categoryIndex="8">
+      <header v="" e=""></header>
+    </field>
+    <field name="status" readOnly="true" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="319" anchor="11" split="11">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 0, 8, 58, 50, 100, 0"/>
+      <item value="11010000000-1011: [ma_vt].Label, [ma_vt], [ten_vt], [so_lo_kd].Label, [so_lo_kd], [stt_rec]"/>
+      <item value="11010000000-1011: [ma_lo].Label, [ma_lo], [ten_lo], [ngay_lo_kd].Label, [ngay_lo_kd], [stt_rec_kd]"/>
+      <item value="11010000000-101-: [so_luong0].Label, [so_luong0], [ten_dvt], [nv_kd2].Label, [nv_kd2]"/>
+
+      <item value="11010000000----1: [ma_diem].Label, [ma_diem], [ten_diem], [status]"/>
+      <item value="11010000000-----: [so_luong].Label, [so_luong], [ten_dvt1]"/>
+
+      <item value="1: [bie12]"/>
+
+      <item value="110100: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs]"/>
+      <item value="110100: [ma_vung].Label, [ma_vung], [ten_vung]"/>
+      <item value="110100: [ma_kho].Label, [ma_kho], [ten_kho]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+
+        <category index="8" columns="120, 30, 70, 100, 100, 130, 0" anchor="4">
+          <header v="Công ty" e="Organization"/>
+        </category>
+      </categories>
+    </view>
+
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'show$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        &Check;
+        <![CDATA[
+declare @sUD numeric(19, 3), @$updateConflict nvarchar(512), @q nvarchar(4000), @p char(6), @insStatus char(1)
+select @p = convert(varchar(6), @ngay_lo_kd, 112), @$updateConflict = case when @@language = 'v' then N'Đã có quyết định sử dụng cho lô kiểm định này, không thể sửa được.' else N'There existed usage decision, this inspection lot can not be edited.' end
+
+select @q = 'select @sUD = sl_qdsd, @insStatus = status from bikd00$' + @p + ' where stt_rec = ''' + replace(@stt_rec_kd, '''', '') + ''''
+exec sp_executesql @q, N'@sUD numeric(19, 3) output, @insStatus char(1) output', @sUD output, @insStatus output
+
+if isnull(@insStatus, '0') = '4' or (@sUD > 0 and @status = '0') begin
+  select @$updateConflict as message
+  return
+end
+
+if isnull(@insStatus, '0') = '5' begin
+  select '$NotAuthorized' as message
+  return
+end
+
+update @bie12 set stt_rec = @stt_rec, ma_kho = @ma_kho
+select * into #bie12 from @bie12
+
+select @p = convert(varchar(6), ngay_ct, 112) from bic12$000000 where stt_rec = @stt_rec
+select @q = 'delete bie12$' + @p + ' where stt_rec = ''' + replace(@stt_rec, '''', '') + ''';insert into bie12$' + @p + ' select * from #bie12'
+exec sp_executesql @q
+
+select @q = 'update bim12$' + @p + ' set nv_kd2 = N''' + replace(@nv_kd2, '''', '''''') + ''', datetime3 = getdate() where stt_rec = ''' + replace(@stt_rec, '''', '') + ''''
+exec sp_executesql @q
+]]>
+      </text>
+    </command>
+
+    <command event="Inserted">
+      <text>
+        &Post;
+        <![CDATA[
+select '' as field, '' as messeage, 'on$]]>&Identity;<![CDATA[Filter$QueryComplete(this);' as script
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,id=f.get_id(),v=f._language=="v",g=f.getItem("bie12")._controlBehavior,t=f.getItemValue("so_luong"),c0=g._getColumnOrder("sl_loi"),e=v?'Trường <span class="Highlight">Số lượng</span> chưa nhập hoặc giá trị nhập không hợp lệ.':'Field <span class="Highlight">Quantity</span> must not be blank or has invalid value.';if(f._checked)for(var i=1;i<=g._rowCount;i++){var v0=g._getItemValue(i,c0);if(v0>t){f._errorWarningObject=g._getItem(i,g._getColumnOrder("sl_loi"));$func.hideWait(id);$message.show(e,String.format("var f = $find('{0}');f.focus('bie12');f._errorWarningObject.focus()",id));f._checked=false;break}}g.setSequenceNumber("line_nbr");g.setContinuance("stt_rec0")
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  f.setReadOnlyFields('so_lo_kd, ngay_lo_kd, ma_vt, ma_lo, so_luong, ma_diem, so_luong0, ma_dvcs, ma_kho, ma_vung');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  f.getItem('nv_kd2').focus();
+  f._tabContainer.add_activeTabChanged(onChange$]]>&Identity;<![CDATA[Voucher$Tab);
+  f._tabContainer._loaded = true;
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid, d = g._detailInfo;
+  f._denyFocus = true;
+  f.setItemValues('stt_rec, stt_rec_kd, so_lo_kd, ngay_lo_kd, nv_kd2, ma_vt, ten_vt%l, so_luong, ten_dvt, ten_dvt1, ma_lo, ten_lo%l, ma_dvcs, ten_dvcs%l, ma_kho, ten_kho%l, ma_vung, ten_vung%l, so_luong0, ma_diem, ten_diem',
+    [d.IDNumber, d.IDNumberInspection, d.InspectionLot, d.InspectionDate, d.Inspector, d.Item, d.ItemName, d.Quantity, d.UOMName, d.UOMName, d.Lot, d.LotName, d.Unit, d.UnitName, d.Site, d.SiteName, d.Plant, d.PlantName, d.InspectionQuantity, d.InspectionPoint, d.InspectionPointName]);
+  g._gridMemvars = g._memvars;
+}
+function show$]]>&Identity;<![CDATA[Form$(f) {f._controlFocus = f.getItem('so_lo_kd');}
+function close$]]>&Identity;<![CDATA[Form$(f) {
+  if (f._tabContainer) try {f._tabContainer.remove_activeTabChanged(onChange$]]>&Identity;<![CDATA[Voucher$Tab);} catch (ex) {}
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+}
+function onChange$]]>&Identity;<![CDATA[Voucher$Tab(sender, e) {sender.parentForm.focusWhenTabChanged(['bie12', 'ma_dvcs']);}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      break;
+    default:
+      break;
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$QueryComplete(f) {set$]]>&Identity;<![CDATA[Filter$FormScript(f.grid);}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g) {
+  g._memvars = g._gridMemvars;
+  g._gridMemvars = [];
+  g._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

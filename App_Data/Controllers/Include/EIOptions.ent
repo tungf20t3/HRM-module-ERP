@@ -1,0 +1,33 @@
+﻿<!ENTITY % Conditional.EIOptions SYSTEM "..\Include\EIOptions.txt">
+
+<![%Conditional.EIOptions;[
+  <!ENTITY EICustomerCheckUpdateConflict "">
+  <!ENTITY EICustomerWhenDeleting "">
+  <!ENTITY EICustomerAuthentication "1">
+]]>
+
+<!ENTITY EICustomerCheckUpdateConflict "
+if exists(select 1 from options where name = 'm_sd_hddt' and val = '1') begin
+  if @ma_kh &lt;&gt; $ma_kh.OldValue begin
+    if exists(select 1 from khhddt where ma_kh = $ma_kh.OldValue) begin
+       select replace(@$updateConflict, '&#37;s', rtrim($ma_kh.OldValue)) as message
+       return
+    end
+  end
+  if exists(select 1 from khhddt where ma_kh = @ma_kh and loai_kh = '1') and @ma_so_thue = '' begin
+    select 'ma_so_thue' as field, replace(@$taxFieldUpdateConflict, '&#37;s', rtrim(@ma_kh)) as message
+    return
+  end
+  if exists(select 1 from khhddt where ma_kh = @ma_kh) and @e_mail = '' begin
+    select 'e_mail' as field, replace(@$eMailFieldUpdateConflict, '&#37;s', rtrim(@ma_kh)) as message
+    return
+  end
+end	
+">
+<!ENTITY EICustomerWhenDeleting "
+if exists(select 1 from options where name = 'm_sd_hddt' and val = '1') and exists(select 1 from khhddt where ma_kh = @ma_kh) begin
+  select @message as message
+  return
+end
+">
+<!ENTITY EICustomerAuthentication "0">

@@ -1,0 +1,17 @@
+﻿<![CDATA[
+function on$Deductible$Error(f, errorMessage, s, c) {
+  f._checked = false;
+  $func.hideWait(f.get_id());
+  $message.show(errorMessage.replace("%s", s), String.format('$find(\'{0}\').focus(\'{1}\');', f.get_id(), c));
+}
+function check$Deductible$VoucherType(f, e, g, a) {
+  var i = g._getColumnOrder('loai_hd'), id = f.get_id();
+  if (!Array.contains(a, $func.trim(f.getItemValue('loai_ct'))) && g._rowCount) {
+    e.type.cancelEvent = true;
+    $func.hideWait(id);
+    $message.show(f._language == 'v' ? 'Loại phiếu chi không hợp lệ do phát sinh thông tin khấu trừ thuế.' : 'Voucher type is invalid, tax deductible data information already entered in the grid.', String.format('$find(\'{0}\').focus(\'loai_ct\');', id));
+    return false;
+  }
+  return true;
+}
+]]>

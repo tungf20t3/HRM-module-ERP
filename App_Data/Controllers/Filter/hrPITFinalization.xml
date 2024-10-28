@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Quyết toán thuế thu nhập cá nhân" e="Personal Income Tax Finalization"></title>
+  <fields>
+    <field name ="nam" dataFormatString="###0">
+      <header v ="Năm" e="Year"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="thay_the" dataFormatString="0, 1" clientDefault="1" align="right" aliasName ="prIncomeType">
+      <header v ="Thay thế loại thu nhập" e ="Replace Income Type"/>
+      <footer	 v ="1 - Có, 0 - Không" e ="1 - Yes, 0 - No"/>
+      <items style="Mask"></items>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1) and status = '1'" check="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 10, 70, 100, 90, 10, 120"/>
+      <item value="110---: [nam].Label, [nam]"/>
+      <item value="11100000: [thay_the].Label, [thay_the], [thay_the].Description"/>
+      <item value="11000000: [ma_dvcs].Label, [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$lockedDate nvarchar(512)
+select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+if exists(select 1 from dmstt where ngay_ks >= cast(str(@nam, 4) + '1231' as smalldatetime)) begin
+  select 'nam' as field, @$lockedDate as message
+  return
+end
+exec hs_CalcPersonalIncomeTax4Year @nam, @thay_the, @ma_dvcs, @@userID, @@admin
+				]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.getItem('nam').value = (new Date()).getFullYear();
+  f.live(f.getItem('nam'));
+  changeLookupReadonly(f, 'ma_dvcs', true);
+}
+]]>
+    </text>
+
+  </script>
+</dir>

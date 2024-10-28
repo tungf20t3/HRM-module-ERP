@@ -1,0 +1,297 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterInit SYSTEM "..\Include\XML\WhenFilterInit.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY TableDetail "ctrt">
+]>
+
+<dir table="ctrt" code="stt_rec" order="stt_rec" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật chi tiết" e="Update Detail"></title>
+
+  <fields>
+    <field name="ma_cd" allowNulls="false" dataFormatString="@upperCaseFormat">
+      <header v="Mã công đoạn" e="Operation Code"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ten_cd" allowNulls="false">
+      <header v="Tên công đoạn" e="Operation Name"></header>
+    </field>
+    <field name="ten_cd2">
+      <header v="Tên khác" e="Other Name"></header>
+    </field>
+
+    <field name="kieu_cd" allowNulls="false" categoryIndex="1">
+      <header v="Kiểu công đoạn" e="Operation Style"></header>
+      <items style="AutoComplete" controller="CROperationTypeList" reference="ten_kieu_cd%l" key="ma_nh = '1' and status = '1'" check="ma_nh = '1' and status = '1'" information="ma_loai$sfdmloaicd.ten_loai%l"/>
+      <clientScript><![CDATA[onchange="onChange$CRRoutingMaintenanceDetailForm$OperationStyle$(this);"]]></clientScript>
+    </field>
+    <field name="ten_kieu_cd%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="cd_truoc" categoryIndex="1" dataFormatString="@upperCaseFormat">
+      <header v="Công đoạn trước" e="Previous Operation"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="cd_sau" categoryIndex="1" dataFormatString="@upperCaseFormat">
+      <header v="Công đoạn sau" e="Next Operation"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_vt" allowNulls="false" categoryIndex="1">
+      <header v="Bán thành phẩm" e="WIP"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1' and loai_vt in ('41', '51')" check="status = '1' and loai_vt in ('41', '51')" information="ma_vt$dmvt.ten_vt%l"/>
+      <clientScript><![CDATA[onchange="change$CRRoutingMaintenanceDetailForm$Item$(this);"]]></clientScript>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt2" categoryIndex="1">
+      <header v="Bán t.phẩm cộng thêm" e="Extra WIP"></header>
+      <items style="Lookup" controller="Item" key="status = '1' and loai_vt in ('41', '51')" check="status = '1' and loai_vt in ('41', '51')" information="ma_vt$dmvt.ten_vt%l"/>
+    </field>
+    <field name="dvt" allowNulls="false" categoryIndex="1" inactivate="true">
+      <header v="Đơn vị tính giao dịch" e="Transaction UOM"></header>
+      <items style="AutoComplete" controller="UOMItem" reference="ten_dvt%l" key="ma_vt = '{$%c[ma_vt]}' or ma_vt ='*'" information="dvt$vdmvtqddvt.ten_dvt%l" normal="true"/>
+    </field>
+    <field name="ten_dvt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhieu_dvt" type="Boolean" external="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="loai_cd" allowNulls="false" categoryIndex="1">
+      <header v="Loại công đoạn" e="Operation Type"></header>
+      <items style="AutoComplete" controller="CROperationTypeList" reference="ten_loai_cd%l" key="ma_nh = '2' and status = '1'" check="ma_nh = '2' and status = '1'" information="ma_loai$sfdmloaicd.ten_loai%l"/>
+      <clientScript><![CDATA[onchange="onChange$CRRoutingMaintenanceDetailForm$OperationType$(this);"]]></clientScript>
+    </field>
+    <field name="ten_loai_cd%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_ccv" categoryIndex="1" onDemand="true">
+      <header v="Trung tâm công việc" e="Work Center"></header>
+      <items style="AutoComplete" controller="CRWorkCenterList" reference="ten_ccv%l" key="status = '1'" check="1=1" information="ma_ccv$sfdmcumcv.ten_ccv%l"/>
+    </field>
+    <field name="ten_ccv%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_cm" categoryIndex="1" onDemand="true">
+      <header v="Cụm máy" e="Machine Center"></header>
+      <items style="AutoComplete" controller="SFCMachineCenter" reference="ten_cm%l" key="status = '1'" check="1=1" information="ma_cm$sfdmcummay.ten_cm%l"/>
+    </field>
+    <field name="ten_cm%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="tg_bd_cds" type="Decimal" dataFormatString="@HourInputFormat" align="right" categoryIndex="2">
+      <header v="Thời gian b.đầu cđ sau" e="Overlap"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="sl_bd_cds" type="Decimal" dataFormatString="@quantityInputFormat" align="right" categoryIndex="2">
+      <header v="Số lượng b.đầu cđ sau" e="Send Ahead"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="tg_cho" type="Decimal" dataFormatString="@HourInputFormat" align="right" categoryIndex="2">
+      <header v="Thời gian chờ sản xuất" e="Wait Time"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="tg_cai_dat" type="Decimal" dataFormatString="@HourInputFormat" align="right" categoryIndex="2">
+      <header v="Thời gian cài đặt" e="Setup Time"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="sl_may" type="Decimal" dataFormatString="#### ### ##0" align="right" categoryIndex="2">
+      <header v="Số lượng máy" e="No. of Resource"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nang_suat" type="Decimal" dataFormatString="@CapacityNumberInputFormat" align="right" categoryIndex="2">
+      <header v="Năng suất" e="Piece Rate"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="cach_tinh" allowNulls="false" categoryIndex="2">
+      <header v="Cách tính" e="Time Basic"></header>
+      <items style="AutoComplete" controller="CRTimeBasicList" reference="ten_cach_tinh%l" key="status = '1'" check="1=1" information="cach_tinh$sfdmcachtinh.ten_cach_tinh%l"/>
+    </field>
+    <field name="ten_cach_tinh%l" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="tg_vs" type="Decimal" dataFormatString="@HourInputFormat" align="right" categoryIndex="2">
+      <header v="Thời gian vệ sinh máy" e="Clear Time"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="tg_chuyen" type="Decimal" dataFormatString="@HourInputFormat" align="right" categoryIndex="2">
+      <header v="Thời gian chuyển" e="Move Time"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nc_cai_dat" type="Decimal" dataFormatString="#### ### ##0" align="right" categoryIndex="2">
+      <header v="Nhân công cài đặt" e="Setup Resource"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nc_th" type="Decimal" dataFormatString="#### ### ##0" align="right" categoryIndex="2">
+      <header v="Nhân công chạy máy" e="Run Resource"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="cc_sd" categoryIndex="2">
+      <header v="Công cụ sử dụng" e="Tool Number"></header>
+    </field>
+    <field name="ma_kh" categoryIndex="2" onDemand="true">
+      <header v="Nhà cung cấp" e="Supplier"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1=1" information="ma_kh$dmkh.ten_kh%l" new="Default"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="Tên khách" e="Customer Name"></header>
+    </field>
+    <field name="tg_gc" type="Decimal" dataFormatString="@HourInputFormat" align="right" categoryIndex="2">
+      <header v="Thời gian gia công" e="Subcontract Leadtime"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="cp_gc" type="Decimal" dataFormatString="@generalCurrencyAmountInputFormat" align="right" categoryIndex="2">
+      <header v="Chi phí gia công" e="Subcontract Cost"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="tl_kt" type="Decimal" dataFormatString="##0.00" align="right" categoryIndex="2">
+      <header v="Tl k.thừa nvl cđ trước" e="WIP Consumption Rate"></header>
+      <footer v="(%)" e="(%)"/>
+      <items style="Numeric"/>
+    </field>
+    <field name="tl_kt2" type="Decimal" dataFormatString="##0.00" align="right" categoryIndex="2">
+      <header v="Tl k.thừa btp cđ trước" e="WIP Processing Rate"></header>
+      <footer v="(%)" e="(%)"/>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="tru_dm" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="3">
+      <header v="Trừ định mức" e="Backflush"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="td_chuyen" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="3">
+      <header v="Tự động chuyển" e="Auto Move"></header>
+      <clientScript><![CDATA[onchange="onClick$CRRoutingMaintenanceEditDetailFilter$Item(this);"]]></clientScript>
+      <items style="Mask"/>
+    </field>
+    <field name="dung_kt" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="3">
+      <header v="Dừng kiểm tra" e="Inspection Stop"></header>
+      <clientScript><![CDATA[onchange="onClick$CRRoutingMaintenanceEditDetailFilter$Item(this);"]]></clientScript>
+      <items style="Mask"/>
+    </field>
+    <field name="td_phi" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="3">
+      <header v="Tự động tính phí" e="Auto Charge"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="nhap_sl" dataFormatString="0, 1" clientDefault="1" align="right" categoryIndex="3">
+      <header v="Nhập sản lượng" e="Count Point"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="nk_yn" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="3">
+      <header v="Tự động nhập kho" e="Auto Good Receipt"></header>
+      <footer v="1 - Có, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <clientScript><![CDATA[onchange="onClick$CRRoutingMaintenanceEditDetailFilter$Item(this);"]]></clientScript>
+      <items style="Mask"/>
+    </field>
+    <field name="xk_yn" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="3">
+      <header v="Tự động xuất kho" e="Auto Good Issue"></header>
+      <footer v="1 - Có, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ghi_chu" categoryIndex="3">
+      <header v="Ghi chú" e="Note"></header>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="280">
+      <item value="120, 30, 70, 330"/>
+      <item value="110-: [ma_cd].Label, [ma_cd]"/>
+      <item value="1100: [ten_cd].Label, [ten_cd]"/>
+      <item value="1100: [ten_cd2].Label, [ten_cd2]"/>
+
+      <item value="11010: [kieu_cd].Label, [kieu_cd], [ten_kieu_cd%l]"/>
+      <item value="110-: [cd_truoc].Label, [cd_truoc]"/>
+      <item value="110-: [cd_sau].Label, [cd_sau]"/>
+      <item value="11010: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="1100: [ma_vt2].Label, [ma_vt2]"/>
+      <item value="11010: [loai_cd].Label, [loai_cd], [ten_loai_cd%l]"/>
+      <item value="11010: [ma_ccv].Label, [ma_ccv], [ten_ccv%l]"/>
+      <item value="11010: [ma_cm].Label, [ma_cm], [ten_cm%l]"/>
+      <item value="11010: [dvt].Label, [dvt], [ten_dvt%l]"/>
+
+      <item value="11-11: [tg_bd_cds].Label, [tg_bd_cds], [sl_bd_cds].Label, [sl_bd_cds]"/>
+      <item value="11-11: [tg_cho].Label, [tg_cho], [tg_cai_dat].Label, [tg_cai_dat]"/>
+      <item value="11-11: [sl_may].Label, [sl_may], [nang_suat].Label, [nang_suat]"/>
+      <item value="11100: [cach_tinh].Label, [cach_tinh], [ten_cach_tinh%l]"/>
+      <item value="11-11: [tg_vs].Label, [tg_vs], [tg_chuyen].Label, [tg_chuyen]"/>
+      <item value="11-11: [nc_cai_dat].Label, [nc_cai_dat], [nc_th].Label, [nc_th]"/>
+      <item value="11000: [cc_sd].Label, [cc_sd]"/>
+      <item value="11100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="11-11: [tg_gc].Label, [tg_gc], [cp_gc].Label, [cp_gc]"/>
+      <item value="11100: [tl_kt].Label, [tl_kt], [tl_kt].Description"/>
+      <item value="11100: [tl_kt2].Label, [tl_kt2], [tl_kt2].Description"/>
+
+      <item value="1110: [tru_dm].Label, [tru_dm], [nk_yn].Description"/>
+      <item value="1110: [td_chuyen].Label, [td_chuyen], [nk_yn].Description"/>
+      <item value="1110: [dung_kt].Label, [dung_kt], [nk_yn].Description"/>
+      <item value="1110: [td_phi].Label, [td_phi], [nk_yn].Description"/>
+      <item value="1110: [nhap_sl].Label, [nhap_sl], [nk_yn].Description"/>
+      <item value="1110: [nk_yn].Label, [nk_yn], [nk_yn].Description"/>
+      <item value="1110: [xk_yn].Label, [xk_yn], [xk_yn].Description"/>
+      <item value="1100: [ghi_chu].Label, [ghi_chu]"/>
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 200, 130">
+          <header v="Thông tin chính" e="General"/>
+        </category>
+        <category index="2" columns="120, 100, 110, 120, 100">
+          <header v="Thông tin số liệu" e="Parameter Information"/>
+        </category>
+        <category index="3" columns="120, 25, 75, 330">
+          <header v="Khác" e="Other"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$CRRoutingMaintenanceEditDetailFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$CRRoutingMaintenanceEditDetailFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,g=f.grid,w=g.get_element().parentForm,re=[];f._checked=false;re=push$Array$Items(f,"ma_cd, ten_cd, ten_cd2, kieu_cd, ten_kieu_cd%l, cd_truoc, cd_sau, ma_vt, ten_vt%l, ma_vt2, loai_cd, ten_loai_cd%l, ma_ccv, ten_ccv%l, ma_cm, ten_cm%l, dvt, ten_dvt%l, tg_bd_cds, sl_bd_cds, tg_cho, tg_cai_dat, sl_may, nang_suat, cach_tinh, ten_cach_tinh%l, tg_vs, tg_chuyen, nc_cai_dat, nc_th, cc_sd, ma_kh, ten_kh%l, tg_gc, cp_gc, tl_kt, tru_dm, td_chuyen, dung_kt, td_phi, nhap_sl, nk_yn, xk_yn, ghi_chu");insertGrid(f,re);f.closeDialog()]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function onTabChanged$CRRoutingMaintenanceDetailForm(a){a.parentForm.focusWhenTabChanged(["kieu_cd","tg_bd_cds","tru_dm"])}function active$CRRoutingMaintenanceEditDetailFilter$(a){a.add_onResponseComplete(on$CRRoutingMaintenanceDetailFormForm$ResponseComplete);a._tabContainer.add_activeTabChanged(onTabChanged$CRRoutingMaintenanceDetailForm);a._tabContainer._loaded=true;for(var b=a.grid,g=["ma_cd","ten_cd","ten_cd2","cd_truoc","cd_sau","cc_sd","ghi_chu"],c=0;c<g.length;c++){var h=g[c];a.getItem(h).maxLength=b._fields[b._getColumnOrder(h)-1].MaxLength}if(b._$actionEdit==1){for(var c=0;c<a._fields.length;c++)a.setItemValue($func.trim(a._fields[c].AliasName),b._getItemValue(b._activeRow,b._getColumnOrder($func.trim(a._fields[c].AliasName))));set$Voucher$ReferenceKeyFilter(a);var f=a.getItemValue("loai_cd")==1||a.getItemValue("loai_cd")==2;onChange$CRRoutingMaintenanceDetailForm$AllowNull$(a,"ma_ccv",f);onChange$CRRoutingMaintenanceDetailForm$OperationType$(a.getItem("loai_cd"),false)}else{var f=b._rowCount;if(f){var e=b._getItemValue(f,b._getColumnOrder("ma_cd"));if(!isNaN(e)&&e){var d=Math.round(e);d=Math.ceil((d+1)/10)*10;a.setItemValue("ma_cd",d.toString().length<=a.getItem("ma_cd").maxLength?d:"")}}else a.setItemValue("ma_cd","10")}}function close$CRRoutingMaintenanceEditDetailFilter$(b){var a=b.grid;if(a&&a._activeRow>0){var c=a._$actionEdit==1?a._activeCell:a._getItem(a._activeRow,a._getColumnOrder("ma_cd"));c.focus()}if(b._tabContainer)try{b._tabContainer.remove_activeTabChanged(onTabChanged$CRRoutingMaintenanceDetailForm)}catch(d){}try{b.remove_onResponseComplete(on$CRRoutingMaintenanceDetailFormForm$ResponseComplete)}catch(d){}}function on$CRRoutingMaintenanceDetailFormForm$ResponseComplete(e,b){var c=b.object,d=b.type.Context,a=b.type.Result;switch(d){case"Item":c.setItemControlBehavior("dvt",a[0].Value,null,false);c.setItemValues("ten_dvt%l, nhieu_dvt",[a[1].Value,a[2].Value]);set$Voucher$ReferenceKeyFilter(c)}}function push$Array$Items(e,d){for(var b=[],c=d.split(","),a=0;a<c.length;a++)b.push(e.getItemValue($func.trim(c[a])));return b}function insert$GridVoucherDetail$Items(a,g,h,f,j){var b,d=f.split(",");if(!g){a._appendRow(null,true);b=a._rowCount;var i=a._getItem(b,h);i.row=b;a._activeRow=b}else b=a._activeRow;for(var c=0;c<d.length;c++){var e=a._getColumnOrder($func.trim(d[c]));e>-1&&a._setItemValue(b,e,j[c])}}function insertGrid(e,d){var a=e.grid,c=a._getColumnOrder("stt_rec"),f=a.get_element().parentForm,b="ma_cd, ten_cd, ten_cd2, kieu_cd, ten_kieu_cd%l, cd_truoc, cd_sau, ma_vt, ten_vt%l, ma_vt2, loai_cd, ten_loai_cd%l, ma_ccv, ten_ccv%l, ma_cm, ten_cm%l, dvt, ten_dvt%l, tg_bd_cds, sl_bd_cds, tg_cho, tg_cai_dat, sl_may, nang_suat, cach_tinh, ten_cach_tinh%l, tg_vs, tg_chuyen, nc_cai_dat, nc_th, cc_sd, ma_kh, ten_kh%l, tg_gc, cp_gc, tl_kt, tru_dm, td_chuyen, dung_kt, td_phi, nhap_sl, nk_yn, xk_yn, ghi_chu";insert$GridVoucherDetail$Items(a,a._$actionEdit,c,b,d)}function change$CRRoutingMaintenanceDetailForm$Item$(a){a.parentForm.request("Item","Item",["ma_vt"],a)}function set$Voucher$ReferenceKeyFilter(a){var b=a.getItemValue("nhieu_dvt");b&&a.setReferenceKeyFilter("dvt");a._setReadOnly(a.getItem("dvt"),!b)}function onChange$CRRoutingMaintenanceDetailForm$OperationType$(d,c){var a=d.parentForm,b=a.getItemValue("loai_cd")==1||a.getItemValue("loai_cd")==2;if(!b){a.setItemControlBehavior("ma_ccv","","",false);a.setItemValues("tg_cho, tg_cai_dat",[0,0])}else{a.setItemControlBehavior("ma_kh","","",false);a.setItemValues("tg_gc, cp_gc",[0,0])}onChange$CRRoutingMaintenanceDetailForm$AllowNull$(a,"ma_ccv",b);setItemDisable(a,"tg_cho, tg_cai_dat",!b);setItemDisable(a,"ma_kh, tg_gc, cp_gc",b);if(c)if(!b)a.getItem("ma_cm").focus();else a.getItem("ma_ccv").focus()}function onChange$CRRoutingMaintenanceDetailForm$WrongField$(c,d,e){for(var b=d.split(","),a=0;a<b.length;a++)if(e)Sys.UI.DomElement.addCssClass(c.getItem($func.trim(b[a])),"InvalidInput");else Sys.UI.DomElement.removeCssClass(c.getItem($func.trim(b[a])),"InvalidInput")}function onClick$CRRoutingMaintenanceEditDetailFilter$Item(b){var a=b.parentForm;if(a.getItemValue(b.field.Name)==1)switch(b.field.Name){case"td_chuyen":a.setItemValues("dung_kt, nk_yn",[0,0]);break;case"dung_kt":a.setItemValues("td_chuyen, nk_yn",[0,0]);break;case"nk_yn":a.setItemValues("td_chuyen, dung_kt",[0,0])}}function onChange$CRRoutingMaintenanceDetailForm$AllowNull$(c,d,a){var b=c.getItem($func.trim(d));$common.setVisible(b.a,a);b.field.AllowNulls=!a;b.disabled=!a;grandNode=b.parentNode.parentNode;if(a){Sys.UI.DomElement.addCssClass(grandNode,"Required");Sys.UI.DomElement.addCssClass(grandNode,c._id)}else Sys.UI.DomElement.removeCssClass(grandNode,"Required")}function setItemDisable(f,e,d){for(var c=e.split(","),a=0;a<c.length;a++){var b=f.getItem($func.trim(c[a]));b.a&&$common.setVisible(b.a,!d);b.disabled=d}}function onChange$CRRoutingMaintenanceDetailForm$OperationStyle$(b){var a=b.parentForm;if(!("1"==a.getItemValue("kieu_cd")))a.setItemValues("tl_kt, tl_kt2",[100,100]);else a.setItemValues("tl_kt, tl_kt2",[0,0])}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Item">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmvt where ma_vt = @ma_vt) begin
+  select rtrim(a.dvt) as dvt, b.ten_dvt%l, a.nhieu_dvt from dmvt a left join dmdvt b on a.dvt = b.dvt where a.ma_vt = @ma_vt
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

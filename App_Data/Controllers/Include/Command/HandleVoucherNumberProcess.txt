@@ -1,0 +1,37 @@
+﻿<![CDATA[
+select @so_ct = right(space(@$voucherNumberLength) + rtrim(@so_ct), @$voucherNumberLength), @$idVoucherNumber = case when @@action = 'New' then '' else @stt_rec end
+if @$voucherNumberType is null select @$voucherNumberType = m_trung_so, @$currentVoucherNumber = so_ct from dmct where ma_ct = @@id
+
+select @$randomKeyVoucherNumber = '', @$nextVoucherNumber = '', @$checkKey = '', @$insertGrandField = '', @$insertGrandValue = '', @$updateGrand = '', @$grandTable = '@@master',
+    @$externalCheck = 0, @$externalValue = '', @$checkVoucherBook = @ma_nk, @$internalCondition = '', @$externalMapCondition = '',	@$externalCondition = ''
+]]>&HandleVoucherNumberMapContext;<![CDATA[
+
+#IF ']]>&HandleVoucherNumber.LogGrandTable;<![CDATA[' <> '' #THEN
+  select top 0 * into #]]>&HandleVoucherNumber.LogGrandTable;<![CDATA[$log from ]]>&HandleVoucherNumber.LogGrandTable;<![CDATA[ where stt_rec = @stt_rec
+#END
+
+if @$voucherNumberType <> 0 begin
+  exec AI_ERP$Handle$VoucherNumber @$randomKeyVoucherNumber out, @@id, @$grandTable, @$idVoucherNumber, 'stt_rec', @so_ct, @$voucherNumberLength, @$voucherNumberType, @ngay_ct, @ma_dvcs, @$checkKey, @$insertGrandField, @$insertGrandValue, @$updateGrand, @$externalCheck, @$externalValue, @$checkVoucherBook, @$internalCondition, @$externalMapCondition, @$externalCondition, default, ']]>&HandleVoucherNumber.LogGrandTable;<![CDATA['
+  if @$randomKeyVoucherNumber = '' begin
+  set @$existsVoucherNumber = case when @@language = 'v' then N'Số chứng từ <span class="Highlight">%s</span> không đúng hoặc đã có trong chứng từ.' else N'The voucher number <span class="Highlight">%s</span> is invalid or already exists.' end
+    if @$voucherNumberType > 0 begin
+      if exists(select 1 from options where name = 'm_so_ct_tt' and val = '1') begin
+        exec AI_ERP$App$GetVoucherNumberRegion @ma_nk, @$currentVoucherNumber, @$minVoucherNumber, @$maxVoucherNumber, @$nextVoucherNumber output
+        if (right(space(@$voucherNumberLength) + @$nextVoucherNumber, @$voucherNumberLength) = @so_ct) exec AI_ERP$App$GetVoucherNumberRegion @ma_nk, @so_ct, @$minVoucherNumber, @$maxVoucherNumber, @$nextVoucherNumber output
+        set @$msgNextVoucherNumber = case when @@language = 'v' then N'<br>Số mới đề nghị là <span class="Highlight">%v</span>, bạn có chọn số chứng từ này không?' else N'<br><span class="Highlight">%v</span> is a system-generated number, do you want to use this number?' end
+        set @$msgNextVoucherNumber = replace(@$msgNextVoucherNumber, '%v', replace(replace(replace(rtrim(@$nextVoucherNumber), '&', '&amp;'), '<', '&lt;'), '>', '&gt;'))
+        select 'so_ct' as field, '$Firm' + replace(@$existsVoucherNumber, '%s', replace(replace(replace(rtrim(@so_ct), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')) + @$msgNextVoucherNumber as message, 'this.setItemValue("so_ct", "' + replace(replace(rtrim(@$nextVoucherNumber), '\', '\\'), '"', '\"') + '");this._findButton("Ok").focus();' as script
+      end else begin
+        select 'so_ct' as field, replace(@$existsVoucherNumber, '%s', replace(replace(replace(rtrim(@so_ct), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')) as message
+      end
+      return
+    end else begin
+      select @$warning = @$warning + case when @$warning <> '' then '<div>' else '' end + replace(@$existsVoucherNumber, '%s', replace(replace(replace(rtrim(@so_ct), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')) + case when @$warning <> '' then '</div>' else '' end
+    end
+  end
+end
+
+if @$randomKeyVoucherNumber = '' and ]]>&HandleVoucherNumber.UseInsertion;<![CDATA[ = 1 begin
+  exec AI_ERP$Handle$VoucherNumber @$randomKeyVoucherNumber out, @@id, @$grandTable, @$idVoucherNumber, 'stt_rec', @so_ct, @$voucherNumberLength, @$voucherNumberType, @ngay_ct, @ma_dvcs, @$checkKey, @$insertGrandField, @$insertGrandValue, @$updateGrand, @$externalCheck, @$externalValue, @$checkVoucherBook, @$internalCondition, @$externalMapCondition, @$externalCondition, 1, ']]>&HandleVoucherNumber.LogGrandTable;<![CDATA['
+end
+]]>

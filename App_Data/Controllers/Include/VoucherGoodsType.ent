@@ -1,0 +1,163 @@
+﻿<!ENTITY % Conditional.VoucherGoodsType SYSTEM "..\Include\VoucherGoodsType.txt">
+<!ENTITY % Conditional.DetailTax SYSTEM "..\Include\DetailTax.txt">
+
+<![%Conditional.VoucherGoodsType;[
+  <![%Conditional.DetailTax;[
+    <!ENTITY DetailTaxFields SYSTEM "..\Include\XML\VoucherGoodsTypeDetailTaxFields.txt">
+    <!ENTITY DetailTaxAllowNulls "true">
+  ]]>
+
+  <!ENTITY VoucherGoodsTypeARPostGLGroups ",1">
+  <!ENTITY VoucherGoodsTypeAllowNulls "true">
+  <!ENTITY VoucherGoodsTypeImportPostTax "select @Statement = @Statement + char(13) + 'update #outputvat set thue_suat = 0 where thue_suat is null'">
+
+  <!ENTITY VoucherGoodsTypeImportFields SYSTEM "..\Templates\Upload\Include\VoucherGoodsTypeImportFields.txt">
+  <!ENTITY VoucherGoodsTypeImportFieldMasterInsertTotal.ForeignCurrency " - t_tien_giam_nt">
+  <!ENTITY VoucherGoodsTypeImportFieldMasterInsertTotal.BaseCurrency " - t_tien_giam">
+
+  <!ENTITY VoucherGoodsTypeImportFieldDetail ", loai">
+  <!ENTITY VoucherGoodsTypeImportFieldDetailInsert ", a.loai">
+  <!ENTITY VoucherGoodsTypeImportDetailUpdate "update #d&Detail; set so_luong = 0&VoucherGoodsTypeImportPromotionFieldDetail;&VoucherGoodsTypeImportListFieldDetail;&VoucherGoodsTypeImportUpdateDetailValue; where loai = '90'">
+
+  <!ENTITY VoucherGoodsTypeImportFieldMaster ", t_tt_nt as t_tien_giam_nt, t_tt as t_tien_giam">
+  <!ENTITY VoucherGoodsTypeImportFieldMasterInsert ", 0 as t_tien_giam_nt, 0 as t_tien_giam">
+  <!ENTITY VoucherGoodsTypeImportMasterJoin "left ">
+  <!ENTITY VoucherGoodsTypeImportMasterWhere " where loai &lt;&gt; '90'">
+  <!ENTITY VoucherGoodsTypeImportMasterUpdate "update #m&Detail; set t_tien_giam_nt = isnull(l.t_tien_giam_nt, 0), t_tien_giam = isnull(l.t_tien_giam, 0)&VoucherGoodsTypeImportMasterUpdateValue; from #m&Detail; a join (select stt_rec, sum(tien_nt2) as t_tien_giam_nt, sum(tien2) as t_tien_giam from #d&Detail; where loai = '90' group by stt_rec) l on a.stt_rec = l.stt_rec">
+
+  <!ENTITY VoucherGoodsTypeFieldsTotal SYSTEM "..\Include\XML\VoucherGoodsTypeFieldsTotal.txt">
+  <!ENTITY VoucherGoodsTypeFields SYSTEM "..\Include\XML\VoucherGoodsTypeFields.txt">
+  <!ENTITY VoucherGoodsTypeViews SYSTEM "..\Include\XML\VoucherGoodsTypeViews.txt">
+  <!ENTITY VoucherGoodsTypeResponse SYSTEM "..\Include\XML\VoucherGoodsTypeResponse.xml">
+  <!ENTITY VoucherGoodsTypeResponseChange "
+g.setItemGridBehavior(o, [['loai', '', '', null]]);
+onChange$GridVoucherDetail$GoodsType(o);
+">
+
+  <!ENTITY VoucherGoodsTypeHandleKey "[loai] != '90'">
+  <!ENTITY VoucherGoodsTypeHandleField "loai">
+
+  <!ENTITY VoucherGoodsTypeGridExecuteCommand "set$VoucherGoodsType$GridColumns(g, g._rowCount);">
+  <!ENTITY VoucherGoodsTypeGridExecuteCommandFlow "set$VoucherGoodsType$GridColumns(z, row);">
+  <!ENTITY VoucherGoodsTypeGridRender "f.getItem('d&Tag;')._controlBehavior.add_onRender(on$VoucherGoodsType$GridRender);">
+  <!ENTITY VoucherGoodsTypeGridRenderScript "
+function on$VoucherGoodsType$GridRender(g, eventArgs) {set$VoucherGoodsType$GridColumns(g);}
+function set$VoucherGoodsType$GridColumns(g, r) {
+  var l0 = g._getColumnOrder('loai'), a = '&VoucherGoodsTypeHandleFields;'.split(','), l1, o1;
+
+  for (var i = 0; i &lt; a.length; i++) {
+    l1 = g._getColumnOrder($func.trim(a[i]));
+    if (l1 &gt;= 0) {
+      if (!r) {
+        for (var j = 1; j &lt;= g._rowCount; j++) {
+          o1 = g._getItem(j, l1);
+          if (o1.type == 'checkbox') {
+            o1.disabled = (g._getItemValue(j, l0) == '90');
+          } else {
+            $func.setObjectWhen(o1, (g._getItemValue(j, l0) != '90'));
+          }
+        }
+      } else {
+        o1 = g._getItem(r, l1);
+        if (o1.type == 'checkbox') {
+          o1.disabled = (g._getItemValue(r, l0) == '90');
+        } else {
+          $func.setObjectWhen(o1, (g._getItemValue(r, l0) != '90'));
+        }
+      }
+    }
+  }
+}
+">
+
+  <!ENTITY VoucherGoodsTypeDetailTaxPromotion " and a.loai &lt;&gt; '90'">
+  <!ENTITY VoucherGoodsTypeTotalFields.ForeignCurrency "t_tien_giam_nt,">
+  <!ENTITY VoucherGoodsTypeTotalFields.BaseCurrency "t_tien_giam,">
+  <!ENTITY VoucherGoodsTypeCalKey "[loai] != &quot;90&quot;">
+  <!ENTITY VoucherGoodsTypeCheckKey "[loai] == &quot;90&quot;">
+  <!ENTITY VoucherGoodsTypeCheck "
+if (!(g.validRowExpression('ma_thue', '[loai] == &quot;90&quot; || ([ma_thue] != &quot;&quot;)'))) break;
+if (!(g.validRowExpression('tk_thue', '[loai] == &quot;90&quot; || ([tk_thue] != &quot;&quot;)'))) break;
+">
+  <!ENTITY VoucherGoodsTypeFomulaTaxReduction.ForeignCurrency " + [t_tien_giam_nt]">
+  <!ENTITY VoucherGoodsTypeFomulaTaxReduction.BaseCurrency " + [t_tien_giam]">
+  <!ENTITY VoucherGoodsTypeFomulaForm "['t_tien_giam_nt', 'tien_nt2', '([loai] == &quot;90&quot;)'],['t_tien_giam', 'tien2', '([loai] == &quot;90&quot;)'],">
+  <!ENTITY VoucherGoodsTypeFomulaGrid "t_tien_giam_nt: ['t_tien_giam_nt', '[tien_nt2]', '[loai] == &quot;90&quot;'],t_tien_giam: ['t_tien_giam', '[tien2]', '[loai] == &quot;90&quot;'],">
+  <!ENTITY VoucherGoodsTypeValidRowChange "g.executeAggregate([g.$a.t_tien_giam_nt, g.$a.t_tien_giam]);">
+
+  <!ENTITY VoucherGoodsTypePrint.ForeignCurrency "
+declare @isFC bit
+select @isFC = case when @@form in (&VoucherGoodsTypePrintForm.BaseCurrency;) then 0 when @@form in (&VoucherGoodsTypePrintForm.ForeignCurrency;) then 1 end
+">
+  <!ENTITY VoucherGoodsTypePrintValue.ForeignCurrency ", @isFC">
+
+  <!ENTITY VoucherGoodsTypeFindingFields ", loai">
+  <!ENTITY VoucherGoodsTypeFindingFieldsInsert ", a.loai">
+  <!ENTITY VoucherGoodsTypeAllocateKey " and loai &lt;&gt; ''90''">
+]]>
+
+<!ENTITY VoucherGoodsTypeGridDetailLoad "">
+<!ENTITY VoucherGoodsTypeGridDetailLoadScript "">
+<!ENTITY VoucherGoodsTypeShown "">
+<!ENTITY VoucherGoodsTypeARPostGLGroups "">
+<!ENTITY VoucherGoodsTypeAllowNulls "false">
+<!ENTITY VoucherGoodsTypeImportListFieldDetail "">
+<!ENTITY VoucherGoodsTypeImportPromotionFieldDetail "">
+<!ENTITY VoucherGoodsTypeImportUpdateDetailValue "">
+<!ENTITY VoucherGoodsTypeImportPostTax "">
+<!ENTITY VoucherGoodsTypeImportPost "">
+<!ENTITY VoucherGoodsTypeImportFields "">
+<!ENTITY VoucherGoodsTypeImportFieldDetail "">
+<!ENTITY VoucherGoodsTypeImportFieldDetailInsert "">
+<!ENTITY VoucherGoodsTypeImportDetailUpdate "">
+<!ENTITY VoucherGoodsTypeImportFieldMaster "">
+<!ENTITY VoucherGoodsTypeImportFieldMasterInsert "">
+<!ENTITY VoucherGoodsTypeImportFieldMasterInsertTotal.ForeignCurrency "">
+<!ENTITY VoucherGoodsTypeImportFieldMasterInsertTotal.BaseCurrency "">
+<!ENTITY VoucherGoodsTypeImportMasterJoin "">
+<!ENTITY VoucherGoodsTypeImportMasterUpdateValue "">
+<!ENTITY VoucherGoodsTypeImportMasterUpdate "">
+
+<!ENTITY VoucherGoodsTypeTotalFields.ForeignCurrency "">
+<!ENTITY VoucherGoodsTypeTotalFields.BaseCurrency "">
+<!ENTITY VoucherGoodsTypeFieldsTotal "">
+<!ENTITY VoucherGoodsTypeFields "">
+<!ENTITY VoucherGoodsTypeViews "">
+<!ENTITY VoucherGoodsTypeResponse "">
+<!ENTITY VoucherGoodsTypeResponseChange "">
+
+<!ENTITY VoucherGoodsTypeHandleKey "">
+<!ENTITY VoucherGoodsTypeHandleField "">
+<!ENTITY VoucherGoodsTypeGridExecuteCommand "">
+<!ENTITY VoucherGoodsTypeGridRender "">
+<!ENTITY VoucherGoodsTypeGridRenderScript "">
+
+<!ENTITY VoucherGoodsTypeDetailTaxPromotion "">
+
+<![%Conditional.DetailTax;[
+  <!ENTITY VoucherGoodsTypePromotionChange "g.setItemGridBehavior(o, [['readonly_yn', ((g._getItemValue(o.row, g._getColumnOrder('km_yn')) != '1') ? true : false), '', null]]);">
+]]>
+<!ENTITY VoucherGoodsTypePromotionChange "">
+
+<!ENTITY VoucherGoodsTypeCurrencyFields.ForeignCurrency "">
+<!ENTITY VoucherGoodsTypeCurrencyFields.BaseCurrency "">
+<!ENTITY VoucherGoodsTypeHandleFields "">
+<!ENTITY VoucherGoodsTypeCalKey "">
+<!ENTITY VoucherGoodsTypeCheckKey "">
+<!ENTITY VoucherGoodsTypeCheck "">
+<!ENTITY VoucherGoodsTypeFomulaTaxReduction.ForeignCurrency "">
+<!ENTITY VoucherGoodsTypeFomulaTaxReduction.BaseCurrency "">
+<!ENTITY VoucherGoodsTypeFomulaForm "">
+<!ENTITY VoucherGoodsTypeFomulaGrid "">
+<!ENTITY VoucherGoodsTypeValidRowChange "">
+
+<!ENTITY VoucherGoodsTypeResponseComplete "">
+
+<!ENTITY VoucherGoodsTypePrint.ForeignCurrency "">
+<!ENTITY VoucherGoodsTypePrintValue.ForeignCurrency ", default">
+
+<!ENTITY VoucherGoodsTypeFindingFields "">
+<!ENTITY VoucherGoodsTypeFindingFieldsInsert "">
+<!ENTITY VoucherGoodsTypeAllocateKey "">
+<!ENTITY VoucherGoodsTypeImportMasterWhere "">
+<!ENTITY VoucherGoodsTypeGridExecuteCommandFlow "">

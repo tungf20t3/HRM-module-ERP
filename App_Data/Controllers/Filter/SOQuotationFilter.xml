@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "SOQuotation">
+  <!ENTITY c11 "Báo giá từ ngày">
+  <!ENTITY c12 "Date From">
+  <!ENTITY c21 "Số báo giá">
+  <!ENTITY c22 "Quotation Number">
+  <!ENTITY ext "61">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'SOQuotationFilter', 'Filter', 'SOTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return">
+]>
+
+<dir table="m61$000000" code="stt_rec" order="ngay_ct, so_ct" id="SQ1" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn giấy báo giá" e="Select Quotation"></title>
+  <fields>
+    &FlowMultiFilterFields;
+  </fields>
+
+  <views>
+    &XMLFlowFilterViews;
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @so_ct <> '' begin
+  declare @fields nvarchar(512), @keyMaster nvarchar(1024), @keyFlow nvarchar(4000), @$none nvarchar(512)
+  select @keyMaster = '%#10$' + rtrim(@ma_kh) + '#%', @fields = 'ma_nt'
+  select @keyFlow = 'status in (''1'')', @$none = case when @@language = 'v' then N'Không có giấy báo giá theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+  ]]>&CheckRelativeProcess;&XMLFlowFilterCheck;<![CDATA[
+end else begin
+  select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, '''', '''', '''', '''', '']]>&Identity;<![CDATA[MultiForm'', [''' + convert(char(8), @ngay_ct1, 112) + ''']);' as script
+  return
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFilterFunction;
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

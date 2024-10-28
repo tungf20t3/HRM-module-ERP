@@ -1,0 +1,42 @@
+﻿<![%Conditional.Tiny.External;[
+
+  <!ENTITY Tiny.External.Form.View.TSTran SYSTEM "..\Include\XML\Tiny.External.Form.View.TSTran.txt">
+  <!ENTITY Tiny.External.Import.View.TSTran SYSTEM "..\Templates\Upload\Include\TSTranFieldsTiny.txt">
+
+  <!ENTITY Tiny.External.Detail.Scattering "set @message = @message + 'scatter$Grid$TinyExternal(this);'">
+  <!ENTITY Tiny.External.Detail.ScatteringScript "function scatter$Grid$TinyExternal(g) { var f = g.get_element().parentForm; if (f._action == 'New' &amp;&amp; g._rowCount == 0) g._appendRow(null, true); }">
+  <!ENTITY Tiny.External.Import.DefaultValue "
+declare @capitalCode varchar(32)
+select top 1 @capitalCode = ma_nv from dmnv where status = '1'
+update @@table set ma_nv = @capitalCode where isnull(ma_nv, '') = ''
+
+if @$mode = 1 begin
+  &StartErrorCount;
+  &InsertErrorTable; select 'so_the_ts', stt, '00002' from @@table a where exists(select 1 from @@table b where b.so_the_ts = a.so_the_ts and b.ma_nv = a.ma_nv group by b.so_the_ts, b.ma_nv having count(*) > 1)
+  &EndErrorCount;
+end else begin
+  select top 1 @r = a.stt from @@table a where exists(select 1 from @@table b where b.so_the_ts = a.so_the_ts and b.ma_nv = a.ma_nv group by b.so_the_ts, b.ma_nv having count(*) > 1)
+  if @r is not null begin
+    select case @@language when 'v' then N'Giá trị tại ô &lt;span class=&quot;Highlight&quot;&gt;&#37;invalidCell&lt;/span&gt; có nhiều hơn 1 dòng trong chi tiết.' else N'The value of cell &lt;span class=&quot;Highlight&quot;&gt;&#37;invalidCell&lt;/span&gt; has more than one row in detail.' end as message, 'so_the_ts' as field, @r as record
+    return
+  end
+end
+">
+
+  <!ENTITY Tiny.External.Filter.Categories "
+      &lt;categories&gt;
+        &lt;category index=&quot;1&quot; columns=&quot;120, 30, 70, 100, 230&quot;&gt;
+          &lt;header v=&quot;Chi tiết&quot; e=&quot;Detail&quot;/&gt;
+        &lt;/category&gt;
+      &lt;/categories&gt;
+">
+]]>
+
+<!ENTITY Tiny.External.Form.View.TSTran SYSTEM "..\Include\XML\Tiny.External.Form.View.TSTran.Default.txt">
+<!ENTITY Tiny.External.Import.View.TSTran SYSTEM "..\Templates\Upload\Include\TSTranFields.txt">
+
+<!ENTITY Tiny.External.Detail.Scattering "">
+<!ENTITY Tiny.External.Detail.ScatteringScript "">
+<!ENTITY Tiny.External.Import.DefaultValue "">
+
+<!ENTITY Tiny.External.Filter.Categories "">

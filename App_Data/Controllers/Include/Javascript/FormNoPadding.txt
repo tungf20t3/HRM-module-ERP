@@ -1,0 +1,30 @@
+<![CDATA[/* <flatten type="Javascript"> */
+function show$NoPadding$Form(f, contentPanelId) {
+  var table = $get(f.get_id() + '_formTable'), contentPanel = $get(contentPanelId), w = f._$lastFormTableWidth ? f._$lastFormTableWidth : (]]>&FormNoPaddingWidth;<![CDATA[ + 20) + 'px', h = f._$lastContentPanelHeight ? f._$lastContentPanelHeight : (f._tabHeight + 76) + 'px';
+  table.parentElement.style.padding = '1px';
+  table.style.width = w;
+  contentPanel.style.height = h;
+  f._$formTable = table;
+  f._$contentPanel = contentPanel;
+  contentPanel.parentElement.style.overflow = '';
+}
+function active$NoPadding$Form(f) {
+  f._on$Resize = Function.createDelegate(f, onResize$NoPadding$Form);
+  f._resizableControlBehavior.add_resizing(f._on$Resize);
+}
+function close$NoPadding$Form(f) {
+  try {
+    if (f._on$Resize) {
+      f._resizableControlBehavior.remove_resizing(f._on$Resize);
+      f._on$Resize = null;
+    }
+  } catch (ex) {}
+}
+function onResize$NoPadding$Form(e) {
+  if !(e._f) e._f = $find($func.replace(e._id, '_resizableControlBehavior', ''));
+  var f = e._f, contentPanel = f._$contentPanel, h = f._container.clientHeight, delta = 3;
+
+  f._$formTable.style.width = f._$lastFormTableWidth = (f._container.clientWidth - delta)  + 'px';
+  contentPanel.style.height = f._$lastContentPanelHeight = (h - 72) + 'px';
+}
+/* </flatten> */]]>

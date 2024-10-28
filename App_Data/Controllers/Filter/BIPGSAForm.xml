@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "BIPGSA">
+  <!ENTITY DetailTable "bid06">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Supplier">
+  <!ENTITY c21 "Số hợp đồng">
+  <!ENTITY c22 "SA Number">
+  <!ENTITY c31 "Ngày hợp đồng">
+  <!ENTITY c32 "SA Date">
+
+  <!ENTITY % BIMode.POFlow SYSTEM "..\Include\BIMode.POFlow">
+  %BIMode.POFlow;
+]>
+
+<dir table="bim06$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Hợp đồng mua hàng" e="Schedule Agreement"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('bid06')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, stt_rec, stt_rec0, so_ct, line_nbr', f2 = 'so_luong, stt_rec_hd, stt_rec0hd, hd_so, hd_ln';
+  var first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]);
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = z._getColumnOrder('dvt'), l2 = g._getColumnOrder('nhieu_dvt'), l3 = g._getColumnOrder('so_luong0'), l4 = g._getColumnOrder('so_luong'), l5 = z._getColumnOrder('tk_vt'), l6 = g._getColumnOrder('sua_tk_vt');
+  var fields = 'ma_vt, ten_vt%l, dvt, tk_vt, gia_ton, ]]>&XMLHiddenFields;&BI.PO.Flow.Fields;<![CDATA[, he_so, lo_yn, tao_lo, gia_nt0';
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l3) != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+      z.executeExpression(o, [z.$a.gia0_tg, z.$a.tien_nt0, z.$a.tien0]);
+      $func.setObjectWhen(z._getItem(row, l1), g._getItemValue(r, l2));
+      $func.setObjectWhen(z._getItem(row, l5), g._getItemValue(r, l6));
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong, z.$a.t_tien_nt0, z.$a.t_tien0]);
+  w.executeExpression([z.$a.t_tt_nt, z.$a.t_tt]);
+
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

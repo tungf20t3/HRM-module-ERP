@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="hrpnbp" code="ma_pn" order="ma_pn" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc số liệu" e="Filter Data"></title>
+  <fields>
+    <field name="ma_loai" allowNulls="false">
+      <header v="Loại phân nhóm" e="Category Type"></header>
+      <items style="AutoComplete" controller="hrDeptCategoryType" reference="ten_loai%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_loai%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="110100: [ma_loai].Label, [ma_loai], [ten_loai%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(f) {f.add_onResponseComplete(on$Filter$ResponseComplete);}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array(), n = f.getItem('ten_loai%l').value;
+      g._typeCategory = f.getItemValue('ma_loai');
+      g._alterTitle = [null, [['%t', g._typeCategory, true], ['%n', n, true]]];
+      Array.add(k, {Name: 'ma_loai', Opr: '=', Value: g._typeCategory, Type: 'String', Ignore: false});
+      g.set_externalKey(k);
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+</dir>

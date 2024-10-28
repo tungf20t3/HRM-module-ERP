@@ -1,0 +1,19 @@
+﻿<![CDATA[
+declare @$sd_hddt_yn tinyint, @$mau_hddt varchar(511), @$so_seri_hddt varchar(511), @$so_ct_hddt varchar(511), @$tinh_trang_hddt tinyint, @usedEI char(1), @$email nvarchar(1024)
+declare @$so_huy varchar(511), @$ngay_huy smalldatetime, @$ly_do_huy nvarchar(4000)
+
+]]>&EINoteInitExternalFieldsDeclare;<![CDATA[
+select @usedEI = rtrim(val) from options where name = 'm_sd_hddt'
+select @usedEI = isnull(@usedEI, '0')
+if @usedEI = '1' begin
+  if @@copying = 0 begin
+    select @$sd_hddt_yn = 1, @$mau_hddt = rtrim(mau_hddt), @$so_seri_hddt = rtrim(so_seri_hddt), @$so_ct_hddt = rtrim(so_ct_hddt), @$tinh_trang_hddt = tinh_trang_hddt
+      from hddt00$$partition$current where stt_rec = @stt_rec
+    select @$email = e_mail from v05$$partition$current where stt_rec = @stt_rec
+    select @$so_huy = rtrim(so_huy), @$ngay_huy = ngay_huy, @$ly_do_huy = rtrim(ly_do_huy) from hddt04 where stt_rec = @stt_rec
+    ]]>&EINoteInitExternalFieldsSet;<![CDATA[
+  end else begin
+    select @$email = ''
+  end
+end
+]]>

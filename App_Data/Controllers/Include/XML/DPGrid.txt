@@ -1,0 +1,199 @@
+﻿  <title v="" e=""></title>
+  <subTitle v="" e=""></subTitle>
+  <partition table="p&Tag;" prime="p&Tag;" inquiry="p&Tag;" field="" expression="''" increase="{0}" default=""/>
+
+  <fields>
+    <field name="tien_nt" allowNulls="false" type="Decimal" dataFormatString="@foreignCurrencyAmountInputFormat" clientDefault="0" width="100">
+      <header v="Tiền nt" e="FC Amount"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ty_gia" type="Decimal" dataFormatString="@exchangeRateInputFormat" clientDefault="Default" width="100" allowContain="true">
+      <header v="Tỷ giá" e="Ex. Rate"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="tien" type="Decimal" dataFormatString="@baseCurrencyAmountInputFormat" width="100" allowContain="true">
+      <header v="Tiền" e="Amount"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="so_phieu" width="100" align="right" maxLength="-100" readOnly="true" inactivate="true">
+      <header v="Số phiếu" e="Voucher Number"></header>
+    </field>
+    <field name="ngay_phieu" type="DateTime" dataFormatString="@datetimeFormat" align="left" width="80" readOnly="true" inactivate="true">
+      <header v="Ngày" e="Date"></header>
+    </field>
+
+    <field name="ghi_chu" width="300">
+      <header v="Ghi chú" e="Note"></header>
+    </field>
+
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true" width="0">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec0" isPrimaryKey="true" width="0" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="line_nbr" type="Int32" width="0" align="right" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="stt_rec_phieu" readOnly="true" defaultValue="''" hidden="true" width="0" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Grid">
+      <field name="tien_nt"/>
+      <field name="ty_gia"/>
+      <field name="tien"/>
+      
+      <field name="so_phieu"/>
+      <field name="ngay_phieu"/>
+
+      <field name="ghi_chu"/>
+      
+      <field name="stt_rec"/>
+      <field name="stt_rec0"/>
+      <field name="line_nbr"/>
+
+      <field name="stt_rec_phieu"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[select 'this._voucherCode='@@id';load$GridVoucherDownPayment$(this);' as message
+return]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[select 'dispose$GridVoucherDownPayment$(this);' as message
+return]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$GridVoucherDownPayment$(g) {
+  g.add_itemValueChanged(onChange$GridVoucherDownPayment$);
+  g.add_commandEvent(on$GridVoucherDownPayment$ExecuteCommand);
+  g.$a = {tien: '[tien]:=[tien_nt]*[ty_gia]'};
+}
+function dispose$GridVoucherDownPayment$(g) {
+  g.$a = null;
+  try {g.remove_commandEvent(on$GridVoucherDownPayment$ExecuteCommand);} catch (ex) {}
+  try {g.remove_itemValueChanged(onChange$GridVoucherDownPayment$);} catch (ex) {}
+}
+function onChange$GridVoucherDownPayment$(sender, eventArgs) {
+  var o = eventArgs.get_object(), g = o.grid, f = g.get_element().parentForm, name = o.field.Name;
+  switch (name) {
+    case 'tien_nt':
+    case 'ty_gia':
+      g.validExpression(o, [g.$a.tien], null, null, 'tien');
+      break;
+    default:
+      break;
+  }
+}
+function on$GridVoucherDownPayment$ExecuteCommand(sender, e) {
+  var action = e.type.Action, g = sender, f = g.get_element().parentForm;
+  switch (action) {]]>&ScriptCheckGridAction;<![CDATA[
+    case 'AfterInsertRow':
+      if (g._rowCount == 1) g._setItemValue(1, g._$ec, f.getItemValue('ty_gia'));
+      break;
+    case 'AfterCloneRow':
+      g.setItemFieldValue('stt_rec0', e.type.Value, '');
+      break;
+    case 'Retrieve':
+      if (f._action == 'View') break;
+      if (!f.validFields('ma_kh, ngay_lct')) break;
+      switch (e.type.Value) {
+        case '10':
+          g.showForm(']]>&f1;<![CDATA[');
+          break;
+        case '30':
+          g.showForm(']]>&f2;<![CDATA[');
+          break;
+        default:
+          break;
+      }
+      break;
+    case 'Copying':
+      set$VoucherDownPayment$EmptyExternalField(g, 'so_phieu, ngay_phieu, stt_rec_phieu, stt_rec');
+      break;
+    default:
+      break;
+  }
+}
+function set$VoucherDownPayment$EmptyExternalField(g, s) {
+  var a = s.split(',');
+  for (var i = 0; i < a.length; i++) {
+    var l = g._getColumnOrder($func.trim(a[i]));
+    for (var r = 0; r < g._rowCount; r++) {
+      g._setItemValue(r + 1, l, null);
+    }
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <queries>
+    <query event="Loading">
+      <text>
+        <![CDATA[
+select @@fieldExternal from @@prime$partition$current where @@whereClause order by @@orderByClause
+]]>
+      </text>
+    </query>
+  </queries>
+
+  <toolbar>
+    <button command="Insert">
+      <title v="Toolbar.Insert" e="Toolbar.Insert"></title>
+    </button>
+    <button command="Grow">
+      <title v="Toolbar.Grow" e="Toolbar.Grow"></title>
+    </button>
+    <button command="Down">
+      <title v="Toolbar.Down" e="Toolbar.Down"></title>
+    </button>
+    <button command="Clone">
+      <title v="Toolbar.Clone" e="Toolbar.Clone"></title>
+    </button>
+    <button command="Remove">
+      <title v="Toolbar.Remove" e="Toolbar.Remove"></title>
+    </button>
+
+    <button command="Retrieve">
+      <title v="Toolbar.Retrieve" e="Toolbar.Retrieve"></title>
+      <menuItems>
+        <menuItem commandArgument="10">
+          <header v="&c11;"  e="&c12;"/>
+        </menuItem>
+        <menuItem commandArgument="20">
+          <header v="-"  e="-"/>
+        </menuItem>
+        <menuItem commandArgument="30" urlImage="&c30;">
+          <header v="&c21;"  e="&c22;"/>
+        </menuItem>
+      </menuItems>
+    </button>
+
+    <button command="Separate">
+      <title v="-" e="-"/>
+    </button>
+
+    <button command="Export">
+      <title v="Toolbar.Export" e="Toolbar.Export"></title>
+    </button>
+    <button command="Freeze">
+      <title v="Toolbar.Freeze" e="Toolbar.Freeze"></title>
+    </button>
+  </toolbar>

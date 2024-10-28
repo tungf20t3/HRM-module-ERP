@@ -1,0 +1,15 @@
+<field name="ma_vt" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_vt not in (select ma_vt from dmvt where gia_ton &lt;&gt; 3)" errorCode="00001"/>
+<field name="ma_kho" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_kho not in (select ma_kho from dmkho)" errorCode="00001"/>
+<field name="ma_lo" column="D" isPrimaryKey="true" upperCase="true" updateValue="None" check="@@table.ma_lo = '' and exists(select 1 from dmvt b where @@table.ma_vt = b.ma_vt and b.lo_yn = 1)&And;@@table.ma_lo  &lt;&gt; '' and not exists(select 1 from dmvt b where @@table.ma_vt = b.ma_vt and b.lo_yn = 1)&And;@@table.ma_lo &lt;&gt; '' and not exists(select 1 from dmlo b where @@table.ma_lo = b.ma_lo and @@table.ma_vt = b.ma_vt)" errorCode="00002&And;00002&And;00001"/>
+<field name="ton00" column="E" type="Decimal"/>
+<field name="du00" column="F" type="Decimal"/>
+<field name="du_nt00" column="G" type="Decimal"/>
+
+<field name="ma_vi_tri" column="" isPrimaryKey="true" defaultValue=""/>
+
+<field name="nam" column="None" insertValue="@year" updateValue="None"/>
+<field name="status" column="None" insertValue="'1'" updateValue="None"/>
+<field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+<field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+<field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+<field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>

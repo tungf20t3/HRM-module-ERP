@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterInit SYSTEM "..\Include\XML\WhenFilterInit.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+]>
+
+<dir table="bim03$000000" code="stt_rec" order="stt_rec" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_bp0" filterSource="master" operation="10">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+      <items style="AutoComplete" controller="BIPurchasingOrganization" reference="ten_bp0%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="fromDate" allowNulls="false" defaultValue="new Date()">
+      <header v="Ngày hiệu lực từ" e="Effective Date from"></header>
+      <footer v="Ngày hiệu lực từ/đến" e="Effective Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="toDate" allowNulls="false" defaultValue="new Date()">
+      <header v="Ngày hiệu lực đến" e="Effective Date to"></header>
+    </field>
+
+    <field name="ma_loai" filterSource="detail" operation="10">
+      <header v="Mã loại" e="Main Criterion Code"></header>
+      <items style="AutoComplete" controller="BIMainCriteria" reference="ten_loai%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_loai%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="user_id0" dataFormatString="0, 1" clientDefault="1" align="right" inactivate="true" categoryIndex="-1">
+      <header v="Người sử dụng" e="User"></header>
+      <footer v="1 - Lọc theo người sử dụng, 0 - Không" e="1 - Filter by User, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="40">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11010: [ma_bp0].Label, [ma_bp0], [ten_bp0%l]"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="1101: [ma_loai].Label, [ma_loai], [ten_loai%l]"/>
+      <item value="11100: [user_id0].Label, [user_id0], [user_id0].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterInit;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFilterInit;
+    </text>
+  </script>
+
+</dir>

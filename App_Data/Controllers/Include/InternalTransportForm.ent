@@ -1,0 +1,67 @@
+﻿<!ENTITY % Conditional.InternalTransportForm SYSTEM "..\Include\InternalTransportForm.txt">
+
+<![%Conditional.InternalTransportForm;[
+  <!ENTITY InternalTransportFormFlag "1">
+
+  <!ENTITY InternalTransportFormMasterSelect "@t_tien_nt2">
+  <!ENTITY InternalTransportFormMasterFrom "">
+
+  <!ENTITY InternalTransportFormTotalFields SYSTEM "..\Include\XML\InternalTransportFormTotalFields.txt">
+  <!ENTITY InternalTransportFormTotalViews SYSTEM "..\Include\XML\InternalTransportFormTotalViews.xml">
+  <!ENTITY InternalTransportFormTotalViews1 "1001">
+  <!ENTITY InternalTransportFormTotalViews2 ", [t_tien_nt2].Label, [t_tien_nt2]">
+  <!ENTITY InternalTransportFormMasterForeignCurrencySalesAmount ",t_tien_nt2">
+  <!ENTITY InternalTransportFormMasterBaseCurrencySalesAmount ",t_tien2">
+
+  <!ENTITY InternalTransportFormDetailFields SYSTEM "..\Include\XML\InternalTransportFormDetailFields.txt">
+  <!ENTITY InternalTransportFormDetailViews SYSTEM "..\Include\XML\InternalTransportFormDetailViews.txt">
+  <!ENTITY InternalTransportFormDetailForeignCurrencySalesAmount ",gia_nt2,tien_nt2">
+  <!ENTITY InternalTransportFormDetailBaseCurrencySalesAmount ",gia2,tien2">
+
+  <!ENTITY InternalTransportFormScriptChange SYSTEM "..\Include\Javascript\InternalTransportFormScriptChange.txt">
+  <!ENTITY InternalTransportFormScriptRowChange ", g.$a.t_tien_nt2">
+
+  <!ENTITY InternalTransportFormReportID ", @@form">
+  <!ENTITY InternalTransportFormReportDeclare "
+declare @dl_yn varchar(1)
+select @dl_yn = '0'
+if @@form in ('030', '040', '050', '060') and exists(select 1 from options where name = 'c_008' and ltrim(rtrim(val)) = '1') select @dl_yn = '1'
+">
+  <!ENTITY InternalTransportFormReportSelect "
+, case when @dl_yn = '0' then a.t_tien else a.t_tien_nt2 end as t_tien
+, case when @dl_yn = '0' then a.t_tien_nt else a.t_tien_nt2 end as t_tien_nt
+, dbo.AI_ERP$Function$System$ReadCurrency(@m_ma_nt0, case when @dl_yn = '0' then a.t_tien else a.t_tien_nt2 end, @l) t_tien_in_word
+, dbo.AI_ERP$Function$System$ReadCurrency(a.ma_nt, case when @dl_yn = '0' then a.t_tien_nt else a.t_tien_nt2 end, @l) t_tien_nt_in_word
+, case when &FormTypeReport; = 1 then dbo.AI_ERP$Function$System$ReadCurrency(@m_ma_nt0, case when @dl_yn = '0' then a.t_tien else a.t_tien_nt2 end, 'E') else '' end t_tien_in_word2
+, case when &FormTypeReport; = 1 then dbo.AI_ERP$Function$System$ReadCurrency(a.ma_nt, case when @dl_yn = '0' then a.t_tien_nt else a.t_tien_nt2 end, 'E') else '' end t_tien_nt_in_word2
+">
+]]>
+
+<!ENTITY InternalTransportFormFlag "0">
+<!ENTITY InternalTransportFormMasterSelect "t_tien_nt2">
+<!ENTITY InternalTransportFormMasterFrom "from @@prime$partition$current where stt_rec = @stt_rec">
+
+<!ENTITY InternalTransportFormTotalFields "">
+<!ENTITY InternalTransportFormTotalViews "">
+<!ENTITY InternalTransportFormMasterForeignCurrencySalesAmount "">
+<!ENTITY InternalTransportFormMasterBaseCurrencySalesAmount "">
+
+<!ENTITY InternalTransportFormDetailFields "">
+<!ENTITY InternalTransportFormDetailViews "">
+<!ENTITY InternalTransportFormTotalViews1 "">
+<!ENTITY InternalTransportFormTotalViews2 "">
+<!ENTITY InternalTransportFormDetailForeignCurrencySalesAmount "">
+<!ENTITY InternalTransportFormDetailBaseCurrencySalesAmount "">
+
+<!ENTITY InternalTransportFormScriptChange "break;">
+<!ENTITY InternalTransportFormScriptRowChange "">
+
+<!ENTITY InternalTransportFormReportID ", @@form">
+<!ENTITY InternalTransportFormReportDeclare "">
+<!ENTITY InternalTransportFormReportSelect "
+, a.t_tien, a.t_tien_nt
+, dbo.AI_ERP$Function$System$ReadCurrency(@m_ma_nt0, a.t_tien, @l) t_tien_in_word
+, dbo.AI_ERP$Function$System$ReadCurrency(a.ma_nt, a.t_tien_nt, @l) t_tien_nt_in_word
+, case when &FormTypeReport; = 1 then dbo.AI_ERP$Function$System$ReadCurrency(@m_ma_nt0, a.t_tien, 'E') else '' end t_tien_in_word2
+, case when &FormTypeReport; = 1 then dbo.AI_ERP$Function$System$ReadCurrency(a.ma_nt, a.t_tien_nt, 'E') else '' end t_tien_nt_in_word2
+">

@@ -1,0 +1,19 @@
+﻿<![CDATA[/* <flatten type="Javascript"> */
+function form$Button$SetCaption(f, caption) {
+  var id = f.get_id();
+  if (caption && caption.length > 0) {
+    for (var i = 0; i < caption.length; i++) {
+      var info = caption[i], b = f._findButton(info[0]);
+      if (b) {
+        if (b.accessKey) b.removeAttribute('accesskey');
+        var text = info[1];
+        if (text) {
+          var keyValue = text.split('<u>');
+          if (keyValue.length > 1) b.setAttribute('accesskey', keyValue[1].split('</u>')[0]);
+          b.innerHTML = text;
+        } else b.style.display = 'none';
+      }
+    }
+  }
+}
+/* </flatten> */]]>

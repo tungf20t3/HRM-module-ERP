@@ -1,0 +1,206 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterFields SYSTEM "..\Include\XML\FlowFilterFields.txt">
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "BIOAPQ">
+  <!ENTITY c11 "Báo giá từ ngày">
+  <!ENTITY c12 "Date From">
+  <!ENTITY c21 "Số báo giá">
+  <!ENTITY c22 "Quotation Number">
+  <!ENTITY ext "93">
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'BIOAPQFilter', 'Filter', 'BIOATran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return">
+
+  <!ENTITY % Conditional.BIMode "INCLUDE">
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+]>
+
+<dir table="bim93$000000" code="stt_rec" order="ngay_ct, so_ct" id="PQ2" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn báo giá" e="Select Quotation"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="&c11;" e="&c12;"></header>
+    </field>
+    <field name="so_ct" align="right" maxLength="-100" filterSource="voucherNumber" allowNulls="false">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="AutoComplete" controller="&Identity;Lookup" reference="stt_rec_ct"/>
+    </field>
+    <field name="stt_rec_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp0" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nh0" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="110111: [ngay_ct1].Label, [ngay_ct1], [ngay_ct2], [ma_kh], [ma_bp0]"/>
+      <item value="110111: [so_ct].Label, [so_ct], [stt_rec_ct], [ma_dvcs], [ma_nh0]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @fields nvarchar(512), @keyMaster nvarchar(1024), @keyFlow nvarchar(4000), @$none nvarchar(512)
+select @keyMaster = case when @ma_kh <> '' then '%#10$' + rtrim(@ma_kh) else '' end
+if @ma_bp0 <> '' select @keyMaster = @keyMaster + '%#25$' + rtrim(@ma_bp0)
+if @ma_nh0 <> '' select @keyMaster = @keyMaster + '%#30$' + rtrim(@ma_nh0)
+if @keyMaster <> '' select @keyMaster = @keyMaster + '%'
+
+select @keyFlow = 'status in (''1'')', @fields = 'ma_nt', @$none = case when @@language = 'v' then N'Không có báo giá theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+]]>&CheckRelativeProcess;<![CDATA[
+declare @vcID varchar(32), @vcNumber varchar(32), @supplierID varchar(32), @vcFields nvarchar(512), @retrieveID char(13), @i int, @l int, @c smalldatetime, @d smalldatetime, @t varchar(128), @s nvarchar(4000), @unit varchar(128), @suplierName nvarchar(128), @paymentCode varchar(32)
+select @vcNumber = ltrim(rtrim(@so_ct)), @unit = case when @ma_dvcs = '' then @@unit else @ma_dvcs end
+select @i = len(@vcNumber), @l = character_maximum_length from information_schema.columns where table_name = '@@table' and column_name = 'so_ct'
+select @vcNumber = space(@l - @i) + @vcNumber, @c = @ngay_ct1
+
+if @stt_rec_ct <> '' begin
+  select @retrieveID = @stt_rec_ct
+  goto Retrieve
+end else begin
+
+  declare @keySite nvarchar(1024)
+  select @keySite = ''
+  if @@admin = 0 and exists(select 1 from dmct where ma_ct = @@id and xin_site_rights = 1) and exists(select 1 from syssiterights where user_id = @@userID) begin
+    select @keySite = @keySite + rtrim(b.id) + '$%$' from syssiterights a join dmkho b on a.ma_kho = b.ma_kho where a.user_id = @@userID order by b.id
+    if @keySite <> '' select @keySite = '#00#%$' + left(@keySite, len(@keySite) - 1)
+  end
+
+  select top 0 stt_rec into #t from bii]]>&ext;<![CDATA[$000000
+  while (month(@c) + year(@c)*12) <= (month(@ngay_ct2) + year(@ngay_ct2)*12) begin
+    select @t = 'bii]]>&ext;<![CDATA[$' + convert(char(6), @c, 112), @c = dateadd(month, 1, @c)
+    if exists(select 1 from information_schema.tables where table_name = @t) begin
+      set @s = 'insert into #t select top 1 stt_rec from ' + rtrim(@t)
+      set @s = @s + char(13) + 'where ngay_ct between ''' + convert(char(8), @ngay_ct1, 112) + ''' and ''' + convert(char(8), @ngay_ct2, 112) + ''''
+      set @s = @s + char(13) + 'and so_ct = ''' + replace(@vcNumber, '''', '''''') + ''' and ma_dvcs = ''' + replace(@unit, '''', '''''') + ''''
+      if @keyFlow <> '' set @s = @s + ' and (' + @keyFlow + ')'
+      if @keyMaster <> '' set @s = @s + char(13) + 'and m$ like N''' + replace(@keyMaster, '''', '''''') + ''''
+      if @keySite <> '' set @s = @s + char(13) + ' and ''' + @keySite + ''' like e$'
+      set @s = @s + char(13) + 'order by stt_rec'
+      exec sp_executesql @s
+    end
+    if exists(select 1 from #t where (isnull(stt_rec, '') <> '')) begin
+      select @retrieveID = stt_rec from #t
+      drop table #t
+      goto Retrieve
+    end
+  end
+  drop table #t
+  select 'so_ct' as field, @$none as message
+  return
+end
+
+Retrieve:
+select @vcID = @retrieveID, @d = ngay_ct from bic]]>&ext;<![CDATA[$000000 where stt_rec = @retrieveID
+select cast('' as nvarchar(512)) as fields, ma_kh, ma_tt into #r from bim]]>&ext;<![CDATA[$000000
+select @t = 'bim]]>&ext;<![CDATA[$'+ convert(varchar(6), (select ngay_ct from bic]]>&ext;<![CDATA[$000000 where stt_rec = @retrieveID), 112)
+if exists(select 1 from information_schema.tables where table_name = @t) begin
+  select @s = 'insert into #r select ' + @fields + ' as fields, ma_kh, ma_tt from ' + rtrim(@t) + ' where stt_rec = ''' + replace(@retrieveID, '''', '') + ''''
+  exec sp_executesql @s
+end
+select @vcFields = fields, @supplierID = ma_kh, @paymentCode = ma_tt from #r
+if @ma_kh = '' select top 1 @suplierName = case when @@language = 'v' then ten_kh else ten_kh2 end from ]]>&VendorList;<![CDATA[ where ma_kh = @supplierID
+drop table #r
+
+select '' as field, '' as message, N'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, ''' + replace(replace(@vcNumber, '\', '\\'), '''', '\''') + ''', ''' + @vcID + ''', ''' + replace(replace(@vcFields, '\', '\\'), '''', '\''') + ''', ''' + convert(char(8), @d, 112) + ''', ''' + replace(replace(isnull(@paymentCode, ''), '\', '\\'), '''', '\''') + ''', ''' + replace(replace(rtrim(@supplierID), '\', '\\'), '''', '\''') + ''', ''' + replace(replace(isnull(@suplierName, ''), '\', '\\'), '''', '\''') + ''');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {f.getItem('so_ct')._idle = 9;}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f._looking.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);
+
+  var g = f.grid, w = g.get_element().parentForm, d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs'), purOrg = w.getItemValue('ma_bp0'), purGroup = w.getItemValue('ma_nh0');
+  g._custID = w.getItemValue('ma_kh');
+  g._custName = w.getItemValue('ten_kh%l');
+  f.setItemValues('ngay_ct2, ma_kh, ma_dvcs, ma_bp0, ma_nh0', [d2, g._custID, u, purOrg, purGroup]);
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Filter$Before$Loading(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1')) e.type.cancelEvent = true;
+  else {
+    var g = f.grid, w = g.get_element().parentForm;
+    var d1 = f.getItemValue('ngay_ct1'), d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs'), purOrg = w.getItemValue('ma_bp0'), purGroup = w.getItemValue('ma_nh0');
+
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: d1},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: d2},
+      {Name: 'ma_kh', Type: 'String', Value: g._custID},
+      {Name: 'ma_dvcs', Type: 'String', Value: u},
+      {Name: 'ma_bp0', Type: 'String', Value: purOrg},
+      {Name: 'ma_nh0', Type: 'String', Value: purGroup}
+    ];
+    sender.set_memvars(a);
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, c, d, k, e, n, j, m, h, l) {
+  var g = f.grid;
+  if (c != '') {
+    g._voucher$Retrieve$ID = d;
+    g._voucher$Retrieve$Number = c;
+    g._voucher$Retrieve$Fields = k;
+    g._voucher$Retrieve$Date = $func.formatStringToDate(e);
+    g._voucher$Retrieve$Payment = n;
+    if (g._custID == '') {
+      g._custID = j;
+      g._custName = m;
+    }
+  } else {
+    g._filter$Fields = l;
+  }
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g, h);
+}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g, h) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this,\'' + (h ? h : '') + '\')';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g, h) {
+  if (h != '') {
+    g.showForm(h);
+  } else {
+    g.showForm(']]>&Identity;<![CDATA[Form');
+  }
+  g._memvars = [];
+}
+]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

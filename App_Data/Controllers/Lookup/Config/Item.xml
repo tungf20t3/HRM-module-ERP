@@ -1,0 +1,20 @@
+﻿<controller name="Item">
+  <groups>
+    <group id="Voucher" response="&r1;&d3;&r2;&k3;&r3;" handle="&h;" cache="true">
+      <text>&g1;&d3;&g2;&k3;&g3;&d3;&g4;</text>
+    </group>
+    <group id="Site" implement="Voucher" query="declare @r varchar(32); if @action = 'New' select @r = @@unit else begin select @r = rtrim(ma_dvcs) from dmkho where ma_kho = @value; select @r = isnull(@r, @@unit) end; select @r as value" filter="New" cache="true"/>
+
+    <group id="List.Item" reference="&Query;" response="&r1;&d3;&r2;&k3;&r3;" cache="true">
+      <text>select case when @unit$Filter$ = '' then '1=1' else &q4;&d3;&g6;&k3;') end as value</text>
+    </group>
+    <group id="List.Product" implement="List.Item" handle="&h;" cache="true"/>
+    <group id="Unit" cache="true">
+      <text>&g8;&d3;&g2;&k3;&g3;&d3;&g4;</text>
+    </group>
+
+    <group id="#" reference="&Query;" cache="true">
+      <text>&g5;&d3;&g6;&k3;&g7;</text>
+    </group>
+  </groups>
+</controller>

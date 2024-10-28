@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identification "rptBIRankingListOfVendorsGraph">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY GraphLabelIndex "5">
+
+  <!ENTITY GraphObject "ma_vt">
+  <!ENTITY GraphObjectField.v "Mã hàng">
+  <!ENTITY GraphObjectField.e "Item">
+
+  <!ENTITY % Graph SYSTEM "..\Include\Graph.ent">
+  %Graph;
+
+  <!ENTITY GraphTitle.v "Biểu đồ xếp hạng nhà cung cấp">
+  <!ENTITY GraphTitle.e "Vendor Ranking Chart">
+  <!ENTITY GraphTitleField.v "[]">
+  <!ENTITY GraphTitleField.e "[]">
+  <!ENTITY GraphDataField "[['diem0', 'diem1', 'diem2', 'diem3', 'diem4', 'diem5'], ['chenh_lech0', 'chenh_lech1', 'chenh_lech2', 'chenh_lech3', 'chenh_lech4', 'chenh_lech5']]">
+
+  <!ENTITY GraphDataIndex "[0]">
+]>
+
+<dir type="Report" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xếp hạng nhà cung cấp" e="Ranking List of Vendors"></title>
+  <fields>
+    &GraphFields;
+  </fields>
+
+  <views>
+    &GraphViews;
+  </views>
+
+  <commands>
+    &GraphCommands;
+  </commands>
+
+  <response>
+    <action id="GetData">
+      <text>
+        <![CDATA[
+exec bs_rptBIRankingListOfVendors @loai_ky, @ky, @nam, @ma_bp0, @kieu_bc, @ma_kh, @nh_kh1, @nh_kh2, @nh_kh3, @ma_vt, @nh_vt1, @nh_vt2, @nh_vt3, @mau_bc, @@language, @@userID, @@admin, '1', @object_value
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  <script>
+    <text>
+      &GraphScript;
+      &OutlineEntry;
+      <![CDATA[function GetData(b,c){var a=b.grid;b.request("GetData","GetData",[["loai_ky","String",$func.findMemvar("loai_ky",a._memvars).NewValue],["ky","Decimal",$func.findMemvar("ky",a._memvars).NewValue],["nam","Decimal",$func.findMemvar("nam",a._memvars).NewValue],["ma_bp0","String",$func.findMemvar("ma_bp0",a._memvars).NewValue],["kieu_bc","String",$func.findMemvar("kieu_bc",a._memvars).NewValue],["ma_kh","String",$func.findMemvar("ma_kh",a._memvars).NewValue],["nh_kh1","String",$func.findMemvar("nh_kh1",a._memvars).NewValue],["nh_kh2","String",$func.findMemvar("nh_kh2",a._memvars).NewValue],["nh_kh3","String",$func.findMemvar("nh_kh3",a._memvars).NewValue],["ma_vt","String",$func.findMemvar("ma_vt",a._memvars).NewValue],["nh_vt1","String",$func.findMemvar("nh_vt1",a._memvars).NewValue],["nh_vt2","String",$func.findMemvar("nh_vt2",a._memvars).NewValue],["nh_vt3","String",$func.findMemvar("nh_vt3",a._memvars).NewValue],["mau_bc","String",$func.findMemvar("mau_bc",a._memvars).NewValue],["object_value","String",c]])}]]>
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.SelectionOutline{outline-style:dotted;outline-width:1px;}
+.]]>&Identification;<![CDATA[:hover{text-decoration:underline}
+.]]>&Identification;<![CDATA[{cursor:pointer;position:relative;width:64px!important;color:#3171c6;font-family:verdana;font-size:11px;}]]>
+      &GraphStyle;
+    </text>
+  </css>
+</dir>

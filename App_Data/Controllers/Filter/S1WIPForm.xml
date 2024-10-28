@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "S1WIP">
+]>
+
+<dir table="sfctdmwo" code="ma_lsx, ma_cd, ma_vt" order="ma_vt" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật bán thành phẩm" e="WIP Retreive"></title>
+  <fields>
+    <field name="ma_lsx" isPrimaryKey="true">
+      <header v="Yêu cầu sản xuất" e="Work Order"></header>
+    </field>
+    <field name="ten_lsx%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_cd" isPrimaryKey="true">
+      <header v="Công đoạn" e="Operation"></header>
+    </field>
+    <field name="ten_cd%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="item_list" readOnly="true" hidden="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="dmvt" external="true" clientDefault="0" defaultValue="0" rows="208" categoryIndex="1" allowNulls="false">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="&Identity;Grid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: ma_lsx, ma_lsx" e="String: ma_lsx, ma_lsx"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v ="String: ma_cd, ma_cd" e="String: ma_cd, ma_cd"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v ="String: item_list, item_list" e="String: item_list, item_list"></text>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100, 0, 0, 0"/>
+      <item value="1101000000------: [ma_lsx].Label, [ma_lsx], [ten_lsx%l]"/>
+      <item value="1101000000-----1: [ma_cd].Label, [ma_cd], [ten_cd%l], [item_list]"/>
+
+      <item value="1: [dmvt]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'create$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function create$]]>&Identity;<![CDATA[Form$(f) {
+  var w = f.grid.get_element().parentForm;
+  f.setItemValues('item_list, ma_lsx, ten_lsx%l, ma_cd, ten_cd%l', [f.grid._itemsWIP, w.getItemValue('ma_lsx'), w.getItemValue('ten_lsx%l'), w.getItemValue('ma_cd'), w.getItemValue('ten_cd%l')]);
+}
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  f.setReadOnlyFields('ma_lsx, ma_cd');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      set$]]>&Identity;<![CDATA[Form$FlowScript(f);
+      break;
+    default:
+      break;
+  }
+}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('dmvt')._controlBehavior, z = f.grid, f1 = '', f2 = '';
+  var first = true, l0 = z._getColumnOrder('ma_vt'), l1 = g._getColumnOrder('chon');
+
+  var fields = 'ma_vt, ten_vt%l, dvt, nhieu_dvt, lo_yn, he_so, tao_lo';
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l1)) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+    }
+  }
+
+  z._memvars = [];
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

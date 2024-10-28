@@ -1,0 +1,45 @@
+﻿<![%Conditional.PickPrice;[
+
+  <!ENTITY PickPriceCss SYSTEM "..\Include\XML\BI.PickPrice.Css.txt">
+  <!ENTITY PickPriceButton SYSTEM "..\Include\XML\BI.PickPrice.Toolbar.txt">
+  <!ENTITY PickPriceMenuItem SYSTEM "..\Include\XML\BIPickPriceMenuItem.xml">
+
+  <!ENTITY PickPriceExecuteShow "
+      if (f._action == 'View') break;
+      &PickPriceConditionShow;
+      if (f.validFields('ma_bp0, ma_kh, ngay_lct')) {
+        var v = f._language == 'v';
+        if (r &lt;= 0) {
+          var msg = (v ? 'Chưa chọn dòng trong thông tin chi tiết.' : 'No detail line selected, please select one to process.');
+          $message.show(msg);
+          break;
+        }
+        var l3 = g._getColumnOrder('ct_gia_pv'), l4 = g._getColumnOrder('ct_gia_dk'), l5 = g._getColumnOrder('pp_thay_doi'), l6 = g._getColumnOrder('stt_rec_bg');
+        var v3 = (l3 >= 0 ? g._getItemValue(r, l3) : ''), v4 = g._getItemValue(r, l4), v5 = g._getItemValue(r, l5), v6 = g._getItemValue(r, l6);
+        if (v5 || (v6 != '' &amp;&amp; (v3 != '' || v4 != ''))) {
+          var msg = (v ? 'Thông tin giá đã được thay đổi.' : 'Info Record has been changed.');
+          $message.show(msg, String.format('var g = $find(\'{0}\'); if (g._activeCell) g._activeCell.focus()', g.get_id()));
+          break;
+        }
+
+        var l1 = g._getColumnOrder('ma_vt'), l2 = g._getColumnOrder('ten_vt&#37;l'), ma_vt = g._getItemValue(r, l1), chk = g._getItem(r, l2);
+        if (ma_vt == '' || (chk.Checked &amp;&amp; !chk.checked)) {
+          var msg = String.format($df.getResources(f._language, 'Message.RequiredField'), g._fields[l1 - 1].Label);
+          g._errorObject = g._getItem(r, l1);
+          $message.show(msg, String.format('$find(\'{0}\').focus(\'&PickPriceParentGridField;\');$find(\'{1}\')._errorObject.focus()', f.get_id(), g.get_id()));
+        } else {
+          g._detailInfo = {handle: &PickPriceRetrieveFunction;, ParentController: '&PickPriceParentController;'};
+          g.showForm('BIOAIRFilter');
+        }
+      }
+">
+]]>
+
+<!ENTITY PickPriceCss "">
+<!ENTITY PickPriceButton "">
+<!ENTITY PickPriceMenuItem "">
+<!ENTITY PickPriceConditionShow "">
+<!ENTITY PickPriceExecuteShow "">
+<!ENTITY PickPriceRetrieveFunction "">
+<!ENTITY PickPriceParentController "">
+<!ENTITY PickPriceParentGridField "">

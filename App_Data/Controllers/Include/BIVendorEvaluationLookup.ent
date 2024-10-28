@@ -1,0 +1,40 @@
+﻿<!ENTITY BIVendorEvaluationLookup.Vendor.k0 "name = 'danh_gia_ncc'">
+<!ENTITY BIVendorEvaluationLookup.Vendor.k1 "ma_bp0 = '{$&#37;c[ma_bp0]}' and &BIVendorEvaluationLookup.Vendor.k0;">
+<!ENTITY BIVendorEvaluationLookup.Vendor.k2 "ma_bp0 = ''' + replace(@ma_bp0, '''', '''''') + ''''">
+
+<!ENTITY BIVendorEvaluationLookup.Vendor.Key "cc_yn = 1 and not exists(select 1 from bidmncctsbp0 b where b.ma_kh = dmkh.ma_kh and &BIVendorEvaluationLookup.Vendor.k1; and val = '0') and (exists(select 1 from bidmncctsbp0 b where b.ma_kh = dmkh.ma_kh and &BIVendorEvaluationLookup.Vendor.k1; and val = '1') or exists(select 1 from bidmnccts b where b.ma_kh = dmkh.ma_kh and &BIVendorEvaluationLookup.Vendor.k0; and val = '1'))">
+<!ENTITY BIVendorEvaluationLookup.Item.Key "not exists(select 1 from bidmvttsbp0 b where b.ma_vt = dmvt.ma_vt and &BIVendorEvaluationLookup.Vendor.k1; and val = '0') and (exists(select 1 from bidmvttsbp0 b where b.ma_vt = dmvt.ma_vt and &BIVendorEvaluationLookup.Vendor.k1; and val = '1') or exists(select 1 from bidmvtts b where b.ma_vt = dmvt.ma_vt and &BIVendorEvaluationLookup.Vendor.k0; and val = '1'))">
+
+<!ENTITY BIVendorEvaluationLookup.Vendor.Checking "
+declare @$vendor$Parameter char(1), @$vendor$Message nvarchar(512), @$vendor$Key1 nvarchar(1024), @$vendor$Key2 nvarchar(1024)
+select @$vendor$Key1 = 'ma_kh = ''' + replace(@ma_kh, '''', '''''') + ''' and &BIVendorEvaluationLookup.Vendor.k2;, @$vendor$Key2 = 'ma_kh = ''' + replace(@ma_kh, '''', '''''') + ''''
+exec dbo.AI_ERP$BI$Options$GetValue 'danh_gia_ncc', @$vendor$Parameter out, 'bidmncctsbp0', @$vendor$Key1, 'bidmnccts', @$vendor$Key2
+if isnull(@$vendor$Parameter, 0) = 0 begin
+  select @$vendor$Message = case when @@language = 'v' then N'Nhà cung cấp &lt;span class=&quot;Highlight&quot;>&#37;s&lt;/span> chưa khai báo đánh giá nhà cung cấp.' else N'The vendor &lt;span class=&quot;Highlight&quot;>&#37;s&lt;/span> has not been configured for vendor evaluation.' end
+  select 'ma_kh' as field, replace(@$vendor$Message, '&#37;s', rtrim(@ma_kh)) as message
+  return
+end
+">
+
+<!ENTITY BIVendorEvaluationLookup.Item.Checking "
+declare @$item$Parameter char(1), @$item$Message nvarchar(512), @$item$Key1 nvarchar(1024), @$item$Key2 nvarchar(1024)
+select @$item$Key1 = 'ma_vt = ''' + replace(@ma_vt, '''', '''''') + ''' and &BIVendorEvaluationLookup.Vendor.k2;, @$item$Key2 = 'ma_vt = ''' + replace(@ma_vt, '''', '''''') + ''''
+exec dbo.AI_ERP$BI$Options$GetValue 'danh_gia_ncc', @$item$Parameter out, 'bidmvttsbp0', @$item$Key1, 'bidmvtts', @$item$Key2
+if isnull(@$item$Parameter, 0) = 0 begin
+  select @$item$Message = case when @@language = 'v' then N'Mã hàng &lt;span class=&quot;Highlight&quot;>&#37;s&lt;/span> chưa khai báo đánh giá nhà cung cấp.' else N'The item &lt;span class=&quot;Highlight&quot;>&#37;s&lt;/span> has not been configured for vendor evaluation.' end
+  select 'ma_vt' as field, replace(@$item$Message, '&#37;s', rtrim(@ma_vt)) as message
+  return
+end
+">
+
+<!ENTITY BIVendorEvaluationLookup.ReferenceField "ma_kh, ma_vt">
+<!ENTITY BIVendorEvaluationLookup.Script.ChangePurchasingOrganization "onChange$PurchasingOrganization(f, '&BIVendorEvaluationLookup.ReferenceField;');">
+<!ENTITY BIVendorEvaluationLookup.Script.OnChangePurchasingOrganization "onchange=&quot;var f = this.parentForm;&BIVendorEvaluationLookup.Script.ChangePurchasingOrganization;&quot;">
+<!ENTITY BIVendorEvaluationLookup.Script "
+function onChange$PurchasingOrganization(f, a) {
+  var arr = a.replace(/ /g, '').split(',');
+  for (var i = 0; i &lt; arr.length; i++) {
+    f.setReferenceKeyFilter(arr[i]);
+  }
+}
+">

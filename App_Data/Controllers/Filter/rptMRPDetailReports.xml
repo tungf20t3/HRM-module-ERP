@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY Delta14 "0">
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY LineCounter "3">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày từ" e="Date from"></header>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày đến" e="Date to"></header>
+    </field>
+    <field name="ma_vt" categoryIndex="1">
+      <header v="Mã vật tư" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1' and kieu_hd &lt;&gt; '0'" check="kieu_hd &lt;&gt; '0'"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    <field name="ma_cb" categoryIndex="1">
+      <header v="Loại cảnh báo" e="Action Messsage Type"></header>
+      <items style="Lookup" controller="MRPActionMesssageType" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="version" dataFormatString="@upperCaseFormat" onDemand="true" categoryIndex="1">
+      <header v="Phiên bản" e="Version"></header>
+      <items style="AutoComplete" controller="MPSVersionList" reference="version_name%l" key="status = '1' and loai = '2'" check="1=1 and loai = '2'"/>
+    </field>
+    <field name="version_name%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 40, 20, 40, 100, 100, 130"/>
+      <item value="1100---: [ngay_tu].Label, [ngay_tu]"/>
+      <item value="1100---: [ngay_den].Label, [ngay_den]"/>
+      <item value="1100100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="1100100: [version].Label, [version], [version_name%l]"/>
+      <item value="110000-: [ma_cb].Label, [ma_cb]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 40, 20, 40, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select cast(@ngay_tu as smalldatetime) as ngay_tu, cast(@ngay_den as smalldatetime) as ngay_den
+exec rs_MRPDetailReports @ngay_tu, @ngay_den, @ma_vt, @ma_cb, @version, @@language, 103
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(a,b){var d=b.type.Context,g=b.type.Result;switch(d){case"Checking":var f=a.grid,c=a.getItem("ngay_tu").value,e=a.getItem("ngay_den").value;f._alterTitle=[null,[["%d1",c,true],["%d2",e,true]]]}}]]>
+    </text>
+  </script>
+</dir>

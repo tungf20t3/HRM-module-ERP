@@ -1,0 +1,12 @@
+﻿<![CDATA[
+declare @maxIDLine char(16), @lineNumber int
+select @maxIDLine = max(stt_rec0), @lineNumber = max(line_nbr) from @r30
+if @maxIDLine > '999' select @maxIDLine = cast(dbo.ff_Seq2Dec(@maxIDLine) - 10998 as int)
+else select @maxIDLine = cast(isnull(@maxIDLine, '0') as int)
+
+select top 0 * into ]]>&TaxGridDetailTableTax;<![CDATA[ from ctgt30
+select identity(int, 1,1) as id, line_nbr into #id from @]]>&TaxGridDetailTable;<![CDATA[ where loai_hd <> '0'
+insert into ]]>&TaxGridDetailTableTax;<![CDATA[ (stt_rec, stt_rec0, ma_dvcs, loai_ct, ma_ct, ngay_lct, ngay_ct, so_ct, ngay_ct0, so_ct0, so_seri0, mau_bc, ma_tc, ma_mau_ct, ma_kh, ten_kh, dia_chi, ma_so_thue, ma_kh2, ten_vt, so_luong, ty_gia, ma_nt, gia_nt, gia, t_tien_nt, t_tien, ma_thue, thue_suat, t_thue_nt, t_thue, ma_tt, tk_thue_no, tk_du, ma_kho, ma_vv, ma_sp, ma_bp, so_lsx, ghi_chu, nam, ky, line_nbr, status, datetime0, datetime2, user_id0, user_id2, ma_hd, ma_ku, ma_phi, so_dh, ma_td1, ma_td2, ma_td3, sl_td1, sl_td2, sl_td3, ngay_td1, ngay_td2, ngay_td3, gc_td1, gc_td2, gc_td3, s1, s2, s3, s4, s5, s6, s7, s8, s9)
+	select stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(@maxIDLine + b.id), @ma_dvcs, '#', ma_ct, @ngay_lct, ngay_ct, so_ct, ngay_ct0, so_ct0, so_seri0, mau_bc, ma_tc, ma_mau_ct, ma_kh, ten_kh, dia_chi, ma_so_thue, ma_kh2, ten_vt, 0 as so_luong, @ty_gia, @ma_nt, 0 as gia_nt, 0 as gia, tt_nt - thue_nt as t_tien_nt, tt - thue as t_tien, ma_thue, thue_suat, thue_nt as t_thue_nt, thue as t_thue, ]]>&TaxGridDetailPaymentTerm;<![CDATA[, tk_thue as tk_thue_no, @tk as tk_du, '' as ma_kho, ma_vv, ma_sp, ma_bp, so_lsx, ghi_chu, 0, 0, isnull(@lineNumber, 0) + b.id, ]]>&APVTaxStatus;<![CDATA[, @datetime0, @datetime2, @user_id0, @user_id2, ma_hd, ma_ku, ma_phi, @so_dh, ma_td1, ma_td2, ma_td3, sl_td1, sl_td2, sl_td3, ngay_td1, ngay_td2, ngay_td3, gc_td1, gc_td2, gc_td3, s1, s2, s3, s4, s5, s6, s7, s8, s9
+	  from @]]>&TaxGridDetailTable;<![CDATA[ a join #id b on a.line_nbr = b.line_nbr where loai_hd <> '0'
+]]>

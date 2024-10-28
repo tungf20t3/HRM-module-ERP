@@ -1,0 +1,189 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY ReportCircularTypeFieldExtend SYSTEM "..\Include\XML\Circular\A04195\ReportCircularTypeFieldExtend.xml">
+
+  <!ENTITY XMLWhenFilterQuerying SYSTEM "..\Include\XML\WhenFilterQuerying.xml">
+  <!ENTITY DynamicFieldFilterPara ", '#$query'">
+  <!ENTITY % ReferenceNumber SYSTEM "..\Include\ReferenceNumber.ent">
+  %ReferenceNumber;
+
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY LineCounter "7">
+  <!ENTITY ExtensionCounter "2">
+  <!ENTITY Delta14 "0">
+  <!ENTITY Delta24 "0">
+  <!ENTITY CircularCategoryIndex "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="date_from" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày từ" e="Date from"/>
+      <footer v="Ngày từ/đến" e="Date from/to"/>
+      <clientScript><![CDATA[onchange="onChangeDateFrom(this);"]]></clientScript>
+    </field>
+    <field name="date_to" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày đến" e="Date to"/>
+    </field>
+    <field name="ngay_mo_so" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="Ngày mở sổ" e="Date Opened"></header>
+    </field>
+    <field name ="voucher_from" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Chứng từ từ số" e="Voucher No. from"></header>
+      <footer v="Chứng từ từ/đến số" e="Voucher No. from/to"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name ="voucher_to" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Chứng từ đến số" e="Voucher No. to"></header>
+      <items style="Mask"></items>
+    </field>
+
+    <field name="ma_vv" allowNulls="false" categoryIndex="1">
+      <header v="Mã vụ việc" e="Job"></header>
+      <items style="AutoComplete" controller="Job" reference="ten_vv%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vv%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="tk" allowNulls="false" categoryIndex="1">
+      <header v="Tài khoản" e="Account"></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_tk%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="tk_du" categoryIndex="1">
+      <header v="Tài khoản đối ứng" e="Ref. Account"></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk_du%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_tk_du%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_kh" categoryIndex="1">
+      <header v="Mã khách" e="Customer"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kh%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    &ReportCircularTypeFieldExtend;
+
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+
+    <field name="maxLength" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101: [date_from].Description, [date_from], [date_to]"/>
+      <item value="110-: [ngay_mo_so].Label, [ngay_mo_so]"/>
+      <item value="1101: [voucher_from].Description, [voucher_from], [voucher_to]"/>
+
+      <item value="110100: [ma_vv].Label, [ma_vv], [ten_vv%l]"/>
+      <item value="110100: [tk].Label, [tk], [ten_tk%l]"/>
+      <item value="110100: [tk_du].Label, [tk_du], [ten_tk_du%l]"/>
+
+      <item value="110100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000-: [chon_tt].Label, [chon_tt]"/>
+      <item value="110001: [mau_bc].Label, [mau_bc], [maxLength]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    &XMLWhenFilterQuerying;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @tk1 nvarchar(4000), @tk2 nvarchar(4000), @vv1 nvarchar(4000), @vv2 nvarchar(4000)
+select @tk1 = ten_tk, @tk2 = ten_tk2 from dmtk where tk = @tk
+select @vv1 = ten_vv, @vv2 = ten_vv2 from dmvv where ma_vv = @ma_vv
+select @date_from as tu_ngay, @date_to as den_ngay, @ngay_mo_so as ngay_mo_so, @tk as s_tk, @tk1 as s_ten_tk, @tk2 as s_ten_tk2, @ma_vv as s_ma_vv, @vv1 as s_ten_vv, @vv2 as s_ten_vv2
+exec rs_rptInvestmentSourceDetailJournal @date_from, @date_to, @voucher_from, @voucher_to, @ma_vv, @tk, @tk_du, @ma_kh, '', @ma_dvcs, @maxLength, @@language, @@userID, @@admin
+]]>&DynamicFieldFilterPara;&ReferenceParameters;
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  var o = f.getItem('maxLength');
+  o.value = o.maxLength;
+  if (!f.getItemValue('ngay_mo_so')) onChangeDateFrom(f.getItem('date_from'));
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(m,b){var a=b.object,f=b.type.Context,l=b.type.Result;switch(f){case"Checking":var c=a.grid,h=a.getItem("date_from").value,i=a.getItem("date_to").value,e=a.getItemValue("mau_bc"),d=a.getItemValue("chon_tt"),k=a.getItem("ma_vv").value,j=a.getItem("tk").value,g=a.getItemValue("ten_vv%l");c._hiddenFields=[{Fields:"ps_no_nt, ps_co_nt",Value:e=="10"},{Fields:"ps_no, ps_co",Value:e=="20"}];c._hiddenForms=[{Form:[0,1,5,6],Value:d=="2"},{Form:[2,3,7,8],Value:d!="2"}];a.grid._alterTitle=[null,[["%d1",h,true],["%d2",i,true],["%c1",k,true],["%c2",g,true],["%c3",j,true]]];remove$GridReport$Filter(c)}}function onChangeDateFrom(b){var a=b.parentForm;a.setItemValue("ngay_mo_so",a.getItemValue("date_from"))}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

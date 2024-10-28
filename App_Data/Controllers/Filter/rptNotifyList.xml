@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir id="0" type="Report" cache="true" database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày từ" e="Date from"></header>
+      <footer v="Ngày từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày đến" e="Date to"></header>
+    </field>
+
+    <field name="ma_nhom" onDemand="true">
+      <header v="Nhóm" e="Group"></header>
+      <items style="AutoComplete" controller="NotifyGroup" reference="ten_nhom%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_nhom%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="loai" dataFormatString="0, 1, 2" clientDefault="Default" defaultValue="0" align="right" maxLength="1">
+      <header v="Loại" e="Type"></header>
+      <footer v="0 - Chưa nhận, 1 - Đã nhận, 2 - Tất cả" e="0 - Not Received, 1 - Received, 2 - All"></footer>
+      <items style="Mask"></items>
+    </field>
+
+    <field name="user_name" onDemand="true">
+      <header v="Người nhận" e="Recipient"></header>
+      <items style="AutoComplete" controller="User" reference="comment%l" key="" check="" information="name$userinfo2.comment%l"/>
+    </field>
+    <field name="comment%l" clientDefault="Default" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101--: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="110100: [ma_nhom].Label, [ma_nhom], [ten_nhom%l]"/>
+      <item value="111000: [loai].Label, [loai], [loai].Description"/>
+      <item value="110100: [user_name].Label, [user_name], [comment%l]"/>
+    </view>
+  </views>
+
+
+  <commands>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+#IF @@admin <> 1 #THEN
+  select 'setObjectFilterHidden(this, ''user_name'', false);'  as message
+  return
+#END
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_rptNotifyList @ngay_tu, @ngay_den, @ma_nhom, @loai, @user_name, @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(b,a){var b=a.object,c=a.type.Context,e=a.type.Result;switch(c){case"Checking":var d=b.grid;d._alterTitle=[null,[["%d1",b.getItem("ngay_tu").value,true],["%d2",b.getItem("ngay_den").value,true]]]}}function setObjectFilterHidden(a,e,c){var b=a.getItem(e);b.field.AllowNulls=!c;if(c){var d=b.parentNode.parentNode;Sys.UI.DomElement.addCssClass(d,"Required");Sys.UI.DomElement.addCssClass(d,a._id)}if(c){if(!a._controlFocus)a._controlFocus=b}else $common.setVisible(b.parentNode.parentNode.parentNode,false)}]]>
+    </text>
+  </script>
+
+</dir>

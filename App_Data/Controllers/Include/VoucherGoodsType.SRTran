@@ -1,0 +1,65 @@
+﻿<!ENTITY % Conditional.VoucherGoodsType.SRTran SYSTEM "..\Include\VoucherGoodsType.txt">
+
+<![%Conditional.VoucherGoodsType.SRTran;[
+
+  <!ENTITY VoucherGoodsTypeImportPost "
+update #m&Detail; set t_tien_nt2 = t_tien_nt2&VoucherGoodsTypeImportFieldMasterInsertTotal.ForeignCurrency;, t_tien2 = t_tien2&VoucherGoodsTypeImportFieldMasterInsertTotal.BaseCurrency;
+update #d&Detail; set tien_nt2 = -tien_nt2, tien2 = -tien2 where loai = '90'
+">
+
+  <!ENTITY % Conditional.DetailTax SYSTEM "..\Include\DetailTax.txt">
+  <![%Conditional.DetailTax;[
+    <!ENTITY VoucherGoodsTypeImportUpdateDetailValue ", ma_thue = '', ma_kh2 = '', thue_suat = 0, tk_thue = ''">
+    <!ENTITY VoucherGoodsTypeDetailTaxResponseComplete "['ma_thue', '', null, null], ['thue_suat', 0, null, null], ['thue_nt', 0, null, null], ['tk_thue', '', '', null], ['ma_kh2', '', '', null],">
+  ]]>
+  <!ENTITY VoucherGoodsTypeImportUpdateDetailValue "">
+  <!ENTITY VoucherGoodsTypeDetailTaxResponseComplete "">
+
+  <!ENTITY % Conditional.EnvironmentTax SYSTEM "..\Include\EnvironmentTax.txt">
+  <![%Conditional.EnvironmentTax;[
+    <!ENTITY VoucherGoodsTypeEnvironmentTaxResponseComplete "['tk_thue_mt', '', '', null], ['thue_mt_nt', 0, null, null], ['thue_mt', 0, null, null],">
+  ]]>
+  <!ENTITY VoucherGoodsTypeEnvironmentTaxResponseComplete "">
+
+  <!ENTITY VoucherGoodsTypeImportListFieldDetail ", gia_nt2 = 0, gia2 = 0, thue_nt = 0, thue = 0, gia_nt = 0, gia = 0, tien_nt = 0, tien = 0, pn_gia_tb = 0">
+  <!ENTITY VoucherGoodsTypeImportMasterUpdateValue ", t_so_luong = isnull(t_so_luong, 0), t_thue_nt = isnull(t_thue_nt, 0), t_thue = isnull(t_thue, 0), t_tien_nt2 = isnull(t_tien_nt2, 0), t_tien2 = isnull(t_tien2, 0), t_tt_nt = isnull(t_tt_nt, 0), t_tt = isnull(t_tt, 0)">
+
+  <!ENTITY VoucherGoodsTypePromotionChange "g.setItemGridBehavior(o, [['readonly_yn', ((o.value != '1' &amp;&amp; g._getItemValue(o.row, g._getColumnOrder('loai')) != '90') ? true : false), '', null]]);">
+
+  <!ENTITY VoucherGoodsTypeCurrencyFields.ForeignCurrency "(([loai] == &quot;90&quot; ? (-1) : (1)) * [tien_nt2])">
+  <!ENTITY VoucherGoodsTypeCurrencyFields.BaseCurrency "(([loai] == &quot;90&quot; ? (-1) : (1)) * [tien2])">
+
+  <!ENTITY VoucherGoodsTypeHandleFields "ma_vt,km_yn,so_luong,gia_ban_nt,gia_ban,gia_nt2,gia2,tien_nt2,tien2,tl_ck,ck_nt,ck,pn_gia_tb">
+  <!ENTITY VoucherGoodsTypeCalKey "[loai] != &quot;90&quot; &amp;&amp; ">
+  <!ENTITY VoucherGoodsTypeCheckKey "[loai] == &quot;90&quot; || ">
+  <!ENTITY VoucherGoodsTypeShown "scatter$GridVoucherDetail$(g);">
+
+  <!ENTITY VoucherGoodsTypeResponseComplete "
+    case 'GoodsType':
+      if (result[0].Value != '') {
+        g.setItemGridBehavior(o, [
+          ['km_yn', result[1].Value, '', true], ['readonly_yn', false, '', null], ['so_luong', 0, null, null], ['pn_gia_tb', false, '', null], ['tk_cpbh', '', '', null],
+          ['gia_ban_nt', 0, null, null], ['tien_nt', 0, null, null], ['gia_nt2', 0, null, null], ['gia_nt', 0, null, null],&VoucherGoodsTypeDetailTaxResponseComplete;&VoucherGoodsTypeEnvironmentTaxResponseComplete;
+          ['tl_ck', 0, null, null], ['ck_nt', 0, null, null], ['tk_ck', '', '', null],
+          ['gia_tb_yn', false, '', null]
+        ]);
+      } else {
+        g.setItemGridBehavior(o, [
+          ['readonly_yn', ((g._getItemValue(o.row, g._getColumnOrder('km_yn')) != '1' &amp;&amp; g._getItemValue(o.row, g._getColumnOrder('loai')) != '90') ? true : false), '', null],
+          ['gia_tb_yn', ((g._getItemValue(o.row, g._getColumnOrder('pn_gia_tb')) == false &amp;&amp; g._getItemValue(o.row, g._getColumnOrder('loai')) != '90') ? true : false), '', null]
+          ]);
+      }
+      g._getItem(o.row, g._getColumnOrder('pn_gia_tb')).disabled = (result[0].Value != '');
+      g.validExpression(o, [g.$a.gia_nt2_sl, g.$a.gia2, g.$a.gia_nt_sl, g.$a.gia, g.$a.tien2_tg, g.$a.tien_tg, g.$a.ck_nt, g.$a.ck_tl, g.$a.ck_tg], [g.$a.t_so_luong, g.$a.t_tien_nt, g.$a.t_tien, g.$a.t_tien_giam_nt, g.$a.t_tien_giam], [g.$a.t_tt_nt, g.$a.t_tt]);
+      on$GridVoucherDetail$AmountChange(o, g, f);
+      on$GridVoucherDetail$TaxChange(o, g, f);
+      onChange$GridVoucherDetail$Discount(o);
+      g.live(o, 'tien_nt2');
+      break;
+">
+  <!ENTITY VoucherGoodsTypeGridDetailLoad "select @message = @message + 'scatter$GridVoucherDetail$(this);'">
+  <!ENTITY VoucherGoodsTypeGridDetailLoadScript "scatter$GridVoucherDetail$(g);">
+]]>
+
+<!ENTITY VoucherGoodsTypeCurrencyFields.ForeignCurrency "[tien_nt2]">
+<!ENTITY VoucherGoodsTypeCurrencyFields.BaseCurrency "[tien2]">

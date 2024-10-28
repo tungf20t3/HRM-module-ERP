@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "InputInvoiceQuotationMultiForm">
+  <!ENTITY GridController "InputInvoiceRetrieveGrid">
+  <!ENTITY OtherCopyField "">
+  <!ENTITY FlowMultiGeneralTable "c15$000000">
+  <!ENTITY VoucherNumberLength "12">
+  <!ENTITY InvoiceNumberLength "12">
+
+  <!ENTITY % Control.Unit SYSTEM "..\Include\Unit.ent">
+  %Control.Unit;
+  %Control.Unit.Include.Customer;%Control.Unit.Ignore;
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Hóa đơn đầu vào" e="Input Invoice"></title>
+
+  <fields>
+    <field name="data_grid" external="true" readOnly="true" defaultValue="''" filterSource="Plugin">
+      <header v="" e=""></header>
+      <footer v="&lt;div id=&quot;&Identity;DataGridPanel&quot; class=&quot;DataGridPanelQuery&quot; style=&quot;margin-top:-25px;margin-left:-1px&quot; &gt;&lt;/div&gt;" e="&lt;div id=&quot;&Identity;DataGridPanel&quot; class=&quot;DataGridPanelQuery&quot; style=&quot;margin-top:-25px;margin-left:-1px&quot; &gt;&lt;/div&gt;"></footer>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="304" anchor="1">
+      <item value="753"/>
+      <item value="1: [data_grid].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'show$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function show$]]>&Identity;<![CDATA[$(f) {
+  var z = f.grid, c = String.fromCharCode(253), queryFilterString = '', dir = z.get_element().parentForm;
+  queryFilterString = z._voucher$Retrieve$Date1 + c + z._voucher$Retrieve$Date2 + c + z._voucher$Retrieve$Status + c + z._voucher$Retrieve$TaxCode + c + dir._voucherCode;
+  show$FlowMulti$Form(f, queryFilterString, ']]>&Identity;<![CDATA[DataGridPanel', dir._controller, ']]>&GridController;<![CDATA[', ']]>&OtherCopyField;<![CDATA[');
+}
+function active$]]>&Identity;<![CDATA[$(f) {
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  active$FlowMulti$Form(f);
+}
+function close$]]>&Identity;<![CDATA[$(f) {
+  close$FlowMulti$Form(f);
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, g = getGrid$FlowMulti$(f), d = f.grid, context = e.type.Context, result = e.type.Result, z = f.grid, dir = z.get_element().parentForm, v = f._language == 'v';
+
+  switch (context) {
+    case 'Checking':
+      var c = String.fromCharCode(255);
+      var k1 = g._getColumnOrder('stt_rec') - 1, k2 = g._getColumnOrder('mst_cn') - 1, k3 = g._getColumnOrder('ma_nt') - 1, k4 = g._getColumnOrder('status') - 1, k5 = g._getColumnOrder('ngay_ct') - 1;
+      var status = '', ngay = '', length = g._$k.length;
+      var currency = dir.getItemValue('ma_nt'), voucherCode = dir._voucherCode;
+      d._inputInvoiceLength = length; f._$k = '';
+
+      if (length > 1 && (voucherCode == 'HD3' || voucherCode == 'HDF')) {
+        f._checked = false;
+        $message.show(v ? 'Có nhiều hơn 1 bản ghi được chọn, vui lòng thực hiện lại.' : 'There exists multiple selected invoice.', String.format('$find(\'{0}\')._focusWhenTabChanged();', g.get_id()));
+        return;
+      }
+
+      for (var i = 0; i < length; i++) {
+        var r = g._$k[i];
+        var msg = v ? 'MST hoặc ngoại tệ khác nhau trong các bản ghi đã chọn.' : 'There existed either multiple foreign currency or tax code on the selected records.';
+
+        if (currency != r[k3]) {
+          f._checked = false;
+          $message.show(v ? 'Trường <span class="Highlight">Mã nt</span> không hợp lệ.' : 'Field <span class="Highlight">Currency</span> is invalid.', String.format('$find(\'{0}\')._focusWhenTabChanged();', g.get_id()));
+          return;
+        }
+
+        if (i + 1 < g._$k.length && voucherCode != 'PN2' && voucherCode != 'PC1' && voucherCode != 'BN1' && voucherCode != 'PK1' && voucherCode != 'HD9' && voucherCode != 'PN9') {
+          if (($func.trim(r[k2]) != $func.trim(g._$k[i + 1][k2])) || ($func.trim(r[k3]) != $func.trim(g._$k[i + 1][k3]))) {
+            f._checked = false;
+            $message.show(msg, String.format('$find(\'{0}\')._focusWhenTabChanged();', g.get_id()));
+            return;
+          }
+        }
+
+        f._$k += (f._$k != '' ? ',' : '') + r[k1];
+        status += (status != '' ? ',' : '') + r[k4];
+        ngay += (ngay != '' ? ',' : '') + r[k5].format('yyyyMMdd');
+      }
+
+      if (f._$k == '') d._formScript = 'show$FlowMulti$RetrieveGrid(this)';
+      else {
+        f._checked = false;
+        dir.setItemValues('stt_rec_hddv, ngay_hddv, status_hddv', [f._$k, ngay, status]);
+        f.request('GetInvoiceData', 'GetInvoiceData', [['stt_rec', 'String', f._$k], ['ma_ct', 'String', dir._voucherCode], ['ngay_ct1', 'String', z._voucher$Retrieve$Date1], ['ngay_ct2', 'String', z._voucher$Retrieve$Date2]]);
+      }
+      break;
+    case 'GetInvoiceData':
+      result.forEach(function(array) {array.shift();});
+      z._result = result;
+      z.showForm(dir._controller + 'ImportForm');
+      f._busy = false;
+      $func.hideWait(f.get_id());
+      f.cancelDialog();
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetInvoiceData">
+      <text>
+        <![CDATA[
+exec dbo.rs_GetInputInvoiceData @stt_rec, @ngay_ct1, @ngay_ct2, @ma_ct, ']]>&Customer.Code;<![CDATA[', @@unit, @@language, @@userID, @@admin
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

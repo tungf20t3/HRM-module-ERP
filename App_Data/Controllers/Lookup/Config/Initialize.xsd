@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="Initialize" targetNamespace="urn:schemas-ai-erp:data-initialize" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-initialize" xmlns:a="urn:schemas-ai-erp:data-initialize" xmlns:mstns="urn:schemas-ai-erp:data-initialize" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="initialize" type ="initializeType">
+    <xs:key name="controllerSource">
+      <xs:selector xpath="a:controllers/a:controller" />
+      <xs:field xpath="@name"/>
+      <xs:field xpath="@type"/>
+    </xs:key>
+
+    <xs:key name="groupSource">
+      <xs:selector xpath="a:groups/a:group" />
+      <xs:field xpath="@id"/>
+    </xs:key>
+
+    <xs:key name="query">
+      <xs:selector xpath="a:lookup/a:queries/a:query" />
+      <xs:field xpath="@id"/>
+    </xs:key>
+
+    <xs:key name="controlleLookup">
+      <xs:selector xpath="a:lookup/a:controllers/a:controller" />
+      <xs:field xpath="@name"/>
+    </xs:key>
+  </xs:element>
+
+  <xs:complexType name="initializeType">
+    <xs:all maxOccurs="1" minOccurs="0">
+      <xs:element name="controllers" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="controller" type="sourceController" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:element name="groups" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="group" type="sourceGroup" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:element name="lookup" type="lookupType"/>
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="lookupType">
+    <xs:all maxOccurs="1" minOccurs="0">
+      <xs:element name="queries" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="query" type="queryType" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:element name="controllers" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="controller" type="lookupController" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:all>
+  </xs:complexType>
+
+
+  <xs:complexType name="lookupController">
+    <xs:sequence>
+      <xs:element name="groups" type="lookupGroups" minOccurs="1" maxOccurs="1">
+        <xs:key name="group">
+          <xs:selector xpath="a:group" />
+          <xs:field xpath="@id"/>
+        </xs:key>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+
+
+  <xs:complexType name="lookupGroups">
+    <xs:sequence>
+      <xs:element name="group" type="lookupGroup" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="lookupGroup">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="reference" type="xs:string" use="optional"/>
+    <xs:attribute name="response" type="xs:string" use="optional"/>
+    <xs:attribute name="handle" type="xs:string" use="optional"/>
+    <xs:attribute name="cache" type="xs:boolean" use="optional"/>
+    
+    <xs:attribute name="implement" type="xs:string" use="optional"/>
+    <xs:attribute name="query" type="xs:string" use="optional"/>
+    <xs:attribute name="filter" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="queryType">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="variable" type="xs:string" use="required"/>
+    <xs:attribute name="type" type="storageType" use="required"/>
+  </xs:complexType>
+
+
+  <xs:complexType name="sourceGroup">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="field" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="sourceController">
+    <xs:sequence>
+      <xs:element name="request" type="requestType" minOccurs="0" maxOccurs="1">
+        <xs:key name="controllerRequest">
+          <xs:selector xpath="a:controller" />
+          <xs:field xpath="@name"/>
+        </xs:key>
+      </xs:element>
+
+      <xs:element name="handle" type="handleType" minOccurs="0" maxOccurs="1">
+        <xs:key name="controllerHandle">
+          <xs:selector xpath="a:controller" />
+          <xs:field xpath="@name"/>
+        </xs:key>
+      </xs:element>
+    </xs:sequence>
+    
+    <xs:attributeGroup ref="field"/>
+    <xs:attribute name="group" type="xs:string" use="required"/>
+    <xs:attribute name="description" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="handleType">
+    <xs:sequence>
+      <xs:element name="controller" type="handleController" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="handleController">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="filter" type="xs:string" use="required"/>
+  </xs:complexType>
+  
+    
+  <xs:complexType name="requestType">
+    <xs:sequence>
+      <xs:element name="controller" type="requestController" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+
+    <xs:attribute name="field" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="requestController">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="field" type="xs:string" use="required"/>
+  </xs:complexType>
+  
+  
+  <xs:attributeGroup name="field">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="type" type="locationType" use="required"/>
+  </xs:attributeGroup>
+
+  <xs:simpleType name="locationType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Dir"/>
+      <xs:enumeration value="Filter"/>
+      <xs:enumeration value="Grid"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="storageType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Cache"/>
+      <xs:enumeration value="Session"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

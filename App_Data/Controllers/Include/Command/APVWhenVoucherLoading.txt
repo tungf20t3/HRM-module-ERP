@@ -1,0 +1,21 @@
+﻿<![CDATA[
+#IF @@view = 0 #THEN
+  #IF @@action = 'Edit' #THEN
+    declare @$u_status varchar(32), @$date$APV$Check smalldatetime
+    select @$date$APV$Check = getdate()
+    if exists(select 1 from @@inquiry$partition$current where stt_rec = @stt_rec and status = ']]>&APVStatusPending;<![CDATA[') begin
+      select @$u_status = u_status from @@prime$partition$current where stt_rec = @stt_rec
+      if not exists(select 1 from dmnsdtd a left join dmquyentd b on a.ma_quyen = b. ma_quyen and a.loai_duyet = b.loai_duyet left join dmquyentdct2 c on a.ma_quyen = c.ma_quyen and a.loai_duyet = c.loai_duyet where a.[status] = '1' and b.[status] = '1' and a.loai_duyet = ']]>&APVApprovalType;<![CDATA[' and a.[user_id] = @@userID and c.u_status = @$u_status and ((a.ngay_hl_tu <= @$date$APV$Check) and (a.ngay_hl_den is null or dateadd(day, 1, a.ngay_hl_den) >= @$date$APV$Check))) begin
+        select '' as script, '$NotAuthorized' as message
+        return
+      end
+      declare @role varchar(32), @categoryApprove varchar(32)
+      ]]>&APVEditCommandWhenVoucherLoadingCheckApprovalType;<![CDATA[
+      if @role = '' or exists(select 1 from ]]>&APVHisTable;<![CDATA[ where xtype in ('1', '2') and reset = 0 and stt_rec = @stt_rec and user_id4 = @@userID group by stt_rec, user_id4 having count(*) % 2 = 1) begin
+        select '' as script, case when @@language = 'V' then N'Bạn chưa có hoặc chưa được phân quyền thực hiện chức năng duyệt.' else 'You do not have permission to perform this action, please contact your administrator.' end as message
+        return
+      end
+    end
+  #END
+#END
+]]>

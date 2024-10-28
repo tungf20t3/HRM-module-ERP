@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE report [
+  <!ENTITY b SYSTEM ".\Include\BaseCurrency.xml">
+  <!ENTITY f SYSTEM ".\Include\ForeignCurrency.xml">
+  <!ENTITY s SYSTEM ".\Include\Separate.xml">
+
+  <!ENTITY p "../images/pdf.gif">
+  <!ENTITY e "../images/excel.gif">
+]>
+
+<report xmlns="urn:schemas-ai-erp:data-report">
+  <query>
+    <text>
+      <![CDATA[
+declare @l int, @size1 int, @i1 int, @size2 int, @i2 int
+select @size1 = col_length('hrnv', 'stt_rec'), @size2 = col_length('hrplhd', 'so_plhd'), @i1 = 1, @i2 = 1, @l = datalength(text)/2 from @$key1
+create table #$keys(k1 varchar(33), k2 varchar(33))
+
+while @i1 + @size1 <= @l + 1 begin
+  insert into #$keys select substring(a.text, @i1, @size1), ltrim(substring(b.text, @i2, @size2)) from @$key1 a cross join @$key2 b
+  select @i1 = @i1 + @size1 + 1, @i2 = @i2 + @size2 + 1
+end
+exec hs_rptAppendixOfLaborContractExport '', '', @@language, @@userID, @@admin
+]]>
+    </text>
+  </query>
+
+  <forms>
+    <form id="0" reportFile ="hrptAppendixOfLaborContract_01" commandArgument="pdf" urlImage="&p;">
+      <header v="Phụ lục hợp đồng lao động" e="Appendix Of Labor Contract"/>
+      <download>
+        <header v="Phụ lục hợp đồng lao động" e="Appendix Of Labor Contract"/>
+      </download>
+    </form>
+  </forms>
+
+  <fields>
+    <field name="title" type ="String">
+      <header v="PHỤ LỤC HỢP ĐỒNG LAO ĐỘNG" e="APPENDIX OF LABOR CONTRACT"/>
+    </field>
+    <field name="h_chxhcnvn" type="String">
+      <header v="CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM" e="THE SOCIALIST REPUBLIC OF VIET NAM"/>
+    </field>
+    <field name="h_dl_td_hp" type="String">
+      <header v="Độc lập - Tự do - Hạnh phúc" e="Independence - Freedom - Happiness"/>
+    </field>
+
+    <field name="h_ten_dv" type="String">
+      <header v="Tên đơn vị:" e="Company:"/>
+    </field>
+    <field name="h_so" type="String">
+      <header v="Số:" e="Number:"/>
+    </field>
+
+    <field name="h_ong_ba" type="String">
+      <header v="Chúng tôi, một bên là Ông/Bà:" e="We are, from one side, Mr./Ms.:"/>
+    </field>
+    <field name="h_quoc_tich" type="String">
+      <header v="Quốc tịch:" e="Nationality:"/>
+    </field>
+    <field name="h_chuc_vu" type="String">
+      <header v="Chức vụ:" e="Position:"/>
+    </field>
+    <field name="h_dai_dien" type="String">
+      <header v="Đại diện cho:" e="On behalf of:"/>
+    </field>
+    <field name="h_dien_thoai" type="String">
+      <header v="Điện thoại:" e="Telephone:"/>
+    </field>
+    <field name="h_dia_chi" type="String">
+      <header v="Địa chỉ:" e="Address:"/>
+    </field>
+    <field name="h_ong_ba2" type="String">
+      <header v="Và một bên là Ông/Bà:" e="And from the other side, Mr./Ms:"/>
+    </field>
+    <field name="h_sinh_ngay" type="String">
+      <header v="Sinh ngày" e="Date of birth"/>
+    </field>
+    <field name="h_sinh_thang" type="String">
+      <header v="tháng" e="month"/>
+    </field>
+    <field name="h_sinh_nam" type="String">
+      <header v="năm" e="year"/>
+    </field>
+    <field name="h_sinh_tai" type="String">
+      <header v="tại:" e="in:"/>
+    </field>
+    <field name="h_nghe_nghiep" type="String">
+      <header v="Nghề nghiệp:" e="Occupation:"/>
+    </field>
+    <field name="h_dia_chi2" type="String">
+      <header v="Địa chỉ thường trú:" e="Resident address:"/>
+    </field>
+    <field name="h_cmnd_so" type="String">
+      <header v="Số CMTND:" e="ID No.:"/>
+    </field>
+    <field name="h_cmnd_ngay" type="String">
+      <header v=", cấp ngày:" e=", issued on:"/>
+    </field>
+    <field name="h_cmnd_tai" type="String">
+      <header v=", tại:" e=", at:"/>
+    </field>
+    <field name="h_so_ld" type="String">
+      <header v="Số sổ lao động (nếu có):............................. Cấp ngày: ..../..../...... tại:...................." e="Labor book No.(if any):................................ Issued on:..../..../..... at:......................"/>
+    </field>
+    <field name="h_ld_so" type="String">
+      <header v="Số sổ lao động (nếu có):" e="Labor Book No.(if any):"/>
+    </field>
+    <field name="h_ld_ngay" type="String">
+      <header v=", cấp ngày:" e=", issued on:"/>
+    </field>
+    <field name="h_ld_tai" type="String">
+      <header v=", tại:" e=", at:"/>
+    </field>
+    <field name="h_thoa_thuan" type="String">
+      <header v="      Căn cứ hợp đồng lao động số" e="      Pursuant to Labor Contract number"/>
+    </field>
+    <field name="h_ky_ngay" type="String">
+      <header v="ký ngày" e="singed on"/>
+    </field>
+    <field name="h_thoa_thuan2" type="String">
+      <header v="và nhu cầu sử dụng lao động, hai bên cùng nhau thỏa thuận thay đổi một số nội dung của hợp đồng mà 2 bên đã ký kết như sau:" e="and employment demands, the two sides agree to change some provisions in the labor contract signed by two sides as follows:"/>
+    </field>
+    <field name="h_dieu_1" type="String">
+      <header v="     1. Nội dung thay đổi (ghi rõ nội dung gì, thay đổi như thế nào...):" e="     1. New contents:"/>
+    </field>
+    <field name="h_dieu_2" type="String">
+      <header v="     2. Thời gian thực hiện (ghi rõ nội dung ở mục 1 nêu trên có hiệu lực trong bao nhiêu lâu):" e="     2. Effective period:"/>
+    </field>
+    <field name="h_phu_luc_nay" type="String">
+      <header v="      Phụ lục này là bộ phận của hợp đồng lao động số" e="      This appendix is a part of labor contract number"/>
+    </field>
+    <field name="h_phu_luc_nay2" type="String">
+      <header v=", được làm thành hai bản có giá trị như nhau, mỗi bên giữ một bản và là cơ sở để giải quyết khi có tranh chấp lao động." e=", made in two copies with the same value, each side keeps one copy and it will be the basis for settlement of labor disputes."/>
+    </field>
+    <field name="h_nguoi_lao_dong" type="String">
+      <header v="Người lao động" e="Employee"/>
+    </field>
+    <field name="h_nguoi_sd_ld" type="String">
+      <header v="Người sử dụng lao động" e="Representative of Employer"/>
+    </field>
+    <field name="h_ky_ten" type="String">
+      <header v="(Ký tên)" e="(Signature)"/>
+    </field>
+    <field name="h_ky_ten2" type="String">
+      <header v="(Ký tên, đóng dấu)" e="(Signature, Seal)"/>
+    </field>
+    <field name="h_ghi_ro" type="String">
+      <header v="Ghi rõ họ và tên" e="Full Name"/>
+    </field>
+  </fields>
+</report>

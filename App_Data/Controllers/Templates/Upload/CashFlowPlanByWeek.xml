@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'CashFlowPlanByWeek' else 'CashFlowPlanByWeek2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$CashFlowPlanByWeekImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$CashFlowPlanByWeekImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="khdttuan"/>
+    <table value="khdttuan" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;not exists(select 1 from khdttuan b where @@table.ma_dvcs = b.ma_dvcs and @@table.ky = b.ky and @@table.ma_bp = b.ma_bp and @@table.ma_vv = b.ma_vv and @@table.ma_ct = b.ma_ct and @@table.lan = b.lan and b.nam = @nam) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from khdttuan b where @@table.ma_dvcs = b.ma_dvcs and @@table.ky = b.ky and @@table.ma_bp = b.ma_bp and @@table.ma_vv = b.ma_vv and @@table.ma_ct = b.ma_ct and @@table.lan = b.lan and b.nam = @nam) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;if (@admin &lt;&gt; 1) begin&And;if (@admin &lt;&gt; 1 and @type = '1') begin" tag="&And;end&And;end" errorCode="00001&And;00002&And;00002"/>
+    <field name="ky" column="B" isPrimaryKey="true" allowNulls="false" type="Decimal" check="ky &lt; 1 or ky &gt; 12" updateValue="None" errorCode="00002"/>
+    <field name="ma_bp" column="C" isPrimaryKey="true" upperCase="true" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from dmbp)" updateValue="None" errorCode="00001"/>
+    <field name="ma_vv" column="D" isPrimaryKey="true" upperCase="true" check="ma_vv &lt;&gt; '' and ma_vv not in (select ma_vv from dmvv)" updateValue="None" errorCode="00001"/>
+    <field name="ma_ct" column="E" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_ct not in (select ma_ct from dmctdt)" updateValue="None" errorCode="00001"/>
+    <field name="lan" column="F" isPrimaryKey="true" type="Decimal" defaultvalue="0" updateValue="None"/>
+    <field name="tien_nt" column="G" type="Decimal"/>
+    <field name="tien" column="H" type="Decimal"/>
+    <field name="tien_nt01" column="I" type="Decimal"/>
+    <field name="tien01" column="J" type="Decimal"/>
+    <field name="ngay_dk01" column="K" type="DateTime"/>
+    <field name="tien_nt02" column="L" type="Decimal"/>
+    <field name="tien02" column="M" type="Decimal"/>
+    <field name="ngay_dk02" column="N" type="DateTime"/>
+    <field name="tien_nt03" column="O" type="Decimal"/>
+    <field name="tien03" column="P" type="Decimal"/>
+    <field name="ngay_dk03" column="Q" type="DateTime"/>
+    <field name="tien_nt04" column="R" type="Decimal"/>
+    <field name="tien04" column="S" type="Decimal"/>
+    <field name="ngay_dk04" column="T" type="DateTime"/>
+    <field name="nam" column="None" type="Decimal" insertValue="@nam" updateValue="None"/>
+    <field name="t_tien" column="None" type="Decimal" insertValue="(tien01 + tien02 + tien03 + tien04)" updateValue="(b.tien01 + b.tien02 + b.tien03 + b.tien04)"/>
+    <field name="t_tien_nt" column="None" type="Decimal" insertValue="(tien_nt01 + tien_nt02 + tien_nt03 + tien_nt04)" updateValue="(b.tien_nt01 + b.tien_nt02 + b.tien_nt03 + b.tien_nt04)"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Kế hoạch dòng tiền theo tuần" e="Cash Flow Planning by Week"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_dvcs" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ky" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Kỳ" e="Period"/>
+      </field>
+      <field name="ma_bp" width ="16">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="ma_vv" width ="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã chỉ tiêu" e="Article Code"/>
+      </field>
+      <field name="lan" width ="16">
+        <text v="Lần chỉnh sửa" e="Revision"/>
+      </field>
+      <field name="tien_nt" width ="16">
+        <text v="Kế hoạch kỳ nt" e="FC Planning"/>
+      </field>
+      <field name="tien" width ="16">
+        <text v="Kế hoạch kỳ" e="Planning"/>
+      </field>
+      <field name="tien_nt01" width ="16">
+        <text v="Tuần 01 nt" e="FC Period 01"/>
+      </field>
+      <field name="tien01" width ="16">
+        <text v="Tuần 01" e="Period 01"/>
+      </field>
+      <field name="ngay_dk01" width ="16">
+        <text v="Ngày dự kiến 01" e="Planned Date 01"/>
+      </field>
+      <field name="tien_nt02" width ="16">
+        <text v="Tuần 02 nt" e="FC Period 02"/>
+      </field>
+      <field name="tien02" width ="16">
+        <text v="Tuần 02" e="Period 02"/>
+      </field>
+      <field name="ngay_dk02" width ="16">
+        <text v="Ngày dự kiến 02" e="Planned Date 02"/>
+      </field>
+      <field name="tien_nt03" width ="16">
+        <text v="Tuần 03 nt" e="FC Period 03"/>
+      </field>
+      <field name="tien03" width ="16">
+        <text v="Tuần 03" e="Period 03"/>
+      </field>
+      <field name="ngay_dk03" width ="16">
+        <text v="Ngày dự kiến 03" e="Planned Date 03"/>
+      </field>
+      <field name="tien_nt04" width ="16">
+        <text v="Tuần 04 nt" e="FC Period 04"/>
+      </field>
+      <field name="tien04" width ="16">
+        <text v="Tuần 04" e="Period 04"/>
+      </field>
+      <field name="ngay_dk04" width ="16">
+        <text v="Ngày dự kiến 04" e="Planned Date 04"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @ndweek varchar(32), @rdweek varchar(32), @thweek varchar(32), @user int, @admin bit
+select @ndweek = rtrim(val) from options where name = 'dt_tuan_2'
+select @rdweek = rtrim(val) from options where name = 'dt_tuan_3'
+select @thweek = rtrim(val) from options where name = 'dt_tuan_4'
+select @admin = @@admin, @user = @@userID
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+
+update @@table set ngay_dk01 = dateadd(month, month(dbo.ff_GetStartDateOfCycle(ky, @nam)) - 1, dateadd(day, 0, convert(varchar(10), @nam))) where ngay_dk01 is null
+update @@table set ngay_dk02 = dateadd(month, month(dbo.ff_GetStartDateOfCycle(ky, @nam)) - 1, dateadd(day, @ndweek - 1, convert(varchar(10), @nam))) where ngay_dk02 is null
+update @@table set ngay_dk03 = dateadd(month, month(dbo.ff_GetStartDateOfCycle(ky, @nam)) - 1, dateadd(day, @rdweek - 1, convert(varchar(10), @nam))) where ngay_dk03 is null
+update @@table set ngay_dk04 = dateadd(month, month(dbo.ff_GetStartDateOfCycle(ky, @nam)) - 1, dateadd(day, @thweek - 1, convert(varchar(10), @nam))) where ngay_dk04 is null
+
+if @admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'CashFlowPlanByWeek', 'Edit') = 0 select @type = '0'
+end
+
+-- Delete
+if @type = '0' delete @@table from @@table a where exists(select 1 from khdttuan b where b.nam = @nam and a.ma_dvcs = b.ma_dvcs and a.ky = b.ky and a.ma_bp = b.ma_bp and a.ma_vv = b.ma_vv and a.ma_ct = b.ma_ct and a.lan = b.lan)
+select a.* into #k from @@table a join khdttuan b on b.nam = @nam and a.ma_dvcs = b.ma_dvcs and a.ky = b.ky and a.ma_bp = b.ma_bp and a.ma_vv = b.ma_vv and a.ma_ct = b.ma_ct and a.lan = b.lan
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.ky = b.ky and a.ma_bp = b.ma_bp and a.ma_vv = b.ma_vv and a.ma_ct = b.ma_ct and a.lan = b.lan)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ and a.nam = @nam end
+]]>
+    </text>
+  </processing>
+</import>

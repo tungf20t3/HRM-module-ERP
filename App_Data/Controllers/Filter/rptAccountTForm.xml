@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.Tiny SYSTEM "..\Include\ReportMargin.Tiny">
+  %ReportMargin.Tiny;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tk" aliasName="defaultGLAccount" allowNulls="false">
+      <header v="Tài khoản" e="Account"></header>
+      <items style="AutoComplete" normal="true" controller="Account" reference="ten_tk%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_tk%l" external="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="date_from" type="DateTime" dataFormatString="@datetimeFormat" aliasName="fromDate" defaultValue="new Date()" allowNulls="false">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Từ/đến ngày" e="Date from/to"></footer>
+    </field>
+    <field name="date_to" type="DateTime" dataFormatString="@datetimeFormat" aliasName="toDate" defaultValue="new Date()" allowNulls="false">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 100, 100, 100, 130"/>
+      <item value="11100: [tk].Label, [tk], [ten_tk%l]"/>
+      <item value="111: [date_from].Description, [date_from], [date_to]"/>
+      <item value="1100: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="1100: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 100, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+        declare @AccountName nvarchar(1024), @AccountName2 nvarchar(1024)
+        select @AccountName = ten_tk, @AccountName2 = ten_tk2 from dmtk where tk = @tk
+        select @date_from as tu_ngay, @date_to as den_ngay, @tk as tk, @AccountName as ten_tk, @AccountName2 as ten_tk2
+        exec rs_rptAccountTForm @date_from, @date_to, @ma_dvcs, @tk, @@language, @@userID, @@admin
+        ]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptQueryFilterString;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  if (f._convection) f._convection = null;
+  else {
+    changeLookupReadonly(f, 'ma_dvcs');
+    var a = ['tk'];
+    if (!f._extensions) f.request('GetDefaultValue', 'SetDefaultValue', a);
+      else setReferenceValue(f, a);
+    }
+    ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a) {
+  try {
+    a.remove_onResponseComplete(on$Filter$ResponseComplete);
+  } catch (b) {}
+}
+function on$Filter$ResponseComplete(f, c) {
+  var a = c.object,
+    b = a.grid,
+    e = c.type.Context,
+    d = c.type.Result;
+  switch (e) {
+    case "Checking":
+      b._hiddenFields = [
+        {
+          Fields: "ps_no_nt, ps_co_nt",
+          Value: a.getItem("mau_bc").value == "10",
+        },
+      ];
+      b._alterTitle = [
+        null,
+        [
+          ["%s1", a.getItemValue("tk"), true],
+          ["%d1", a.getItem("date_from").value, true],
+          ["%d2", a.getItem("date_to").value, true],
+        ],
+      ];
+      b._queryFilterString = getQueryFilterString(
+        a,
+        "date_from, date_to, ma_dvcs, tk, mau_bc",
+      );
+      remove$GridReport$Filter(b);
+      break;
+    case "SetDefaultValue":
+      a.setItemControlBehavior("ten_tk%l", d[0].Value, null, true);
+      d[0].Value == "" && a.setItemValue("tk", "");
+  }
+}
+function setReferenceValue(a, c) {
+  for (var b = 0; b < c.length; b++) {
+    var d = $func.findField(c[b], a._fields).ItemReference;
+    a.setItemValue(d, $func.findMemvar(d, a._extensions).NewValue);
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetDefaultValue">
+      <text>
+        <![CDATA[
+declare @c0 nvarchar(1024)
+select @c0 = ten_tk%l from dmtk where tk = @tk
+select isnull(@c0, '') as c0
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &OutlineCss;
+</dir>

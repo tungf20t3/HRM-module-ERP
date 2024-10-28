@@ -1,0 +1,722 @@
+<![CDATA[
+function load$]]>&Identification;<![CDATA[$(f) {
+  var g = f.grid;
+  load$Chart$ExternalScript(f);
+  f.add_onResponseComplete(chart$]]>&Identification;<![CDATA[$ResponseComplete);
+  chart$]]>&Identification;<![CDATA[GetTypeDataField(f);
+  chart$]]>&Identification;<![CDATA[InitForm(f);
+
+  if (g._graphCustom) {
+    load$Chart$Object(f, g);
+  } else {
+    chart$]]>&Identification;<![CDATA[GetData(f);
+    chart$]]>&Identification;<![CDATA[Init(f);
+    f._resizableControlBehavior.add_resize(chart$]]>&Identification;<![CDATA[Resize);
+  }
+}
+
+function load$Chart$Object(f, g) {
+  f._createChart = false;
+
+  if (!g._$chart$CacheData) g._$chart$CacheData = [];
+  var data, value = g._graphObject ? f._object[f._indexObj] : '';
+
+  if (g._$chart$CacheData)
+    for (var i = 0; i < g._$chart$CacheData.length; i++) {
+      if (g._$chart$CacheData[i].value.toString().trim() == value) {
+        data = g._$chart$CacheData[i].data;
+        break;
+      }
+    }
+
+  if (data) chart$Render(f, data);
+  else GetData(f, value);
+}
+
+function close$]]>&Identification;<![CDATA[$(f) {
+  try {f.remove_onResponseComplete(chart$]]>&Identification;<![CDATA[$Filter$ResponseComplete);} catch (ex) {}
+  try {f._resizableControlBehavior.remove_resize(chart$]]>&Identification;<![CDATA[Resize)} catch (ex) {}
+  chart$]]>&Identification;<![CDATA[Close(f);
+}
+
+function chart$]]>&Identification;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'GetData':
+      chart$Render(f, result);
+      break;
+    default:
+      break;
+  }
+}
+
+function chart$Render(f, result) {
+  var g = f.grid, typeChart = f._typeChart; g._dataChart = result ? Array.from(result) : [];
+  var data, index = -1, value = g._graphObject ? f._object[f._indexObj] : '';
+
+  for (var i = 0; i < g._$chart$CacheData.length; i++) {
+    if (g._$chart$CacheData[i].value.toString().trim() == value) {
+      index = i;
+      break;
+    }
+  }
+  if (index == -1) {
+    g._$chart$CacheData.push({'value': value, 'data': result});
+  }
+
+  chart$]]>&Identification;<![CDATA[GetDataNormal(f);
+
+  if (!f._createChart) {
+    f._createChart = true;
+    chart$]]>&Identification;<![CDATA[Init(f);
+    f._resizableControlBehavior.add_resize(chart$]]>&Identification;<![CDATA[Resize);
+  }
+
+  if (f._onChangeObject) {
+    f._typeChart = typeChart;
+    chart$]]>&Identification;<![CDATA[SetDataType(f);
+    f._onChangeObject = false;
+  }
+}
+
+function load$Chart$ExternalScript(f) {
+  var url = '~/AppHandler/ExternalScript.ashx?t=PDF&m=1&v=1';
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.src = $func.resolveClientUrl(url, f._baseUrl);
+  document.getElementsByTagName('head')[0].appendChild(s);
+}
+function chart$]]>&Identification;<![CDATA[GetTypeDataField(f) {
+  var g = f.grid, fields = g._mode == "Pivot" ? g._allFields : g._fields; f._typeData = [];
+  var df = g._graphDataField ? g._graphDataField : ]]>&GraphDataField;<![CDATA[;
+
+  if (g._graphMultiData && g._graphFormat) {
+    if (g._graphFormat) {
+      for (var i = 0; i < g._graphValueIndex.length; i++) {
+        var description = g._graphDescription[i].split('|');
+        f._typeData.push([]);
+        for (var j = 0; j < g._graphValueIndex[i].length; j++) {
+          f._typeData[i].push({
+            AliasName: df[i][j],
+            HeaderText: f._language == 'v' ? description[0] : description[1],
+            DataFormatString: g._graphFormat[i]
+          });
+        }
+      }
+    } else {
+      for (var i = 0; i < df.length; i++) {
+        f._typeData.push([]);
+        for (var j = 0; j < df[i].length; j++) {
+          for (var k = g._fields.length - 1; k >= 0; k--) {
+            if (g._fields[k].AliasName.split('$')[0] == df[i][j]) {
+              f._typeData[i].push({
+                AliasName: g._fields[k].AliasName,
+                HeaderText: g._fields[k].HeaderText,
+                DataFormatString: g._fields[k].DataFormatString
+              });
+              break;
+            }
+          }
+        }
+      }
+    }
+  } else {
+    var df = g._graphDataField ? g._graphDataField : ]]>&GraphDataField;<![CDATA[, typeData = [];
+    for (var i = 0; i < df.length; i++) {
+      for (var j = g._fields.length - 1; j >= 0; j--) {
+        if (g._fields[j].AliasName.split('$')[0] == df[i]) {
+          typeData.push(df[i]);
+          break;
+        }
+      }
+    }
+    for (var i = 0; i < typeData.length; i++) {
+      for (var j = 0; j < fields.length; j++) {
+        if (fields[j].AliasName == typeData[i]) {
+          f._typeData.push({
+            AliasName: fields[j].AliasName,
+            HeaderText: fields[j].HeaderText,
+            DataFormatString: fields[j].DataFormatString
+          });
+          break;
+        }
+      }
+    }
+  }
+}
+
+function chart$]]>&Identification;<![CDATA[InitForm(f) {
+  var g = f.grid, v = f._language == 'v', title == v ? "]]>&GraphTitle.v;<![CDATA[" : "]]>&GraphTitle.e;<![CDATA[";
+  f._titleField = v ? ]]>&GraphTitleField.v;<![CDATA[ : ]]>&GraphTitleField.e;<![CDATA[
+  if (f._titleField.length) {
+    for (var i = 0; i < f._titleField.length; i++) {
+      title = title.replace('%s' + (i + 1) + '.HeaderText', $func.htmlEncode(g._fields[g._getColumnOrder(f._titleField[i]) - 1].HeaderText));
+      title = title.replace('%s' + (i + 1) + '.Label', g._fields[g._getColumnOrder(f._titleField[i]) - 1].Label);
+      title = title.replace('%s' + (i + 1), g._getItemValue(g._activeRow, g._getColumnOrder(f._titleField[i])));
+    }
+  }
+  $get(f.get_id() + '_updateDlgTitleText').textContent = title;
+
+  var o1 = f.getItem('loai_dt'), o2 = f.getItem('loai_dl'), col = g._activeColumn;
+  if (!f._pieChart || g._graphCustom) o1.options.remove(2);
+  o2.remove(0);
+  if (g._graphMultiData) {
+    for (var i = 0; i < f._typeData.length; i++) {
+      var option = document.createElement('option'), aliasName = f._typeData[i][0].AliasName;
+      option.text = f._typeData[i][0].HeaderText;
+      option.value = aliasName;
+      o2.options.add(option);
+      if (col != -1 && aliasName.trim() == g._fields[col - 1].AliasName.trim()) o2.value = aliasName;
+    }
+  } else {
+    for (var i = 0; i < f._typeData.length; i++) {
+      var option = document.createElement('option'), aliasName = f._typeData[i].AliasName;
+      option.text = f._typeData[i].HeaderText;
+      option.value = f._typeData[i].AliasName;
+      o2.options.add(option);
+      if (col != -1 && aliasName.trim() == g._fields[col - 1].AliasName.trim()) o2.value = aliasName;
+    }
+  }
+
+  var titleElement = $get(f.get_id() + "_updateDlgTitleText").parentElement.parentElement;
+  var btnPDF = String.format('<td nowrap style="padding-right: 180px;"><div id="{0}_Print_PDF" style="overflow: hidden; height: 13px; border-width: 0px; width: 23px; visibility: visible; display: inline-block;" class="ToolbarBackgroundImage ToolbarPrint" onclick = "chart$]]>&Identification;<![CDATA[DownloadPDF($find(\'{0}\'));" onmouseover=Sys.UI.DomElement.addCssClass(this,"ToolbarPrintOver"); onmouseout=Sys.UI.DomElement.removeCssClass(this,"ToolbarPrintOver"); title="{1}"></div><div style="display:inline-block;overflow:hidden;height:13px;border-width:0px;width:1px;"></div></td>', f.get_id(), v ? "In" : "Print", );
+  titleElement.innerHTML += btnPDF;
+
+  f.setItemValue('hien_gt', false);
+  f._isShowDataLabel = false;
+}
+
+function chart$]]>&Identification;<![CDATA[GetData(f) {
+  var g = f.grid, r = g._activeRow, df = g._graphDataField ? g._graphDataField : ]]>&GraphDataField;<![CDATA[;
+  f._pieChart = false; f._v = []; f._lb = [];
+
+  for (var i = 0; i < g._fields.length; i++) {
+    var aliasName = g._fields[i].AliasName.split('$');
+    for (var j = 0; j < f._typeData.length; j++) {
+      if (i + j + 1 > g._fields.length) break;
+      if (f._v.length <= f._typeData.length) {f._v.push([]); f._lb.push([]);}
+
+      var value = g._getItemValue(r, i + j + 1);
+      for (var m = 0; m < df.length; m++) {
+        if (aliasName[0] == df[m]) {
+          if (g._fields[i + j].AliasName.split('$')[0] == df[m]) {
+            if (value > 0) f._pieChart = true;
+            f._v[m].push(value);
+
+            var label = g._fields[i].HeaderText.split(' - ')[0];
+            if (f._lb[m][f._lb[m].length - 1] != label) f._lb[m].push(label);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  for (var i = 0; i < f._v.length; i++) {
+    if (!f._v[i].length) {
+      f._v.splice(i,1);
+      f._lb.splice(i,1);
+      i--;
+    }
+  }
+
+  for (var i = 0; i < f._v.length; i++) {
+    for (var j = 0; j < f._v[i].length; j++) {
+      if (!f._v[i][j]) {
+        f._v[i].splice(j,1);
+        f._lb[i].splice(j,1);
+        j--;
+      }
+    }
+  }
+
+  var dataIndex = ]]>&GraphDataIndex;<![CDATA[;
+  if (dataIndex[0]) {
+    for (var i = 0; i < f._v.length; i++) {
+      for (var j = 0; j < Math.abs(dataIndex[0]); j++) {
+        if (dataIndex[0] > 0) {
+          f._v[i].shift();
+          f._lb[i].shift();
+        }
+        else {
+          f._v[i].pop();
+          f._lb[i].pop();
+        }
+      }
+      if (dataIndex.length == 2) {
+        for (var k = 0; k < Math.abs(dataIndex[1]); k++) {
+          if (dataIndex[1] > 0) {
+            if (f._v[i].length) {
+              f._v[i].shift();
+              f._lb[i].shift();
+            }
+          }
+          else {
+            if (f._v[i].length) {
+              f._v[i].pop();
+              f._lb[i].pop();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  f._chartValue = f._v.length ? f._v[0] : [];
+  f._labels = f._lb.length ? f._lb[0] : [];
+  f._formatValue = f._typeData[0].DataFormatString;
+  f._labelString = f._typeData[0].HeaderText;
+  f._typeChart = 'bar';
+}
+
+function chart$]]>&Identification;<![CDATA[GetDataNormal(f) {
+  var g = f.grid, col = g._activeColumn; f._pieChart = true; f._v = []; f._labels = [];
+  var dv = g._graphValueIndex ? g._graphValueIndex : ]]>&GraphValueIndex;<![CDATA[,
+      dl = g._graphLabelIndex ? g._graphLabelIndex : ]]>&GraphLabelIndex;<![CDATA[, objValue = f._object[f._indexObj];
+
+  if (g._graphMultiData) {
+    f._chartValue = [], f._labels = [], f._labelString = [];
+    for (var i = 0; i < dv.length; i++) {
+      var value = [];
+      for (var j = 0; j < dv[i].length; j++) {
+        for (var k = 0; k < g._dataChart.length; k++) {
+          if (g._graphObject && (g._dataChart[k][g._graphObjectIndex]).toString().trim() != objValue) continue;
+          if (value.length < dv[i].length) value.push([]);
+          value[j].push(g._dataChart[k][dv[i][j]]);
+        }
+      }
+      f._v.push(value);
+    }
+    for (var i = 0; i < g._graphLabel.length; i++) {
+      var text = g._graphLabel[i].split('|');
+      f._labelString.push(f._language == 'v' ? text[0] : text[1]);
+    }
+    for (var i = 0; i < g._dataChart.length; i++) {
+      if (g._graphObject && (g._dataChart[i][g._graphObjectIndex]).toString().trim() != objValue) continue;
+      f._labels.push(g._dataChart[i][dl].toString().trim());
+    }
+  } else {
+    for (var i = 0; i < dv.length; i++) {
+      for (var j = 0; j < g._dataChart.length; j++) {
+        if (g._graphObject && (g._dataChart[j][g._graphObjectIndex]).toString().trim() != objValue) continue;
+        if (f._v.length < dv.length) f._v.push([]);
+        f._v[i].push(g._dataChart[j][dv[i]]);
+      }
+    }
+    for (var i = 0; i < g._dataChart.length; i++) {
+      if (g._graphObject && (g._dataChart[i][g._graphObjectIndex]).toString().trim() != objValue) continue;
+      f._labels.push(g._dataChart[i][dl].toString().trim());
+    }
+  }
+
+  var isCol = false, typeData;
+  if (col != -1) {
+    for (var i = 0; i < f._typeData.length; i++) {
+      typeData = g._graphMultiData ? f._typeData[i][0] : f._typeData[i];
+      if (typeData.AliasName.trim() == g._fields[col - 1].AliasName.trim()) {
+        f._chartValue = f._v.length ? f._v[i] : [];
+        isCol = true;
+        break;
+      }
+    }
+  }
+  if (!isCol) {
+    typeData = g._graphMultiData ? f._typeData[0][0] : f._typeData[0];
+    f._chartValue = f._v.length ? f._v[0] : [];
+  }
+
+  f._formatValue = typeData.DataFormatString;
+  f._yLabelString = typeData.HeaderText;
+  if (!g._graphMultiData) f._labelString = typeData.HeaderText;
+  f._typeChart = 'bar';
+}
+
+function chart$]]>&Identification;<![CDATA[Init(f) {
+  var g = f.grid; document._form = f, max = 0, min = 0, dataset = [];
+  if (f._chart) f._chart.destroy();
+
+  if (g._graphMultiData) {
+    for (var i = 0; i < f._chartValue.length; i++) {
+      for (var j = 0; j < f._chartValue[i].length; j++) {
+        if (f._chartValue[i][j] > max) max = f._chartValue[i][j];
+        if (f._chartValue[i][j] < min) min = f._chartValue[i][j];
+      }
+      dataset.push({
+        type: f._typeChart,
+        label: f._labelString[i],
+        data: f._chartValue[i],
+        fill: 'false',
+        backgroundColor: ]]>&GraphColorPie;<![CDATA[[i],
+        borderColor: ]]>&GraphColorPie;<![CDATA[[i],
+        borderWidth: 1,
+        barPercentage: 0.95
+      });
+    }
+    f._chartLength = f._chartValue[0].length;
+  } else {
+    dataset.push({
+      type: f._typeChart,
+      label: f._labelString,
+      data: f._chartValue,
+      fill: 'false',
+      backgroundColor: ]]>&GraphColorBar;<![CDATA[,
+      borderColor: ]]>&GraphColorBar;<![CDATA[,
+      borderWidth: 1,
+      barPercentage: 0.5
+    });
+
+    for (var i = 0; i < f._chartValue.length; i++) {
+      if (f._chartValue[i] > max) max = f._chartValue[i];
+      if (f._chartValue[i] < min) min = f._chartValue[i];
+    }
+    f._chartLength = f._chartValue.length;
+  }
+
+  var ctx = $get('ViewChartID').getContext('2d');
+  f._chart = new Chart(ctx, {
+      type: f._typeChart,
+      data: {labels: f._labels, datasets: dataset},
+      options: {
+        responsive: true,
+        responsiveAnimationDuration: 800,
+        maintainAspectRatio: false,
+        legend: {
+          display: g._graphMultiData ? true : false,
+          position: 'bottom',
+          onClick: null
+        },
+        layout: {padding: {top: 24}},
+        tooltips: {
+          enabled: f._isShowDataLabel ? false : true,
+          titleFontColor: '#444',
+          titleFontStyle: 'bold',
+          bodyFontColor: '#444',
+          backgroundColor: '#fff',
+          borderColor: '#bdbbb6',
+          borderWidth: 1,
+          callbacks: {label: function(tooltipItem, data) {return " " + $func.numberFormat(tooltipItem.yLabel, f._formatValue);}}
+        },
+        scales: {
+          yAxes: [
+            {
+              ticks: {
+                padding: -9,
+                beginAtZero: true,
+                maxTicksLimit: Math.abs(max - min) < 10 ? Math.abs(max - min) + 1 : 11,
+                callback: function(value) {return $func.numberFormat(value, '### ### ### ### ##0');}
+              },
+              gridLines: {borderDash: [3, 3]},
+              position: 'left',
+              scaleLabel: {
+                display: true,
+                labelString: g._graphMultiData ? f._yLabelString : f._labelString,
+                fontColor:'#c75e00',
+                fontStyle: 'normal',
+                fontFamily: 'Inter',
+                fontSize: 15
+              }
+            }
+          ]
+        },
+        hover: {animationDuration: 0},
+        animation: {
+          onComplete: function() {
+            // Show values on chart
+            if (f._isShowDataLabel) {
+              var chartInstance = this.chart,
+              ctx = chartInstance.ctx;
+              ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'bottom';
+              ctx.fillStyle = ]]>&GraphColorBar;<![CDATA[;
+              this.data.datasets.forEach(function(dataset, i) {
+                var meta = chartInstance.controller.getDatasetMeta(i);
+                meta.data.forEach(function(bar, index) {
+                var data = $func.numberFormat(dataset.data[index], f._formatValue);
+                var y = parseInt(data) >= 0 ? bar._model.y - 2 : bar._model.y + 15;
+                ctx.fillText(data, bar._model.x, y);
+                });
+              });
+            }
+          }
+        },
+      }
+    }
+  );
+  Chart.defaults.global.defaultFontColor = 'black';
+  Chart.defaults.global.defaultFontFamily = 'Inter';
+  Chart.defaults.global.defaultFontSize = 11;
+
+  chart$]]>&Identification;<![CDATA[Resize(null);
+
+  f._chart.update();
+  f._chart.resize();
+  chart$]]>&Identification;<![CDATA[beforeDraw();
+}
+
+function chart$]]>&Identification;<![CDATA[InitPie(f) {
+  document._form = f;
+  if (f._chart) f._chart.destroy();
+  chart$]]>&Identification;<![CDATA[Resize(null);
+
+  var color = ]]>&GraphColorPie;<![CDATA[, chartValue = Array.from(f._chartValue), labels = Array.from(f._labels);
+  for (var i = 0; i < chartValue.length; i++) {
+    if (chartValue[i] < 0) {
+      chartValue.splice(i, 1);
+      labels.splice(i, 1);
+      i--;
+    }
+  }
+  while(chartValue.length / color.length > 1) {
+    Array.prototype.push.apply(color, color);
+  }
+
+  var sum = chartValue.reduce(function(a, b) {return a + b;}, 0)];
+  for (var i = 0; i < chartValue.length; i++) {
+    chartValue[i] = sum ? parseFloat((chartValue[i] / sum * 100).toFixed(1)) : 0;
+  }
+
+  var dataset = [{label: f._labelString, data: chartValue, fill: 'false', backgroundColor: color, borderWidth: 1}];
+
+  var ctx = $get('ViewChartID').getContext('2d');
+  f._chart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: dataset
+    },
+    options: {
+      responsive: true,
+      tooltips: {
+        callbacks: {
+          label: function(tooltipItem, data) {
+            var dataset = data.datasets[tooltipItem.datasetIndex], currentValue = dataset.data[tooltipItem.index];
+            return data.labels[tooltipItem.index] + ': ' +  currentValue + '%';
+          }
+        },
+        filter: function (tooltipItem, data) {
+           var dataset = data.datasets[tooltipItem.datasetIndex],
+               meta = dataset._meta[Object.keys(dataset._meta)[0]],
+               total = meta.total;
+           return (total != 0);
+        }
+      },
+      legend: {
+        labels: {
+          generateLabels: function(chart) {
+            var data = chart.data;
+            // Show % on description
+            if (data.labels.length && data.datasets.length) {
+              return data.labels.map(function(label, i) {
+                var meta = chart.getDatasetMeta(0);
+                var ds = data.datasets[0];
+                var arc = meta.data[i];
+                var custom = arc && arc.custom || {};
+                var getValueAtIndexOrDefault = Chart.helpers.getValueAtIndexOrDefault;
+                var arcOpts = chart.options.elements.arc;
+                var fill = custom.backgroundColor ? custom.backgroundColor : getValueAtIndexOrDefault(ds.backgroundColor, i, arcOpts.backgroundColor);
+                var stroke = custom.borderColor ? custom.borderColor : getValueAtIndexOrDefault(ds.borderColor, i, arcOpts.borderColor);
+                var bw = custom.borderWidth ? custom.borderWidth : getValueAtIndexOrDefault(ds.borderWidth, i, arcOpts.borderWidth);
+                return {
+                  text: label + " (" + ds.data[i] + "%)",
+                  fillStyle: fill,
+                  strokeStyle: stroke,
+                  lineWidth: bw,
+                  hidden: isNaN(ds.data[i]) || meta.data[i].hidden,
+                  index: i
+                };
+              });
+            }
+            return [];
+          }
+        }
+      }
+    }
+  );
+
+  Chart.defaults.global.defaultFontColor = 'black';
+  Chart.defaults.global.defaultFontFamily = 'Inter';
+  Chart.defaults.global.defaultFontSize = 11;
+  chart$]]>&Identification;<![CDATA[beforeDraw();
+}
+
+function onChange$]]>&Identification;<![CDATA[DataType(o) {
+  var f = o.parentForm;
+  chart$]]>&Identification;<![CDATA[SetDataType(f);
+}
+
+function onChange$]]>&Identification;<![CDATA[ChartType(o) {
+  var f = o.parentForm, g = f.grid;
+  switch (f.getItemValue('loai_dt')) {
+    case '10':
+      f._typeChart = 'bar';
+      chart$]]>&Identification;<![CDATA[Init(f);
+      f.getItem('hien_gt').disabled = false;
+      break;
+    case '20':
+      f._typeChart = 'line';
+      chart$]]>&Identification;<![CDATA[Init(f);
+      f.getItem('hien_gt').disabled = false;
+      break;
+    case '30':
+      f._typeChart = 'pie';
+      chart$]]>&Identification;<![CDATA[InitPie(f);
+      f.getItem('hien_gt').disabled = true;
+      break;
+    default:
+      break;
+  }
+}
+
+function onChange$]]>&Identification;<![CDATA[ShowData(o) {
+  var f = o.parentForm;
+  var isShow = f.getItemValue('hien_gt');
+  f._isShowDataLabel = isShow;
+  if (f._typeChart == 'pie') chart$]]>&Identification;<![CDATA[InitPie(f);
+  else chart$]]>&Identification;<![CDATA[Init(f);
+}
+
+function chart$]]>&Identification;<![CDATA[Close(f) {
+  f._chart.destroy();
+}
+
+function chart$]]>&Identification;<![CDATA[Resize(e) {
+  var f = document._form, id = f.get_id(), length = f._chartLength, canvasStyle = $get('canvasParent').style;
+  document._globalResizeTimer = null;
+
+  $get('ChartContainer').style.height = $func.measurementToNumber($get(id + "_Tabs_body").style.height) + 'px';
+  if (f) {
+    if (f._typeChart != 'pie') {
+      var w = (length * 70 + f._chart.scales['y-axis-0'].width), t = $func.measurementToNumber($get(String.format('{0}1_formTable', f._id)).style.width);
+      canvasStyle.width = (w > t ? w : t) + 'px';
+    }
+    else {
+      var c = $get('ViewChartID');
+      canvasStyle.width = ($func.measurementToNumber($get(id + "1_formTable").style.width)) + 'px';
+      c.width = ($func.measurementToNumber($get(id + "1_formTable").style.width));
+      c.height = $func.measurementToNumber($get(id + "_Tabs_body").style.height);
+
+      if (e) chart$]]>&Identification;<![CDATA[InitPie(f);
+    }
+  }
+}
+
+function chart$]]>&Identification;<![CDATA[beforeDraw() {
+  Chart.plugins.register({
+    beforeDraw: function(chartInstance) {
+    var ctx = chartInstance.chart.ctx;
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, chartInstance.chart.width, chartInstance.chart.height);
+    }
+  });
+}
+
+function chart$]]>&Identification;<![CDATA[DownloadPDF(f) {
+  var title = $get(document._form.get_id() + "_updateDlgTitleText").textContent;
+  var canvas = $get('ViewChartID');
+  var pdf = new jsPDF('landscape');
+
+  var pageWidth = pdf.internal.pageSize.getWidth();
+  var pageHeight = pdf.internal.pageSize.getHeight();
+  var widthRatio = pageWidth / canvas.width;
+  var heightRatio = pageHeight / canvas.height;
+  var ratio = widthRatio > heightRatio ? heightRatio : widthRatio;
+  var canvasWidth = canvas.width * ratio;
+  var canvasHeight = canvas.height * ratio;
+  var marginX = (pageWidth - canvasWidth) / 2;
+  var marginY = (pageHeight - canvasHeight) / 2;
+
+  pdf.addFileToVFS('Roboto-Regular.ttf', Roboto);
+  pdf.addFont('Roboto-Regular.ttf', 'Roboto-Regular', 'normal');
+  pdf.setFont('Roboto-Regular');
+
+  pdf.addImage(canvas, 'JPEG', marginX, marginY, canvasWidth, canvasHeight);
+
+  var title = $get(document._form.get_id() + '_updateDlgTitleText').textContent;
+  pdf.setFontSize(16);
+  pdf.text(title, pageWidth / 2, 10, 'center');
+
+  if (f._rShowTime == '1') {
+    pdf.setFontSize(8);
+    pdf.text(16, pageHeight - 16, new Date().format('dd/MM/yyyy HH:mm:ss'));
+  }
+
+  pdf.save(title + ' - ' + (new Date()).toISOString().slice(0, 19).replace(/-|:|T/g, '') + '.pdf');
+}
+
+function chart$]]>&Identification;<![CDATA[InitObject(f) {
+  var g = f.grid; f._object = []; f._indexObj = 0;
+  if (!g._graphObject) {
+    $common.setVisible(f.getItem(']]>&GraphObject;<![CDATA[').parentNode.parentNode.parentNode, false)
+    return;
+  }
+
+  if (g._activeRow == -1) g._activeRow = 1;
+
+  for (var i = 1; i <= g._rowCount; i++) {
+    var val = (g._getItemValue(i, g._getColumnOrder(']]>&GraphObject;<![CDATA['))).toString().trim();
+    if (g._graphCustom && i > 1 && f._object.indexOf(val) > -1) continue;
+    f._object.push(val);
+  }
+  f._indexObj = f._object.indexOf((g._getItemValue(g._activeRow, g._getColumnOrder(']]>&GraphObject;<![CDATA['))).toString().trim());
+
+  var o = f.getItem(']]>&GraphObject;<![CDATA['); o.remove(0);
+  for (var i = 0; i < f._object.length; i++) {
+    var option = document.createElement("option");
+    option.text = f._object[i];
+    option.value = f._object[i];
+    o.options.add(option);
+  }
+  o.value = o.options[f._indexObj].value;
+}
+
+function onChange$]]>&Identification;<![CDATA[Object(o) {
+  var f = o.parentForm, g = f.grid, typeChart = f._typeChart, title == f._language == 'v' ? "]]>&GraphTitle.v;<![CDATA[" : "]]>&GraphTitle.e;<![CDATA[";
+  if (g._graphCustom) f._indexObj = o.selectedIndex;
+  else g._activeRow = o.selectedIndex + 1;
+
+  if (f._titleField.length) {
+    for (var i = 0; i < f._titleField.length; i++) {
+      title = title.replace('%s' + (i + 1) + '.HeaderText', $func.htmlEncode(g._fields[g._getColumnOrder(f._titleField[i]) - 1].HeaderText));
+      title = title.replace('%s' + (i + 1) + '.Label', g._fields[g._getColumnOrder(f._titleField[i]) - 1].Label);
+      title = title.replace('%s' + (i + 1), g._getItemValue(g._activeRow, g._getColumnOrder(f._titleField[i])));
+    }
+  }
+  $get(f.get_id() + '_updateDlgTitleText').textContent = title;
+
+  if (g._graphCustom) {
+    f._onChangeObject = true;
+
+    load$Chart$Object(f, g);
+  } else {
+    chart$]]>&Identification;<![CDATA[GetData(f);
+    f._typeChart = typeChart;
+    chart$]]>&Identification;<![CDATA[SetDataType(f);
+  }
+}
+
+function chart$]]>&Identification;<![CDATA[SetDataType(f) {
+  var loai_dl = f.getItemValue('loai_dl');
+  if (f.grid._graphMultiData) {
+    for (var i = 0; i < f._typeData.length; i++) {
+      if (f._typeData[i][0].AliasName.toString() == loai_dl) {
+        f._chartValue = f._v[i];
+        f._formatValue = f._typeData[i][0].DataFormatString;
+        f._yLabelString = f._typeData[i][0].HeaderText;
+        break;
+      }
+    }
+  } else {
+    for (var i = 0; i < f._typeData.length; i++) {
+      if (f._typeData[i].AliasName.toString() == loai_dl) {
+        f._chartValue = f._v[i];
+        f._labelString = f._typeData[i].HeaderText;
+        f._formatValue = f._typeData[i].DataFormatString;
+        break;
+      }
+    }
+  }
+  if (f._typeChart == 'pie') chart$]]>&Identification;<![CDATA[InitPie(f);
+  else chart$]]>&Identification;<![CDATA[Init(f);
+}
+]]>

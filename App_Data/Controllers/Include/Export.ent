@@ -1,0 +1,47 @@
+﻿<!ENTITY % Conditional.Export SYSTEM "..\Include\Export.txt">
+<!ENTITY % Conditional.VoucherDeleteLog SYSTEM "..\Include\VoucherDeleteLog.txt">
+
+<![%Conditional.Export;[
+  <!ENTITY ExportFields SYSTEM "..\Include\XML\ExportFields.txt">
+  <!ENTITY ExportViews SYSTEM "..\Include\XML\ExportViews.txt">
+  <!ENTITY ExportCategory SYSTEM "..\Include\XML\ExportCategory.txt">
+  <!ENTITY ExportInitExternalFields "
+declare @impContractNo varchar(128), @impContractDate smalldatetime, @impCreditTerm nvarchar(128), @impShipFrom nvarchar(128), @impShipTo nvarchar(128), @impNo varchar(128), @impContainer nvarchar(128), @impTransfer nvarchar(128), @impType char(1)
+select @impContractNo = '', @impContractDate = null, @impCreditTerm = '', @impShipFrom = '', @impShipTo = '', @impNo = '', @impContainer = '', @impTransfer = ''
+select @impType = rtrim(val) from options where name = 'm_xk_yn'
+select @impType = isnull(@impType, '0')
+if @impType = '1' and exists(select 1 from e&Tag;$$partition$current where stt_rec = @stt_rec)
+select @impContractNo = so_hd, @impContractDate = ngay_hd, @impCreditTerm = ht_tt, @impShipFrom = dd_gh, @impShipTo = dd_nh, @impNo = so_vd, @impContainer = so_con, @impTransfer = dv_vc from e&Tag;$$partition$current where stt_rec = @stt_rec
+  ">
+  <!ENTITY ExportQueryFields ", rtrim(@impContractNo) as so_hd, @impContractDate as ngay_hd, rtrim(@impCreditTerm) as ht_tt, rtrim(@impShipFrom) as dd_gh, rtrim(@impShipTo) as dd_nh, rtrim(@impNo) as so_vd, rtrim(@impContainer) as so_con, rtrim(@impTransfer) as dv_vc">
+  <!ENTITY ExportInsert "
+if @impType = '1' and ((@$so_hd + @$ht_tt + @$dd_gh + @$dd_nh + @$so_vd + @$so_con + @$dv_vc) &lt;&gt; '' or @$ngay_hd is not null)
+insert into e&Tag;$$partition$current select @stt_rec, @$so_hd, @$ngay_hd, @$ht_tt, @$dd_gh, @$dd_nh, @$so_vd, @$so_con, @$dv_vc
+    ">
+  <!ENTITY ExportUpdate "
+delete e&Tag;$$partition$previous where stt_rec = @stt_rec
+if @impType = '1' and (@$so_hd + @$ht_tt + @$dd_gh + @$dd_nh + @$so_vd + @$so_con + @$dv_vc &lt;&gt; '' or @$ngay_hd is not null)
+insert into e&Tag;$$partition$current select @stt_rec, @$so_hd, @$ngay_hd, @$ht_tt, @$dd_gh, @$dd_nh, @$so_vd, @$so_con, @$dv_vc
+    ">
+  <![%Conditional.VoucherDeleteLog;[
+    <!ENTITY ExportDelete "">
+  ]]>
+  <!ENTITY ExportDelete "delete e&Tag;$$partition$current where stt_rec = @stt_rec">
+  <!ENTITY ExportFocusVoucherTab "if (f._impType) Array.add(a, 'so_hd');">
+  <!ENTITY ExportLoading "
+select @s = case when @s is null then '[' else @s + ',' end + '[''' + name + ''',' + rtrim(prec) + ']' from syscolumns where id = object_id('e&Tag;$000000') and name not in ('stt_rec', 'ngay_hd') 
+select @s = ';this._$length=' + @s + ']'">
+  <!ENTITY ExportActiveVoucher "for (var i = 0; i &lt; f._$length.length; i ++) {var a = f._$length[i];f.getItem(a[0]).maxLength = a[1];}">
+]]>
+
+<!ENTITY ExportFields "">
+<!ENTITY ExportViews "">
+<!ENTITY ExportCategory "">
+<!ENTITY ExportInitExternalFields "">
+<!ENTITY ExportQueryFields "">
+<!ENTITY ExportInsert "">
+<!ENTITY ExportUpdate "">
+<!ENTITY ExportDelete "">
+<!ENTITY ExportFocusVoucherTab "">
+<!ENTITY ExportLoading "select @s = ''">
+<!ENTITY ExportActiveVoucher "">

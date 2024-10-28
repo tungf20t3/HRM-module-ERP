@@ -1,0 +1,362 @@
+﻿<action id="CDApproval" table="m51$000000" v="Phiếu chi tiền mặt chờ duyệt" e="Cash disbursement approval waiting for approval">
+  <fields>
+    <field name="h_title">
+      <header v="Phiếu chi tiền mặt chờ duyệt" e="Cash disbursement approval waiting for approval"/>
+    </field>
+    <field name="h_so_ct">
+      <header v="Số chứng từ" e="Number"/>
+    </field>
+    <field name="h_ngay_ct">
+      <header v="Ngày" e="Date"/>
+    </field>
+    <field name="h_ma_kh">
+      <header v="Khách hàng" e="Customer"/>
+    </field>
+    <field name="h_ma_kh_ct">
+      <header v="Mã khách" e="Customer ID"/>
+    </field>
+    <field name="h_ten_kh_ct">
+      <header v="Tên khách hàng" e="Customer Name"/>
+    </field>
+    <field name="h_ly_do">
+      <header v="Lý do thanh toán" e="Memo"/>
+    </field>
+    <field name="h_t_tien">
+      <header v="Tiền" e="Amount"/>
+    </field>
+    <field name="h_t_thue">
+      <header v="Thuế" e="Tax Amount"/>
+    </field>
+    <field name="h_t_tt">
+      <header v="Tổng thanh toán" e="Total"/>
+    </field>
+    <field name="h_ghi_chu">
+      <header v="Lý do:" e="Comment:"/>
+    </field>
+  </fields>
+
+  <query id="report">
+    <command id="master">
+      <text>
+        <![CDATA[
+declare @id int, @l varchar(8)
+select @id = @@contactID
+select @l = d_language from @@sysDatabaseName..userinfo2 where id = @id
+
+create table #msg (smsg varchar(10), msg0 nvarchar(4000), msg1 nvarchar(4000), msg2 nvarchar(4000), msg3 nvarchar(4000), msg4 nvarchar(4000), msg5 nvarchar(4000), msg6 nvarchar(4000), msg7 nvarchar(4000), msg8 nvarchar(4000), msg9 nvarchar(4000))
+insert into #msg exec AI_ERP$APV$GetApprovalDetail @@stt_rec, '00620', @l, 1, 1
+
+select case when loai_ct = '3' then 'body2' when loai_ct = '1' then 'body3' else 'body' end as bodyID, ltrim(so_ct) as so_ct, ma_nt, convert(varchar(12), a.ngay_ct, 103) as ngay_ct,
+    convert(varchar(32), a.datetime2, 121) as datetime2, case @l when 'v' then d.ten_kh else d.ten_kh2 end as ten_kh,
+    dien_giai, b.dien_thoai, b.e_mail, b.d_language, upper(ma_nhan) as ma_nhan, upper(ma_huy) as ma_huy, m.smsg, m.msg0, m.msg1, m.msg2, m.msg3, m.msg4, m.msg5, m.msg6, m.msg7, m.msg8, m.msg9
+  from @@table a, @@sysDatabaseName..userinfo2 b, dmxn c, dmkh d, #msg m
+  where a.stt_rec = @@stt_rec and b.id = @id and a.stt_rec = c.stt_rec and a.ma_kh = d.ma_kh and b.id = c.user_id
+]]>
+      </text>
+    </command>
+
+    <command id="footer">
+      <text>
+        <![CDATA[
+declare @amountFormat varchar(32), @ma_nt varchar(32)
+declare @t table(field varchar(32), format varchar(128))
+select @ma_nt = ma_nt from @@table where stt_rec = @@stt_rec
+
+if exists(select 1 from options where name = 'm_ma_nt0' and rtrim(val) = @ma_nt) select @amountFormat = rtrim(val) from options where name = 'm_ip_tien'
+else select @amountFormat = rtrim(val) from options where name = 'm_ip_tien_nt'
+
+insert into @t select 't_tien_nt', @amountFormat
+insert into @t select 't_thue_nt', @amountFormat
+insert into @t select 't_tt_nt', @amountFormat
+
+select cast(t_tien_nt as varchar) as t_tien_nt,
+cast(t_thue_nt as varchar) as t_thue_nt,
+cast(t_tt_nt as varchar) as t_tt_nt
+from @@table where stt_rec = @@stt_rec
+
+select * from @t
+]]>
+      </text>
+    </command>
+  </query>
+
+  <body>
+    <header>
+      <text>
+        <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body><div style="padding:8px">
+<div style="text-align:left;padding-bottom:8px;font-size:12px;font-weight:600;" class="ts">{!h_title}</div>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+</table><br/>
+<table class="ts detail" border="1" cellspacing="2" cellpadding="4">
+]]>
+      </text>
+    </header>
+
+    <footer>
+      <text>
+        <![CDATA[
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div><br />
+</body></html>
+]]>&Comment;
+      </text>
+    </footer>
+  </body>
+  <body2>
+    <header>
+      <text>
+        <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body><div style="padding:8px">
+<div style="text-align:left;padding-bottom:8px;font-size:12px;font-weight:600;" class="ts">{!h_title}</div>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+</table><br/>
+<table class="ts detail" border="1" cellspacing="2" cellpadding="4">
+]]>
+      </text>
+    </header>
+
+    <footer>
+      <text>
+        <![CDATA[
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div><br />
+</body></html>
+]]>&Comment;
+      </text>
+    </footer>
+  </body2>
+  <body3>
+    <header>
+      <text>
+        <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body><div style="padding:8px">
+<div style="text-align:left;padding-bottom:8px;font-size:12px;font-weight:600;" class="ts">{!h_title}</div>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+</table><br/>
+<table class="ts detail" border="1" cellspacing="2" cellpadding="4">
+]]>
+      </text>
+    </header>
+
+    <footer>
+      <text>
+        <![CDATA[
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div><br />
+</body></html>
+]]>&Comment;
+      </text>
+    </footer>
+  </body3>
+</action>
+
+<action id="CPApproval" table="m56$000000" v="Giấy báo nợ chờ duyệt" e="Bank debit advice approval waiting for approval">
+  <fields>
+    <field name="h_title">
+      <header v="Giấy báo nợ chờ duyệt" e="Bank debit advice approval waiting for approval"/>
+    </field>
+    <field name="h_so_ct">
+      <header v="Số chứng từ" e="Number"/>
+    </field>
+    <field name="h_ngay_ct">
+      <header v="Ngày" e="Date"/>
+    </field>
+    <field name="h_ma_kh">
+      <header v="Khách hàng" e="Customer"/>
+    </field>
+    <field name="h_ma_kh_ct">
+      <header v="Mã khách" e="Customer ID"/>
+    </field>
+    <field name="h_ten_kh_ct">
+      <header v="Tên khách hàng" e="Customer Name"/>
+    </field>
+    <field name="h_ly_do">
+      <header v="Lý do thanh toán" e="Memo"/>
+    </field>
+    <field name="h_t_tien">
+      <header v="Tiền" e="Amount"/>
+    </field>
+    <field name="h_t_thue">
+      <header v="Thuế" e="Tax Amount"/>
+    </field>
+    <field name="h_t_tt">
+      <header v="Tổng thanh toán" e="Total"/>
+    </field>
+    <field name="h_ghi_chu">
+      <header v="Lý do:" e="Comment:"/>
+    </field>
+  </fields>
+
+  <query id="report">
+    <command id="master">
+      <text>
+        <![CDATA[
+declare @id int, @l varchar(8)
+select @id = @@contactID
+select @l = d_language from @@sysDatabaseName..userinfo2 where id = @id
+
+create table #msg (smsg varchar(10), msg0 nvarchar(4000), msg1 nvarchar(4000), msg2 nvarchar(4000), msg3 nvarchar(4000), msg4 nvarchar(4000), msg5 nvarchar(4000), msg6 nvarchar(4000), msg7 nvarchar(4000), msg8 nvarchar(4000), msg9 nvarchar(4000))
+insert into #msg exec AI_ERP$APV$GetApprovalDetail @@stt_rec, '00610', @l, 1, 1
+
+select case when loai_ct = '3' then 'body2' when loai_ct = '1' then 'body3' else 'body' end as bodyID, ltrim(so_ct) as so_ct, ma_nt, convert(varchar(12), a.ngay_ct, 103) as ngay_ct,
+    convert(varchar(32), a.datetime2, 121) as datetime2, case @l when 'v' then d.ten_kh else d.ten_kh2 end as ten_kh,
+    dien_giai, b.dien_thoai, b.e_mail, b.d_language, upper(ma_nhan) as ma_nhan, upper(ma_huy) as ma_huy, m.smsg, m.msg0, m.msg1, m.msg2, m.msg3, m.msg4, m.msg5, m.msg6, m.msg7, m.msg8, m.msg9
+  from @@table a, @@sysDatabaseName..userinfo2 b, dmxn c, dmkh d, #msg m
+  where a.stt_rec = @@stt_rec and b.id = @id and a.stt_rec = c.stt_rec and a.ma_kh = d.ma_kh and b.id = c.user_id
+]]>
+      </text>
+    </command>
+
+    <command id="footer">
+      <text>
+        <![CDATA[
+declare @amountFormat varchar(32), @ma_nt varchar(32)
+declare @t table(field varchar(32), format varchar(128))
+select @ma_nt = ma_nt from @@table where stt_rec = @@stt_rec
+
+if exists(select 1 from options where name = 'm_ma_nt0' and rtrim(val) = @ma_nt) select @amountFormat = rtrim(val) from options where name = 'm_ip_tien'
+else select @amountFormat = rtrim(val) from options where name = 'm_ip_tien_nt'
+
+insert into @t select 't_tien_nt', @amountFormat
+insert into @t select 't_thue_nt', @amountFormat
+insert into @t select 't_tt_nt', @amountFormat
+
+select cast(t_tien_nt as varchar) as t_tien_nt,
+cast(t_thue_nt as varchar) as t_thue_nt,
+cast(t_tt_nt as varchar) as t_tt_nt
+from @@table where stt_rec = @@stt_rec
+
+select * from @t
+]]>
+      </text>
+    </command>
+  </query>
+
+  <body>
+    <header>
+      <text>
+        <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body><div style="padding:8px">
+<div style="text-align:left;padding-bottom:8px;font-size:12px;font-weight:600;" class="ts">{!h_title}</div>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+</table><br/>
+<table class="ts detail" border="1" cellspacing="2" cellpadding="4">
+]]>
+      </text>
+    </header>
+
+    <footer>
+      <text>
+        <![CDATA[
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div><br />
+</body></html>
+]]>&Comment;
+      </text>
+    </footer>
+  </body>
+
+  <body2>
+    <header>
+      <text>
+        <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body><div style="padding:8px">
+<div style="text-align:left;padding-bottom:8px;font-size:12px;font-weight:600;" class="ts">{!h_title}</div>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+</table><br/>
+<table class="ts detail" border="1" cellspacing="2" cellpadding="4">
+]]>
+      </text>
+    </header>
+
+    <footer>
+      <text>
+        <![CDATA[
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div><br />
+</body></html>
+]]>&Comment;
+      </text>
+    </footer>
+  </body2>
+
+  <body3>
+    <header>
+      <text>
+        <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body><div style="padding:8px">
+<div style="text-align:left;padding-bottom:8px;font-size:12px;font-weight:600;" class="ts">{!h_title}</div>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+</table><br/>
+<table class="ts detail" border="1" cellspacing="2" cellpadding="4">
+]]>
+      </text>
+    </header>
+
+    <footer>
+      <text>
+        <![CDATA[
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div><br />
+</body></html>
+]]>&Comment;
+      </text>
+    </footer>
+  </body3>
+
+</action>

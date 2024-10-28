@@ -1,0 +1,226 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY LineCounter "7">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="ma_bp" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hreDepartment" reference="ten_bp%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_bp1" onDemand="true" categoryIndex="1">
+      <header v="Nhóm bộ phận 1" e="Department Group 1"></header>
+      <footer v="Nhóm bộ phận" e="Department Group"/>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nh_bp1%l" key="status = '1' and loai_nh = 1" check="loai_nh = 1"/>
+    </field>
+    <field name="ten_nh_bp1%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_bp2" onDemand="true" categoryIndex="1">
+      <header v="Nhóm bộ phận 2" e="Department Group 2"></header>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nh_bp2%l" key="status = '1' and loai_nh = 2" check="loai_nh = 2"/>
+    </field>
+    <field name="ten_nh_bp2%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_bp3" onDemand="true" categoryIndex="1">
+      <header v="Nhóm bộ phận 3" e="Department Group 3"></header>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nh_bp3%l" key="status = '1' and loai_nh = 3" check="loai_nh = 3"/>
+    </field>
+    <field name="ten_nh_bp3%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="nh_nv1" onDemand="true" categoryIndex="1">
+      <header v="Nhóm nhân viên 1" e="Employee Group 1"></header>
+      <footer v="Nhóm nhân viên" e="Employee Group"/>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv1%l" key="status = '1' and loai_nh = 1" check="loai_nh = 1"/>
+    </field>
+    <field name="ten_nh_nv1%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_nv2" onDemand="true" categoryIndex="1">
+      <header v="Nhóm nhân viên 2" e="Employee Group 2"></header>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv2%l" key="status = '1' and loai_nh = 2" check="loai_nh = 2"/>
+    </field>
+    <field name="ten_nh_nv2%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_nv3" onDemand="true" categoryIndex="1">
+      <header v="Nhóm nhân viên 3" e="Employee Group 3"></header>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv3%l" key="status = '1' and loai_nh = 3" check="loai_nh = 3"/>
+    </field>
+    <field name="ten_nh_nv3%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_vtr" onDemand="true" categoryIndex="1">
+      <header v="Vị trí công việc" e="Position"></header>
+      <items style="AutoComplete" controller="hrPosition" reference="ten_vtr%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vtr%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vtr1" onDemand="true" categoryIndex="1">
+      <header v="Nhóm vị trí công việc 1" e="Position Group 1"></header>
+      <footer v="Nhóm vị trí công việc" e="Position Group"/>
+      <items style="AutoComplete" controller="hrPositionGroup" reference="ten_nh_vtr1%l" key="status = '1' and loai_nh = 1" check="loai_nh = 1"/>
+    </field>
+    <field name="ten_nh_vtr1%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vtr2" onDemand="true" categoryIndex="1">
+      <header v="Nhóm vị trí công việc 2" e="Position Group 2"></header>
+      <items style="AutoComplete" controller="hrPositionGroup" reference="ten_nh_vtr2%l" key="status = '1' and loai_nh = 2" check="loai_nh = 2"/>
+    </field>
+    <field name="ten_nh_vtr2%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vtr3" onDemand="true" categoryIndex="1">
+      <header v="Nhóm vị trí công việc 3" e="Position Group 3"></header>
+      <items style="AutoComplete" controller="hrPositionGroup" reference="ten_nh_vtr3%l" key="status = '1' and loai_nh = 3" check="loai_nh = 3"/>
+    </field>
+    <field name="ten_nh_vtr3%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="tt_sx1" dataFormatString="0, 1, 2, 3" clientDefault="0" align="right" categoryIndex="1">
+      <header v="Thứ tự sx nhóm" e="Group Order"/>
+      <items style="Mask"/>
+    </field>
+    <field name="tt_sx2" dataFormatString="0, 1, 2, 3" clientDefault="0" align="right" categoryIndex="1">
+      <items style="Mask"/>
+    </field>
+    <field name="tt_sx3" dataFormatString="0, 1, 2, 3" clientDefault="0" align="right" categoryIndex="1">
+      <items style="Mask"/>
+    </field>
+
+    <field name="tt_nv" dataFormatString="*, 1, 2" clientDefault="*" align="right" categoryIndex="1">
+      <header v="Tình trạng nhân viên" e="Employee Status"/>
+      <footer v="1 - Chính thức, 2 - Thử việc, * - Cả hai" e="1 - Permanent, 2 - Probationary, * - All"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 20, 20, 20, 40, 100, 100, 130, 0, 0, 0"/>
+      <item value="1101: [nam].Label, [nam], [ten_nh_vtr3%l]"/>
+      <item value="110001001: [ma_bp].Label, [ma_bp], [ten_bp%l], [ten_nh_bp1%l]"/>
+      <item value="1100011-1: [nh_bp1].Description, [nh_bp1], [nh_bp2], [nh_bp3], [ten_nh_bp2%l]"/>
+      <item value="1100011-111: [nh_nv1].Description, [nh_nv1], [nh_nv2], [nh_nv3], [ten_nh_nv1%l], [ten_nh_nv2%l], [ten_nh_nv3%l]"/>
+      <item value="110001001: [ma_vtr].Label, [ma_vtr], [ten_vtr%l], [ten_nh_bp3%l]"/>
+      <item value="1100011-1: [nh_vtr1].Description, [nh_vtr1], [nh_vtr2], [nh_vtr3], [ten_nh_vtr1%l]"/>
+      <item value="1111----1: [tt_sx1].Label, [tt_sx1], [tt_sx2], [tt_sx3], [ten_nh_vtr2%l]"/>
+      <item value="11100000: [tt_nv].Label, [tt_nv], [tt_nv].Description"/>
+      <item value="1100000--: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 20, 20, 20, 40, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @ten_bp nvarchar(128)
+select @ten_bp = case when @@language = 'V' then ten_bp else ten_bp2 end from hrbp where ma_bp = @ma_bp
+select convert(char(4), @nam) as nam, @ma_bp as ma_bp, case when @ten_bp is null then case when @@language = 'V' then N'Tất cả các bộ phận' else N'All Departments' end else @ten_bp end as ten_bp
+exec hs_rptEmpStatisticsByJobNature @nam, @ma_bp, @nh_bp1, @nh_bp2, @nh_bp3, @nh_nv1, @nh_nv2, @nh_nv3, @ma_vtr, @nh_vtr1, @nh_vtr2, @nh_vtr3, @tt_sx1, @tt_sx2, @tt_sx3, @tt_nv, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var x = this.getItemValue('tt_sx1'), y = this.getItemValue('tt_sx2'), z = this.getItemValue('tt_sx3');
+if ((x == y && x != 0) || (x == z && x != 0) || (y == z && y != 0)) {
+  this._checked = false;
+  $func.hideWait(this.get_id());
+  $message.show(String.format($df.getResources(this._language, 'Message.RequiredField'), this.getItem('tt_sx1').field.Label), String.format('$find(\'{0}\').focus(\'{1}\');', this.get_id(), 'tt_sx1'));
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  if (!f.getItemValue('nam')) f.setItemValue('nam', (new Date()).getFullYear());
+  f.live(f.getItem('nam'));
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,c){var b=c.object,d=c.type.Context,h=c.type.Result;switch(d){case"Checking":var f=b.grid,g=b.getItemValue("nam"),e=b.getItem("ten_bp%l").value,a=b.getItem("ma_bp").value;if(a=="")if(b._language=="v")a="Tất cả các bộ phận";else a="All Department";else a=a+" - "+e;f._alterTitle=[null,[["%y",g,true],["%s",a,true]]]}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

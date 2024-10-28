@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Xem thông tin phép đã duyệt</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+
+</script>
+<style type="text/css">
+
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Xem thông tin phép đã duyệt</p>
+<p id="pic"><img src="Vie\hrApprovedAnnualLeaveRequest.png"/></p>
+<p id="p1"> Dùng để xem các thông tin nhân viên nghỉ phép đã được duyệt qua tin nhắn.</p>
+<p id="td2">Thao tác xin nghỉ phép qua tin nhắn</p>
+<p class="node">Cú pháp</p>
+<p class="node_d">
+L[Dấu cách]Số ngày[Dấu cách]Bắt đầu từ ngày d.M.y <br/>
+- M và y có thể không nhập, khi đó không cần nhập dấu "/" và sẽ được xác định bằng tháng hoặc năm hiện thời;<br/>
+- M có thể nhập có hoặc không có số 0 phía trước;<br/>
+ </p>
+<p class="e"> Ví dụ: 2 hoặc 02.</p>
+<p class="node_d">
+- y có thể nhập và nhập đủ 4 số;<br/>
+- Số ngày không nhập thì hiểu là 1 ngày.</p>
+<p class="e">
+Ví dụ: ngày hiện thời là 5/1 năm 2020, có thể nhắn tin nghỉ phép theo những cách sau:</p>
+<p id="pic"><img src="Vie\hrApprovedAnnualLeaveRequest1.png"/></p>
+<p class="note">Lưu ý dấu cách có thể gõ hai hoặc 3 dấu cách liền nhau vẫn hợp lệ ví dụ: L˽˽5˽˽˽01/02/2020</p>
+<p id="td2">Quy trình xử lý qua tin nhắn</p>
+<p id="p2">
+- Khi nhận được tin nhắn, chương trình sẽ dựa vào số điện thoại khai báo để xác định
+ được tin nhắn của nhân viên nào;<br/>
+ 
+- Sau đó tiến hành kiểm tra, nếu nhân viên này đang xin nghỉ phép nhưng vẫn chưa được duyệt hoặc đã được duyệt 
+thì nhắn lại cho người gửi là <strong>"Ban da co yeu cau xin nghi phep truoc do, nen khong duoc duyet"</strong>;<br/>
+- Hoặc nhân viên đã quá hạn phép, câu thông báo là <strong>"So ngay phep xin nghi khong hop le"</strong>;<br/>
+- Trường hợp thỏa mãn, hệ thống sẽ chuyển tiếp cho người quản lý trực tiếp của nhân viên nội dung tin nhắn, giả định như sau:</p>
+<p id="p3">
+<strong>"Nhan vien Nguyen Van A xin nghi 2 ngay phep bat dau tu ngay 21/01/2020<br/>
+So du phep trong nam cua A con: 3 ngay<br/>
+De duyet nhan so XXXXXX de huy nhan so XXXXXX."
+</strong>
+</p>
+<p id="p2">- Sau khi gửi xong hệ thống sẽ gửi luôn cho nhân viên là "Thong tin ban gui da duoc chuyen cho quan ly xem xet".<br/>
+- Khi nhận được tin nhắn từ quản lý, hệ thống sẽ gửi lại cho nhân viên kết quả và thông báo cho quản lý đã xác nhận.</p>
+
+<p class="note">
+Tin nhắn chỉ duyệt nếu ngày xin phép nghỉ lớn hơn ngày hiện tại. Chương trình sẽ kiểm tra nếu trước đó đã xin phép mà chưa được duyệt hoặc 
+đã xin phép và được duyệt nhưng chưa tới ngày nghỉ. (Trường hợp xin 1 ngày sau đó xin thêm 1 ngày nữa là không được, phải nghỉ xong ngày xin mới 
+được xin tiếp. Nghỉ xong nghĩa là phải chờ qua ngày đó);<br/>
+Quá n ngày thì mã số duyệt và hủy không còn ý nghĩa nữa.</p>
+
+<p id="p2">
+- Bất cứ cú pháp nào không hợp lệ hoặc mã số không hợp lệ đều gửi lại cho người gửi thông báo:"Tin nhan ban gui khong hop le"</p>
+
+<p id="td2">Chuyển dữ liệu sang cập nhật nghỉ, vắng mặt</p>
+<p id="p2">Chương trình cho phép chuyển dữ liệu sang cập nhật nghỉ, vắng mặt những bản ghi đã được duyệt phép.</p>
+<ul class="lo_0">
+- Nhấn "Chọn" bản ghi cần chuyển;<br/>
+- Nhấn <img src="Vie\new1.png"/> - Chuyển dữ liệu sang cập nhật nghỉ, vắng mặt;<br/>
+- Nhập "Loại nghỉ": Chọn loại nghỉ lưu qua nghỉ, vắng mặt;<br/>
+- Nhập Ca/Số giờ khi không khai báo thông ca/giờ trong thông tin chấm công nhân viên;<br/>
+- Nhập Kiểu sao chép: 1 - Chép đè: Lưu qua nghỉ, vắng mặt khi có trùng nhân viên/ngày từ/loại nghỉ, 0 - Không: Không lưu qua nghỉ, vắng mặt khi có trùng nhân viên/ngày từ/loại nghỉ
+</ul>
+<p class="note">Lập luận về việc giao, trùng thời gian tương tự như nhập liệu thủ công.</p>
+
+<p id="td2">Thao tác xin nghỉ phép qua việc gửi tin nhắn giả lập</p>
+<p id="p2">Người dùng muốn gửi tin nhắn giả lập và nhận được tin nhắn qua thư điện tử, phải thực hiện đầy đủ các bước sau:</p>
+<ul class="lo_0">
+- Bước 1: Khai báo người sử dụng (địa chỉ thư điện tử và số điện thoại) của người xin phép (A) và người duyệt (B);<br/>
+- Bước 2: Cập nhật thông tin nhân viên A, B (có địa chỉ thư điện tử và số điện thoại tương ứng như trong phần khai báo người sử dụng). 
+Trong thông tin nhân viên B có cập nhật "Người quản lý trực tiếp" là A;<br/>
+- Bước 3: Khai báo quyền nhân viên: mã nhân viên A có chọn NSD A, mã nhân viên B có chọn NSD B (có thể tạo mã trùng hoặc khác nhau giữa mã 
+nhân viên và mã người sử dụng);<br/>
+- Bước 4: Nhân viên B vào khai báo người sử dụng chọn đúng mã của mình và nhấn tổ hợp phím "Ctrl + Alt + F2", chương trình thể hiện màn 
+hình:</ul>
+<p id="pic"><img src="Vie\hrApprovedAnnualLeaveRequest2.png"/></p>
+<ul class="lo_0">
+Cập nhật nội dung như cú pháp trên phần "Thao tác xin nghỉ phép qua tin nhắn".<br/>
+- Bước 5: Quy trình xử lý qua thư điện tử cũng tương tự như quy trình xử lý qua tin nhắn điện thoại.</ul>
+<p class="note">
+Thao tác xin nghỉ phép qua việc gửi tin nhắn giả lập chỉ thực hiện được trong điều kiện dịch vụ liên quan đã được kích hoạt sử dụng. 
+Chi tiết liên hệ quản trị hệ thống và chuyên viên triển khai dự án.
+</p>
+<script type="text/javascript" src="setPageFooter.js"></script>
+</body>
+</html>

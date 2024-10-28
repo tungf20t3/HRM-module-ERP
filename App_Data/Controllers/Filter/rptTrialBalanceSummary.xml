@@ -1,0 +1,186 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY % CompactMode SYSTEM "..\Include\CompactMode.ent">
+  %CompactMode;
+
+  <!ENTITY Delta12 "0">
+  <!ENTITY Delta22 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.Tiny SYSTEM "..\Include\ReportMargin.Tiny">
+  %ReportMargin.Tiny;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay1" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Từ/đến ngày" e="Date from/to"></footer>
+    </field>
+    <field name="ngay2" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="001">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="002">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+        &ReportFormAccumulationFields;
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="tk_so_cai" type="Boolean" clientDefault="1" categoryIndex="2" hidden="true" readOnly="true">
+      <header v="Xem tk số cái" e="View GL Account"></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="tk_so_cai_1" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="2" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+      <footer v="0 - Xem tất, 1 - Chỉ xem tk sổ cái" e="0 - All, 1 - GL Account"/>
+      <items style="Mask"></items>
+    </field>
+    <field name="tk" type="Boolean" clientDefault="1" categoryIndex="2">
+      <header v="Xem tài khoản" e="Account"></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="tk_1" categoryIndex="2">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk%l" key="status = '1'" check="1 = 1">
+      </items>
+    </field>
+    <field name="ten_tk%l" external="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="tk_bac" type="Boolean" categoryIndex="2">
+      <header v="Xem tk có bậc &lt;=" e="Level &lt;="></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="tk_bac_1" dataFormatString="###" maxLength="3" clientDefault="99" categoryIndex="2">
+      <header v="" e=""></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="xem_tat" type="Boolean" categoryIndex="2">
+      <header v="Xem tất" e="All"></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="tk_chi_tiet" type="Boolean" categoryIndex="2">
+      <header v="Chỉ xem tài khoản chi tiết" e="Only Detail Account"></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 20, 80, 100, 100, 130, 0"/>
+      <item value="110----: [ngay1].Label, [ngay1]"/>
+      <item value="110----: [ngay2].Label, [ngay2]"/>
+
+      <item value="11000--: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000--: [mau_bc].Label, [mau_bc]"/>
+
+      <item value="110010100: [tk], [tk].Label, [tk_1], [ten_tk%l]"/>
+      <item value="110010-11: [tk_bac], [tk_bac].Label, [tk_bac_1], [tk_so_cai], [tk_so_cai_1]"/>
+      <item value="--111100-: [xem_tat], [xem_tat].Label, [tk_chi_tiet], [tk_chi_tiet].Label"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 20, 80, 100, 100, 130, 0">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        <category index="2" columns="20, 30, 20, 50, 20, 80, 100, 100, 130">
+          <header v="Khác" e="Other"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @nam int, @bu_tru varchar(1024), @sd_1ve varchar(1024), @sd_2ve varchar(1024), @reportType varchar(1)
+select @sd_1ve = val from options where name = 'm_ds_tk_cn_1ve'
+select @sd_2ve = val from options where name = 'm_ds_tk_2ve'
+select @bu_tru = val from options where name = 'm_ds_tk_ctr'
+select @reportType = rtrim(val) from options where name = 'm_kieu_bc'
+select @mau_bc = substring(@mau_bc, 2, 1)
+
+create table #tmp (quy int, nam int)
+insert into #tmp exec AI_ERP$Report$GetQuaterAndYear @ngay1, @ngay2
+select @nam = nam from #tmp
+drop table #tmp
+
+select cast(@ngay1 as smalldatetime) as date_from, cast(@ngay2 as smalldatetime) as date_to, '' as h_line1, '' as h_line2, '' as h_line3, '' as h_line4, isnull(@reportType, '') as kieu_bc
+  , case when @nam <> 0 then @nam else year(@ngay1) end as nam_tc
+exec rs_rptTrialBalanceSummary @ngay1, @ngay2, @ma_dvcs, @tk_so_cai_1, @tk_1, @tk_bac_1, @tk_chi_tiet, @bu_tru, @sd_1ve, @sd_2ve, @mau_bc, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptQueryFilterString;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function onTabChanged(o, e) {
+  var f = o.parentForm, c = f.getItemValue('tk') ? 'tk_1' : 'tk_bac_1';
+  f.focusWhenTabChanged(['ma_dvcs', c]);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function active$VoucherFilter$(a){a._tabContainer.add_activeTabChanged(onTabChanged);a._tabContainer._loaded=true;a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");if(a.getItemValue("tk"))a.getItem("tk_bac_1").disabled=a.getItem("xem_tat").disabled=a.getItem("tk_chi_tiet").disabled=true;else{var b=a.getItem("tk_1");$common.setVisible(b.a,false);b.disabled=true}}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,d){var b=d.object,e=d.type.Context,h=d.type.Result;switch(e){case"Checking":var c=b.grid,a=b.getItemValue("mau_bc"),f=b.getItem("ngay1").value,g=b.getItem("ngay2").value;c._hiddenFields=[{Fields:"lk_no_ck, lk_co_ck",Value:a=="001"||a=="002"},{Fields:"no_dk_nt0, co_dk_nt0, lk_no_dk_nt, lk_co_dk_nt",Value:a=="001"||a=="002"||a=="011"||a=="021"||a=="022"},{Fields:"lk_no_ck_nt, lk_co_ck_nt",Value:a=="001"||a=="002"||a=="011"||a=="021"},{Fields:"no_dk0, co_dk0, lk_no_dk, lk_co_dk",Value:a=="001"||a=="002"||a=="021"||a=="022"},{Fields:"no_dk_nt, co_dk_nt, ps_no_nt, ps_co_nt, no_ck_nt, co_ck_nt",Value:a=="001"||a=="011"||a=="012"||a=="021"},{Fields:"no_dk, co_dk, ps_no, ps_co, no_ck, co_ck",Value:a=="011"||a=="012"}];c._hiddenForms=[{Form:[2,3,4,5,8,9,10,11,15,16,17,18,21,22,23,24],Value:a=="001"||a=="002"},{Form:[0,1,4,5,6,7,10,11,13,14,17,18,19,20,23,24],Value:a=="011"||a=="012"},{Form:[0,1,2,3,6,7,8,9,13,14,15,16,19,20,21,22],Value:a=="021"||a=="022"}];c._alterTitle=[null,[["%d1",f,true],["%d2",g,true]]];c._queryFilterString=getQueryFilterString(b,"mau_bc, ngay1, ngay2, ma_dvcs");remove$GridReport$Filter(c)}}function onchange$Item(e){var a=e.parentForm,b=e.field.Name,f=b=="tk_bac",d=["tk","tk_bac","xem_tat","tk_chi_tiet"];if(b!="xem_tat"&&b!="tk_chi_tiet")a.getItem("xem_tat").disabled=a.getItem("tk_chi_tiet").disabled=!f;$common.setVisible(a.getItem("tk_1").a,b=="tk");for(var c=0;c<d.length;c++)if(a.getItem(d[c])!=e)a.getItem(d[c]).checked=false;else a.getItem(b).checked=true;if(b=="tk"){setItemDisable(a.getItem("tk"));a.getItem("tk_bac_1").value="99"}else{a.getItem("tk_1").value="";a.getItem("ten_tk%l").value=""}if(b=="tk_bac"){setItemDisable(a.getItem("tk_bac"));a.getItem("xem_tat").checked=true}if(b=="xem_tat")a.getItem("tk_bac").checked=true;if(b=="tk_chi_tiet")a.getItem("tk_bac").checked=true;a.getItem(a.getItemValue("tk")?"tk_1":"tk_bac_1").focus()}function setItemDisable(c){for(var d=c.parentForm,e=c.field.Name,b=["tk_1","tk_bac_1"],a=0;a<b.length;a++)d.getItem(b[a]).disabled=e+"_1"!=b[a]}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

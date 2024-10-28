@@ -1,0 +1,70 @@
+<field name="ma_dvcs" column="A" allowNulls="false" upperCase="true" check="ma_dvcs not in (select ma_dvcs from dmdvcs)&And;exists(select 1 from #unit b where @@table.ngay_ct = b.ngay_ct and @@table.so_ct = b.so_ct having count(b.ma_dvcs) &gt; 1)&And;ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)" condition="&And;&And;if @admin = 0 begin" tag="&And;&And;end" errorCode="00001&And;00002&And;00002" resource="master, tax, inquiry, general, inputTax" category="1"/>
+<field name="ma_kh" column="B" allowNulls="false" upperCase="true" resource="master" check="ma_kh not in (select ma_kh from dmkh)" errorCode="00001" category="1"/>
+<field name="ngay_ct" column="D" allowNulls="false" type="DateTime" resource="master, detail, tax, inquiry, general, inputTax"/>
+<field name="so_ct" column="E" allowNulls="false" upperCase="true" resource="master, detail, tax, inquiry, general, inputTax"/>
+<field name="loai_ct" column="F" allowNulls="false" resource="master, tax, inputTax" check="loai_ct not in ('2', '3')" errorCode="00002" category="1"/>
+<field name="tk" column="G" allowNulls="false" upperCase="true" resource="master" check="tk not in (select tk from dmtk where loai_tk = 1)" errorCode="00001" category="1"/>
+<field name="dien_giai" column="H" resource="master"/>
+
+<field name="tk_no" column="I" reference="1" allowNulls="false" upperCase="true" resource="detail" check="tk_no not in (select tk from dmtk where loai_tk = 1)" errorCode="00001" category="1"/>
+<field name="ma_kh_i" column="J" reference="1" upperCase="true" resource="detail" check="loai_ct = '3' and exists(select 1 from dmtk b where @@table.tk_no = b.tk and b.tk_cn = 1) and ma_kh_i not in (select ma_kh from dmkh)&And;loai_ct &lt;&gt; '3' and ma_kh_i &lt;&gt; ''" errorCode="00001&And;00002" category="1"/>
+<field name="tien_nt" column="L" type="Decimal" resource="detail"/>
+<field name="ma_nt" column="M" upperCase="true" resource="master, tax, inputTax" check="ma_nt not in (select ma_nt from dmnt)" errorCode="00001" category="1"/>
+<field name="ty_gia" column="N" type="Decimal" defaultValue="1" resource="master, tax, inputTax"/>
+<field name="dien_giai_ct" column="O" reference="1.dien_giai" relation="dien_giai" insertValue="dien_giai" resource="detail"/>
+
+<field name="ma_thue" column="P" reference="1" upperCase="true" resource="tax, inputTax" check="ma_thue &lt;&gt; '' and ma_thue not in (select ma_thue from dmthue)&And;ma_thue = '' and ((tk_thue_no &lt;&gt; '') or (t_thue_nt &lt;&gt; 0) or (mau_bc &lt;&gt; '') or (ma_tc &lt;&gt; '') or (ma_mau_ct &lt;&gt; '') or (so_ct0 &lt;&gt; '') or (so_seri0 &lt;&gt; '') or (ngay_ct0 is not null) or (ma_kh_j &lt;&gt; '') or (ten_kh_j &lt;&gt; '') or (dia_chi_j &lt;&gt; '') or (ma_so_thue &lt;&gt; '') or (ten_vt &lt;&gt; '') or (ma_kh2 &lt;&gt; '') or (ghi_chu &lt;&gt; ''))" errorCode="00001&And;invalidValueMessage" category="2"/>
+<field name="tk_thue_no" column="Q" reference="2" upperCase="true" resource="tax, inputTax" check="ma_thue &lt;&gt; '' and tk_thue_no not in (select tk from dmtk where loai_tk = 1)" errorCode="00001" category="3"/>
+<field name="t_thue_nt" column="R" type="Decimal" resource="master, tax, inputTax"/>
+<field name="mau_bc" column="S" reference="1" upperCase="true" resource="tax, inputTax" check="ma_thue &lt;&gt; '' and mau_bc not in (select mau_bc from dmmaubc3)" errorCode="00001" category="3"/>
+<field name="ma_tc" column="T" reference="1" upperCase="true" resource="tax, inputTax" check="ma_thue &lt;&gt; '' and ma_tc not in (select ma_tc from v20dmtcthue)" errorCode="00001" category="3"/>
+<field name="ma_mau_ct" column="U" reference="2" upperCase="true" resource="tax, inputTax" check="ma_thue &lt;&gt; '' and ma_mau_ct &lt;&gt; '' and ma_mau_ct not in (select ma_mau_ct from dmmauct)" errorCode="00001" category="3"/>
+<field name="so_ct0" column="V" reference="2" upperCase="true" resource="tax, inputTax" check="ma_thue &lt;&gt; '' and so_ct0 = ''" errorCode="invalidValueMessage" category="3"/>
+<field name="so_seri0" column="W" reference="1" upperCase="true" resource="tax, inputTax"/>
+<field name="ngay_ct0" column="X" type="DateTime" resource="tax, inputTax" check="ma_thue &lt;&gt; '' and ngay_ct0 is null" errorCode="invalidValueMessage" category="3"/>
+<field name="ma_kh_j" column="Y" reference="2.ma_kh" upperCase="true" relation="ma_kh" resource="tax, inputTax" check="ma_thue &lt;&gt; '' and ma_kh_j &lt;&gt; '' and ma_kh_j not in (select ma_kh from dmkh where cc_yn = 1)" errorCode="00001" category="3"/>
+<field name="ten_kh_j" column="Z" reference="2.ten_kh" relation="ten_kh" resource="tax, inputTax" check="ma_thue &lt;&gt; '' and ten_kh_j = ''" errorCode="invalidValueMessage" category="3"/>
+<field name="dia_chi_j" column="AA" reference="2.dia_chi" relation="dia_chi" resource="tax, inputTax"/>
+<field name="ma_so_thue" column="AB" reference="1" resource="tax, inputTax"/>
+<field name="ten_vt" column="AC" reference="1" resource="tax, inputTax"/>
+<field name="ma_kh2" column="AD" reference="1" upperCase="true" resource="tax, inputTax" check="ma_thue &lt;&gt; '' and ma_kh2 = '' and exists(select 1 from dmtk b where @@table.tk_thue_no = b.tk and b.tk_cn = 1)&And;ma_thue &lt;&gt; '' and ma_kh2 &lt;&gt; '' and ma_kh2 not in (select ma_kh from dmkh)" errorCode="invalidValueMessage&And;00001" category="3"/>
+<field name="ghi_chu" column="AE" reference="1" resource="tax, inputTax"/>
+
+<field name="ma_vv" column="AF" reference="1" upperCase="true" resource="detail, tax, inputTax" check="ma_vv &lt;&gt; '' and ma_vv not in (select ma_vv from dmvv)" errorCode="00001" category="3"/>
+<field name="ma_bp" column="AG" reference="1" upperCase="true" resource="detail, tax, inputTax" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from dmbp)" errorCode="00001" category="3"/>
+<field name="so_lsx" column="AH" reference="1" upperCase="true" resource="detail, tax, inputTax" check="so_lsx &lt;&gt; '' and so_lsx not in (select so_lsx from phlsx)" errorCode="00001" category="3"/>
+<field name="ma_sp" column="AI" reference="1" upperCase="true" resource="detail, tax, inputTax" check="ma_sp &lt;&gt; '' and ma_sp not in (select ma_vt from vdmsp)" errorCode="00001" category="3"/>
+<field name="ma_hd" column="AJ" reference="1" upperCase="true" resource="detail, tax, inputTax" check=" ma_hd &lt;&gt; '' and ma_hd not in (select ma_hd from dmhd)" errorCode="00001" category="3"/>
+<field name="ma_phi" column="AK" reference="1" upperCase="true" resource="detail, tax, inputTax" check="ma_phi &lt;&gt; '' and ma_phi not in (select ma_phi from dmphi)" errorCode="00001" category="3"/>
+<field name="ma_ku" column="AL" reference="1" upperCase="true" resource="detail, tax, inputTax" check="ma_ku &lt;&gt; '' and ma_ku not in (select ma_ku from dmku)" errorCode="00001" category="3"/>
+
+<field name="stt_rec" column="None" resource="master, detail, tax, inquiry, general, inputTax"/>
+<field name="stt_rec0" column="None" resource="detail, tax, inputTax"/>
+<field name="ma_ct" column="None" insertValue="@voucherID" expression="''' + @voucherID + '''" resource="master, detail, tax, inputTax"/>
+<field name="ngay_lct" column="None" type="DateTime" insertValue="ngay_ct&And;&And;ngay_ct&And;&And;&And;ngay_ct" resource="master, tax30, inputTax"/>
+
+<field name="tien" column="None" type="Decimal" resource="detail"/>
+<field name="tt" column="None" type="Decimal" resource="detail" insertValue="d.tien"/>
+<field name="tt_nt" column="None" type="Decimal" resource="detail" insertValue="d.tien_nt"/>
+<field name="line_nbr" column="None" type="Int" resource="detail, tax, inputTax"/>
+
+<field name="t_tien" column="None" type="Decimal" resource="master, tax, inputTax"/>
+<field name="t_tien_nt" column="None" type="Decimal" resource="master, tax, inputTax"/>
+<field name="t_thue" column="None" type="Decimal" resource="master, tax, inputTax"/>
+<field name="t_tt_nt" column="None" type="Decimal" insertValue="t_tien_nt + t_thue_nt" resource="master"/>
+<field name="t_tt" column="None" type="Decimal" insertValue="t_tien + t_thue" resource="master"/>
+
+<field name="tk_du" column="None" resource="tax, inputTax"/>
+<field name="thue_suat" column="None" type="Decimal" resource="tax30, inputTax"/>
+
+<field name="loai_hd" column="None" insertValue="''0''" resource="detail"/>
+
+<field name="c$" column="None" resource="inquiry"/>
+<field name="m$" column="None" resource="inquiry"/>
+<field name="d$" column="None" resource="inquiry"/>
+
+<field name="status" column="None" insertValue="@status" expression="' + @status + '" resource="master, tax, inquiry, general, inputTax"/>
+<field name="datetime0" column="None" type="DateTime" insertValue="@d0" expression="''' + @datetime0 + '''" resource="master, tax, inputTax"/>
+<field name="datetime2" column="None" type="DateTime" insertValue="@d0" expression="''' + @datetime0 + '''" resource="master, tax, inputTax"/>
+<field name="user_id0" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master, tax, inquiry, general, inputTax"/>
+<field name="user_id2" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master, tax, inputTax"/>

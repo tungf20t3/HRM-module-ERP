@@ -1,0 +1,224 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.CustomerBalanceAdjustment;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "
+declare @filename varchar(128)
+if @@language = 'v' select @filename = 'CustomerBalanceAdjustment'
+else select @filename = 'CustomerBalanceAdjustment2'
+">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$CustomerBalanceAdjustmentImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$CustomerBalanceAdjustmentImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dccdkh"/>
+    <table value="dccdkh" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+        <![CDATA[if ]]>&Tiny.External.ConfigEvent;<![CDATA[ = 1 select '1' as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[ else select '0' as view_index]]>&ExportImportTemplateQueryReturnFileName;
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        <field name="tk" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" check="tk not in (select tk from dmtk where loai_tk = 1 and tk_cn = 1)" updateValue="None" errorCode="00001"/>
+        <field name="ma_kh" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_kh not in (select ma_kh from dmkh)" updateValue="None" errorCode="00001"/>
+        <field name="du_no00" column="D" type="Decimal"/>
+        <field name="du_co00" column="E" type="Decimal"/>
+
+        <field name="ma_dvcs" column="" isPrimaryKey="true" insertValue="@@unit" updateValue="None" defaultValue="@@unit"/>
+        <field name="du_no_nt00" column="" type="Decimal"/>
+        <field name="du_co_nt00" column="" type="Decimal"/>
+
+        <field name="nam" column="None" type="Decimal" insertValue="@nam" updateValue="None"/>
+        <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+        <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+        <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+        <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+      </fields>
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where year(ngay_ks) >= @nam)&And;not exists(select 1 from dccdkh b where @@table.ma_dvcs = b.ma_dvcs and @@table.tk = b.tk and @@table.ma_kh = b.ma_kh and b.nam = @nam) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from dccdkh b where @@table.ma_dvcs = b.ma_dvcs and @@table.tk = b.tk and @@table.ma_kh = b.ma_kh and b.nam = @nam) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;&And;if (@admin &lt;&gt; 1) begin&And;if (@admin &lt;&gt; 1 and @type = '1') begin" tag="&And;&And;end&And;end" errorCode="00001&And;00001&And;00001&And;00001"/>
+    <field name="tk" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" check="tk not in (select tk from dmtk where loai_tk = 1 and tk_cn = 1)" updateValue="None" errorCode="00001"/>
+    <field name="ma_kh" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_kh not in (select ma_kh from dmkh)" updateValue="None" errorCode="00001"/>
+    <field name="du_no00" column="E" type="Decimal"/>
+    <field name="du_co00" column="F" type="Decimal"/>
+    <field name="du_no_nt00" column="G" type="Decimal"/>
+    <field name="du_co_nt00" column="H" type="Decimal"/>
+
+    <field name="nam" column="None" type="Decimal" insertValue="@nam" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="&Tiny.External.Grid.Title.v;" e="&Tiny.External.Grid.Title.e;"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="tk" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tài khoản" e="Account"/>
+      </field>
+      <field name="ma_kh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã kh/ncc" e="Customer ID"/>
+      </field>
+      <field name="ten_kh" afterField="ma_kh" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên kh/ncc" e="Customer Name"/>
+      </field>
+      <field name="du_no00" width="16">
+        <text v="Dư nợ" e="Debit"/>
+      </field>
+      <field name="du_co00" width="16">
+        <text v="Dư có" e="Credit"/>
+      </field>
+      <field name="du_no_nt00" width="16">
+        <text v="Dư nợ nt" e="FC Debit"/>
+      </field>
+      <field name="du_co_nt00" width="16">
+        <text v="Dư có nt" e="FC Credit"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @q nvarchar(4000), @field varchar(32), @user int, @admin bit, @r int, @y int, @d datetime, @year int, @inputYearOpening bit, @inputCustomerBalance bit
+select @admin = @@admin, @user = @@userID, @d = getDate()
+select @inputCustomerBalance = case when val = 1 then 1 else 0 end from options where rtrim(name) = 'm_cn_dn'
+
+if @admin = 0 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'CustomerBalanceAdjustment', 'Edit') = 0 select @type = '0'
+  end
+end
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+update @@table set du_co_nt00 = 0 where du_no_nt00 <> 0
+update @@table set du_co00 = 0 where du_no00 <> 0
+
+if @type = '0' delete @@table from @@table a where exists(select 1 from dccdkh b where b.nam = @nam and a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_kh = b.ma_kh)
+
+select distinct ma_dvcs, tk into #c from @@table
+select a.* into #k from @@table a join dccdkh b on b.nam = @nam and a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_kh = b.ma_kh
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_kh = b.ma_kh)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+insert into cdkh (nam, ma_dvcs, tk, ma_kh, du_no00, du_co00, du_no_nt00, du_co_nt00, du_no1, du_co1, du_no_nt1, du_co_nt1, dien_giai, ma_nt, ty_gia, ma_vv, status, datetime0, datetime2, user_id0, user_id2)
+  select @nam, ma_dvcs, tk, ma_kh, du_no00, du_co00, du_no_nt00, du_co_nt00, 0, 0, 0, 0, '', '', 0, '', '1', getdate(), getdate(), 0, 0
+    from @@table a where not exists (select 1 from cdkh where nam = @nam and tk = a.tk and ma_dvcs = a.ma_dvcs and ma_kh = a.ma_kh)
+
+update cdkh set du_no00 = b.du_no00, du_co00 = b.du_co00, du_no_nt00 = b.du_no_nt00, du_co_nt00 = b.du_co_nt00
+  from cdkh a join @@table b on a.nam = @nam and a.tk = b.tk and a.ma_dvcs = b.ma_dvcs and a.ma_kh = b.ma_kh
+
+if not exists(select 1 from dmstt where nam_bd = @nam)
+  update cdkh set du_no1 = b.du_no00, du_co1 = b.du_co00, du_no_nt1 = b.du_no_nt00, du_co_nt1 = b.du_co_nt00 from cdkh a join @@table b on a.nam = @nam and a.tk = b.tk and a.ma_dvcs = b.ma_dvcs and a.ma_kh = b.ma_kh
+
+update dmkh set du13 = du13 + (b.du_no00 - b.du_co00) from dmkh a join (select ma_kh, sum(du_no00) as du_no00, sum(du_co00) as du_co00 from @@table group by ma_kh) b on a.ma_kh = b.ma_kh
+
+select @year = nam_bd, @inputYearOpening = case when month(ngay_ky1) = month(ngay_dn2) and day(ngay_ky1) = day(ngay_dn2) then 0 else 1 end from dmstt
+if @nam > 0 begin
+  if @nam > @year select @inputYearOpening = 0
+  select @year = @nam
+end
+
+insert into cdtk(nam, ma_dvcs, tk, du_no00, du_co00, du_no_nt00, du_co_nt00, du_no1, du_co1, du_no_nt1, du_co_nt1, status, datetime0, datetime2, user_id0, user_id2)
+  select @year, ma_dvcs, tk,  0, 0, 0, 0, 0, 0, 0, 0, '1', getdate(), getdate(), 0, 0 from #c a where not exists(select 1 from cdtk b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and b.nam = @year)
+
+
+if @type = '1' and exists(select 1 from #k) begin
+  select a.ma_kh, sum(a.du_no00 - a.du_co00) as du into #old from cdkh a join #k b on a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_kh = b.ma_kh where a.nam = @year group by a.ma_kh
+
+  ]]>&Updating;<![CDATA[ and a.nam = @nam
+
+  update cdkh set du_no00 = b.du_no00, du_co00 = b.du_co00, du_no_nt00 = b.du_no_nt00, du_co_nt00 = b.du_co_nt00 from cdkh a join #k b on a.nam = @nam and a.tk = b.tk and a.ma_dvcs = b.ma_dvcs and a.ma_kh = b.ma_kh
+
+  if not exists(select 1 from dmstt where nam_bd = @nam)
+    update cdkh set du_no1 = b.du_no00, du_co1 = b.du_co00, du_no_nt1 = b.du_no_nt00, du_co_nt1 = b.du_co_nt00 from cdkh a join #k b on a.nam = @nam and a.tk = b.tk and a.ma_dvcs = b.ma_dvcs and a.ma_kh = b.ma_kh
+
+   update dmkh set du13 = du13 + isnull(b.du, 0) - isnull(c.du, 0) from dmkh a join (select ma_kh, sum(du_no00 - du_co00) as du from #k group by ma_kh) b on a.ma_kh = b.ma_kh join #old c on a.ma_kh = c.ma_kh
+end
+
+
+-- Account Balance
+select a.tk, a.ma_dvcs, sum(a.du_no00) as du_no00, sum(a.du_co00) as du_co00, sum(a.du_no_nt00) as du_no_nt00, sum(a.du_co_nt00) as du_co_nt00, sum(a.du_no1) as du_no1, sum(a.du_co1) as du_co1, sum(a.du_no_nt1) as du_no_nt1, sum(a.du_co_nt1) as du_co_nt1 into #cdkh
+  from cdkh a join #c b on a.ma_dvcs = b.ma_dvcs and a.tk = b.tk where nam = @year group by a.tk, a.ma_dvcs
+
+if @inputYearOpening = 0
+  update cdtk set du_no00 = b.du_no00, du_co00 = b.du_co00, du_no_nt00 = b.du_no_nt00, du_co_nt00 = b.du_co_nt00, du_no1 = b.du_no00, du_co1 = b.du_co00, du_no_nt1 = b.du_no_nt00, du_co_nt1 = b.du_co_nt00 from cdtk a join #cdkh b on a.tk = b.tk and a.ma_dvcs = b.ma_dvcs where a.nam = @year
+else begin
+  if @inputCustomerBalance = 0
+    update cdtk set du_no00 = b.du_no00, du_co00 = b.du_co00, du_no_nt00 = b.du_no_nt00, du_co_nt00 = b.du_co_nt00 from cdtk a join #cdkh b on a.tk = a.tk  and a.ma_dvcs = b.ma_dvcs where a.nam = @year
+  else
+    update cdtk set du_no00 = a.du_no00, du_co00 = a.du_co00, du_no_nt00 = a.du_no_nt00, du_co_nt00 = a.du_co_nt00, du_no1 = a.du_no1, du_co1 = a.du_co1, du_no_nt1 = a.du_no_nt1, du_co_nt1 = a.du_co_nt1 from cdtk a join #cdkh b on a.ma_dvcs = b.ma_dvcs and a.tk = b.tk where a.nam = @year
+end
+]]>
+    </text>
+  </processing>
+
+</import>

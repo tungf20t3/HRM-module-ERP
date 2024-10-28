@@ -1,0 +1,21 @@
+<![CDATA[
+declare @s nvarchar(128), @l int, @size int, @i int, @delta int
+select top 0 identity(int, 1, 1) as id, stt_rec, cast('' as char(3)) as stt_rec0, cast('' as char(6)) as p into #tagRow from ]]>&FlowMultiGeneralTable;<![CDATA[
+select @size = 0
+select @i = 1, @l = datalength(text) from @k
+select @size = charindex(',', text, @size) from @k
+
+while @size > 0 and @size < @l begin
+  select @s = replace(substring(text, @i, @size - @i), '''', '') from @k
+  insert into #tagRow(stt_rec, stt_rec0) select left(@s, charindex(char(255), @s) - 1), right(@s, (len(@s) - charindex(char(255), @s)))
+  select @i = @size + 1, @delta = charindex(',', substring(text, @size + 1, @l - @size)) from @k
+  if @delta = 0 break
+
+  select @size = @size + @delta
+end
+if @i < @l begin
+  select @s = replace(substring(text, @i, @l - @i), '''', '') from @k
+  insert into #tagRow(stt_rec, stt_rec0) select left(@s, charindex(char(255), @s) - 1), right(@s, (len(@s) - charindex(char(255), @s)))
+end
+update #tagRow set p = convert(char(6), b.ngay_ct, 112) from #tagRow a join ]]>&FlowMultiGeneralTable;<![CDATA[ b on b.stt_rec = a.stt_rec
+]]>

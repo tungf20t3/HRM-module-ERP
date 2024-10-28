@@ -1,0 +1,51 @@
+﻿<![CDATA[
+function show$]]>&Identity;<![CDATA[$(f) {
+  var z = f.grid, h = z.get_element().parentForm, queryFilterString = '', c = String.fromCharCode(253);
+  queryFilterString = h.getItemValue('ma_dvcs');
+  queryFilterString += c + h.getItemValue('ma_kh');
+  queryFilterString += c + z._filter$Fields[0];
+  var d = h.getItemValue('ngay_ct').z;
+  queryFilterString += c + d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2);
+  queryFilterString += c + h.getItemValue('stt_rec');
+
+  show$FlowMulti$Form(f, queryFilterString, ']]>&Identity;<![CDATA[DataGridPanel', ']]>&ParentController;<![CDATA[', ']]>&GridController;<![CDATA[', ']]>&OtherCopyField;<![CDATA[');
+}
+
+function active$]]>&Identity;<![CDATA[$(f) {
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  active$FlowMulti$Form(f);
+}
+
+function close$]]>&Identity;<![CDATA[$(f) {
+  close$FlowMulti$Form(f);
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+}
+
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = getGrid$FlowMulti$(f);
+      var c = String.fromCharCode(255), k1 = g._getColumnOrder('stt_rec') - 1, k2 = g._getColumnOrder('stt_rec0') - 1;
+      f._$k = '';
+      for(var i = 0; i < g._$k.length; i++) {
+        f._$k += (f._$k != '' ? ',' : '') + g._$k[i][k1] + c + g._$k[i][k2];
+      }
+      if (f._$k == '') f.grid._formScript = 'show$FlowMulti$RetrieveGrid(this)';
+      else {
+        f._checked = false;
+        f.request('GetOtherField', 'GetOtherField', [['k', 'Infinite', f._$k]]);
+      }
+      break;
+    case 'GetOtherField':
+      var g = getGrid$FlowMulti$(f), a = [];
+      for (var i = 0; i < result.length; i++) {
+        a[i] = g._$k[i].concat(result[i].slice(2));
+      }
+      on$]]>&Identity;<![CDATA[$TransferData(f, g, a);
+      break;
+    default:
+      break;
+  }
+}
+]]>

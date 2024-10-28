@@ -1,0 +1,303 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY LockedDate "
+if @r is not null begin
+  select replace(@locked, '&#37;s', @@delta + @r) as message
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrTSDecrease' else 'hrTSDecrease2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$hrTSDecreaseImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$hrTSDecreaseImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrccgiam, hrccctgiam, hrnv"/>
+    <dependence value="hrccgiam, hrccctgiam, hriccgiam"/>
+    <listTable value="#m1, #d1, #i1"/>
+    <temporary value="#m2, #d2, #i2" alias="b, b, b"/>
+    <alias value="master, detail, inquiry"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <variable>
+    <var id="C003">
+      <header v="Đã khóa số liệu, kiểm tra lại ngày chứng từ." e="Data is locked, please check the date of voucher." />
+    </var>
+    &ImportLockedDateVariable;
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ngay_ct" column="A" allowNulls="false" type="DateTime" updateValue="None&And;None&And;b.ngay_ct" resource="master, detail, inquiry"/>
+    <field name="so_ct" column="B" allowNulls="false" upperCase="true" updateValue="None&And;None&And;b.so_ct" resource="master, detail, inquiry"/>
+    <field name="dien_giai" column="C" resource="master"/>
+    <field name="ma_nv" column="D" allowNulls="false" reference="2" upperCase="true" check="ma_nv not in (select ma_nv from hrnv)" errorCode="00001"/>
+    <field name="ma_cc" column="F" allowNulls="false" reference="1" upperCase="true" check="ma_cc not in (select ma_cc from hrcc)" errorCode="00001" resource="detail"/>
+    <field name="loai" column="H" allowNulls="false" reference="1" check="loai not in (select ma_loai from hrloaigiamcc)" errorCode="00001" resource="detail"/>
+    <field name="so_luong" column="I" type="Decimal" allowNulls="false" resource="detail"/>
+    <field name="ngay_hh" column="J" type="DateTime" resource="detail"/>
+    <field name="ghi_chu" column="K" reference="1" resource="detail"/>
+
+    <field name="ma_dvcs" column="None" resource="master, inquiry"/>
+    <field name="stt_rec_nv" column="None" resource="master, detail"/>
+    <field name="stt_rec" column="None" updateValue="None" resource="master, detail, inquiry"/>
+    <field name="stt_rec0" column="None" updateValue="None" resource="detail"/>
+    <field name="line_nbr" column="None" type="Int" updateValue="None" resource="detail"/>
+    <field name="ma_ct" column="None" insertValue="@voucherID" updateValue="None" resource="master, detail"/>
+
+    <field name="c$" column="None" resource="inquiry"/>
+    <field name="m$" column="None" resource="inquiry"/>
+    <field name="d$" column="None" resource="inquiry"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None" resource="master, inquiry"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="@datetime0" updateValue="None" resource="master"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="@datetime0" updateValue="@datetime0" resource="master"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@user" updateValue="None" resource="master, inquiry"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@user" updateValue="@user" resource="master"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật giảm công cụ, dụng cụ" e="Tool &#38; Supply Decrease"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ngay_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày giảm" e="Issue Date"/>
+      </field>
+      <field name="so_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số phiếu" e="Number"/>
+      </field>
+      <field name="dien_giai" width ="32">
+        <text v="Diễn giải" e="Description"/>
+      </field>
+      <field name="ma_nv" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width ="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="ma_cc" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã công cụ" e="Tool &#38; Supply Code"/>
+      </field>
+      <field name="ten_cc" width ="32" afterField="ma_cc" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên công cụ" e="Tool &#38; Supply Name"/>
+      </field>
+      <field name="loai" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại giảm" e="Decrease Type"/>
+      </field>
+      <field name="so_luong" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="ngay_hh" width ="16">
+        <text v="Ngày hết hạn" e="Expiry Date"/>
+      </field>
+      <field name="ghi_chu" width ="32">
+        <text v="Lý do" e="Reason"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @locked nvarchar(512), @field varchar(32), @wsID varchar(8)
+declare @voucherID varchar(8), @id char(13), @user int, @admin bit, @r int, @i int, @c1 int, @c2 int, @maxLength int, @count int, @datetime0 datetime
+
+select @locked = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày chứng từ tại dòng <span class="Highlight">%s</span>.' else N'Data is locked, please check the date of voucher at row <span class="Highlight">%s</span>.' end
+
+select @admin = @@admin, @user = @@userID, @voucherID = 'H06', @i = 1, @datetime0 = getdate()
+select @wsID = rtrim(val) from options where name = 'm_ws_id'
+
+select @maxLength = character_maximum_length from information_schema.columns where table_name = 'hrccgiam' and column_name = 'so_ct'
+
+update @@table set so_ct = space(@maxLength - len(ltrim(rtrim(so_ct)))) + ltrim(rtrim(so_ct))
+
+select top 0 ma_dvcs, ngay_ct, so_ct, cast(null as int) as stt into #unit from hrccgiam
+insert into #unit select b.ma_dvcs, a.ngay_ct, a.so_ct, min(a.stt) from @@table a join hrnv b on a.ma_nv = b.ma_nv group by b.ma_dvcs, a.ngay_ct, a.so_ct
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+-- Locked Date
+]]>&ImportLockedDateCheck;<![CDATA[
+
+if @$mode = 1 begin
+  select b.ma_dvcs, a.ngay_ct, a.so_ct, a.stt as id into #unitmode from @@table a join hrnv b on a.ma_nv = b.ma_nv
+end
+
+select @field = 'ma_nv'
+if @admin = 0 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'hrTSDecrease', 'Edit') = 0 select @type = 0
+  end
+
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, id, '00002' from #unitmode a where not exists(select 1 from hrccgiam b where a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct) and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[id]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(a.stt) from #unit a where not exists(select 1 from hrccgiam b where a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct)
+      and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)]]>&Error;<![CDATA[
+  end
+
+  if @type = '1' begin
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, id, '00002' from #unitmode a where exists(select 1 from hrccgiam b where a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct) and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[id]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(stt) from #unit a where exists(select 1 from hrccgiam b where a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct)
+        and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)]]>&Error;<![CDATA[
+    end
+  end
+end
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', id, '00002' from #unitmode a join (select ngay_ct, so_ct from #unit group by ngay_ct, so_ct having count(ma_dvcs) > 1) b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct
+  where 1=1]]>&w1;<![CDATA['so_ct']]>&w2;<![CDATA[id]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from #unit group by ngay_ct, so_ct having count(ma_dvcs) > 1]]>&Error;<![CDATA[
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+if @type = '0' delete @@table from @@table a where exists(select 1 from hrccgiam b where a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct)
+select a.* into #k from @@table a where exists(select 1 from hrccgiam b where a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct)
+delete @@table from @@table a where exists(select 1 from #k b where a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct)
+
+select top 0 stt_rec, stt_rec0, line_nbr, ngay_ct, so_ct, stt_rec_nv, ma_cc, loai, so_luong, ngay_hh, ghi_chu into #d1 from hrccctgiam
+
+select @count = count(*) from @@table
+if @count > 0 begin
+  select top 0 stt_rec, ngay_ct, so_ct, cast(0 as int) as stt, identity(int, 1, 1) as id into #id1 from hrccgiam
+  insert into #id1(stt_rec, ngay_ct, so_ct, stt) select '', ngay_ct, so_ct, min(stt) from @@table group by ngay_ct, so_ct order by ngay_ct, so_ct
+
+  select identity(int, 1, 1) as id, cast(stt as int) as stt, convert(varchar(8), ngay_ct, 112) + so_ct as c, cast(0 as int) as ln into #ln1 from @@table order by ngay_ct, so_ct, stt
+  exec AI_ERP$App$UpdateLineNumber '#ln1'
+  create index i on #ln1(stt)
+
+  select @c1 = count(*) from #id1
+  select @c2 = 1, @id = ''
+
+  exec AI_ERP$App$UpdateIdentityNumber @wsID, @voucherID, @count, @user, '#id1'
+
+  insert into #d1 select b.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln), i.ln, a.ngay_ct, a.so_ct, c.stt_rec, a.ma_cc, a.loai, a.so_luong, a.ngay_hh, a.ghi_chu
+    from @@table a join #id1 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct left join hrnv c on a.ma_nv = c.ma_nv join #ln1 i on a.stt = i.stt order by a.ngay_ct, a.so_ct, a.stt
+
+  select top 0 stt_rec, ma_dvcs, ngay_ct, so_ct, dien_giai into #m1 from hrccgiam
+  insert into #m1 select b.stt_rec, c.ma_dvcs, a.ngay_ct, a.so_ct, a.dien_giai
+    from @@table a join #id1 b on a.stt = b.stt join #unit c on a.stt = c.stt
+
+  select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, status, user_id0, c$, m$, d$, identity(int, 1, 1) as id into #i1 from hriccgiam
+  insert into #i1 select stt_rec, ngay_ct, so_ct, ma_dvcs, '1', @user, convert(varchar(12), ngay_ct, 112) + so_ct + stt_rec, '', '' from #m1
+
+  declare @v10 varchar(8000), @v20 varchar(8000), @v30 varchar(8000)
+  while @c1 >= @c2 begin
+    select @id = stt_rec from #i1 where id = @c2
+    select @v10 = '', @v20 = '', @v30 = ''
+    select @v10 = @v10 + '#10$' + rtrim(a.stt_rec_nv) from (select distinct stt_rec_nv from #d1 where stt_rec = @id) a
+    select @v20 = @v20 + '#20$' + rtrim(a.ma_cc) from (select distinct ma_cc from #d1 where stt_rec = @id) a
+    select @v30 = @v30 + '#30$' + rtrim(a.loai) from (select distinct loai from #d1 where stt_rec = @id) a
+
+    update #i1 set d$ = isnull(@v10, '') + isnull(@v20, '') + isnull(@v30, '') where stt_rec = @id
+    select @c2 = @c2 + 1
+  end
+
+  -- Insert
+  @@inserting(master);
+  @@inserting(detail);
+  @@inserting(inquiry);
+end
+
+if @type = '1' begin
+  select @id = '', @c2 = 1, @count = count(*) from #k
+
+  if @count > 0 begin
+    select top 0 stt_rec, ngay_ct, so_ct, cast(null as int) as stt, identity(int, 1, 1) as id into #id2 from hrccgiam
+    insert into #id2 select min(b.stt_rec), a.ngay_ct, a.so_ct, min(a.stt) from #k a join hrccgiam b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct group by a.ngay_ct, a.so_ct
+
+    select identity(int, 1, 1) as id, cast(a.stt as int) as stt, convert(varchar(8), a.ngay_ct, 112) + a.so_ct as c, cast(0 as int) as ln into #ln2 from #k a join hrccgiam b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct group by a.ngay_ct, a.so_ct, a.stt
+    exec AI_ERP$App$UpdateLineNumber '#ln2'
+    create index i on #ln2(stt)
+
+    select @c1 = count(*) from #id2
+
+    select top 0 stt_rec, stt_rec0, line_nbr, ngay_ct, so_ct, stt_rec_nv, ma_cc, loai, so_luong, ngay_hh, ghi_chu into #d2 from hrccctgiam
+    insert into #d2 select b.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln), i.ln, a.ngay_ct, a.so_ct , c.stt_rec, a.ma_cc, a.loai, a.so_luong, a.ngay_hh, a.ghi_chu
+      from #k a join #id2 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct left join hrnv c on a.ma_nv = c.ma_nv join #ln2 i on a.stt = i.stt
+      order by a.ngay_ct, a.so_ct, a.stt
+
+    select top 0 stt_rec, ma_dvcs, ngay_ct, so_ct, dien_giai into #m2 from hrccgiam
+    insert into #m2 select b.stt_rec, c.ma_dvcs, a.ngay_ct, a.so_ct, a.dien_giai
+      from #k a join #id2 b on a.stt = b.stt join #unit c on a.stt = c.stt
+
+    select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, status, user_id0, c$, m$, d$, identity(int, 1, 1) as id into #i2 from hriccgiam
+    insert into #i2 select stt_rec, ngay_ct, so_ct, ma_dvcs, 1, @user, convert(varchar(12), ngay_ct, 112) + so_ct + stt_rec, '', '' from #m2
+
+    while @c1 >= @c2 begin
+      select @id = stt_rec from #i2 where id = @c2
+      select @v10 = '', @v20 = '', @v30 = ''
+      select @v10 = @v10 + '#10$' + rtrim(a.stt_rec_nv) from (select distinct stt_rec_nv from #d2 where stt_rec = @id) a
+      select @v20 = @v20 + '#20$' + rtrim(a.ma_cc) from (select distinct ma_cc from #d2 where stt_rec = @id) a
+      select @v30 = @v20 + '#30$' + rtrim(a.loai) from (select distinct loai from #d2 where stt_rec = @id) a
+
+      update #i2 set d$ = isnull(@v10, '') + isnull(@v20, '') + isnull(@v30, '') where stt_rec = @id
+      select @c2 = @c2 + 1
+    end
+
+    -- Update
+    update hrccgiam set @@list(master); from hrccgiam a join #m2 b on a.stt_rec = b.stt_rec
+
+    delete hrccctgiam where stt_rec in (select stt_rec from #id2)
+
+    truncate table #d1
+    insert into #d1 select * from #d2
+    @@inserting(detail);
+
+    update hriccgiam set @@list(inquiry); from hriccgiam a join #i2 b on a.stt_rec = b.stt_rec
+  end
+end
+]]>
+    </text>
+  </processing>
+
+</import>

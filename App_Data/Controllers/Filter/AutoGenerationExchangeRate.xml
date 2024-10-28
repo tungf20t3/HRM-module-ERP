@@ -1,0 +1,229 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY SysID "AutoGenerationExchangeRate">
+  <!ENTITY Controller "UpdateExchangeRateTran">
+
+  <!ENTITY % Control.Unit SYSTEM "..\Include\Unit.ent">
+  %Control.Unit;
+  %Control.Unit.Ignore;
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tạo tỷ giá đánh giá tự động" e="Generate Revaluation Exchange Rate"/>
+  <fields>
+    <field name="ds_dvcs" allowNulls="false">
+      <header v="Đơn vị" e="Unit(s)"/>
+      <items style="Lookup" controller="Unit" key="((@@admin = 1) or (ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1))) and status = '1'" check="((@@admin = 1) or (ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)))"/>
+    </field>
+    <field name="ma_nt" clientDefault="Default" allowNulls="false">
+      <header v="Mã nt" e="Currency"></header>
+      <items style="AutoComplete" controller="CurrencyExtension" reference="ten_nt%l" key="status = '1'" check="1= 1" information="ma_nt$dmnt.ten_nt%l"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&SysID;<![CDATA[$Currency(this);"]]></clientScript>
+    </field>
+    <field name="ten_nt%l" clientDefault="Default" readOnly="true" hidden="false" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ty_gia" type="Decimal" dataFormatString="@exchangeRateInputFormat" clientDefault="Default" defaultValue="1">
+      <header v="Tỷ giá" e="Ex. Rate"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="ds_tk" allowNulls="false">
+      <header v="Tài khoản" e="Account(s)"/>
+      <items style="Lookup" controller="&Lookup.Controller.Account;" key="tk in (select tk from dmcltg where status = '1') and ma_nt = '{$%c[ma_nt]}' and loai_tk = 1 and status = '1'" check="tk in (select tk from dmcltg where status = '1') and ma_nt = '{$%c[ma_nt]}'"/>
+    </field>
+
+    <field name="type" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Kiểu cập nhật" e="Type"></header>
+      <footer v="1 - Chép đè, 0 - Không" e="1 - Overwrite, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 200, 130"/>
+      <item value="1100-: [ds_dvcs].Label, [ds_dvcs]"/>
+      <item value="11010: [ma_nt].Label, [ma_nt], [ten_nt%l]"/>
+      <item value="110-: [ty_gia].Label, [ty_gia]"/>
+      <item value="1100-: [ds_tk].Label, [ds_tk]"/>
+      <item value="11100: [type].Label, [type], [type].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'init$]]>&SysID;<![CDATA[(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&SysID;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'dispose$]]>&SysID;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,g=f.grid;if(f._checked){f._checked=false;f.request("AutoGeneration","AutoGeneration",["ds_dvcs","ma_nt","ty_gia","ds_tk","type",["ky","Decimal",g._p],["nam","Decimal",g._y]])}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&SysID;<![CDATA[(f) {setDefaultValue$Form$]]>&SysID;<![CDATA[(f);}
+function active$]]>&SysID;<![CDATA[$(f) {f.add_onResponseComplete(on$]]>&SysID;<![CDATA[$ResponseComplete);}
+function dispose$]]>&SysID;<![CDATA[$(f) {try {f.remove_onResponseComplete(on$]]>&SysID;<![CDATA[$ResponseComplete);} catch (ex) {}}
+function on$]]>&SysID;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result, g = f.grid;
+  switch (context) {
+    case 'AutoGeneration':
+      show$]]>&SysID;<![CDATA[$QueryComplete(f, g, result[0][1]);
+      if (result[0][1] == 0) {
+        //g.goToPage(-1);
+      }
+      break;
+    case 'ExchangeRate':
+      f.setItemValue('ty_gia', result[0].Value);
+      f.live(f.getItem('ty_gia'));
+      break;
+    default:
+      break;
+  }
+}
+function onChange$]]>&SysID;<![CDATA[$Currency(o) {
+  var f = o.parentForm, g = f.grid;
+  if (f.getItemValue('ma_nt') != '') f.request('GetExchangeRate', 'ExchangeRate', ['ma_nt', ['ky', 'Decimal', g._p], ['nam', 'Decimal', g._y]]);
+  f.setReferenceKeyFilter('ds_tk');
+  f.setItemValue('ds_tk', '');
+}
+function show$]]>&SysID;<![CDATA[$QueryComplete(f, g, t) {
+  var v = (g._language == 'v'), msg;
+  switch (t) {
+    case -1:
+    case 0:
+      var s = String.format('$find(\'{0}\').{1};', g.get_id(), t == 0 ? 'goToPage(-1)' : '_focusWhenTabChanged()');
+      msg = (v ? 'Chương trình đã thực hiện xong.' : 'The process was completed successfully.');
+      $message.show(msg, s);
+      f.cancelDialog();
+      break;
+    case 1:
+      msg = (v ? 'Tồn tại tài khoản khai báo thuộc đơn vị không có quyền.' : 'There is an account that is not authorized by unit.');
+      $message.show(msg, String.format('$find(\'{0}\').focus(\'{1}\');', f.get_id(), 'ds_dvcs'));
+      break;
+    case 2:
+    default:
+      msg = (v ? 'Phát sinh lỗi trong quá trình thực hiện.' : 'The process was failed.');
+      $message.show(msg, String.format('$find(\'{0}\').focus(\'{1}\');', f.get_id(), 'ds_dvcs'));
+      break;
+  }
+}
+function setDefaultValue$Form$]]>&SysID;<![CDATA[(f) {
+  f._$active = 'ma_nt';
+  var g = f.grid;
+  if (f._action == 'New') f.setItemValues('ma_nt, ten_nt%l, ty_gia', [g._c, g._s, g._r]);
+  f.setReferenceKeyFilter('ds_tk');
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetExchangeRate">
+      <text>
+        <![CDATA[
+declare @c varchar(33), @ngay_ct smalldatetime, @d smalldatetime, @ty_gia numeric(24, 12)
+select @ngay_ct = dbo.ff_GetEndDateOfCycle(@ky, @nam), @c = rtrim(val) from options where name = 'm_ma_nt0'
+if exists(select 1 from dmnt where ma_nt = @ma_nt and ma_nt <> @c) begin
+  if exists(select * from dmtgnt where ngay_ct <= @ngay_ct and ma_nt = rtrim(@ma_nt)) begin
+    select @d = max(ngay_ct) from dmtgnt where ngay_ct <= @ngay_ct and ma_nt = rtrim(@ma_nt)
+    select @ty_gia = ty_gia from dmtgnt where ngay_ct = @d and ma_nt = rtrim(@ma_nt)
+  end else select @ty_gia = 0
+
+  select @ty_gia as value
+  return
+end
+]]>
+      </text>
+    </action>
+
+    <action id="AutoGeneration">
+      <text>
+        <![CDATA[
+declare @$lockedDate nvarchar(512)
+select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+if exists(select 1 from dmstt where ngay_ks >= dateadd(m, 1, cast(str(@nam, 4) + replace(str(@ky, 2), ' ', '0') + '01' as smalldatetime)) - 1) begin
+  select 'ky' as field, @$lockedDate as message
+  return
+end
+if @ds_dvcs <> '' begin
+  if exists(select 1 from dmdvcsks where charindex(',' + rtrim(ma_dvcs) + ',', ',' + replace(@ds_dvcs, ' ', '') + ',') > 0 and ngay_ks >= dateadd(m, 1, cast(str(@nam, 4) + replace(str(@ky, 2), ' ', '0') + '01' as smalldatetime)) - 1) begin
+    select 'ky' as field, @$lockedDate as message
+    return
+  end
+end else begin
+  if exists(select 1 from dmdvcsks where ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID) and ngay_ks >= dateadd(m, 1, cast(str(@nam, 4) + replace(str(@ky, 2), ' ', '0') + '01' as smalldatetime)) - 1) begin
+    select 'ky' as field, @$lockedDate as message
+    return
+  end
+end
+
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, ']]>&Controller;<![CDATA[', 'Edit') = 0 select @type = '0'
+end
+
+select top 0 * into #t from dmtgdg
+select @ds_dvcs = replace(replace(@ds_dvcs, ' ', ''), '''', '''''')
+select * into #dv from dbo.AI_ERP$Function$System$Split(@ds_dvcs, ',')
+select @ds_tk = replace(replace(@ds_tk, ' ', ''), '''', '''''')
+select * into #tk from dbo.AI_ERP$Function$System$Split(@ds_tk, ',')
+insert into #t select @ky, @nam, a.data, b.data, @ma_nt, @ty_gia, '', getdate(), getdate(), @@userID, @@userID from #dv a, #tk b
+]]>&Account.ExchangeRate;<![CDATA[
+
+if @type = '0' delete #t from #t a join dmtgdg b on a.ky = b.ky and a.nam = b.nam and a.ma_dvcs = b.ma_dvcs and a.tk = b.tk
+
+select a.* into #k from #t a join dmtgdg b on a.ky = b.ky and a.nam = b.nam and a.ma_dvcs = b.ma_dvcs and a.tk = b.tk
+delete #t where rtrim(ky) + rtrim(nam) + rtrim(ma_dvcs) + rtrim(tk) in (select rtrim(ky) + rtrim(nam) + rtrim(ma_dvcs) + rtrim(tk) from #k)
+
+if @@admin = 0 begin
+  if @type = '1' begin
+    if exists (select 1 from #k a join dmtgdg b on a.ky = b.ky and a.nam = b.nam and a.ma_dvcs = b.ma_dvcs and a.tk = b.tk where not exists(select 1 from sysunitrights c where b.ma_dvcs = c.ma_dvcs and r_edit = 1 and c.user_id = @@userID)) begin
+      select '' as array$, 1 as value
+      return
+    end
+  end
+end
+
+insert into dmtgdg (ky, nam, ma_dvcs, tk, ma_nt, ty_gia, ghi_chu, datetime0, datetime2, user_id0, user_id2)
+  select ky, nam, ma_dvcs, tk, ma_nt, ty_gia, ghi_chu, datetime0, datetime2, user_id0, user_id2 from #t
+
+if @type = '1' begin
+  update dmtgdg set ma_nt = b.ma_nt, ty_gia = b.ty_gia from dmtgdg a join #k b on a.ky = b.ky and a.nam = b.nam and a.tk = b.tk and a.ma_dvcs = b.ma_dvcs
+end
+
+select '' as array$, 0 as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

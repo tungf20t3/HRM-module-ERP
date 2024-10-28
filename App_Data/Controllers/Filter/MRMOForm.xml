@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "MRMO">
+  <!ENTITY DetailTable "ctsx">
+  <!ENTITY c21 "Số lsx">
+  <!ENTITY c22 "MO Number">
+  <!ENTITY c31 "Ngày lsx">
+  <!ENTITY c32 "MO Date">
+
+]>
+
+<dir table="phsx" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lệnh sản xuất" e="Manufacturing Order"></title>
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_ct" dataFormatString="@upperCaseFormat" align="right">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="&c31;" e="&c32;"></header>
+    </field>
+    <field name="ngay_ct2" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="&DetailTable;" external="true" clientDefault="0" defaultValue="0" rows="232" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="&Identity;Grid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v ="String: ngay_ct2, ngay_ct" e="String: ngay_ct2, ngay_ct"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v ="String: ma_dvcs, ma_dvcs" e="String: ma_dvcs, ma_dvcs"></text>
+        </item>
+      </items>
+    </field>
+
+  </fields>
+
+  <views>
+    <view id="Dir" height="292" anchor="5" split="6">
+      <item value="100, 100, 237, 100, 0, 8, 58, 50, 100, 0"/>
+      <item value="11110-1011: [ngay_ct].Label, [ngay_ct], [stt_rec], [ngay_ct2], [so_ct].Label, [so_ct], [ma_dvcs]"/>
+      <item value="1: [&DetailTable;]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  f.setReadOnlyFields('so_ct, ngay_ct');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid, d = g._voucher$Retrieve$Date;
+  f._denyFocus = true;
+  f.setItemValues('stt_rec, so_ct, ngay_ct, ngay_ct2, ma_dvcs', [g._voucher$Retrieve$ID, g._voucher$Retrieve$Number, g._voucher$Retrieve$Date, "" + d.getFullYear() + (d.getMonth() < 9 ? "0": "") + (d.getMonth() + 1) + (d.getDate() < 10 ? "0" + d.getDate() : d.getDate()), g._voucher$Retrieve$Fields]);
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      set$]]>&Identity;<![CDATA[Form$FlowScript(f);
+      break;
+    default:
+      break;
+  }
+}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('ctsx')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0', f2 = 'so_luong';
+  var first = true;
+  var l0 = z._getColumnOrder('ma_vt'), l3 = z._getColumnOrder('dvt'), l4 = g._getColumnOrder('nhieu_dvt');
+  var fields = 'ma_vt, ten_vt%l, dvt, he_so, ton13, ma_kho, ma_vi_tri, ma_lo, vi_tri_yn, lo_yn, ]]>&XMLHiddenFields;<![CDATA[';
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, g._getColumnOrder('so_luong0')) != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+      $func.setObjectWhen(z._getItem(row, l3), g._getItemValue(r, l4));
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong]);
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

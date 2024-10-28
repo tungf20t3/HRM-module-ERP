@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterFields SYSTEM "..\Include\XML\FlowFilterFields.txt">
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "PMDeclaration">
+  <!ENTITY c11 "Tờ khai từ ngày">
+  <!ENTITY c12 "Date from">
+  <!ENTITY c21 "Số tờ khai">
+  <!ENTITY c22 "Voucher Number">
+  <!ENTITY ext "98">
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'PMDeclarationFilter', 'Filter', 'PMTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return">
+]>
+
+<dir table="m98$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn tờ khai" e="Select Customs Declaration"></title>
+  <fields>
+    &XMLFlowFilterFields;
+  </fields>
+
+  <views>
+    &XMLFlowFilterViews;
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @fields nvarchar(64), @keyMaster nvarchar(4000), @keyFlow nvarchar(4000), @$none nvarchar(512)
+select @keyMaster = '%#10$' + @ma_kh + '%', @fields = 'ma_nt + char(255) + status'
+select @keyFlow = 'status = ''1''', @$none = case when @@language = 'v' then N'Không có tờ khai theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+]]>&CheckRelativeProcess;&XMLFlowFilterCheck;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFilterFunction;
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

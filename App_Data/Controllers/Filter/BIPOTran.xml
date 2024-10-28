@@ -1,0 +1,205 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterInit SYSTEM "..\Include\XML\WhenFilterInit.xml">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY TableDetail "d94">
+  <!ENTITY % POApproval SYSTEM "..\Include\POApproval.ent">
+  %POApproval;
+
+  <!ENTITY % VoucherDeleteLog SYSTEM "..\Include\VoucherDeleteLog.ent">
+  %VoucherDeleteLog;
+
+  <!ENTITY % Tiny.Currency SYSTEM "..\Include\Tiny.Currency.ent">
+  %Tiny.Currency;
+
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+]>
+
+<dir table="m94$000000" code="stt_rec" order="ngay_ct, so_ct" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày lập từ" e="Order Date from"></header>
+      <footer v="Ngày lập từ/đến" e="Order Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày lập đến" e="Order Date to"></header>
+    </field>
+    <field name="so_ct1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Số đơn hàng từ/đến" e="Order No. from/to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ct2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="" e=""></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="ma_gd" filterSource="master" operation="10">
+      <header v="Mã giao dịch" e="Transaction"></header>
+      <items style="AutoComplete" controller="TransactionCode" reference="ten_gd%l" key="ma_ct = 'PO1' and status = '1' &BI.RecordKey;" check="ma_ct = 'PO1' &BI.RecordKey;"/>
+    </field>
+    <field name="ten_gd%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="loai_ct" hidden="true" filterSource="master" operation="15">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh" filterSource="master" operation="20">
+      <header v="Mã nhà cung cấp" e="Vendor"></header>
+      <items style="AutoComplete" controller="&VendorController;" reference="ten_kh%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vung_cu" filterSource="master" operation="40">
+      <header v="Vùng cung ứng" e="Supplying Plant"></header>
+      <items style="AutoComplete" controller="BIPlant" reference="ten_vung_cu%l" key="status = '1'" check="1 = 1" information="ma_vung$bidmvung.ten_vung%l"/>
+    </field>
+    <field name="ten_vung_cu%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_vt" categoryIndex="1" filterSource="detail" operation="10">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1" information="&TableDetail;"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_theo_doi" categoryIndex="1" dataFormatString="@upperCaseFormat" align="right" filterSource="detail" operation="20">
+      <header v="Số theo dõi" e="Tracking No."></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="ma_vt0" categoryIndex="1" filterSource="detail" operation="30">
+      <header v="Mã của ncc" e="Vendor Item Code"></header>
+    </field>
+    <field name="loai_hang" categoryIndex="1" filterSource="detail" operation="40">
+      <header v="Loại hàng" e="Item Type"></header>
+      <items style="AutoComplete" controller="GroupTypePurchasingItem" reference="ten_loai_hang%l" key="status = '1'" check="nhom = '01'" information="&TableDetail;"/>
+    </field>
+    <field name="ten_loai_hang%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="loai_dt" categoryIndex="1" filterSource="detail" operation="50">
+      <header v="Loại chỉ định" e="Acc. Assignment"></header>
+      <items style="AutoComplete" controller="BIAccountAssignmentCategory" reference="ten_loai%l" key="status = '1'" check="1 = 1" information="&TableDetail;"/>
+    </field>
+    <field name="ten_loai%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_nt" filterSource="master" operation="30" categoryIndex="9" inactivate="&Tiny.Currency.Form.Activate;">
+      <header v="Mã ngoại tệ" e="Currency"></header>
+      <items style="AutoComplete" controller="Currency" reference="ten_nt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_nt%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="status" dataFormatString="&POFilterStatus;&VoucherLogStatusFilter;" clientDefault="*" align="right" inactivate="&Tiny.Currency.Form.Inactivate;" categoryIndex="9">
+      <header v="Trạng thái" e="Status"></header>
+      <footer v="Ký tự &lt;span style=&quot;color:#008200;&quot;&gt;[*]&lt;/span&gt; - Hiện tất cả các trạng thái&VoucherLogStatusDescription.v;" e="&lt;span style=&quot;color:#008200;&quot;&gt;[*]&lt;/span&gt; - Show all status information&VoucherLogStatusDescription.e;"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="-1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="user_id0" dataFormatString="0, 1" clientDefault="1" align="right" inactivate="true" categoryIndex="-1">
+      <header v="Người sử dụng" e="User"></header>
+      <footer v="1 - Lọc theo người sử dụng, 0 - Không" e="1 - Filter by User, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="ma_bp0" filterSource="master" operation="25" categoryIndex="6">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+      <items style="AutoComplete" controller="BIPurchasingOrganization" reference="ten_bp0%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''" categoryIndex="6">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nh0" filterSource="master" operation="35" categoryIndex="6">
+      <header v="Nhóm mua" e="Purchasing Group"></header>
+      <items style="AutoComplete" controller="BIPurchasingGroup" reference="ten_nhom0%l" key="status = '1'" check="1 = 1" information="&TableDetail;"/>
+    </field>
+    <field name="ten_nhom0%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''" categoryIndex="6">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_vung" categoryIndex="1" filterSource="detail" operation="35">
+      <header v="Mã vùng" e="Plant"></header>
+      <items style="AutoComplete" controller="BIPlant" reference="ten_vung%l" key="status = '1'" check="1 = 1" information="&TableDetail;"/>
+    </field>
+    <field name="ten_vung%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho" categoryIndex="1" filterSource="detail" operation="45">
+      <header v="Mã kho" e="Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="status = '1'" check="1 = 1" information="&TableDetail;"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="184">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="1101: [so_ct1].Label, [so_ct1], [so_ct2]"/>
+      <item value="110101: [ma_gd].Label, [ma_gd], [ten_gd%l], [loai_ct]"/>
+      <item value="11010: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="11010: [ma_vung_cu].Label, [ma_vung_cu], [ten_vung_cu%l]"/>
+      <item value="11010: [ma_bp0].Label, [ma_bp0], [ten_bp0%l]"/>
+      <item value="11010: [ma_nh0].Label, [ma_nh0], [ten_nhom0%l]"/>
+
+      <item value="11010: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11010: [ma_vung].Label, [ma_vung], [ten_vung%l]"/>
+      <item value="11010: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="110: [so_theo_doi].Label, [so_theo_doi]"/>
+      <item value="110: [ma_vt0].Label, [ma_vt0]"/>
+      <item value="11010: [loai_hang].Label, [loai_hang], [ten_loai_hang%l]"/>
+      <item value="11010: [loai_dt].Label, [loai_dt], [ten_loai%l]"/>
+
+      &Tiny.Currency.Form.View.Show;
+      <item value="11100: [status].Label, [status], [status].Description"/>
+      &Tiny.Currency.Form.View.Revert;
+
+      <item value="11010: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="11100: [user_id0].Label, [user_id0], [user_id0].Description"/>
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 230">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+        <category index="6" columns="120, 30, 70, 100, 230">
+          <header v="Công ty" e="Organization"/>
+        </category>
+        <category index="9" columns="120, 30, 70, 100, 230">
+          <header v="Khác" e="Other"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterInit;
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {]]>&Tiny.Currency.Form.Hidden;<![CDATA[f._tabContainer._loaded = true;}
+function close$VoucherFilter$(){}]]>
+    </text>
+  </script>
+</dir>

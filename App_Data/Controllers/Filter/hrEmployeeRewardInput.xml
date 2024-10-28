@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="hrctloaikt" code="stt_rec, ky, nam" order="stt_rec, ky, nam" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="ky" isPrimaryKey="true" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" isPrimaryKey="true" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_bp" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID))"/>
+      <clientScript><![CDATA[onchange="onchange$EmployeeRewardInputFilter$Deparment(this);"]]></clientScript>
+    </field>
+    <field name="ten_bp%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" onDemand="true">
+      <header v="Nhân viên" e="Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_nv" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID))"/>
+    </field>
+    <field name="ten_nv" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 230"/>
+      <item value="11: [ky].Label, [ky]"/>
+      <item value="11--1: [nam].Label, [nam], [bp_ref]"/>
+      <item value="11010: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="11010: [ma_nv].Label, [ma_nv], [ten_nv]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @y1 int, @y2 int, @p1 int, @p2 int
+select @y1 = min(nam), @y2 = max(nam), @p1 = min(ky), @p2 = max(ky) from hrky
+select 'this.grid._minYear = ' + ltrim(@y1) + ';this.grid._maxYear = ' + ltrim(@y2) + ';this.grid._minPeriod = ' + ltrim(@p1) + ';this.grid._maxPeriod = ' + ltrim(@p2) + ';active$EmployeeRewardInputFilter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$EmployeeRewardInputFilter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$lockedDate nvarchar(512), @dateTo smalldatetime
+select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+select @dateTo = ngay_den from hrky where ky = @ky and nam = @nam
+if exists(select 1 from dmstt where ngay_ks >= @dateTo)
+  select '' as field, '' as message, 'this.grid._denyNew = this.grid._denyEdit = this.grid._denyDelete = true; this.grid._denyMessage = ''' + @$lockedDate + '''' as script
+else
+  select '' as field, '' as message, 'this.grid._denyNew = this.grid._denyEdit = this.grid._denyDelete = null; this.grid._denyMessage = ''''' as script
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, g = this.grid, id = f.get_id(), y = f.getItemValue('nam'), p = f.getItemValue('ky');
+if (p < g._minPeriod || p > g._maxPeriod) {
+  this._checked = false;
+  $func.hideWait(id);
+  $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), f.getItem('ky').field.Label), String.format('$find(\'{0}\').focus(\'{1}\');', id, 'ky'));
+}
+if (this._checked && (y < g._minYear || y > g._maxYear)) {
+  this._checked = false;
+  $func.hideWait(id);
+  $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), f.getItem('nam').field.Label), String.format('$find(\'{0}\').focus(\'{1}\');', id, 'nam'));
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$EmployeeRewardInputFilter(f) {
+  f.add_onResponseComplete(on$EmployeeRewardInputFilter$ResponseComplete);
+  f.getItem('ky').value = (new Date()).getMonth() + 1;
+  f.getItem('nam').value = (new Date()).getFullYear();
+  f.live(f.getItem('ky'));
+}
+function close$EmployeeRewardInputFilter(f) {try {f.remove_onResponseComplete(on$EmployeeRewardInputFilter$ResponseComplete);} catch (ex) {}}
+function onchange$EmployeeRewardInputFilter$Deparment(o) {o.parentForm.request('Reference', 'Reference', ['ma_bp']);}
+function on$EmployeeRewardInputFilter$ResponseComplete(f, e) {
+  var f = e.object, g = f.grid, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Reference':
+      f.setItemControlBehavior('bp_ref', result[0].Value, true);
+      break;
+    case 'Checking':
+      g._refreshMemvars = true;      
+      g._period = f.getItem('ky').value;
+      g._year = f.getItem('nam').value;
+      g._dept = f.getItemValue('ma_bp');
+      g._staff = f.getItemValue('ma_nv');
+      g._deptRef = f.getItemValue('bp_ref');
+      
+      var k = new Array();
+      Array.add(k, {Name: 'ky', Opr: '=', Value: g._period, Type: 'Decimal', Ignore: false});
+      Array.add(k, {Name: 'nam', Opr: '=', Value: g._year, Type: 'Decimal', Ignore: false});
+      
+      if (f.getItemValue('ma_bp')) Array.add(k, {Name: 'bp_ref', Opr: 'like', Value: $func.trim(f.getItemValue('bp_ref')) + '%', Type: 'String', Ignore: false});
+      if (f.getItemValue('ma_nv')) Array.add(k, {Name: 'ma_nv', Opr: '=', Value: f.getItemValue('ma_nv'), Type: 'String', Ignore: false});
+      g.set_externalKey(k);
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Reference">
+      <text>
+        <![CDATA[
+declare @b varchar(128)
+select @b = ''
+if exists(select 1 from hrbp where ma_bp = @ma_bp) select @b = bp_ref from hrbp where ma_bp = @ma_bp
+select @b as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

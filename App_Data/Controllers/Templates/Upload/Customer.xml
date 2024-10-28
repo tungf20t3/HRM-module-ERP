@@ -1,0 +1,350 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % Authentication SYSTEM "..\..\Include\AuthenticationImport.ent">
+  %Authentication;
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY CustomerFields SYSTEM "Include\CustomerFields.txt">
+  <!ENTITY CustomerFieldsCompact SYSTEM "Include\CustomerFieldsCompact.txt">
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY s1 "Mã số thuế &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt;">
+  <!ENTITY s2 "The tax code &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt;">
+
+  <!ENTITY % Nested SYSTEM "..\..\Include\Nested.ent">
+  %Nested;
+
+  <!ENTITY % CheckTaxCode SYSTEM "..\..\Include\CheckImportTaxCode.ent">
+  %CheckTaxCode;
+
+  <!ENTITY % CheckValidEmail SYSTEM "..\..\Include\CheckImportValidEmail.ent">
+  %CheckValidEmail;
+  <!ENTITY CheckValidEmail.FieldName "e_mail">
+  <!ENTITY CheckValidEmail.MultiEmail "1=1">
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.Customer;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "
+declare @filename varchar(128), @compactMode char(1)
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') select @compactMode = '1' else select @compactMode = '0'
+if @@language = 'v' select @filename = case when @compactMode = '0' then 'Customer.xlsx' else 'Customer3.xlsx' end
+else select @filename = case when @compactMode = '0' then 'Customer2.xlsx' else 'Customer4.xlsx' end
+">
+
+  <!ENTITY Controller "Customer">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$CustomerImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$CustomerImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmkh"/>
+    <table value="dmkh" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C001">
+      <header v="Mã số thuế đã có trong danh mục." e="The tax code is already exists." />
+    </var>
+    <var id="00003">
+      <header v="Giá trị &Customer.Nested.Message.v;." e="The value is &Customer.Nested.Message.e;." />
+    </var>
+    &TaxCodeImportVariable;
+    &MailImportVariable;
+  </variable>
+
+  <query>
+    <command>
+      <text>
+        &Tiny.External.Import.Command;
+        &ExportImportTemplateQuery;
+        <![CDATA[
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') select '1' as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[ else select '0' as view_index
+]]>&ExportImportTemplateQueryReturnFileName;
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        &CustomerFieldsCompact;
+      </fields>
+      &Tiny.External.Import.View.Customer;
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    &CustomerFields;
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục khách hàng" e="Customer List"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_kh" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã khách" e="Customer ID"/>
+      </field>
+      <field name="ten_kh" width ="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên khách hàng" e="Customer Name"/>
+      </field>
+      <field name="ten_kh2" width ="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="loai_kh" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại khách hàng" e="Customer Type"/>
+      </field>
+      <field name="dia_chi" width ="32" starColor="&EIT.StarColor.Sub;">
+        <text v="Địa chỉ" e="Address"/>
+      </field>
+      <field name="ma_so_thue" width ="16">
+        <text v="Mã số thuế" e="Tax Code"/>
+      </field>
+      <field name="doi_tac" width ="16">
+        <text v="Đối tác" e="Partner"/>
+      </field>
+      <field name="ma_nvbh" width ="16">
+        <text v="Nv bán hàng" e="Sales Employee"/>
+      </field>
+      <field name="tk" width ="16">
+        <text v="Tài khoản ngầm định" e="Default Account"/>
+      </field>
+      <field name="tk_dc" width ="16">
+        <text v="Tài khoản nhập mua" e="Purchase Account"/>
+      </field>
+      <field name="ma_tt" width ="16">
+        <text v="Mã thanh toán" e="Default Term"/>
+      </field>
+      <field name="t_tien_cn" width ="16">
+        <text v="Giới hạn tiền nợ" e="Credit Limit"/>
+      </field>
+      <field name="ngay_gh" width ="16">
+        <text v="Đến ngày" e="To Date"/>
+      </field>
+      <field name="kh_yn" width ="12" starColor="&EIT.StarColor.Sub;">
+        <text v="Khách hàng" e="Customer"/>
+      </field>
+      <field name="cc_yn" width ="12" starColor="&EIT.StarColor.Sub;">
+        <text v="Nhà cung cấp" e="Supplier"/>
+      </field>
+      <field name="nv_yn" width ="12" starColor="&EIT.StarColor.Sub;">
+        <text v="Nhân viên" e="Employee"/>
+      </field>
+      <field name="nh_kh1" width ="16">
+        <text v="Nhóm 1" e="Group 1"/>
+      </field>
+      <field name="nh_kh2" width ="16">
+        <text v="Nhóm 2" e="Group 2"/>
+      </field>
+      <field name="nh_kh3" width ="16">
+        <text v="Nhóm 3" e="Group 3"/>
+      </field>
+      <field name="nh_kh9" width ="16">
+        <text v="Nhóm khách tính giá" e="Customer Price Class"/>
+      </field>
+      <field name="dien_thoai" width ="16">
+        <text v="Điện thoại" e="Phone Number"/>
+      </field>
+      <field name="fax" width ="16">
+        <text v="Số gửi bản sao (Fax)" e="Fax Number"/>
+      </field>
+      <field name="e_mail" width ="16">
+        <text v="Thư (Email)" e="Email"/>
+      </field>
+      <field name="home_page" width ="16">
+        <text v="Trang chủ" e="Home Page"/>
+      </field>
+      <field name="tk_nh" width ="16">
+        <text v="Tài khoản ngân hàng" e="Bank Account"/>
+      </field>
+      <field name="ngan_hang" width ="16">
+        <text v="Tên ngân hàng" e="Bank Name"/>
+      </field>
+      <field name="tinh_thanh" width ="16">
+        <text v="Tỉnh thành" e="Province/City"/>
+      </field>
+      <field name="ghi_chu" width ="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'Customer', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @field varchar(32), @irregularChars varchar(128), @r int, @checkTaxCode int, @taxCodeConflict nvarchar(512)
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> ]]>&Customer.Nested.Message.v;<![CDATA[.' else 'The value of cell <span class="Highlight">%invalidCell</span> is ]]>&Customer.Nested.Message.e;<![CDATA[.' end
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @taxCodeConflict = case when @@language = 'v' then N']]>&s1;<![CDATA[ đã có trong danh mục.' else ']]>&s2;<![CDATA[ is already exists.' end
+
+-- Check
+create index i on @@table (ma_kh)
+
+if @type = '0' delete @@table from @@table a join dmkh b on a.ma_kh = b.ma_kh
+
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_kh', stt, @message from @@table where ma_kh like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_kh', @r = min(stt) from @@table where ma_kh like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+]]>&CheckValidEmailCommandCheckingImport;<![CDATA[
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+-- Check Tax Code
+-- + Self
+select @checkTaxCode = case when exists(select 1 from options where name = 'm_kt_mst_trung' and val = '2') then 1 else 0 end
+if @checkTaxCode = 1 begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'ma_so_thue', stt, 'C001' from @@table where ma_so_thue in (select ma_so_thue from @@table where ma_so_thue <> '' group by ma_so_thue having count(*) > 1)
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = stt from (select min(stt) as stt from @@table where ma_so_thue <> '' group by ma_so_thue having count(*) > 1) a
+    if @r is not null begin
+      select replace(replace(@taxCodeConflict, '%s1', ma_so_thue), '%s2', @@delta + @r) as message from @@table where stt = @r
+      return
+    end
+  end
+end
+]]>&CommandCheckTaxCodeImport;<![CDATA[
+
+select a.* into #k from @@table a join dmkh b with (nolock) on a.ma_kh = b.ma_kh
+
+-- Do not delete following line
+-- #OverwriteChecking
+
+if @type = '1' delete @@table where ma_kh in (select ma_kh from #k)
+
+if @checkTaxCode = 1 begin
+  -- + Inserting
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'ma_so_thue', stt, 'C001' from #table where ma_so_thue in (select a.ma_so_thue from #table a join dmkh b with (nolock) on a.ma_so_thue = b.ma_so_thue left join #k c on b.ma_kh = c.ma_kh where a.ma_so_thue <> '' and c.ma_kh is null group by a.ma_kh, a.ma_so_thue)
+    ]]>&w1;<![CDATA['ma_so_thue']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C001']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(a.stt) from @@table a join dmkh b with (nolock) on a.ma_so_thue = b.ma_so_thue left join #k c on b.ma_kh = c.ma_kh where a.ma_so_thue <> '' and c.ma_kh is null group by a.ma_kh
+    if @r is not null begin
+      select replace(replace(@taxCodeConflict, '%s1', ma_so_thue), '%s2', @@delta + @r) as message from @@table where stt = @r
+      return
+    end
+  end
+
+  -- + Updating
+  if @type = '1' begin
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select 'ma_so_thue', stt, 'C001' from #k where ma_so_thue in (select a.ma_so_thue from #k a join dmkh b with (nolock) on a.ma_so_thue = b.ma_so_thue where a.ma_so_thue <> '' and a.ma_kh <> b.ma_kh group by a.ma_kh, a.ma_so_thue)
+      ]]>&w1;<![CDATA['ma_so_thue']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C001']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(a.stt) from #k a join dmkh b with (nolock) on a.ma_so_thue = b.ma_so_thue where a.ma_so_thue <> '' and a.ma_kh <> b.ma_kh group by a.ma_kh
+      if @r is not null begin
+        select replace(replace(@taxCodeConflict, '%s1', ma_so_thue), '%s2', @@delta + @r) as message from #k where stt = @r
+        return
+      end
+    end
+  end
+end
+
+--
+select @field = 'ma_kh'
+]]>&Customer.Nested.Key.b;<![CDATA[
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_kh <> b.ma_kh and a.ma_kh like rtrim(b.ma_kh) + ''%''
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a with (index(i)), dmkh b with (nolock index(PK_dmkh)) where a.ma_kh like rtrim(b.ma_kh) + ''%''
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from dmkh a with (nolock index(PK_dmkh)), @@table b with (index(i)) where a.ma_kh like rtrim(b.ma_kh) + ''%''
+        ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_kh <> b.ma_kh and a.ma_kh like rtrim(b.ma_kh) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = a.stt from @@table a with (index(i)), dmkh b with (nolock index(PK_dmkh)) where a.ma_kh like rtrim(b.ma_kh) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = b.stt from dmkh a with (nolock index(PK_dmkh)), @@table b with (index(i)) where a.ma_kh like rtrim(b.ma_kh) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  end
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+
+</import>

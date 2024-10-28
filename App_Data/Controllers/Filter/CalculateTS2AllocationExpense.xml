@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY ProcessLockedDate4Unit SYSTEM "..\Include\Command\ProcessLockedDate4Unit.txt">
+
+  
+  <!ENTITY CommandCheckLockedDate "
+if @ma_dc = '' begin
+  &ProcessLockedDate4Unit;
+end else begin
+  declare @lockedDate nvarchar(512)
+  select @lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+
+  if exists(select 1 from dmstt where ngay_ks >= dateadd(m, 1, cast(str(@nam, 4) + replace(str(@ky, 2), ' ', '0') + '01' as smalldatetime)) - 1) begin
+    select 'ky' as field, @lockedDate as message
+    return
+  end
+
+  create table #$t(ma_dc varchar(32))
+  insert into #$t select ltrim(data) from dbo.AI_ERP$Function$System$Split(@ma_dc, ',')
+
+  if exists(
+    select 1 from dmdvcsks where ngay_ks >= dateadd(m, 1, cast(str(@nam, 4) + replace(str(@ky, 2), ' ', '0') + '01' as smalldatetime)) - 1 and ma_dvcs in (
+      select distinct ma_dvcs from dmccdc where ma_dc in (select ma_dc from #$t)
+    )
+  ) begin
+    select 'ky' as field, @lockedDate as message
+    return
+  end
+end">
+  
+
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tính chi phí phân bổ" e="Calculate Allocation Expense"></title>
+  <fields>
+    <field name="ky" type="Int32" dataFormatString="#0" allowNulls="false" align="right" aliasName="Period" defaultValue="(new Date()).getMonth() + 1">
+      <header v="Kỳ" e="Period"></header>
+      <footer v="Kỳ/Năm" e="Period/Year"/>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Int32" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="ma_dc">
+      <header v="Công cụ dụng cụ" e="Tool &amp; Supply"></header>
+      <items style="Lookup" controller="TS2Tran" key="(ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1) or @@admin = 1)" check="1=1"/>
+      <clientScript><![CDATA[onblur="onChange$CalculateTS2AllocationExpense$ToolSupply$(this);"]]></clientScript>
+    </field>
+    <field name="ten_dc%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_bp">
+      <header v="Bộ phận sử dụng" e="Using Department"></header>
+      <items style="AutoComplete" controller="TSDepartment" reference="ten_bp%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_bp%l" clientDefault="Default" readOnly="true" hidden="false" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="loai_dc">
+      <header v="Loại" e="Type"></header>
+      <items style="AutoComplete" controller="TSType" reference="ten_loai%l" key="status = '1'"/>
+    </field>
+    <field name="ten_loai%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_dc1">
+      <header v="Nhóm 1" e="Group 1"></header>
+      <footer v="Nhóm 1/2/3" e="Group 1/2/3"/>
+      <items style="AutoComplete" controller="TSGroup" reference="ten_nh_1%l" key="loai_nh = 1 and status = '1'"/>
+    </field>
+    <field name="ten_nh_1%l" clientDefault="Default" readOnly="true" hidden="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_dc2">
+      <header v="Nhóm 2" e="Group 2"></header>
+      <items style="AutoComplete" controller="TSGroup" reference="ten_nh_2%l" key="loai_nh = 2 and status = '1'"/>
+    </field>
+    <field name="ten_nh_2%l" clientDefault="Default" readOnly="true" hidden="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_dc3">
+      <header v="Nhóm 3" e="Group 3"></header>
+      <items style="AutoComplete" controller="TSGroup" reference="ten_nh_3%l" key="loai_nh = 3 and status = '1'"/>
+    </field>
+    <field name="ten_nh_3%l" clientDefault="Default" readOnly="true" hidden="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit(s)"></header>
+      <items style="Lookup" controller="Unit" key="(ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1) or @@admin = 1) and status = '1'" check="1=1"/>
+    </field>
+
+    <field name="tao_cl" type="Int32" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Điều chỉnh chênh lệch" e="Rounding Adjustment"></header>
+      <footer v="0 - Không điều chỉnh, 1 - Điều chỉnh" e="0 - None, 1 - Adjustment"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 40, 30, 100, 100, 130, 0, 0, 0"/>
+      <item value="111: [ky].Description, [ky], [nam]"/>
+      <item value="110000: [ma_dc].Label, [ma_dc]"/>
+      <item value="1100100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="1100100: [loai_dc].Label, [loai_dc], [ten_loai%l]"/>
+      <item value="110011-111: [nh_dc1].Description, [nh_dc1], [nh_dc2], [nh_dc3], [ten_nh_1%l], [ten_nh_2%l], [ten_nh_3%l]"/>
+      <item value="110000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="1110000: [tao_cl].Label, [tao_cl], [tao_cl].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    <command event="Inserting">
+      <text>
+        &CommandCheckLockedDate;
+        <![CDATA[
+exec rs_CalculateTSAllocationExpense @ky, @nam, @ma_dc, @ma_bp, @loai_dc, @nh_dc1, @nh_dc2, @nh_dc3, @ma_dvcs, @@language, @@userID, @@admin, @tao_cl
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){changeLookupReadonly(a,"ma_dc",true);changeLookupReadonly(a,"ma_dvcs",true)}function onChange$CalculateTS2AllocationExpense$ToolSupply$(c){var a=c.parentForm,b=a.getItemValue("ma_dc")=="";setItemDisable(a,"ma_dvcs",!b);setFieldsEmpty(a,"ma_dvcs",b)}function setItemDisable(f,e,d){for(var c=e.split(","),a=0;a<c.length;a++){var b=f.getItem($func.trim(c[a]));b.a&&$common.setVisible(b.a,!d);b.disabled=d}}function setFieldsEmpty(d,c,f){for(var b=c.split(","),a=0;a<b.length;a++){var e=d.getItem($func.trim(b[a]));if(!f)e.value=""}}]]>
+    </text>
+  </script>
+
+</dir>

@@ -1,0 +1,226 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptPivotFilter SYSTEM "..\Include\Javascript\PivotFilter.txt">
+  <!ENTITY defaultTable "BCDTTUAN">
+  <!ENTITY defaultForm "BCDTTUAN">
+  <!ENTITY controller "rptCashFlowStatementsByWeek">
+
+  <!ENTITY Delta14 "0">
+  <!ENTITY LineCounter "7">
+  <!ENTITY ExtensionCounter "2">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="kieu_bc" dataFormatString="1, 2, 3, 4, 5" clientDefault="Default" defaultValue="1" maxLength="1" align="right">
+      <header v="Kiểu báo cáo" e="Report Type"></header>
+      <footer v="1 - Tuần, 2 - Tháng, 3 - Quý, 4 - Nửa năm, 5 - Năm" e="1 - Week, 2 - Month, 3 - Quarter, 4 - Half a Year, 5 - Year"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ky" type="Int16" dataFormatString="#0" clientDefault="Default" defaultValue="4" allowNulls="false">
+      <header v="Số kỳ báo cáo" e="No. of Periods"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="thang" type="Int32" dataFormatString="#0" clientDefault="Default" defaultValue="1" aliasName="Period" allowNulls="false">
+      <header v="Kỳ bắt đầu" e="Start Period"></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear();">
+      <header v="Năm bắt đầu" e="Start Year"></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="kieu_kh" dataFormatString="1, 2, 3" clientDefault="Default" defaultValue="1" maxLength="1" align="right" categoryIndex="1">
+      <header v="Phiên bản kế hoạch" e="Plan Revision"></header>
+      <footer v="1 - Gần nhất, 2 - Ban đầu, 3 - Tùy chọn" e="1 - Latest, 2 - Initial, 3 - Specified"></footer>
+      <items style="Mask"></items>
+      <clientScript><![CDATA[onchange=onChange$]]>&controller;<![CDATA[$Item(this);]]></clientScript>
+    </field>
+    <field name="so_cs" type="Int16" dataFormatString="#0" categoryIndex="1">
+      <header v="Lần chỉnh sửa" e="Revision"></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="ma_bp" categoryIndex="1">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="Department" reference="ten_bp%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vv" categoryIndex="1">
+      <header v="Vụ việc" e="Job"></header>
+      <items style="AutoComplete" controller="Job" reference="ten_vv%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vv%l" readOnly="true" external="true"  categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="form" allowNulls="false" categoryIndex="1">
+      <header v="Chọn báo cáo" e="Select Report"></header>
+      <items style="DropDownList">
+        <item value="">
+          <text v="" e=""/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="1110000: [kieu_bc].Label, [kieu_bc], [kieu_bc].Description"/>
+      <item value="11-----: [so_ky].Label, [so_ky]"/>
+      <item value="111---: [thang].Label, [thang], [nam]"/>
+      <item value="1110000: [kieu_kh].Label, [kieu_kh], [kieu_kh].Description"/>
+      <item value="11-----: [so_cs].Label, [so_cs]"/>
+      <item value="1100100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="1100100: [ma_vv].Label, [ma_vv], [ten_vv%l]"/>
+      <item value="110000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110000-: [form].Label, [form]"/>
+      <item value="110000-: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 40, 30, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @form nvarchar(4000), @name nvarchar(4000), @defaultForm varchar(33)
+select @form = '', @name = ''
+select top 1 @defaultForm = rtrim(upper(form)) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA[' and nd_yn = 1
+if @defaultForm is null select top 1 @defaultForm = rtrim(upper(form)) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA['
+
+select @form = @form + rtrim(form) + char(255), @name = @name + case when lower(@@language) = 'v' then rtrim(ten_maubc) else rtrim(ten_maubc2) end + char(255) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA['
+select @form = left(@form, len(@form) - 1), @name = left(@name, len(@name) - 1)
+select 'this._itemValue=''' + rtrim(@form) + ''';this._itemText=''' + dbo.AI_ERP$Function$EncodeScript(@name) + '''; this._defaultForm = ''' + @defaultForm + ''';init$]]>&controller;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @kieu_bc as type, case @kieu_bc when '1' then case when @@language = 'V' then N'Tuần' else N'Week' end when '2' then case when @@language = 'V' then N'Tháng' else N'Month' end when '3' then case when @@language = 'V' then N'Quý' else N'Quarter' end when '4' then case when @@language = 'V' then N'Nửa năm' else N'Half a Year' end when '5' then case when @@language = 'V' then N'Năm' else N'Year' end end as kieu_bc, @so_ky as so_ky, @thang as thang, @nam as nam, @ma_dvcs as ma_dvcs, @ma_bp as ma_bp, @ma_vv as ma_vv
+exec rs_rptCashFlowStatementsByWeek @thang, @nam, @kieu_bc, @so_ky, @kieu_kh, @so_cs, @ma_bp, @ma_vv, @ma_dvcs, @form, @mau_bc, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptPivotFilter;
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  onChange$]]>&controller;<![CDATA[$Type(f);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(m,d){var a=d.object,g=d.type.Context,l=d.type.Result;switch(g){case"Checking":var b=a.grid,h=a.getItem("thang").value,i=a.getItem("nam").value,e=a.getItem("so_ky").value,j=a.getItem("form").selectedIndex,k=a.getItem("form").options,f=k[j].text;b._alterTitle=[null,[["%f",f,true],["%n",e,true],["%p",h,true],["%y",i,true]]];var c=e+String.fromCharCode(255)+a.getItemValue("mau_bc");if(!b._v)b._v=c;if(b._v!=c){remove$GridReport$Filter(b);b._v=c}}}
+function onChange$]]>&controller;<![CDATA[$Item(o) {
+  var f = o.parentForm, name = o.field.Name;
+  switch (name) {
+    case 'kieu_kh':
+      onChange$]]>&controller;<![CDATA[$Type(f, true);
+      break;
+    default:
+      break;
+  }
+}
+function onChange$]]>&controller;<![CDATA[$Type(f, force) {window.setTimeout(String.format('onFocus$]]>&controller;<![CDATA[$Type(\'{0}\', {1});', f._id, force ? 1 : 0), 2);}
+function onFocus$]]>&controller;<![CDATA[$Type(id, force) {
+  var f = $find(id), v = (f.getItem('kieu_kh').value == '3'), t1 = f.getItem('so_cs'), t2 = f.getItem('ma_bp');
+  setItem$]]>&controller;<![CDATA[$Disable(f, 'so_cs', !v);
+  setItem$]]>&controller;<![CDATA[$Live(t1, t2, v)
+}
+function setItem$]]>&controller;<![CDATA[$Live(t1, t2, type) {
+  if (type) {if (t2.live) {t1.disabled = false; t1.focus();}}
+    else {if (t1.live) {t2.disabled = false; t2.focus();}}
+}
+function setItem$]]>&controller;<![CDATA[$Disable(f, c, v) {
+  var a = c.split(',');
+  for (var i = 0; i < a.length; i++) {
+    var o = f.getItem($func.trim(a[i]));
+    if (o.a) $common.setVisible(o.a, !v);
+    o.disabled = v;
+  }
+}
+function init$]]>&controller;<![CDATA[$Form(f) {
+  var o = f.getItem('form'), value = f._itemValue.split(String.fromCharCode(255)), text = f._itemText.split(String.fromCharCode(255)), index;
+  for (var i = 0; i < value.length; i++) {
+    o.options[i] = new Option(text[i], value[i]);
+    if (!index && f._defaultForm == value[i]) index = i;
+  }
+  if (!index) index = 0;
+  o.options[index].selected = true;
+}
+]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+
+  <fields>
+    <field name="tu_ky" dataFormatString="#0" type="Decimal" allowNulls="false">
+      <header v="Từ kỳ" e="Form Period"/>
+      <footer v="Từ kỳ/năm" e="Period/Year from"/>
+      <items style="Numeric"/>
+    </field>
+    <field name="tu_nam" dataFormatString="###0" type="Decimal" allowNulls="false">
+      <header v="Từ năm" e="Year from"/>
+      <items style="Numeric"/>
+    </field>
+    <field name="den_ky" dataFormatString="#0" type="Decimal" allowNulls="false">
+      <header v="Đến kỳ" e="To Period"/>
+      <footer v="Đến kỳ/năm" e="Period/Year to"/>
+      <items style="Numeric"/>
+    </field>
+    <field name="den_nam" dataFormatString="###0" type="Decimal" allowNulls="false">
+      <header v="Đến năm" e="To Year"/>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_dvcs" onDemand="true">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="161">
+      <item value="120, 30, 40, 30, 100, 230"/>
+      <item value="111: [tu_ky].Discription, [tu_ky], [tu_nam]"/>
+      <item value="111: [den_ky].Discription, [den_ky], [den_nam]"/>
+      <item value="110010: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @d1 varchar(8), @d2 varchar(8)
+select @d1 = convert(varchar(8), ngay_gh1, 112), @d2 = convert(varchar(8), ngay_gh2, 112) from dmstt
+select 'this._d1 = ''' + @d1 + ''';this._d2 = ''' + @d2 + ''';active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_rptCalculateValueOfFinancialArticles @tu_ky, @tu_nam, @den_ky, @den_nam, 1, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  var o = f.getItem('tu_ky'), d = new Date();
+  if (!f.getItemValue('tu_ky')) o.value = d.getMonth() + 1;
+  if (!f.getItemValue('den_ky')) f.getItem('den_ky').value = d.getMonth() + 1;
+  if (!f.getItemValue('tu_nam')) f.getItem('tu_nam').value = d.getFullYear();
+  if (!f.getItemValue('den_nam')) f.getItem('den_nam').value = d.getFullYear();
+  f.live(o);
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+}
+function close$VoucherFilter$(f) {try {f.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var id = f.get_id(), g = f.grid, p1 = f.getItem('tu_ky').value, p2 = f.getItem('den_ky').value, y1 = f.getItem('tu_nam').value, y2 = f.getItem('den_nam').value;
+      g._alterTitle = [null, [['%p1', p1, true], ['%p2', p2, true], ['%y1', y1, true], ['%y2', y2, true]]];
+      var d1 = $func.formatDateOrder(new Date(y1, p1 - 1, 1)), d2 = $func.formatDateOrder(new Date(y2, p2, 1)), field = null;
+      if (p1 < 0 || p1 > 12 || d1 < f._d1 || (y1 * 12 + p1 > y2 * 12 + p2) ) field = 'tu_ky';
+      if (!field && (p2 < 0 || p2 > 12 || f._d2 <= d2)) field = 'den_ky';
+      
+      if (field) {
+        f._checked = false;
+        $func.hideWait(id);
+        $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), f.getItem(field).field.Label), String.format('$find(\'{0}\').getItem(\'{1}\').focus()', id, field));
+      } else {
+        g._periodFrom = f.getItemValue('tu_ky');
+        g._yearFrom = f.getItemValue('tu_nam');
+        g._periodTo = f.getItemValue('den_ky');
+        g._yearTo = f.getItemValue('den_nam');
+        g._unit = f.getItemValue('ma_dvcs');
+        g._arrValue = [];
+        g._finish = 0;
+      }
+			break;
+    default:
+      break;
+  }
+}	
+]]>
+    </text>
+  </script>
+</dir>

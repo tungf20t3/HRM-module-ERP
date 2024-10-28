@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "MPSReleaseForm">
+]>
+
+<dir table="mpctyc" code="ma_vt" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn đơn hàng" e="Select Planned Order"></title>
+  <fields>
+    <field name="ma_vt" isPrimaryKey="true">
+      <header v="Mã vật tư" e="Item Code"></header>
+    </field>
+    <field name="ten_vt" readOnly ="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho">
+      <header v="Mã kho" e="Site Code"></header>
+    </field>
+    <field name="ten_kho" readOnly ="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_ct1" external="true" hidden ="true" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_ct2" external="true" hidden ="true" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="" e=""></header>
+    </field>
+    <field name="xac_nhan" external="true" hidden ="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="d2" external="true" clientDefault="0" defaultValue="0" rows="196" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chọn đơn hàng" e="Select Order"></label >
+      <items style="Grid" controller="MPSReleaseGrid" row="1">
+        <item value="ForeignKey">
+          <text v="String: ma_vt, ma_vt" e="String: ma_vt, ma_vt"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v="DateTime: ngay_ct1, ngay_ct1" e="DateTime: ngay_ct1, ngay_ct1"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v="DateTime: ngay_ct2, ngay_ct2" e="DateTime: ngay_ct2, ngay_ct2"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v="String: xac_nhan, xac_nhan" e="String: xac_nhan, xac_nhan"></text>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="256" anchor="3">
+      <item value="100, 100, 553"/>
+      <item value ="111: [ma_kho].Label, [ma_kho], [ten_kho]"/>
+      <item value ="111: [ma_vt].Label, [ma_vt], [ten_vt]"/>
+      <item value="---111: [xac_nhan], [ngay_ct1], [ngay_ct2]"/>
+      <item value="1: [d2]"/>
+      <categories>
+        <category index="1" columns="769, 0" anchor="1">
+          <header v="Đơn hàng" e="Information"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this,;
+f._checked = false;
+request$MPSReleaseGrid$(f);
+this._flowScript = 'setMemvar(this)';
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[      
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  f._$gridRelease = f.getItem('d2')._controlBehavior;
+  f._$gridRelease.add_onRender(on$Voucher$GridDetailRenderForm);
+  f.add_onResponseComplete(on$MPSReleaseForm$ResponseComplete);
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid;
+  f.setItemValues('ma_vt, ten_vt, ma_kho, ten_kho, xac_nhan, ngay_ct1, ngay_ct2', [g._item, g._itemName, g._site, g._siteName, g._firm, g._dateFrom, g._dateTo]);
+  f.setReadOnlyFields('ma_vt, ma_kho');
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {
+  try {f.remove_onResponseComplete(on$MPSReleaseForm$ResponseComplete);} catch (ex) {}
+  try {f._$gridRelease.remove_onRender(on$Voucher$GridDetailRenderForm);} catch (ex) {}
+}
+function on$Voucher$GridDetailRenderForm(g, eventArgs) {g._getHeaderItem(g._$t).innerHTML = g._fields[g._$t - 1].FooterText;}
+function request$MPSReleaseGrid$(f) {
+  var g = f.getItem('d2')._controlBehavior;
+  f.request('Confirm', 'Confirm', [['s', 'Infinite', g._$k.join(',')], ['ma_kho', 'String', f.getItemValue('ma_kho')]]);
+}
+function on$MPSReleaseForm$ResponseComplete(f, e) {
+  var  context = e.type.Context, result = e.type.Result, o = e.type.Object;
+  switch (context) {
+    case 'Confirm':
+      var z = f.grid, w = z.get_element().parentForm, g = w.getItem('d1')._controlBehavior;
+      onChange$GridVoucherDetail$(g, w.getItemValue('ma_kho'));
+      f.cancelDialog();
+      break;
+    default:
+      break;
+  }
+}
+function setMemvar(f) {
+  var g = f.getItem('d2')._controlBehavior;
+  g._$k = [];
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Confirm">
+      <text>
+        <![CDATA[
+declare @stt_rec char(13), @maxLength int
+select @maxLength = character_maximum_length from information_schema.columns where table_name = 'mpkcsx' and column_name = 'so_ct'
+select stt_rec into #d1 from mpctyc where exists(select 1 from @s where patindex('%'+ rtrim(case when stt_rec <> '' then stt_rec else '*' end) + '%', text) > 0)
+declare cr cursor for select stt_rec from #d1
+open cr fetch next from cr into @stt_rec
+while @@fetch_status = 0 begin
+  exec rs_MPSExtractPlannedOrder @stt_rec, @ma_kho, 'SX1', @maxLength, @@userID
+  fetch next from cr into @stt_rec
+end
+close cr
+deallocate cr
+
+drop table #d1
+select '1' as v
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+</dir>

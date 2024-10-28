@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BankingLogin">
+  <!ENTITY c1 "&lt;div id=&quot;&Identity;&quot; class=&quot;&Identity;&quot; align=&quot;left&quot; onclick=&quot;redirectForm$(this);&quot;&gt;">
+  <!ENTITY c2 "&lt;/div&gt;">
+]>
+
+<dir type="Report" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_nh_dt" allowNulls="false">
+      <header v="Mã ngân hàng điện tử" e="e-Banking"></header>
+      <footer v="&c1;Nhấn vào đây để đăng nhập ngân hàng điện tử&c2;" e="&c1;Click here to login to bank-hub&c2;"/>
+      <items style="AutoComplete" controller="EBanking" reference="ten_nh_dt%l" key="loai_kn = '1' and status = '1'" check="loai_kn = '1'" information="ma_nh_dt$dmnhdt.ten_nh%l"/>
+    </field>
+    <field name="ten_nh_dt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="112">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11010: [ma_nh_dt].Label, [ma_nh_dt], [ten_nh_dt%l]"/>
+      <item value="-1000: [ma_nh_dt].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @userName char(30), @o1 varchar(128), @o2 varchar(128)
+select @userName = name from vsysuserinfo where id = @@userID
+select @o1 = rtrim(val) from options where name = 'm_auth_url_nhdt'
+select @o2 = rtrim(val) from options where name = 'm_client_code_nhdt'
+select 'this._break = true;this._userName = ''' + rtrim(@userName) + ''';this._o1 = ''' + rtrim(@o1) + ''';this._o2 = ''' + rtrim(@o2) + '''' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$]]>&Identity;<![CDATA[$(f) {$get(']]>&Identity;<![CDATA[').parentForm = f;}
+function redirectForm$(o) {
+  var f = o.parentForm, g = f.grid;
+  if (!f.validFields('ma_nh_dt')) return;
+  var r = new Date().getTime().toString();
+  var url = f._o1 + '?b=' + f.getItemValue('ma_nh_dt') + '&c=' + f._o2 + '&u=' + f._userName + '&r=' + r + '&l=' + f._language;
+  window.open(url, '_blank');
+}
+]]>
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.]]>&Identity;<![CDATA[:hover{text-decoration:underline}
+.]]>&Identity;<![CDATA[{cursor:pointer;position:relative;width:64px!important;color:#3171c6;font-family:verdana;font-size:11px;}
+]]>
+    </text>
+  </css>
+</dir>

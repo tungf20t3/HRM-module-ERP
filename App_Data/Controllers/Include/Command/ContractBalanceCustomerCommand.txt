@@ -1,0 +1,47 @@
+﻿<command event="Declare">
+  <text>
+    <![CDATA[
+declare @$exists nvarchar(512), @$recordHasBeenChanged nvarchar(512)
+select @$exists = case when @@language = 'v' then N'Tài khoản <span class="Highlight">%s1</span>, hợp đồng <span class="Highlight">%s2</span>, khách hàng <span class="Highlight">%s3</span> đã cập nhật trong số dư đầu kỳ.' else N'The record consisting of account code <span class="Highlight">%s1</span>, contract code <span class="Highlight">%s2</span>, customer code <span class="Highlight">%s3</span> are invalid or already exists.' end
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Tài khoản <span class="Highlight">%s1</span>, hợp đồng <span class="Highlight">%s2</span> và khách hàng <span class="Highlight">%s3</span> đã được sửa hoặc xóa bởi người sử dụng khác.' else N'The record consisting of account code <span class="Highlight">%s1</span>, contract code <span class="Highlight">%s2</span> and customer code <span class="Highlight">%s3</span> has been modified or deleted by another user.' end
+]]>
+  </text>
+</command>
+
+<command event="Inserting">
+  <text>
+    <![CDATA[
+if exists(select 1 from @@table where nam = @nam and ma_dvcs = @ma_dvcs and tk = @tk and ma_hd = @ma_hd and ma_kh = @ma_kh) begin
+  select 'tk' as field, replace(replace(replace(@$exists, '%s1', rtrim(@tk)), '%s2', rtrim(@ma_hd)), '%s3', rtrim(@ma_kh)) as message
+  return
+end
+select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
+]]>
+  </text>
+</command>
+
+<command event="Updating">
+  <text>
+    <![CDATA[
+if not exists(select 1 from @@table where nam = $nam.OldValue and ma_dvcs = $ma_dvcs.OldValue and tk = $tk.OldValue and ma_hd = $ma_hd.OldValue and ma_kh = $ma_kh.OldValue)
+  begin
+    select 'tk' as field, replace(replace(replace(@$recordHasBeenChanged, '%s1', rtrim($tk.OldValue)), '%s2', rtrim($ma_hd.OldValue)), '%s3', rtrim($ma_kh.OldValue)) as message
+  return
+end
+if @nam <> $nam.OldValue or @ma_dvcs <> $ma_dvcs.OldValue or @tk <> $tk.OldValue or @ma_hd <> $ma_hd.OldValue or @ma_kh <> $ma_kh.OldValue begin
+  if exists(select 1 from @@table where (not (nam = $nam.OldValue and ma_dvcs = $ma_dvcs.OldValue and tk = $tk.OldValue and ma_hd = $ma_hd.OldValue and ma_kh = $ma_kh.OldValue)) and (nam = @nam and ma_dvcs = @ma_dvcs and tk = @tk and ma_hd = @ma_hd and ma_kh = @ma_kh)) begin
+    select 'tk' as field, replace(replace(replace(@$exists, '%s1', rtrim(@tk)), '%s2', rtrim(@ma_hd)), '%s3', rtrim(@ma_kh)) as message
+    return
+  end
+end
+]]>
+  </text>
+</command>
+
+<command event="Updated">
+  <text>
+    <![CDATA[
+update @@table set datetime2 = getdate(), user_id2 = @@userID where nam = @nam and ma_dvcs = @ma_dvcs and tk = @tk and ma_hd = @ma_hd and ma_kh = @ma_kh
+]]>
+  </text>
+</command>

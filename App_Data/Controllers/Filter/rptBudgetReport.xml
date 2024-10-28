@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 30, 40, 20, 80, 100, 90"/>
+      <item value="1111: [ky].Label, [ky], [nam].Label, [nam]"/>
+      <item value="1100000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="1100000: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @ky as ky, @nam as nam
+exec rs_rptBudgetReport @ky, @nam, @ma_dvcs, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  if (!f.getItemValue('ky')) f.getItem('ky').value = (new Date()).getMonth() + 1;
+  if (!f.getItemValue('nam')) f.getItem('nam').value = (new Date()).getFullYear();
+  f.live(f.getItem('ky'))
+}
+function close$VoucherFilter$(f) {try {f.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+   var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid;
+      var v = f.getItemValue('mau_bc');
+      g._hiddenFields = [
+        {Fields: 'tien_nt0, tien_nt, tien_cl_nt, pt_nt, t_tien_nt0, t_tien_nt, t_tien_cl_nt, t_pt_nt', Value: v == '10'},
+        {Fields: 'tien0, tien, tien_cl, pt, t_tien0, t_tien, t_tien_cl, t_pt', Value: v == '20'}
+      ];
+      var d1 = f.getItem('ky').value;
+      var n1 = f.getItem('nam').value;
+      g._alterTitle = [null, [['%d1', d1, true], ['%n1', n1, true]]];
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

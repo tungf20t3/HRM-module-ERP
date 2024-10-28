@@ -1,0 +1,79 @@
+﻿<![CDATA[
+function set$Grid$ImportResult(z) {
+  var g = z.grid, f = z.form, w = g.get_element().parentForm, result = z.result, row = g._rowCount, first = true, i1 = 9, i2 = 11, i3 = 15, i4 = 19, i5 = 23;
+  var refIndex = ]]>&PMDetailImportFields.RefIndex;<![CDATA[, editItemAccountIndex = ]]>&PMDetailImportFields.EditItemAccountIndex;<![CDATA[, multiUOMIndex = ]]>&PMDetailImportFields.MultiUOMIndex;<![CDATA[, taxDebitIndex = ]]>&PMDetailImportFields.TaxDebitIndex;<![CDATA[;
+  var c0 = g._getColumnOrder('ma_vt'), reference = g._getColumnOrder('ten_vt%l'), c1 = g._getColumnOrder('dvt'), c2 = g._getColumnOrder('ma_kho'), c3 = g._getColumnOrder('ma_vi_tri'), c4 = g._getColumnOrder('ma_lo');
+  var c5 = g._getColumnOrder('ma_thue_nk'), c6 = g._getColumnOrder('tk_thue_nk'), c7 = g._getColumnOrder('ma_thue_ttdb'), c8 = g._getColumnOrder('tk_thue_ttdb'), c9 = g._getColumnOrder('ma_thue'), c10 = g._getColumnOrder('tk_thue'), c11 = g._getColumnOrder('tk_vt');
+
+  ]]>&ImportUserDefinedDeclare;<![CDATA[
+  var beginUDIndex = 11;
+
+  var fields = 'ma_vt, ten_vt%l, dvt, he_so, ma_kho, ma_vi_tri, ma_lo, so_luong, gia_nt0, tien_nt0, gia_nt3, tien_nt3, ma_thue_nk, thue_suat_nk, tk_thue_nk, nk_nt, ma_thue_ttdb, thue_suat_ttdb, tk_thue_ttdb, ttdb_nt, ma_thue, thue_suat, tk_thue, thue_nt,';
+  fields += 'tk_vt, ' + ']]>&ImportUserDefinedFields;<![CDATA[' + ', gia_ton, vi_tri_yn, lo_yn, tao_lo]]>&PMDetailImportFields.Process;<![CDATA[';
+
+  for (var i = 0; i < result.length; i++) {
+    var ins = true, row = g._rowCount, importItems = result[i];
+    if (first && row > 0) if (g.blankMemvar(row)) {ins = false; first = false;}
+    if (ins) g._appendRow(null, true);
+    row = g._rowCount;
+    var o = g._getItem(row, c0);
+    o.row = row;
+    insert$Import$Items(g, fields, row, importItems);
+
+    var ref = importItems[refIndex];
+    var itemID = g._getItemValue(row, c0), itemName = g._getItemValue(row, reference), b0 = (itemName != '' || itemID == '');
+    var itemGridBehavior = [
+        ['ma_vt', itemID, [itemName, b0], true],
+        ['dvt', g._getItemValue(row, c1), ['', ref.substr(0, 1) == '1'], true],
+        ['ma_kho', g._getItemValue(row, c2), ['', ref.substr(1, 1) == '1'], true],
+        ['ma_vi_tri', g._getItemValue(row, c3), ['', ref.substr(2, 1) == '1'], true],
+        ['ma_lo', g._getItemValue(row, c4), ['', ref.substr(3, 1) == '1'], true],
+
+        ['ma_thue_nk', g._getItemValue(row, c5), ['', ref.substr(4, 1) == '1'], true],
+        ['tk_thue_nk', g._getItemValue(row, c6), ['', ref.substr(5, 1) == '1'], true],
+
+        ['ma_thue_ttdb', g._getItemValue(row, c7), ['', ref.substr(6, 1) == '1'], true],
+        ['tk_thue_ttdb', g._getItemValue(row, c8), ['', ref.substr(7, 1) == '1'], true],
+
+        ['ma_thue', g._getItemValue(row, c9), ['', ref.substr(8, 1) == '1'], true],
+        ['tk_thue', g._getItemValue(row, c10), ['', ref.substr(9, 1) == '1'], true],
+
+        ['tk_vt', g._getItemValue(row, c11), ['', ref.substr(10, 1) == '1'], true]
+    ];
+    ]]>&ImportUserDefinedSetItem;<![CDATA[
+
+    ]]>&PMDetailImportFields.ConditionalBegin;<![CDATA[
+    if (!importItems[i1]) g.executeExpression(o, [g.$a.tien_nt0]);
+    if (!importItems[i2]) g.executeExpression(o, [g.$a.tien_nt3]);
+    if (!importItems[i3]) g.executeExpression(o, [g.$a.nk_nt]);
+    if (!importItems[i4]) g.executeExpression(o, [g.$a.ttdb_nt]);
+    if (!importItems[i5]) g.executeExpression(o, [g.$a.thue_nt]);
+
+    g.executeExpression(o, [g.$a.gia0_tg, g.$a.tien0_tg, g.$a.gia3_tg, g.$a.tien3_tg, g.$a.nk_tg, g.$a.ttdb_tg, g.$a.thue_tg]);
+    ]]>&PMDetailImportFields.ConditionalEnd;<![CDATA[
+
+    $func.setObjectWhen(g._getItem(row, c1), importItems[multiUOMIndex]);
+    $func.setObjectWhen(g._getItem(row, c10), importItems[taxDebitIndex]);
+    $func.setObjectWhen(g._getItem(row, c11), importItems[editItemAccountIndex]);
+  }
+  g.executeAggregate([g.$a.t_so_luong, g.$a.t_tien_nt0, g.$a.t_tien0, g.$a.t_tien_nt3, g.$a.t_tien3, g.$a.t_nk_nt, g.$a.t_nk, g.$a.t_ttdb_nt, g.$a.t_ttdb]);
+  w.executeExpression([g.$a.t_tt_nt, g.$a.t_tt]);
+
+  g._focusWhenTabChanged();
+  f._busy = false;
+  parent.$func.hideWait(f.get_id());
+  ]]>&ImportDetailCloseForm;<![CDATA[
+  z.parentNode.removeChild(z);
+}
+function insert$Import$Items(g, fields, row, value) {
+  var field = fields.split(',');
+  for (var i = 0; i < field.length; i++) {
+    var column = g._getColumnOrder(parent.$func.trim(field[i]));
+    if (column > 0) {
+      var f = g._fields[column - 1], v = value[i];
+      if (f.ItemStyle == 'AutoComplete' && v && !$func.trim(v)) v = '';
+      g._setItemValue(row, column, v);
+    }
+  }
+}
+]]>

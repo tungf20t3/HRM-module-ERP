@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE config [
+  <!ENTITY % ConfigFilterEvents SYSTEM "..\..\Include\ConfigFilterEvents.ent">
+  %ConfigFilterEvents;
+
+  <!ENTITY % Tiny.Currency SYSTEM "..\..\Include\Tiny.Currency.ent">
+  %Tiny.Currency;
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+]>
+
+<config xmlns="urn:schemas-ai-erp:data-pattern">
+  <query events="Initialize, Checking, Script, Showing" reference="&ConfigFilterEventsReference;">
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @filterEvents nvarchar(4000)
+set @message = ''
+exec @@sysDatabaseName..AI_ERP$Generate$FilterEvents @@controller, @@event, @filterEvents out
+set @message = @message + @filterEvents
+
+if (1 = ]]>&Tiny.Currency.ConfigEvent;<![CDATA[ or 1 = ]]>&Tiny.External.ConfigEvent;<![CDATA[) begin
+  declare @$formFieldAction nvarchar(4000)
+  exec @@sysDatabaseName..AI_ERP$GenerateEvents$FormFieldAction @@controller, @@event, 'sysfilterfield', '1=0]]>&Tiny.Currency.ConfigCondition;&Tiny.External.ConfigCondition;<![CDATA[', '@@appDatabaseName', @$formFieldAction out
+  set @message = @message + @$formFieldAction
+end
+
+select @message as message
+]]>
+    </text>
+  </query>
+</config>

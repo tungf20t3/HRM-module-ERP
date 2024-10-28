@@ -1,0 +1,456 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY CheckVoucherRightBeforeProcess SYSTEM "Include\CheckVoucherRightBeforeProcess.txt">
+  <!ENTITY Detail "10">
+  <!ENTITY Code "PK0">
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY LockedDate "
+if @r is not null begin
+  select replace(@locked, '&#37;s', @@delta + @r) as message
+  return
+end
+">
+  <!ENTITY s1 "Chứng từ số &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; ngày &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;&#37;s3&lt;/span&gt;">
+  <!ENTITY s2 "The voucher number &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; dated &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;&#37;s3&lt;/span&gt;">
+
+  <!ENTITY s3 "Số hóa đơn &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt;">
+  <!ENTITY s4 "The invoice number &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt;">
+
+  <!ENTITY % ConfigDynamicEvents SYSTEM "..\..\Include\ConfigImportDynamicEvents.ent">
+  %ConfigDynamicEvents;
+  <!ENTITY ConfigDynamicVoucherType "">
+  <!ENTITY ConfigDynamicType "1">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.GSTran;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'GSMaster' else 'GSMaster2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Voucher"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$GSMasterImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$GSMasterImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="m&Detail;$000000, d&Detail;$000000"/>
+    <dependence value="m&Detail;$000000, d&Detail;$000000, i&Detail;$000000" alias="m, d, i"/>
+    <listTable value="#m&Detail;, #d&Detail;, #i&Detail;"/>
+    <alias value="master, detail, inquiry"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C001">
+      <header v="Số chứng từ và ngày đã tồn tại." e="The voucher number and dated already exists." />
+    </var>
+    <var id="C002">
+      <header v="Số chứng từ, ngày và đơn vị đã tồn tại." e="The voucher number, dated and unit already exists." />
+    </var>
+    <var id="C003">
+      <header v="Đã khóa số liệu, kiểm tra lại ngày chứng từ." e="Data is locked, please check the date of voucher." />
+    </var>
+    <var id="C004">
+      <header v="Số chứng từ và ngày chưa nhập đủ tài khoản nợ hoặc có trong nhóm định khoản." e="The voucher number and dated has not been entered all debit or credit entries in the records (group)." />
+    </var>
+    <var id="C005">
+      <header v="Số chứng từ và ngày có hạch toán nhiều nợ, nhiều có trong nhóm định khoản." e="The voucher number and dated has multi debit credit entries in the records (group)." />
+    </var>
+    <var id="C006">
+      <header v="Số chứng từ và ngày có phát sinh nợ và phát sinh có khác nhau trong nhóm định khoản." e="The voucher number and dated has difference between total debit and total credit in group." />
+    </var>
+    <var id="C007">
+      <header v="Trường ngày chưa nhập hoặc giá trị nhập không hợp lệ." e="Field date must not be blank or has invalid value." />
+    </var>
+    &ImportLockedDateVariable;
+  </variable>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" allowNulls="false" upperCase="true" resource="master, inquiry" check="ma_dvcs not in (select ma_dvcs from dmdvcs) &And;exists(select 1 from #unit b where @@table.ngay_ct = b.ngay_ct and @@table.so_ct = b.so_ct having count(b.ma_dvcs) &gt; 1)&And;ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)" condition="&And;&And;if (@admin &lt;&gt; 1) begin" tag="&And;&And;end" errorCode="00001&And;00002&And;00002" category="1"/>
+    <field name="so_ct" column="B" allowNulls="false" upperCase="true" resource="master, detail, inquiry"/>
+    <field name="ngay_ct" column="C" allowNulls="false" type="DateTime" resource="master, detail, inquiry"/>
+    <field name="ma_nt" column="D" upperCase="true" resource="master" check="ma_nt not in (select ma_nt from dmnt)" errorCode="00001" category="1"/>
+    <field name="ty_gia" column="E" type="Decimal" defaultValue="1" resource="master"/>
+    <field name="dien_giai" column="F" resource="master"/>
+
+    <field name="tk" column="G" reference="1" upperCase="true" allowNulls="false" resource="detail" check = "tk not in (select tk from dmtk where loai_tk = 1)" errorCode="00001" category="1"/>
+    <field name="ma_kh" column="I" reference="1" upperCase="true" resource="detail" check = "ma_kh = '' and exists(select 1 from dmtk b where @@table.tk = b.tk and b.tk_cn = 1)&And;ma_kh &lt;&gt; '' and not exists(select 1 from dmkh b where @@table.ma_kh = b.ma_kh)" errorCode="invalidValueMessage&And;00001" category="1"/>
+    <field name="ps_no_nt" column="K" type="Decimal" resource="detail"/>
+    <field name="ps_co_nt" column="L" type="Decimal" resource="detail"/>
+    <field name="ps_no" column="M" type="Decimal" resource="detail"/>
+    <field name="ps_co" column="N" type="Decimal" resource="detail"/>
+
+    <field name="dien_giai_d" column="O" reference="1.dien_giai" insertValue="dien_giai" relation="dien_giai" resource="detail"/>
+
+    <field name="ma_vv" column="P" reference="1" upperCase="true" resource="detail" check="ma_vv &lt;&gt; '' and ma_vv not in (select ma_vv from dmvv)" errorCode="00001" category="5"/>
+    <field name="ma_hd" column="Q" reference="1" upperCase="true" resource="detail" check="ma_hd &lt;&gt; '' and ma_hd not in (select ma_hd from dmhd)" errorCode="00001" category="5"/>
+    <field name="ma_ku" column="R" reference="1" upperCase="true" resource="detail" check="ma_ku &lt;&gt; '' and ma_ku not in (select ma_ku from dmku)" errorCode="00001" category="5"/>
+    <field name="nh_dk" column="S" reference="1" resource="detail"/>
+
+    <field name="stt_rec" column="None" resource="master, detail, inquiry"/>
+    <field name="stt_rec0" column="None" resource="detail"/>
+    <field name="line_nbr" column="None" type="Int" updateValue="None" resource="detail"/>
+    <field name="ma_ct" column="None" insertValue="@voucherID" expression="''' + @voucherID + '''" resource="master, detail"/>
+    <field name="loai_ct" column="None" insertValue="''" expression="''''" resource="master"/>
+    <field name="ngay_lct" column="None" type="DateTime" insertValue="ngay_ct" resource="master"/>
+
+    <field name="t_ps_no_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_ps_co_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_ps_no" column="None" type="Decimal" resource="master"/>
+    <field name="t_ps_co" column="None" type="Decimal" resource="master"/>
+
+    <field name="c$" column="None" resource="inquiry"/>
+    <field name="m$" column="None" resource="inquiry"/>
+    <field name="d$" column="None" resource="inquiry"/>
+
+    <field name="status" column="None" insertValue="'1'" resource="master, inquiry"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="@datetime0" expression="''' + @datetime0 + '''" resource="master"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="@datetime0" expression="''' + @datetime0 + '''" resource="master"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master, inquiry"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Bút toán điều chỉnh số dư đầu năm" e="Opening Balance Adjustment Entry"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+
+      <field name="so_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số chứng từ" e="Voucher Number"/>
+      </field>
+      <field name="ngay_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày chứng từ" e="Voucher Date"/>
+      </field>
+
+      <field name="ma_nt" width="16">
+        <text v="Mã nt" e="Currency"/>
+      </field>
+      <field name="ty_gia" width="16">
+        <text v="Tỷ giá" e="Ex. Rate"/>
+      </field>
+
+      <field name="dien_giai" width="50">
+        <text v="Diễn giải" e="Memo"/>
+      </field>
+      <field name="tk" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tài khoản" e="Account"/>
+      </field>
+      <field name="ten_tk" afterField="tk" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên tài khoản" e="Account Name"/>
+      </field>
+      <field name="ma_kh" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã khách" e="Customer"/>
+      </field>
+      <field name="ten_kh" afterField="ma_kh" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên khách" e="Customer Name"/>
+      </field>
+
+      <field name="ps_no_nt" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Phát sinh nợ nt" e="FC Debit Amount"/>
+      </field>
+      <field name="ps_co_nt" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Phát sinh có nt" e="FC Credit Amount"/>
+      </field>
+
+      <field name="ps_no" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Phát sinh nợ" e="Debit Amount"/>
+      </field>
+      <field name="ps_co" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Phát sinh có" e="Credit Amount"/>
+      </field>
+
+      <field name="dien_giai_d" width="50">
+        <text v="Diễn giải chi tiết" e="Description"/>
+      </field>
+
+      <field name="ma_vv" width="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_hd" width ="16">
+        <text v="Hợp đồng" e="Contract"/>
+      </field>
+      <field name="ma_ku" width ="16">
+        <text v="Khế ước" e="Loan Contract"/>
+      </field>
+
+      <field name="nh_dk" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Nhóm định khoản" e="Group"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      &CheckVoucherRightBeforeProcess;
+      <![CDATA[
+declare @q nvarchar(4000), @duplicate nvarchar(512), @e1 nvarchar(512), @e2 nvarchar(512), @e3 nvarchar(512), @e4 nvarchar(512), @locked nvarchar(512), @field varchar(32), @wsID varchar(8), @voucherID varchar(8)
+declare @master varchar(16), @detail varchar(16), @inquiry varchar(16), @baseCurrency varchar(8), @datetime0 char(21), @d0 datetime
+declare @user int, @admin bit, @r int, @m int, @y int, @max1 int, @count int, @roundAmount int, @roundFAmount int
+
+select @d0 = getdate(), @datetime0 = convert(char(8), @d0, 112) + ' ' + convert(char(12), @d0, 114), @status = left(replace(@status, '''', '') , 1)
+select @admin = @@admin, @user = @@userID, @master = 'm]]>&Detail;<![CDATA[$', @detail = 'd]]>&Detail;<![CDATA[$', @inquiry = 'i]]>&Detail;<![CDATA[$', @voucherID = ']]>&Code;<![CDATA['
+
+select @locked = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày chứng từ tại dòng <span class="Highlight">%s</span>.' else N'Data is locked, please check the date of voucher at row <span class="Highlight">%s</span>.' end
+select @duplicate = case when @@language = 'v' then N']]>&s1;<![CDATA[ đã tồn tại.' else ']]>&s2;<![CDATA[ already exists.' end
+
+select @e1 = case when @@language = 'v' then N']]>&s1;<![CDATA[ chưa nhập đủ tài khoản nợ hoặc có trong nhóm định khoản.' else ']]>&s2;<![CDATA[ has not been entered all debit or credit entries in the records (group).' end
+select @e2 = case when @@language = 'v' then N']]>&s1;<![CDATA[ có hạch toán nhiều nợ, nhiều có trong nhóm định khoản.' else 'There are multi debit credit entries in the records (group) in ]]>&s2;<![CDATA[.' end
+select @e3 = case when @@language = 'v' then N']]>&s1;<![CDATA[ có phát sinh nợ và phát sinh có khác nhau trong nhóm định khoản.' else ']]>&s2;<![CDATA[ has difference between total debit and total credit in group.' end
+select @e4 = case when @@language = 'v' then N'Giá trị nhập không hợp lệ, kiểm tra lại ngày chứng từ tại dòng <span class="Highlight">%s</span>.' else 'Invalid value, please check the date of voucher at row <span class="Highlight">%s</span>.' end
+
+select @wsID = rtrim(val) from options where name = 'm_ws_id'
+select @baseCurrency = rtrim(val) from options where name = 'm_ma_nt0'
+select @roundAmount = cast(rtrim(val) as int) from options where name = 'm_round_tien'
+select @roundFAmount = cast(rtrim(val) as int) from options where name = 'm_round_tien_nt'
+
+select @max1 = character_maximum_length from information_schema.columns where table_name = @master + '000000' and column_name = 'so_ct'
+
+-- Update
+update @@table set so_ct = space(@max1 - len(rtrim(ltrim(so_ct)))) + rtrim(ltrim(so_ct)), ma_nt = case when ma_nt <> '' then ma_nt else @baseCurrency end
+
+select top 0 ma_dvcs, ngay_ct, so_ct into #unit from m]]>&Detail;<![CDATA[$000000
+insert into #unit select ma_dvcs, ngay_ct, so_ct from @@table group by ma_dvcs, ngay_ct, so_ct
+
+-- Locked Date
+]]>&ImportLockedDateCheck;<![CDATA[
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_ct', stt, 'C007' from @@table a, dmstt b where year(a.ngay_ct) <= b.nam_bd
+  ]]>&w1;<![CDATA['ngay_ct']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C007']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table a, dmstt b where year(a.ngay_ct) <= b.nam_bd
+  if @r is not null begin
+    select replace(@e4, '%s', @@delta + @r) as message
+    return
+  end
+end
+
+-- Check
+@@checking(1);
+
+update @@table set ps_no_nt = ps_no where ma_nt = @baseCurrency and ps_no_nt = 0 and ps_no <> 0
+update @@table set ps_co_nt = ps_co where ma_nt = @baseCurrency and ps_co_nt = 0 and ps_co <> 0
+update @@table set ps_no = round(ps_no_nt * ty_gia, @roundAmount) where ma_nt = @baseCurrency or (ma_nt <> @baseCurrency and ps_no = 0)
+update @@table set ps_co = round(ps_co_nt * ty_gia, @roundAmount) where ma_nt = @baseCurrency or (ma_nt <> @baseCurrency and ps_co = 0)
+
+-- Check Group
+select top 0 a.ngay_ct, a.so_ct, a.nh_dk, a.ps_no_nt, a.ps_co_nt, cast(0 as int) as no_nt, cast(0 as int) as co_nt, cast(0 as int) as nc_nt_yn, a.ps_no, a.ps_co, cast(0 as int) as no, cast(0 as int) as co, cast(0 as int) as nc_yn into #group from d]]>&Detail;<![CDATA[$000000 a
+insert into #group
+  select ngay_ct, so_ct, nh_dk, sum(ps_no_nt), sum(ps_co_nt), sum(case when ps_no_nt = 0 then 0 else 1 end), sum(case when ps_co_nt = 0 then 0 else 1 end), sum(case when ps_no_nt <> 0 and ps_co_nt <> 0 then 1 else 0 end), sum(ps_no), sum(ps_co), sum(case when ps_no = 0 then 0 else 1 end), sum(case when ps_co = 0 then 0 else 1 end), sum(case when ps_no <> 0 and ps_co <> 0 then 1 else 0 end)
+    from @@table group by ngay_ct, so_ct, nh_dk
+create index i on #group (ngay_ct, so_ct, nh_dk)
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C004' from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where ((b.no_nt * b.co_nt = 0) or nc_nt_yn = 1)
+  ]]>&w1;<![CDATA['so_ct']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C004']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C004' from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where ((b.no * b.co = 0) or nc_yn = 1) and a.ma_nt <> @baseCurrency and nc_nt_yn = 1
+  ]]>&w1;<![CDATA['so_ct']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C004']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where ((b.no_nt * b.co_nt = 0) or nc_nt_yn = 1)
+  if @r is not null begin
+    select replace(replace(replace(@e1, '%s1', so_ct), '%s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+
+  select @r = min(stt) from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where ((b.no * b.co = 0) or nc_yn = 1) and a.ma_nt <> @baseCurrency and nc_nt_yn = 1
+  if @r is not null begin
+    select replace(replace(replace(@e1, '%s1', so_ct), '%s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C005' from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where ((b.no_nt - 1) * (b.co_nt - 1) <> 0)
+  ]]>&w1;<![CDATA['so_ct']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C005']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C005' from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where ((b.no - 1) * (b.co - 1) <> 0) and a.ma_nt <> @baseCurrency and nc_nt_yn = 1
+  ]]>&w1;<![CDATA['so_ct']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C005']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where ((b.no_nt - 1) * (b.co_nt - 1) <> 0)
+  if @r is not null begin
+    select replace(replace(replace(@e2, '%s1', so_ct), '%s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+
+  select @r = min(stt) from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where ((b.no - 1) * (b.co - 1) <> 0) and a.ma_nt <> @baseCurrency and nc_nt_yn = 1
+  if @r is not null begin
+    select replace(replace(replace(@e2, '%s1', so_ct), '%s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C006' from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where (b.ps_no_nt <> b.ps_co_nt)
+  ]]>&w1;<![CDATA['so_ct']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C006']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C006' from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where (b.ps_no <> b.ps_co) and a.ma_nt <> @baseCurrency
+  ]]>&w1;<![CDATA['so_ct']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C006']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where (b.ps_no_nt <> b.ps_co_nt)
+  if @r is not null begin
+    select replace(replace(replace(@e3, '%s1', so_ct), '%s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+
+  select @r = min(stt) from @@table a join #group b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.nh_dk = b.nh_dk where (b.ps_no <> b.ps_co) and a.ma_nt <> @baseCurrency
+  if @r is not null begin
+    select replace(replace(replace(@e3, '%s1', so_ct), '%s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+
+@@checking(5);
+
+]]>&ConfigDynamicImportChecking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+
+-- Gather
+select top 0 stt_rec, ngay_ct, so_ct, cast(0 as int) as stt, identity(int, 1, 1) as id into #id from m]]>&Detail;<![CDATA[$000000
+insert into #id(stt_rec, ngay_ct, so_ct, stt) select '', ngay_ct, so_ct, min(stt) from @@table group by ngay_ct, so_ct order by ngay_ct, so_ct
+
+select identity(int, 1, 1) as id, cast(stt as int) as stt, convert(varchar(8), ngay_ct, 112) + so_ct as c, cast(0 as int) as ln into #ln from @@table order by ngay_ct, so_ct, stt
+exec AI_ERP$App$UpdateLineNumber
+create index i on #ln(stt)
+
+select @count = count(*) from #id
+exec AI_ERP$App$UpdateIdentityNumber @wsID, @voucherID, @count, @@userID
+
+select top 0 stt_rec, stt_rec0, line_nbr, ngay_ct, so_ct, tk, ma_kh, ps_no_nt, ps_no, ps_co_nt, ps_co, dien_giai, ma_vv, ma_hd, ma_ku, nh_dk, cast(0 as int) as stt
+  into #d]]>&Detail;<![CDATA[ from d]]>&Detail;<![CDATA[$000000
+insert into #d]]>&Detail;<![CDATA[ select b.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln), i.ln, a.ngay_ct, a.so_ct,
+    a.tk, a.ma_kh, a.ps_no_nt, a.ps_no, a.ps_co_nt, a.ps_co,
+    a.dien_giai_d, a.ma_vv, a.ma_hd, a.ma_ku, a.nh_dk, a.stt
+  from @@table a join #id b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct join #ln i on a.stt = i.stt
+  order by a.ngay_ct, a.so_ct, a.stt
+
+select top 0 stt_rec, status, ma_dvcs, ngay_ct, so_ct, ma_nt, ty_gia, t_ps_no_nt, t_ps_no, t_ps_co_nt, t_ps_co, dien_giai
+  into #m]]>&Detail;<![CDATA[ from m]]>&Detail;<![CDATA[$000000
+
+insert into #m]]>&Detail;<![CDATA[ select b.stt_rec, @status, c.ma_dvcs, a.ngay_ct, a.so_ct,
+    a.ma_nt, a.ty_gia, d.t_ps_no_nt, d.t_ps_no, d.t_ps_co_nt, d.t_ps_co, a.dien_giai
+  from @@table a
+    join #id b on a.stt = b.stt
+    join #unit c on a.ngay_ct = c.ngay_ct and a.so_ct = c.so_ct
+    join (select stt_rec, sum(ps_no_nt) as t_ps_no_nt, sum(ps_no) as t_ps_no
+      , sum(ps_co_nt) as t_ps_co_nt, sum(ps_co) as t_ps_co from #d]]>&Detail;<![CDATA[ group by stt_rec) d
+    on b.stt_rec = d.stt_rec
+
+update #d]]>&Detail;<![CDATA[ set dien_giai = b.dien_giai from #d]]>&Detail;<![CDATA[ a join #m]]>&Detail;<![CDATA[ b on a.stt_rec = b.stt_rec where isnull(a.dien_giai, '') = ''
+
+select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, status, user_id0, c$, m$, d$, identity(int, 1, 1) as id into #i]]>&Detail;<![CDATA[ from i]]>&Detail;<![CDATA[$000000
+insert into #i]]>&Detail;<![CDATA[ select stt_rec, ngay_ct, so_ct, ma_dvcs, @status, @user, convert(varchar(12), ngay_ct, 112) + so_ct + stt_rec,
+  '#10$' + rtrim(ma_nt), '' from #m]]>&Detail;<![CDATA[
+
+select @q = dbo.AI_ERP$Function$Update$Inquiry('#i]]>&Detail;<![CDATA[', '#d]]>&Detail;<![CDATA[', 'd$', 'tk, ma_kh', '#10$, #20$', 'stt_rec', default, default, default, default, default)
+exec sp_executesql @q
+
+-- Insert
+@@inserting(master);
+@@inserting(detail);
+@@inserting(inquiry);
+
+declare @fieldSelect varchar(4000), @External nvarchar(4000), @Statement nvarchar(4000), @Numeric varchar(4000), @String varchar(4000), @s nvarchar(4000)
+declare @glGroup varchar(128), @glAcctField varchar(128), @glAcctFieldRef varchar(128), @glAmountField varchar(128), @glFCAmountField varchar(128), @glKey varchar(512), @glNoAccList varchar(128), @glNoAccListRef varchar(128), @glGroups varchar(128)
+
+select @glAcctField = 'tk_no', @glAcctFieldRef = 'tk_co', @glAmountField = 'tien', @glFCAmountField = 'tien_nt', @glKey = '1=1', @glNoAccList = '0', @glNoAccListRef = '0', @glGroups = '1'
+select @Numeric = 'nam, ky, sl_td1, sl_td2, sl_td3, s4, s5, s6', @String = 'ma_nk, so_lo, ong_ba, ma_gd, so_dh, gc_td1, gc_td2, gc_td3, so_ct0, s1, s2, s3', @External = 'dien_giai_h = b.dien_giai, datetime0 = ''' + @datetime0 + ''', datetime2 = ''' + @datetime0 + ''', user_id0 = ' + rtrim(@user) + ', user_id2 = ' + rtrim(@user)
+select @glGroup = 'nh_dk, ma_vv, ma_hd, ma_ku'
+
+select @Statement = 'update #gs set ma_kh = case when a.ma_kh <> '''' then a.ma_kh else b.ma_kh end, ma_vv = case when a.ma_vv <> '''' then a.ma_vv else b.ma_vv end,
+  ma_hd = case when a.ma_hd <> '''' then a.ma_hd else b.ma_hd end,
+  ma_ku = case when a.ma_ku <> '''' then a.ma_ku else b.ma_ku end, dien_giai = case when a.dien_giai <> '''' then a.dien_giai else b.dien_giai end
+  from #gs b join #gs1 a on a.stt_rec = b.stt_rec and a.nh_dk = b.nh_dk where b.ps_co + b.ps_co_nt <> 0'
+
+select @Statement = @Statement + char(13) + 'update #gs set ma_kh = case when a.ma_kh <> '''' then a.ma_kh else b.ma_kh end, ma_vv = case when a.ma_vv <> '''' then a.ma_vv else b.ma_vv end,
+  ma_hd = case when a.ma_hd <> '''' then a.ma_hd else b.ma_hd end,
+  ma_ku = case when a.ma_ku <> '''' then a.ma_ku else b.ma_ku end, dien_giai = case when a.dien_giai <> '''' then a.dien_giai else b.dien_giai end
+  from #gs b join #gs2 a on a.stt_rec = b.stt_rec and a.nh_dk = b.nh_dk where b.ps_no + b.ps_no_nt <> 0'
+
+select @Statement = @Statement + char(13) + 'update #gs set head_item = b.nh_dk_ref from #gs a join #grtype1 b on a.stt_rec = b.stt_rec and a.nh_dk = b.nh_dk'
+
+select stt_rec, nh_dk, case when sum(case when ps_no + ps_no_nt <> 0 then 1 else 0 end) >= sum(case when ps_no + ps_no_nt <> 0 then 0 else 1 end) then 1 else 0 end as xtype
+  into #grtype from #d]]>&Detail;<![CDATA[ group by stt_rec, nh_dk
+
+select stt_rec, nh_dk, cast('' as char(1)) as nh_dk_ref, identity(int, 1, 1) as id into #grtype1 from #grtype group by stt_rec, nh_dk
+select stt_rec, min(id) as id into #grtype0 from #grtype1 group by stt_rec
+update #grtype1 set nh_dk_ref = case when (a.id - b.id + 1) < 36 then dbo.ff_Dec2Seq(a.id - b.id + 1) else '' end from #grtype1 a join #grtype0 b on a.stt_rec = b.stt_rec
+
+select a.stt_rec, a.tk, a.nh_dk, a.ma_kh, a.ma_vv, a.ma_hd, a.ma_ku, a.dien_giai into #gs1 from #d]]>&Detail;<![CDATA[ a
+  where a.ps_co + a.ps_co_nt <> 0 and exists (select 1 from #grtype b where a.stt_rec = b.stt_rec and a.nh_dk = b.nh_dk and b.xtype = 1)
+
+select a.stt_rec, a.tk, a.nh_dk, a.ma_kh, a.ma_vv, a.ma_hd, a.ma_ku, a.dien_giai into #gs2 from #d]]>&Detail;<![CDATA[ a
+  where a.ps_no + a.ps_no_nt <> 0 and exists (select 1 from #grtype b where a.stt_rec = b.stt_rec and a.nh_dk = b.nh_dk and b.xtype = 0)
+
+select a.stt_rec, a.stt_rec0, a.line_nbr, a.ngay_ct, a.so_ct, a.tk as tk_no, b.tk as tk_co, a.ps_no as tien, a.ps_no_nt as tien_nt, a.nh_dk,
+    case when a.ma_kh <> '' then a.ma_kh else b.ma_kh end as ma_kh, case when a.ma_vv <> '' then a.ma_vv else b.ma_vv end as ma_vv,
+    case when a.ma_hd <> '' then a.ma_hd else b.ma_hd end as ma_hd,
+    case when a.ma_ku <> '' then a.ma_ku else b.ma_ku end as ma_ku, case when a.dien_giai <> '' then a.dien_giai else b.dien_giai end as dien_giai
+  into #dGL0 from #d]]>&Detail;<![CDATA[ a join #gs1 b on a.stt_rec = b.stt_rec and a.nh_dk = b.nh_dk where a.ps_no + a.ps_no_nt <> 0
+
+insert into #dGL0 select a.stt_rec, a.stt_rec0, a.line_nbr, a.ngay_ct, a.so_ct, b.tk, a.tk, a.ps_co, a.ps_co_nt, a.nh_dk,
+    case when a.ma_kh <> '' then a.ma_kh else b.ma_kh end as ma_kh, case when a.ma_vv <> '' then a.ma_vv else b.ma_vv end as ma_vv,
+    case when a.ma_hd <> '' then a.ma_hd else b.ma_hd end as ma_hd,
+    case when a.ma_ku <> '' then a.ma_ku else b.ma_ku end as ma_ku, case when a.dien_giai <> '' then a.dien_giai else b.dien_giai end as dien_giai
+  from #d]]>&Detail;<![CDATA[ a join #gs2 b on a.stt_rec = b.stt_rec and a.nh_dk = b.nh_dk where a.ps_co + a.ps_co_nt <> 0
+
+select a.*, b.ma_dvcs, a.ma_kh as ma_kh_ref, @voucherID as ma_ct, cast('' as char(2)) as loai_ct, b.ngay_ct as ngay_lct, b.ma_nt,b.ty_gia, a.dien_giai as dien_giai_h into #dGL from #dGL0 a join #m]]>&Detail;<![CDATA[ b on a.stt_rec = b.stt_rec
+
+exec AI_ERP$Voucher$Import$PostGS '#m]]>&Detail;<![CDATA[', '#dGL', @voucherID, @glAcctField, @glAcctFieldRef, @glAmountField, @glFCAmountField, @glKey, @glNoAccList, @glNoAccListRef, @glGroup, @Numeric, @String, @External, @Statement, @glGroups
+]]>
+    </text>
+  </processing>
+
+</import>

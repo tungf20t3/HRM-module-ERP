@@ -1,0 +1,17 @@
+﻿<![CDATA[
+var f = this, c = ']]>&Tag;dv<![CDATA[', id = f.get_id(), g = f.getItem(c)._controlBehavior, v = f._language == 'v';
+var e = (v ? 'Có tồn tại đơn vị trùng nhau trong phần thông tin đơn vị, không thể lưu được.' : 'Invalid unit code, it already exists.');
+if (f._checked) {
+  var l = g._getColumnOrder('ma_dvcs'), a = query$Select(g, 'count$1 $groupBy ma_dvcs');
+  for (var i = 0; i < a.length; i++) {
+    if (a[i][1] > 1) {
+      g._errorObject = g._getItem(i + 1, l);
+      f._checked = false;
+      $func.hideWait(id);
+      $message.show(e, String.format('$find(\'{0}\').focus(\'{1}\');$find(\'{2}\')._errorObject.focus();', id, c, g.get_id()));
+      break;
+    }
+  }
+}
+if (f._checked) g.setSequenceNumber('line_nbr');
+]]>

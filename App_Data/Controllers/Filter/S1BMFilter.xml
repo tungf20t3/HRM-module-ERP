@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY % GridInitialize SYSTEM "..\Include\Grid.ent">
+  %GridInitialize;
+
+  <!ENTITY ScriptQueryData SYSTEM "..\Include\Javascript\QueryData.txt">
+
+  <!ENTITY Identity "S1BM">
+  <!ENTITY c11 "Từ ngày">
+  <!ENTITY c12 "Date From">
+  <!ENTITY c21 "Mã sản phẩm">
+  <!ENTITY c22 "Product">
+]>
+
+<dir table="phdm" code="stt_rec" order="ma_sp" id="DM1" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn định mức nguyên vật liệu" e="Select Bill of Materials"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="&c11;" e="&c12;"></header>
+    </field>
+    <field name="ma_sp">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="AutoComplete" controller="Product" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="Tên sản phẩm" e="Product Name"></header>
+    </field>
+
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="he_so" type="Decimal" hidden="true" dataFormatString="&CoefficientViewFormat;">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="t_so_luong" type="Decimal" dataFormatString="@quantityViewFormat" clientDefault="0" hidden="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230, 0, 0, 0, 0"/>
+      <item value="110101111: [ma_sp].Label, [ma_sp], [ten_vt%l], [ngay_ct2], [ma_dvcs], [t_so_luong], [he_so]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Filter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @fields nvarchar(512), @keyMaster nvarchar(1024), @keyFlow nvarchar(4000), @$none nvarchar(512), @roundQuantity int, @roundRate int
+
+select @keyMaster = '', @fields = ''
+select @keyFlow = '', @$none = case when @@language = 'v' then N'Không có định mức nguyên vật liệu theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+select @roundQuantity = val from options where name = 'm_round_sl'
+select @roundRate = val from options where name = 'm_round_tl'
+
+declare @vcID varchar(32), @Rate numeric(16, 5), @productID varchar(32), @productName nvarchar(512), @vcFields nvarchar(512), @retrieveID char(13), @i int, @l int, @c smalldatetime, @d smalldatetime, @t varchar(128), @s nvarchar(4000)
+select @productID = ltrim(rtrim(@ma_sp))
+select @productName = case when @@language = 'v' then ten_vt else ten_vt2 end from dmvt where ma_vt = @productID
+
+if exists(select 1 from idm where ma_sp = @ma_sp) begin
+  select @retrieveID = stt_rec from idm where ma_sp = @ma_sp
+  goto Retrieve
+end
+select 'ma_sp' as field, @$none as message
+return
+
+Retrieve:
+select @vcID = @retrieveID, @d = @ngay_ct2, @Rate = he_so from phdm where ma_sp = @ma_sp
+
+select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, ''' + replace(replace(@productID, '\', '\\'), '''', '\''') + ''', ''' + replace(replace(@productName, '\', '\\'), '''', '\''') + ''', ''' + @vcID + ''', ''' + convert(char(8), @d, 112) + ''', ''' + replace(replace(rtrim(round(@t_so_luong/@Rate, @roundQuantity)), '\', '\\'), '''', '\''') + ''', ''' + replace(replace(rtrim(round(@he_so/@Rate, @roundRate)), '\', '\\'), '''', '\''') + ''');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptQueryData;
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  var g = f.grid, w = g.get_element().parentForm, d2 = w.getItemValue('ngay_ct'), z = w.getItem('ds1')._controlBehavior;
+  var _ma_vt = z._getItemValue(1, z._getColumnOrder('ma_vt')), _ten_vt = z._getItemValue(1, z._getColumnOrder('ten_vt%l')), _rate = z._getItemValue(1, z._getColumnOrder('he_so'));
+  var a = query$Select(z, 'sum$([so_luong]*[he_so]) $groupBy ma_vt');
+  f.setItemValues('ngay_ct2, ma_sp, ten_vt%l, t_so_luong, he_so', [d2, _ma_vt, _ten_vt, a[0][1], _rate]);
+  f.setReadOnlyFields('ma_sp');
+}
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, c, n, e, d, m, r) {
+  var g = f.grid;
+  g._voucher$Retrieve$ProductID = c;
+  g._voucher$Retrieve$ProductName = n;
+  g._voucher$Retrieve$ID = e;
+  g._voucher$Retrieve$Date = $func.formatStringToDate(d);
+  g._voucher$Retrieve$Quantity = m;
+  g._voucher$Retrieve$Rate = r;
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g);
+}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g) {
+  g.showForm(']]>&Identity;<![CDATA[Form');
+  g._memvars = [];
+}
+]]>
+    </text>
+  </script>
+</dir>

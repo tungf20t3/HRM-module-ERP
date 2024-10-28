@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BudgetPlanImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BudgetPlanImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="ctns"/>
+    <table value="ctns" alias="a"/>
+    <temporary value="#k" alias="b"/>
+  </setting>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where year(ngay_ks) >= @nam)&And;ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from ctns b where @@table.ma_dvcs = b.ma_dvcs and @@table.tk = b.tk and @@table.ma_bp = b.ma_bp and @@table.ma_phi = b.ma_phi and b.nam = @nam) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;&And;if (@admin &lt;&gt; 1) begin&And;if @type = '1' begin" tag="&And;&And;&And;end end" updateValue="None"/>
+    <field name="tk" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" check="tk not in (select tk from dmtk where loai_tk = 1)" updateValue="None"/>
+    <field name="no_co" column="D" type="Decimal" defaultValue="1" check="no_co not in (1, 2)"/>
+    <field name="ma_bp" column="E" isPrimaryKey="true" upperCase="true" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from dmbp)" updateValue="None"/>
+    <field name="ma_phi" column="F" isPrimaryKey="true" upperCase="true" check="ma_phi &lt;&gt; '' and ma_phi not in (select ma_phi from dmphi)" updateValue="None"/>
+    <field name="tk_k_gt" column="G" upperCase="true" check="tk_k_gt &lt;&gt; '' and tk_k_gt not in (select tk from dmtk where loai_tk = 1)"/>
+    <field name="tien_nt" column="H" type="Decimal"/>
+    <field name="tien" column="I" type="Decimal"/>
+    <field name="tien_nt01" column="J" type="Decimal"/>
+    <field name="tien01" column="K" type="Decimal"/>
+    <field name="tien_nt02" column="L" type="Decimal"/>
+    <field name="tien02" column="M" type="Decimal"/>
+    <field name="tien_nt03" column="N" type="Decimal"/>
+    <field name="tien03" column="O" type="Decimal"/>
+    <field name="tien_nt04" column="P" type="Decimal"/>
+    <field name="tien04" column="Q" type="Decimal"/>
+    <field name="tien_nt05" column="R" type="Decimal"/>
+    <field name="tien05" column="S" type="Decimal"/>
+    <field name="tien_nt06" column="T" type="Decimal"/>
+    <field name="tien06" column="U" type="Decimal"/>
+    <field name="tien_nt07" column="V" type="Decimal"/>
+    <field name="tien07" column="W" type="Decimal"/>
+    <field name="tien_nt08" column="X" type="Decimal"/>
+    <field name="tien08" column="Y" type="Decimal"/>
+    <field name="tien_nt09" column="Z" type="Decimal"/>
+    <field name="tien09" column="AA" type="Decimal"/>
+    <field name="tien_nt10" column="AB" type="Decimal"/>
+    <field name="tien10" column="AC" type="Decimal"/>
+    <field name="tien_nt11" column="AD" type="Decimal"/>
+    <field name="tien11" column="AE" type="Decimal"/>
+    <field name="tien_nt12" column="AF" type="Decimal"/>
+    <field name="tien12" column="AG" type="Decimal"/>
+
+    <field name="nam" column="None" type="Decimal" insertValue="@nam" updateValue="None"/>
+    <field name="t_tien" column="None" type="Decimal" insertValue="(tien01 + tien02 + tien03 + tien04 + tien05 + tien06 + tien07 + tien08 + tien09 + tien10 + tien11 + tien12)" updateValue="(b.tien01 + b.tien02 + b.tien03 + b.tien04 + b.tien05 + b.tien06 + b.tien07 + b.tien08 + b.tien09 + b.tien10 + b.tien11 + b.tien12)"/>
+    <field name="t_tien_nt" column="None" type="Decimal" insertValue="(tien_nt01 + tien_nt02 + tien_nt03 + tien_nt04 + tien_nt05 + tien_nt06 + tien_nt07 + tien_nt08 + tien_nt09 + tien_nt10 + tien_nt11 + tien_nt12)" updateValue="(b.tien_nt01 + b.tien_nt02 + b.tien_nt03 + b.tien_nt04 + b.tien_nt05 + b.tien_nt06 + b.tien_nt07 + b.tien_nt08 + b.tien_nt09 + b.tien_nt10 + b.tien_nt11 + b.tien_nt12)"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @user int, @admin bit
+select @admin = @@admin, @user = @@userID
+
+if @admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'BudgetPlan', 'Edit') = 0 select @type = '0'  
+end
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+-- Delete
+if @type = '0' delete @@table from @@table a where exists(select 1 from ctns b where b.nam = @nam and a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_bp = b.ma_bp and a.ma_phi = b.ma_phi)
+select a.* into #k from @@table a join ctns b on b.nam = @nam and a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_bp = b.ma_bp and a.ma_phi = b.ma_phi
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_bp = b.ma_bp and a.ma_phi = b.ma_phi)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ and a.nam = @nam end
+]]>
+    </text>
+  </processing>
+</import>

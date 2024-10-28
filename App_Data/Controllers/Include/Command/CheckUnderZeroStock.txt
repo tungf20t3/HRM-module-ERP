@@ -1,0 +1,125 @@
+﻿      <![CDATA[
+declare @option2 bit, @$stock$Process$Type char(1)
+if ]]>&DetailStockType;<![CDATA[ = '1' and exists(select 1 from options where name = 'm_instock_split' and val = '1') select @option2 = 1 else select @option2 = 0
+select @$stock$Process$Type = rtrim(val) from options where name = (case when @option2 = 1 then 'm_instock_process2' else 'm_instock_process' end)
+if @$stock$Process$Type <> '0' begin
+  if (@status <> '0') begin
+    declare @$stock$Old$Status char(1), @$stock$Detail$Update tinyint, @$stock$Posted tinyint, @$stock$Location varchar(64), @$stock$Lot varchar(64)
+    select @$stock$Old$Status = '', @$stock$Detail$Update = 1, @$stock$Posted = 0
+    if not exists(select 1 from ]]>&DetailVariable;<![CDATA[) select @$stock$Detail$Update = 0
+
+    if @@action = 'Edit' select @$stock$Old$Status = status from @@prime$partition$previous where stt_rec = @stt_rec
+    if @$stock$Old$Status <> '' and ((@$stock$Old$Status <> '0' and @@id <> 'DX1') or (@@id = 'DX1' and (@$stock$Old$Status not in ('0', '1')))) select @$stock$Posted = 1
+
+    if @$stock$Detail$Update = 0 and @$stock$Posted = 1 goto EndCheckUnderZeroStock
+    --
+    declare @$exe$command nvarchar(4000), @$invalidStock nvarchar(512), @$stock$Check$Type char(1), @$stock$Round$Qty tinyint, @$stock$Onhand$Type bit
+    select @$stock$Check$Type = rtrim(val) from options where name = (case when @option2 = 1 then 'm_instock_check2' else 'm_instock_check' end)
+    select @$stock$Round$Qty = cast(val as tinyint) from options where name = 'm_round_sl'
+    select @$stock$Onhand$Type = case when exists(select 1 from options where name = 'm_instock_onhand' and val = '1') then 1 else 0 end
+
+    create table #$stock$declare (tablePhysics varchar(511), tableBook varchar(511), xKeyJoin varchar(511), fieldsSelect varchar(511), fieldsGroup varchar(511), messText nvarchar(1023), messText2 nvarchar(1023))
+    select a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo, a.so_luong, a.he_so, a.line_nbr into #$stock$d1 from ]]>&DetailVariable;<![CDATA[ a join dmvt b on a.ma_vt = b.ma_vt where b.vt_ton_kho = 1
+    select top 0 ma_vt, ma_kho, ma_vi_tri, ma_lo, so_luong, line_nbr into #$stock$d2 from #$stock$d1
+
+    if @$stock$Onhand$Type <> 1 begin
+      if @$stock$Check$Type = '1' insert into #$stock$declare select 'cdvt213', 'cdvt13', 'a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho', 'a.ma_vt, a.ma_kho, '''', ''''', 'a.ma_vt, a.ma_kho', N'Vật tư <span class="Highlight">%v</span>, kho <span class="Highlight">%k</span>', N'Item <span class="Highlight">%v</span>, Site <span class="Highlight">%k</span>'
+      else if @$stock$Check$Type = '2' insert into #$stock$declare select 'cdvitri213', 'cdvitri13', 'a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri', 'a.ma_vt, a.ma_kho, a.ma_vi_tri, ''''', 'a.ma_vt, a.ma_kho, a.ma_vi_tri', N'Vật tư <span class="Highlight">%v</span>, kho <span class="Highlight">%k</span>%s1', N'Item <span class="Highlight">%v</span>, Site <span class="Highlight">%k</span>%s1'
+      else if @$stock$Check$Type = '3' insert into #$stock$declare select 'cdklo213', 'cdklo13', 'a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_lo = b.ma_lo', 'a.ma_vt, a.ma_kho, '''', a.ma_lo', 'a.ma_vt, a.ma_kho, a.ma_lo', N'Vật tư <span class="Highlight">%v</span>, kho <span class="Highlight">%k</span>%s2', N'Item <span class="Highlight">%v</span>, Site <span class="Highlight">%k</span>%s2'
+      else if @$stock$Check$Type = '4' insert into #$stock$declare select 'cdlo213', 'cdlo13', 'a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo', 'a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo', 'a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo', N'Vật tư <span class="Highlight">%v</span>, kho <span class="Highlight">%k</span>%s1%s2', N'Item <span class="Highlight">%v</span>, Site <span class="Highlight">%k</span>%s1%s2'
+    end else begin
+      select top 0 ma_kho, ma_vi_tri, ma_vt, ma_lo, so_luong as ton13 into #xcd from cdvt73
+
+      if @$stock$Check$Type = '1' begin
+        if @$stock$Detail$Update = 1 select @$exe$command = 'insert into #$stock$d2 select ma_vt, ma_kho, '''', '''', sum(round(so_luong * he_so, ' + rtrim(@$stock$Round$Qty) + ')), min(line_nbr) from #$stock$d1 a group by ma_vt, ma_kho'
+          else select @$exe$command = 'insert into #$stock$d2 select a.ma_vt, a.ma_kho, '''', '''', sum(round(a.so_luong * a.he_so, ' + rtrim(@$stock$Round$Qty) + ')), min(a.line_nbr) from ' + replace(']]>&DetailVariable;<![CDATA[', '@', '') + '$$partition$previous a with(nolock) join dmvt b on a.ma_vt = b.ma_vt where b.vt_ton_kho = 1 and a.stt_rec = ''' + rtrim(ltrim(@stt_rec)) + ''' group by a.ma_vt, a.ma_kho'
+        exec sp_executesql @$exe$command
+        create index i on #$stock$d2(ma_vt, ma_kho)
+        if ]]>&DetailStockType;<![CDATA[ = '1' begin
+          insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(a.ton13) from cdvt213 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho group by a.ma_vt, a.ma_kho
+          insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(a.so_luong) from cdvt93 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho group by a.ma_vt, a.ma_kho
+        end else begin
+          insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(a.so_luong) from cdvt73 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho group by a.ma_vt, a.ma_kho
+          insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(a.ton13) from cdvt13 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho group by a.ma_vt, a.ma_kho
+        end
+        insert into #$stock$declare select '(select ma_kho, ma_vt, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt)', '(select ma_kho, ma_vt, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt)', 'a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho', 'a.ma_vt, a.ma_kho, '''', ''''', 'a.ma_vt, a.ma_kho', N'Vật tư <span class="Highlight">%v</span>, kho <span class="Highlight">%k</span>', N'Item <span class="Highlight">%v</span>, Site <span class="Highlight">%k</span>'
+
+      end else if @$stock$Check$Type = '2' begin
+        if @$stock$Detail$Update = 1 select @$exe$command = 'insert into #$stock$d2 select ma_vt, ma_kho, ma_vi_tri, '''', sum(round(so_luong * he_so, ' + rtrim(@$stock$Round$Qty) + ')), min(line_nbr) from #$stock$d1 a group by ma_vt, ma_kho, ma_vi_tri'
+          else select @$exe$command = 'insert into #$stock$d2 select a.ma_vt, a.ma_kho, a.ma_vi_tri, '''', sum(round(a.so_luong * a.he_so, ' + rtrim(@$stock$Round$Qty) + ')), min(a.line_nbr) from ' + replace(']]>&DetailVariable;<![CDATA[', '@', '') + '$$partition$previous a with(nolock) join dmvt b on a.ma_vt = b.ma_vt where b.vt_ton_kho = 1 and a.stt_rec = ''' + rtrim(ltrim(@stt_rec)) + ''' group by a.ma_vt, a.ma_kho, a.ma_vi_tri'
+        exec sp_executesql @$exe$command
+        create index i on #$stock$d2(ma_vt, ma_kho, ma_vi_tri)
+        if ]]>&DetailStockType;<![CDATA[ = '1' begin
+          insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(a.ton13) from cdvitri213 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri group by a.ma_vt, a.ma_kho, a.ma_vi_tri
+          insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(a.so_luong) from cdvt93 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri group by a.ma_vt, a.ma_kho, a.ma_vi_tri
+        end else begin
+          insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(a.so_luong) from cdvt73 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri group by a.ma_vt, a.ma_kho, a.ma_vi_tri
+          insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(a.ton13) from cdvitri13 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri group by a.ma_vt, a.ma_kho, a.ma_vi_tri
+        end
+        insert into #$stock$declare select '(select ma_kho, ma_vt, ma_vi_tri, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_vi_tri)', '(select ma_kho, ma_vt, ma_vi_tri, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_vi_tri)', 'a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri', 'a.ma_vt, a.ma_kho, a.ma_vi_tri, ''''', 'a.ma_vt, a.ma_kho, a.ma_vi_tri', N'Vật tư <span class="Highlight">%v</span>, kho <span class="Highlight">%k</span>%s1', N'Item <span class="Highlight">%v</span>, Site <span class="Highlight">%k</span>%s1'
+
+      end else if @$stock$Check$Type = '3' begin
+        if @$stock$Detail$Update = 1 select @$exe$command = 'insert into #$stock$d2 select ma_vt, ma_kho, '''', ma_lo, sum(round(so_luong * he_so, ' + rtrim(@$stock$Round$Qty) + ')), min(line_nbr) from #$stock$d1 a group by ma_vt, ma_kho, ma_lo'
+          else select @$exe$command = 'insert into #$stock$d2 select a.ma_vt, a.ma_kho, '''', a.ma_lo, sum(round(a.so_luong * a.he_so, ' + rtrim(@$stock$Round$Qty) + ')), min(a.line_nbr) from ' + replace(']]>&DetailVariable;<![CDATA[', '@', '') + '$$partition$previous a with(nolock) join dmvt b on a.ma_vt = b.ma_vt where b.vt_ton_kho = 1 and a.stt_rec = ''' + rtrim(ltrim(@stt_rec)) + ''' group by a.ma_vt, a.ma_kho, a.ma_lo'
+        exec sp_executesql @$exe$command
+        create index i on #$stock$d2(ma_vt, ma_kho, ma_lo)
+        if ]]>&DetailStockType;<![CDATA[ = '1' begin
+          insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(a.ton13) from cdklo213 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_lo = b.ma_lo group by a.ma_vt, a.ma_kho, a.ma_lo
+          insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(a.so_luong) from cdvt93 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_lo = b.ma_lo group by a.ma_vt, a.ma_kho, a.ma_lo
+        end else begin
+          insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(a.so_luong) from cdvt73 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_lo = b.ma_lo group by a.ma_vt, a.ma_kho, a.ma_lo
+          insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(a.ton13) from cdklo13 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_lo = b.ma_lo group by a.ma_vt, a.ma_kho, a.ma_lo
+        end
+        insert into #$stock$declare select '(select ma_kho, ma_vt, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_lo)', '(select ma_kho, ma_vt, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_lo)', 'a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_lo = b.ma_lo', 'a.ma_vt, a.ma_kho, '''', a.ma_lo', 'a.ma_vt, a.ma_kho, a.ma_lo', N'Vật tư <span class="Highlight">%v</span>, kho <span class="Highlight">%k</span>%s2', N'Item <span class="Highlight">%v</span>, Site <span class="Highlight">%k</span>%s2'
+
+      end else if @$stock$Check$Type = '4' begin
+        if @$stock$Detail$Update = 1 select @$exe$command = 'insert into #$stock$d2 select ma_vt, ma_kho, ma_vi_tri, ma_lo, sum(round(so_luong * he_so, ' + rtrim(@$stock$Round$Qty) + ')), min(line_nbr) from #$stock$d1 a group by ma_vt, ma_kho, ma_vi_tri, ma_lo'
+          else select @$exe$command = 'insert into #$stock$d2 select a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo, sum(round(a.so_luong * a.he_so, ' + rtrim(@$stock$Round$Qty) + ')), min(a.line_nbr) from ' + replace(']]>&DetailVariable;<![CDATA[', '@', '') + '$$partition$previous a with(nolock) join dmvt b on a.ma_vt = b.ma_vt where b.vt_ton_kho = 1 and a.stt_rec = ''' + rtrim(ltrim(@stt_rec)) + ''' group by a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo'
+        exec sp_executesql @$exe$command
+        create index i on #$stock$d2(ma_vt, ma_kho, ma_vi_tri, ma_lo)
+        if ]]>&DetailStockType;<![CDATA[ = '1' begin
+          insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(a.ton13) from cdlo213 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo group by a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo
+          insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(a.so_luong) from cdvt93 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo group by a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo
+        end else begin
+          insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(a.so_luong) from cdvt73 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo group by a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo
+          insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(a.ton13) from cdlo13 a with(nolock) join #$stock$d2 b on a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo group by a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo
+        end
+        insert into #$stock$declare select '(select ma_kho, ma_vt, ma_vi_tri, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_vi_tri, ma_lo)', '(select ma_kho, ma_vt, ma_vi_tri, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_vi_tri, ma_lo)', 'a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo', 'a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo', 'a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo', N'Vật tư <span class="Highlight">%v</span>, kho <span class="Highlight">%k</span>%s1%s2', N'Item <span class="Highlight">%v</span>, Site <span class="Highlight">%k</span>%s1%s2'
+      end
+    end
+
+    select top 0 ma_vt, ma_kho, ma_vi_tri, ma_lo, so_luong into #$stock$r from #$stock$d1
+
+    if @$stock$Onhand$Type <> 1 begin
+      if @$stock$Detail$Update = 1 select @$exe$command = 'insert into #$stock$d2 select ' + fieldsSelect + ', sum(round(so_luong * he_so, ' + rtrim(@$stock$Round$Qty) + ')), min(line_nbr) from #$stock$d1 a group by ' + fieldsGroup from #$stock$declare
+        else select @$exe$command = 'insert into #$stock$d2 select ' + fieldsSelect + ', sum(round(a.so_luong * a.he_so, ' + rtrim(@$stock$Round$Qty) + ')), min(a.line_nbr) from ' + replace(']]>&DetailVariable;<![CDATA[', '@', '') + '$$partition$previous a with(nolock) join dmvt b on a.ma_vt = b.ma_vt where b.vt_ton_kho = 1 and a.stt_rec = ''' + rtrim(ltrim(@stt_rec)) + ''' group by ' + fieldsGroup from #$stock$declare
+      exec sp_executesql @$exe$command
+    end
+
+    select @$exe$command = 'insert into #$stock$r select ' + fieldsSelect + ', sum(isnull(b.ton13, 0)) - sum(a.so_luong)' from #$stock$declare
+    if @$stock$Posted = 1 select @$exe$command = @$exe$command + ' - sum(isnull(c.sl_nhap, 0) - isnull(c.sl_xuat, 0))'
+    select @$exe$command = @$exe$command + ' from #$stock$d2 a left join ' + case when ]]>&DetailStockType;<![CDATA[ = '1' then tablePhysics else tableBook end + ' b ' + case when @$stock$Onhand$Type <> 1 then 'with(nolock)' else '' end + ' on ' + xKeyJoin from #$stock$declare
+    if @$stock$Posted = 1 select @$exe$command = @$exe$command + ' left join(select stt_rec, ' + replace(replace(fieldsSelect, 'a.', ''), ', ''''', '') + ', sum(sl_nhap) as sl_nhap, sum(sl_xuat) as sl_xuat from ' + case when ]]>&DetailStockType;<![CDATA[ = '1' then 'r90' else 'r70' end + '$$partition$previous with(nolock) group by stt_rec, ' + replace(replace(fieldsGroup, 'a.', ''), ', ''''', '') + ') c on ' + replace(xKeyJoin, 'b.', 'c.') + ' and c.stt_rec = ''' + rtrim(ltrim(@stt_rec)) + '''' from #$stock$declare
+    select @$exe$command = @$exe$command + ' group by ' + fieldsGroup from #$stock$declare
+    exec sp_executesql @$exe$command
+
+    if exists(select 1 from #$stock$r where so_luong < 0) begin
+      select @$invalidStock = case when @@language = 'V' then messText + N' tồn kho hiện thời âm.' else messText2 + N' with under-zero stock.' end from #$stock$declare
+      select top 1 @$stock$Location = rtrim(ma_vi_tri),  @$stock$Lot = rtrim(ma_lo), @$invalidStock = replace(replace(@$invalidStock, '%v', rtrim(ma_vt)), '%k', rtrim(ma_kho)) from #$stock$r where so_luong < 0
+      select @$invalidStock = replace(@$invalidStock, '%s1', case when @$stock$Location = '' then '' else case when @@language = 'V' then N', vị trí <span class="Highlight">%t</span>' else N', Location <span class="Highlight">%t</span>' end end)
+      select @$invalidStock = replace(@$invalidStock, '%s2', case when @$stock$Lot = '' then '' else case when @@language = 'V' then N', lô <span class="Highlight">%c</span>' else N', Lot <span class="Highlight">%c</span>' end end)
+      select @$invalidStock = replace(replace(@$invalidStock, '%t', @$stock$Location), '%c', @$stock$Lot)
+      if @$stock$Process$Type = '2' begin
+        select replace(']]>&DetailVariable;<![CDATA[', '@', '') as field, @$invalidStock as message
+        drop table #$stock$r, #$stock$d1, #$stock$d2, #$stock$declare
+        return
+      end
+      if @$stock$Process$Type = '1' select @$warning = case when isnull(@$warning, '') = '' then '' else @$warning + ' ' end + @$invalidStock
+    end
+    
+    drop table #$stock$r, #$stock$d1, #$stock$d2, #$stock$declare
+
+    EndCheckUnderZeroStock:
+  end
+end
+]]>

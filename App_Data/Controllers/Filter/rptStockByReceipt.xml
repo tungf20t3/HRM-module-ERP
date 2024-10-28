@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "rptStockByReceipt">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY GetReportFormLimitRight SYSTEM "..\Include\Command\GetReportFormLimitRight.f">
+  <!ENTITY SetReportFormLimitRight SYSTEM "..\Include\Javascript\SetReportFormLimitRight.txt">
+  <!ENTITY XMLWhenFilterQuerying SYSTEM "..\Include\XML\WhenFilterQuerying.xml">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Tính đến ngày" e="As of Date"/>
+    </field>
+    <field name="ma_kho">
+      <header v="Kho hàng" e="Site"/>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="status = '1'" check="1= 1"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+    <field name="ma_vt">
+      <header v="Vật tư" e="Item"/>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1= 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"/>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" clientDefault="20" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu in chỉ có số lượng" e="Quantity Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu in số lượng và giá trị" e="Quantity and Values Form"/>
+        </item>
+        <item value="30">
+          <text v="Mẫu in số lượng và giá trị ngoại tệ" e="Quantity and FC Values Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="110---: [den_ngay].Label, [den_ngay]"/>
+      <item value="110100: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000-: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 20, 80, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message nvarchar(1024)
+select @message = ''
+]]>&GetReportFormLimitRight;<![CDATA[
+select @message + 'active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterClosing;
+    &XMLWhenFilterQuerying;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @siteName nvarchar(1024), @siteName2 nvarchar(1024)
+select @siteName = ten_kho, @siteName2 = ten_kho2 from dmkho where ma_kho = @ma_kho
+select cast(@den_ngay as smalldatetime) as date_from, isnull(@siteName, '') as h_kho, isnull(@siteName2, '') as h_kho2, @ma_kho as ma_kho
+exec rs_rptStockByReceipt @den_ngay, @ma_kho, @ma_vt, @ma_dvcs, 'ma_kho, ma_vt', @@language, @@userID, @@admin, ']]>&Controller;<![CDATA[', '@@sysDatabaseName', '#$query'
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &SetReportFormLimitRight;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  changeLookupReadonly(f, 'ma_dvcs');
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,d){var a=d.object,f=d.type.Context,h=d.type.Result;switch(f){case"Checking":var c=a.grid,g=a.getItem("den_ngay").value,e=a.getItemValue("mau_bc"),b=a.getItem("ma_kho").value;if(b=="")a._language=="v"?b="tất cả các kho":b="All Sites";c._alterTitle=[null,[["%d1",g,true],["%s1",b,true]]];c._hiddenFields=[{Fields:"so_du13, tien, tien_cp, ma_nt",Value:e=="10"},{Fields:"so_du_nt13, tien_nt, tien_cp_nt",Value:e=="10"||e=="20"}];if(a._hidden$GridForm)c._grid$IdHidden$FormReport=a._hidden$GridForm;remove$GridReport$Filter(c)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

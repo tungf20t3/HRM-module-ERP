@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật mã vật tư đầu vào" e="Update Item Code"></title>
+  <fields>
+    <field name="ma_vt" allowNulls="false">
+      <header v="Mã vật tư" e="Item Code"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1" information="ma_vt$dmvt.ten_vt%l" new="Default"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="Tên vật tư" e="Description"></header>
+    </field>
+
+    <field name="keys" readOnly="true" filterSource="Infinite">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 200, 130"/>
+      <item value="110101: [ma_vt].Label, [ma_vt], [ten_vt%l], [keys]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[select 'load$InputInvoiceItemsUpdate$(this);' as message
+return]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @k nvarchar(4000), @r nvarchar(4000), @error char(1)
+select top 1 @k = text from @keys
+exec rs_AutoGenerateInputInvoiceItems @ma_vt, '', '', @k, 1, 0, @@language, @@userID, @@admin, @r output, @error output
+
+select '' as field, '' as message, 'on$InputInvoiceItemsUpdate$Complete(this, ''[' + replace(replace(rtrim(isnull(@r, '')), '\', '\\'), '''', '\''') + ']'');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function load$InputInvoiceItemsUpdate$(c){for(var d=c.grid,b=[],a=0;a<d._$k.length;a++){var e=d._$k[a].split(";");Array.add(b,e[0])}c.setItemValue("keys",b)}function on$InputInvoiceItemsUpdate$Complete(a,b){a.grid._formScript="refresh$InputInvoiceItems$(this, "+b+");"}]]>
+    </text>
+  </script>
+</dir>

@@ -1,0 +1,81 @@
+<field name="ma_dvcs" column="A" allowNulls="false" upperCase="true" alias="b, , " resource="master, inquiry" check="ma_dvcs not in (select ma_dvcs from dmdvcs)&And;not exists(select 1 from dmts b where @@table.so_the_ts = b.so_the_ts) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from dmts b where @@table.so_the_ts = b.so_the_ts) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;if @admin = 0 begin&And;if @admin = 0 begin if @type = '1' begin" tag="&And;end&And;end end" errorCode="00001&And;00002&And;00002"/>
+<field name="ngay_ct" column="B" allowNulls="false" type="DateTime" alias="b, , " resource="master, detail, inquiry"/>
+<field name="so_ct" column="C" allowNulls="false" upperCase="true" alias="b, , " resource="master, detail, inquiry"/>
+<field name="so_the_ts" column="D" allowNulls="false" upperCase="true" updateValue="None" alias="a, " resource="master, detail"/>
+<field name="ten_ts" column="E" allowNulls="false" alias="b" resource="master"/>
+<field name="ten_ts2" column="F" alias="b, " resource="master"/>
+<field name="loai_ts" column="G" allowNulls="false" upperCase="true" alias="b" resource="master" check="loai_ts not in (select ma_loai from dmplts)" errorCode="00001"/>
+<field name="ma_tg_ts" column="H" allowNulls="false" upperCase="true" alias="b, " resource="master, detail" check="ma_tg_ts not in (select ma_tg_ts from dmtgts where loai_tg_ts = 1)" errorCode="00001"/>
+<field name="ngay_mua" column="I" allowNulls="false" type="DateTime" alias="b" resource="master"/>
+<field name="ngay_kh0" column="J" allowNulls="false" type="DateTime" alias="b" resource="master"/>
+<field name="so_ky_kh" column="K" type="Decimal" alias="b" resource="master"/>
+<field name="ngay_kh_kt" column="L" type="DateTime" alias="b" resource="master"/>
+<field name="kieu_kh" column="M" type="Decimal" defaultValue="0" alias="b" resource="master" check="kieu_kh not in ('0', '1', '2')" errorCode="00002"/>
+<field name="tong_sl" column="N" type="Decimal" alias="b" resource="master" check="kieu_kh &lt;&gt; 1 and tong_sl &lt;&gt; 0" errorCode="00002"/>
+<field name="tl_kh00" column="O" type="Decimal" alias="b" resource="master" check="kieu_kh &lt;&gt; 2 and tl_kh00 &lt;&gt; 0" errorCode="00002"/>
+<field name="ky_kh00" column="P" type="Decimal" alias="b" resource="master" check="kieu_kh &lt;&gt; 2 and ky_kh00 &lt;&gt; 0" errorCode="00002"/>
+
+<field name="ma_nv" column="Q" allowNulls="false" reference="1" upperCase="true" resource="detail" check="ma_nv not in (select ma_nv from dmnv)&And;exists(select 1 from @@table b where b.so_the_ts = @@table.so_the_ts and b.ma_nv = @@table.ma_nv group by b.so_the_ts, b.ma_nv having count(*) &gt; 1)" errorCode="00001&And;00002"/>
+<field name="nguyen_gia_nt" column="S" type="Decimal" resource="detail"/>
+<field name="gt_da_kh_nt" column="T" type="Decimal" resource="detail"/>
+<field name="gt_cl_nt" column="U" type="Decimal" resource="detail"/>
+<field name="gt_kh_ky_nt" column="V" type="Decimal" resource="detail"/>
+<field name="gt_da_kh00_nt" column="W" type="Decimal" resource="detail"/>
+
+<field name="ma_nt" column="X" upperCase="true" alias="b" resource="master" check="ma_nt not in (select ma_nt from dmnt)" errorCode="00001"/>
+<field name="ty_gia" column="Y" type="Decimal" defaultValue="1" alias="b" resource="master"/>
+<field name="ma_bp" column="Z" allowNulls="false" upperCase="true" alias="b" resource="master" check="ma_bp not in (select ma_bp from dmbpts)" errorCode="00001"/>
+<field name="tk_ts" column="AA" allowNulls="false" upperCase="true" alias="b" resource="master" check="tk_ts not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+<field name="tk_kh" column="AB" allowNulls="false" upperCase="true" alias="b" resource="master" check="tk_kh not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+<field name="tk_cp" column="AC" allowNulls="false" upperCase="true" alias="b" resource="master" check="tk_cp not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+<field name="ma_phi" column="AD" upperCase="true" resource="master" alias="b" check="ma_phi &lt;&gt; '' and ma_phi not in (select ma_phi from dmphi)" errorCode="00001"/>
+
+<field name="dien_giai" column="AE" reference="1" resource="detail"/>
+<field name="nh_ts1" column="AF" upperCase="true" alias="b" resource="master" check="nh_ts1 &lt;&gt; '' and nh_ts1 not in (select ma_nh from dmnhts where loai_nh = 1)" errorCode="00001"/>
+<field name="nh_ts2" column="AG" upperCase="true" alias="b" resource="master" check="nh_ts2 &lt;&gt; '' and nh_ts2 not in (select ma_nh from dmnhts where loai_nh = 2)" errorCode="00001"/>
+<field name="nh_ts3" column="AH" upperCase="true" alias="b" resource="master" check="nh_ts3 &lt;&gt; '' and nh_ts3 not in (select ma_nh from dmnhts where loai_nh = 3)" errorCode="00001"/>
+<field name="so_ky_kh_qd" column="AI" type="Decimal" alias="b" resource="master"/>
+<field name="so_ky_kh_cl" column="AJ" type="Decimal" alias="b" insertValue="case when b.so_ky_kh_cl &lt;&gt; 0 then b.so_ky_kh_cl else b.so_ky_kh end" updateValue="case when b.so_ky_kh_cl &lt;&gt; 0 then b.so_ky_kh_cl else b.so_ky_kh end" resource="master"/>
+<field name="ty_le_kh_vm" column="AK" type="Decimal" alias="b" resource="master"/>
+<field name="hs_vm" column="AL" type="Decimal" alias="b" resource="master"/>
+<field name="so_hieu_ts" column="AM" upperCase="true" alias="b" resource="master"/>
+<field name="ngay_dvsd" column="AN" type="DateTime" alias="b" resource="master"/>
+<field name="ngay_dc" column="AO" type="DateTime" alias="b" resource="master"/>
+<field name="nuoc_sx" column="AP" alias="b" resource="master"/>
+<field name="nam_sx" column="AQ" type="Decimal" alias="b" resource="master"/>
+
+<field name="stt_rec" column="None" updateValue="None" resource="master, detail, inquiry"/>
+<field name="stt_rec0" column="None" updateValue="None" resource="detail"/>
+<field name="line_nbr" column="None" type="Int" updateValue="None" resource="detail"/>
+
+<field name="t_nguyen_gia" column="None" type="Decimal" insertValue="c.t_nguyen_gia" updateValue="c.t_nguyen_gia" resource="master"/>
+<field name="t_nguyen_gia_nt" column="None" type="Decimal" insertValue="c.t_nguyen_gia_nt" updateValue="c.t_nguyen_gia_nt" resource="master"/>
+<field name="t_gt_da_kh" column="None" type="Decimal" insertValue="c.t_gt_da_kh" updateValue="c.t_gt_da_kh" resource="master"/>
+<field name="t_gt_da_kh_nt" column="None" type="Decimal" insertValue="c.t_gt_da_kh_nt" updateValue="c.t_gt_da_kh_nt" resource="master"/>
+<field name="t_gt_cl" column="None" type="Decimal" insertValue="c.t_gt_cl" updateValue="c.t_gt_cl" resource="master"/>
+<field name="t_gt_cl_nt" column="None" type="Decimal" insertValue="c.t_gt_cl_nt" updateValue="c.t_gt_cl_nt" resource="master"/>
+<field name="t_gt_kh_ky" column="None" type="Decimal" insertValue="c.t_gt_kh_ky" updateValue="c.t_gt_kh_ky" resource="master"/>
+<field name="t_gt_kh_ky_nt" column="None" type="Decimal" insertValue="c.t_gt_kh_ky_nt" updateValue="c.t_gt_kh_ky_nt" resource="master"/>
+
+<field name="nguyen_gia" column="None" type="Decimal" resource="detail"/>
+<field name="gt_da_kh" column="None" type="Decimal" resource="detail"/>
+<field name="gt_cl" column="None" type="Decimal" resource="detail"/>
+<field name="gt_kh_ky" column="None" type="Decimal" resource="detail"/>
+<field name="gt_da_kh00" column="None" type="Decimal" resource="detail"/>
+
+<field name="ky" column="None" type="Decimal" insertValue="month(b.ngay_kh0)&And;ky" updateValue="None" resource="master, detail"/>
+<field name="nam" column="None" type="Decimal" insertValue="year(b.ngay_kh0)&And;nam" updateValue="None" resource="master, detail"/>
+
+<field name="ngay_lct" column="None" type="DateTime" insertValue="b.ngay_ct" updateValue="None" resource="master"/>
+<field name="ngay_gs" column="None" type="DateTime" insertValue="ngay_ct" updateValue="None" resource="detail"/>
+<field name="ma_ct" column="None" insertValue="@voucherID" updateValue="None" resource="master, detail"/>
+
+<field name="c$" column="None" resource="inquiry"/>
+<field name="m$" column="None" resource="inquiry"/>
+<field name="d$" column="None" resource="inquiry"/>
+
+<field name="status" column="None" insertValue="'1'" updateValue="None" resource="master, inquiry"/>
+<field name="datetime0" column="None" type="DateTime" insertValue="@datetime0" updateValue="None" resource="master, detail"/>
+<field name="datetime2" column="None" type="DateTime" insertValue="@datetime0" updateValue="@datetime0" resource="master, detail"/>
+<field name="user_id0" column="None" type="Int" insertValue="@user" updateValue="None" resource="master, detail, inquiry"/>
+<field name="user_id2" column="None" type="Int" insertValue="@user" updateValue="@user" resource="master, detail"/>

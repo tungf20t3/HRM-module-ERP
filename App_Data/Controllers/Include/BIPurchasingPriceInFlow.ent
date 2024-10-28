@@ -1,0 +1,14 @@
+﻿<!ENTITY FlowInfoRecord.PrimePartitionCurrent "@@prime$partition$current">
+<!ENTITY FlowInfoRecord.Prime "&FlowInfoRecord.PrimePartitionCurrent;">
+<!ENTITY FlowInfoRecord.Query "
+select ir.stt_rec0, ir.ct_gia_dk into #ir from bigia01 ir join (
+  select b.stt_rec0, max(b.so_luong) as so_luong
+    from &FlowInfoRecord.Prime; a left join bigia01 b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0
+    where a.stt_rec = @stt_rec and a.ct_gia_pv &lt;&gt; '' and b.ct_gia_dk &lt;&gt; '' and b.so_luong &lt;= (a.so_luong * a.he_so)
+    group by b.stt_rec0 ) x on ir.stt_rec0 = x.stt_rec0 and ir.so_luong = x.so_luong
+  where ir.stt_rec = @stt_rec
+">
+
+<!ENTITY FlowInfoRecord.Join " left join #ir ir on a.stt_rec0 = ir.stt_rec0">
+<!ENTITY FlowInfoRecord.RelativeJoin ", #ir ir">
+<!ENTITY FlowInfoRecord.AliasCTsField "case when isnull(a.ct_gia_dk, '') &lt;&gt; '' then a.ct_gia_dk else isnull(ir.ct_gia_dk, '') end">

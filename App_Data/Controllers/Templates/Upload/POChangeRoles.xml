@@ -1,0 +1,206 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$POChangeRolesImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$POChangeRolesImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmquyentd, dmquyentdct, dmquyentdct2"/>
+    <dependence value="dmquyentd, dmquyentdct, dmquyentdct2" alias="a, a, a"/>
+    <listTable value="#id1, #d1, #du"/>
+    <temporary value="#k, #d2, #du" alias="b, b, b"/>
+    <alias value="master, detail, dstatus"/>
+    &UploadModeProcess;
+  </setting>
+
+  <fields identity="true" name="stt">
+    <field name="loai_duyet" column="A" isPrimaryKey="true" allowNulls="false" resource="master, detail, dstatus" check="loai_duyet not in (select loai_duyet from dmloaiduyet)" errorCode="00001"/>
+    <field name="ma_quyen" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" resource="master, detail, dstatus"/>
+    <field name="ten_quyen" column="C" allowNulls="false" resource="master"/>
+    <field name="ten_quyen2" column="D" resource="master"/>
+
+    <field name="ma_td" column="E" isPrimaryKey="true" allowNulls="false" reference="1" resource="detail" check="ma_td not in (select ma_td from dmthaydoi where loai_duyet = #table.loai_duyet and status = '1')&And;exists(select 1 from #table b where @@table.loai_duyet = b.loai_duyet and @@table.ma_quyen = b.ma_quyen and @@table.u_status = b.u_status and @@table.ma_td = b.ma_td having count(ma_td) &gt; 1)" errorCode="00001&And;00001"/>
+    <field name="u_status" column="F" isPrimaryKey="true" allowNulls="false" upperCase="true" reference="2" resource="dstatus" check="u_status not in (select u_status from dmttcttg where loai_duyet = #table.loai_duyet and s_status = '9' and status = '1')&And;exists(select 1 from #table b where @@table.loai_duyet = b.loai_duyet and @@table.ma_quyen = b.ma_quyen and @@table.u_status = b.u_status and @@table.ma_td = b.ma_td having count(u_status) &gt; 1)" errorCode="00001&And;00001"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None" resource="master"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None" resource="master"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()" resource="master"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None" resource="master"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID" resource="master"/>
+    <field name="line_nbr" column="None" type="Int" updateValue="None" resource="detail, dstatus"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Khai báo quyền thay đổi thông tin khi duyệt" e="Allowable Change Declaration"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="loai_duyet" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại duyệt" e="Type"/>
+      </field>
+      <field name="ma_quyen" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã quyền" e="Roles"/>
+      </field>
+      <field name="ten_quyen" width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên quyền" e="Description"/>
+      </field>
+      <field name="ten_quyen2" width="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+
+      <field name="ma_td" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Nhóm thông tin" e="Allowable Change Group"/>
+      </field>
+      <field name="u_status" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tình trạng duyệt" e="Status"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'POChangeRoles', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @r int, @d datetime
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[, @d = getDate()
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> đã có hoặc lồng nhau.' else 'The value of cell <span class="Highlight">%invalidCell</span> is invalid or already exists.' end
+
+-- Delete
+if @type = '0' delete @@table from @@table a join dmquyentd b on a.ma_quyen = b.ma_quyen and a.loai_duyet = b.loai_duyet
+
+-- Checking
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_quyen', stt, @message from @@table where ma_quyen like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_quyen', @r = min(stt) from @@table where ma_quyen like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+]]>&Checking;<![CDATA[
+
+-- Gather
+select a.* into #k from @@table a join dmquyentd b on a.ma_quyen = b.ma_quyen and a.loai_duyet = b.loai_duyet
+delete @@table from @@table a join #k b on a.ma_quyen = b.ma_quyen and a.loai_duyet = b.loai_duyet
+
+-- Checking
+select @field = 'ma_quyen'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b where a.loai_duyet = b.loai_duyet and a.ma_quyen <> b.ma_quyen and a.ma_quyen like rtrim(b.ma_quyen) + ''%''
+  ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, dmquyentd b where a.loai_duyet = b.loai_duyet and a.ma_quyen like rtrim(b.ma_quyen) + ''%''
+  ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from dmquyentd a, @@table b where a.loai_duyet = b.loai_duyet and a.ma_quyen like rtrim(b.ma_quyen) + ''%''
+  ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @q = 'select top 1 @r = a.stt from @@table a, @@table b where a.loai_duyet = b.loai_duyet and a.ma_quyen <> b.ma_quyen and a.ma_quyen like rtrim(b.ma_quyen) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  select top 1 @r = a.stt from @@table a, dmquyentd b where a.loai_duyet = b.loai_duyet and a.ma_quyen like rtrim(b.ma_quyen) + '%']]>&Duplicate;<![CDATA[
+  select @q = 'select top 1 @r = b.stt from dmquyentd a, @@table b where a.loai_duyet = b.loai_duyet and a.ma_quyen like rtrim(b.ma_quyen) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+select top 0 ma_quyen, ten_quyen, ten_quyen2, loai_duyet, cast(0 as int) as stt into #id1 from @@table
+select top 0 loai_duyet, ma_quyen, ma_td, cast(0 as int) as line_nbr into #d1 from @@table
+select top 0 loai_duyet, ma_quyen, ma_td, identity(int, 1, 1) as stt into #tmpd1 from @@table
+select top 0 loai_duyet, ma_quyen, u_status, cast(0 as int) as line_nbr into #du from @@table
+select top 0 loai_duyet, ma_quyen, u_status, identity(int, 1, 1) as stt into #tmpdu from @@table
+
+select ma_quyen, loai_duyet, min(stt) as stt into #o1 from @@table group by ma_quyen, loai_duyet
+insert into #id1 select ma_quyen, max(ten_quyen), max(ten_quyen2), loai_duyet, min(stt) from @@table group by ma_quyen, loai_duyet
+insert into #tmpd1 (loai_duyet, ma_quyen, ma_td) select distinct a.loai_duyet, a.ma_quyen, a.ma_td from @@table a order by a.loai_duyet, a.ma_quyen, a.ma_td
+insert into #d1 select a.loai_duyet, a.ma_quyen, a.ma_td, a.stt - b.stt + 1 from #tmpd1 a join #o1 b on b.ma_quyen = a.ma_quyen and a.loai_duyet = b.loai_duyet
+
+insert into #tmpdu (loai_duyet, ma_quyen, u_status) select distinct a.loai_duyet, a.ma_quyen, a.u_status from @@table a order by a.loai_duyet, a.ma_quyen, a.u_status
+insert into #du select a.loai_duyet, a.ma_quyen, a.u_status, a.stt - b.stt + 1 from #tmpdu a join #o1 b on b.ma_quyen = a.ma_quyen and a.loai_duyet = b.loai_duyet
+
+@@inserting(master);
+@@inserting(detail);
+@@inserting(dstatus);
+
+-- Update
+if @type = '1' begin
+  select top 0 ma_quyen, ten_quyen, ten_quyen2, loai_duyet, cast(0 as int) as stt into #id2 from @@table
+  insert into #id2 select ma_quyen, max(ten_quyen), max(ten_quyen2), loai_duyet, min(stt) from #k group by ma_quyen, loai_duyet
+
+  update dmquyentd set @@list(master); from dmquyentd a join #k b on a.loai_duyet = b.loai_duyet and a.ma_quyen = b.ma_quyen join #id2 d on b.stt = d.stt
+
+  truncate table #d1
+  truncate table #tmpdu
+  select ma_quyen, loai_duyet, min(stt) as stt into #o2 from #k group by ma_quyen, loai_duyet
+  insert into #tmpd1 (loai_duyet, ma_quyen, ma_td) select distinct a.loai_duyet, a.ma_quyen, a.ma_td from #k a order by a.loai_duyet, a.ma_quyen, a.ma_td
+  insert into #d1 select a.loai_duyet, a.ma_quyen, a.ma_td, a.stt - b.stt + 1 from #tmpd1 a join #o2 b on b.ma_quyen = a.ma_quyen and a.loai_duyet = b.loai_duyet
+  delete dmquyentdct from dmquyentdct a join #d1 b on a.ma_quyen = b.ma_quyen and a.loai_duyet = b.loai_duyet
+
+  @@inserting(detail);
+
+  truncate table #du
+  truncate table #tmpdu
+  insert into #tmpdu (loai_duyet, ma_quyen, u_status) select distinct a.loai_duyet, a.ma_quyen, a.u_status from #k a order by a.loai_duyet, a.ma_quyen, a.u_status
+  insert into #du select a.loai_duyet, a.ma_quyen, a.u_status, a.stt - b.stt + 1 from #tmpdu a join #o2 b on b.ma_quyen = a.ma_quyen and a.loai_duyet = b.loai_duyet
+  delete dmquyentdct2 from dmquyentdct2 a join #du b on a.ma_quyen = b.ma_quyen and a.loai_duyet = b.loai_duyet
+
+  @@inserting(dstatus);
+end
+
+]]>
+    </text>
+  </processing>
+</import>

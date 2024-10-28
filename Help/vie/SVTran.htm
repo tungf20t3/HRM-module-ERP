@@ -1,0 +1,364 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="SVTran.doc" />
+<title>Hóa đơn bán hàng</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Hoá đơn bán hàng</p>
+<p id="td2">  Quy trình lập hoá đơn bán hàng</p>
+<ul class="lo_1">
+Bước trước: 	Lập đơn hàng (hoặc xuất hàng nếu xuất hóa đơn sau)<br/>
+Bước sau: 	Giao hàng (hoặc xuất hàng nếu xuất hóa đơn trước)<br/>
+Bộ phận lập: 	Bộ phận kế toán hoặc kinh doanh</ul>
+<p id="p2"> 
+Quá trình lập hóa đơn được hỗ trợ bằng nhiều cách:</p>
+<ul class="lo_1">
+-	Lập trực tiếp hóa đơn mới;<br/> 
+-	Lấy số liệu từ một đơn hàng. <br/> 
+-	Lấy số liệu từ phiếu xuất.
+</ul>
+<p id="td2">	Mô tả các mã giao dịch trong hoá đơn bán hàng</p>
+<p id="p2">
+Trong hoá đơn bán hàng có nhiều mã giao dịch nhằm đáp ứng khả năng ứng dụng của chương trình trong những môi trường khác nhau. Tùy thuộc vào mức độ 
+ứng dụng các phân hệ sẽ có phần thiết lập hệ thống phù hợp.
+<br/> Sau đây là các tình huống có thể xảy ra:</p>
+
+<p id="pic"><img src="vie\SVTran_1.png"/></p>
+<p class="note">
+Ghi chú:<br/>
+Hệ thống chỉ thực hiện ở phân hệ bán hàng: Bán hàng quan tâm tồn kho thực tế, không quan tâm tồn kho kế toán tài chính
+<br/> Chỉ thực hiện phân hệ Kế toán: Kế toán không quan tâm tồn kho thực tế, chỉ quan tâm đến tồn kho kế toán tài chính và hạch toán kế toán
+<br/> Thực hiện cả 2 phân hệ Bán hàng + kế toán: Bán hàng quan tâm tồn kho thực tế, Kế toán quan tâm đến tồn kho kế toán tài chính, hạch toán kế toán
+</p>
+<p id="td2">Màn hình cập nhật hóa đơn bán hàng</p>
+<p id="pic"><img src="vie\SVTran.png"/></p>
+<p class="node"> Mã giao dịch</p>
+<p class="node_d">Mã giao dịch của chứng từ được mặc nhiên giá trị 2 - “Hoá đơn kiêm phiếu xuất”. </p>
+<p class="note">
+Chú ý <br/> Nếu nhập sai quy trình trên hóa đơn bán hàng, hóa đơn mua hàng trong nước/nhập khẩu, chương trình sẽ không theo 
+dõi số liệu kế thừa theo quy trình cho hóa đơn. </p>
+<p class="e">Ví dụ: <br/>Khi ở loại chứng từ số 3, lấy số liệu từ phiếu xuất/nhập, 
+sau đó chuyển sang loại chứng từ số 2 thì hủy quy trình trong hóa đơn, số liệu lấy từ phiếu xuất, nhập đều gán là 0(do loại 2
+ không được phép lấy từ phiếu xuất/nhập).
+</p>
+<p class="node">Tài khoản nợ</p>
+<p class="node_d">Tài khoản ghi nợ trong hạch toán doanh thu hóa đơn.</p>
+<p class="node">Số hoá đơn / Ký hiệu</p>
+<p class="node_d">Số hoá đơn theo mục “Tăng số chứng từ tự động” trong các thao tác chung với chứng từ;<br/> 
+ Ký hiệu của hoá đơn được nhập vào hoặc lấy từ danh mục quyển chứng từ được chọn.</p>
+
+<p class="note"> Chú ý: 
+<br/> - Nếu hóa đơn sử dụng quyển chứng từ và trong quyển chứng từ có cập nhật trường "Mẫu chứng từ", chương trình sẽ ngầm định 
+dùng trường "Mẫu chứng từ" để lên báo cáo thuế. 
+<br/> - Nếu hóa đơn sử dụng quyển chứng từ và trong quyển chứng từ không cập nhật trường "Mẫu chứng từ", chương trình sẽ ngầm
+ định dùng tham số "Ký hiệu mẫu số hóa đơn đầu ra ngầm định" trong tham số tùy chọn. 
+<br/> - Nếu tham số "Ký hiệu mẫu số hóa đơn đầu ra ngầm định" trong tham số tùy chọn không khai báo, chương trình sẽ không thể
+ hiện trên báo cáo.
+</p>
+
+<p class="node">Ngày lập / ngày hạch toán</p>
+<p class="node_d">Ngày lập và ngày các hạch toán trên hóa đơn được chuyển vào sổ cái. Nếu chuyển từ đơn hàng thì ngày hoá đơn không được sửa</p>
+<p class="node">Tỷ giá</p>
+<p class="node_d">Tỷ giá giao dịch trong trường hợp xuất hóa đơn bằng ngoại tệ. Chọn mã ngoại tệ và nhập tỷ giá.
+<br/> Nếu loại tiền là đồng tiền hạch toán thì tỷ giá bằng 1 và không phải cập nhật trường này. Nếu loại tiền không phải là đồng tiền hạch toán 
+thì Ngầm định lấy tỷ giá gần nhất khai báo trong menu "Tỷ giá quy đổi ngoại tệ". Khi tỷ giá thay đổi thì các trường tiền hàng, tiền thuế và tổng 
+thanh toán sẽ thay đổi theo.</p>
+
+<p class="node">Mã thuế</p>
+<p class="node_d">Chọn mã thuế (thuế suất) cho các mặt hàng bán.</p>
+<p class="node">Tài khoản thuế</p>
+<p class="node_d">Chương trình ngầm định lấy từ “Danh mục thuế suất” và tài khoản ở phần thông tin chung. Người dùng được phép
+ sửa lại (nếu cần).</p>
+<p class="node">Cục thuế</p>
+<p class="node_d">Cục thuế (hoặc chi cục thuế) liên quan đến việc tính thuế của hàng bán theo qui định của Luật thuế giá trị gia 
+tăng. Tuỳ vào yêu cầu quản lý của từng doanh nghiệp mà có thể cập nhật hoặc không cập nhật tại trường này.
+<br/> Các mã “Cục thuế” được khai báo tại “Danh mục khách hàng (nhà cung cấp)”.</p>
+<p class="note">Lưu ý:<br/> Trường hợp tài khoản thuế là tài khoản công nợ thì mã “Cục thuế” được xem như một đối tượng công nợ và bắt buộc phải cập nhật.</p>
+<p class="node">Tổng cộng</p>
+<p class="node_d">Tổng tiền hàng</p>
+<p class="node">Tiền thuế</p>
+<p class="node_d">Chú ý: Khai báo “Tính thuế đối với các mặt hàng khuyến mãi” nếu chọn là “Có” thì chương trình sẽ hạch toán thêm phần tiền thuế GTGT 
+đối với các mặt hàng khuyến mãi.</p>
+<p class="node">Thanh toán</p>
+<p class="node_d">Tiền hàng và thuế cần thanh toán.</p>
+<p class="node">Trạng thái</p>
+<p class="node_d">Trạng thái của chứng từ. Có 3 trạng thái:</p>
+<ul class="lo_2">
+- Lập chứng từ: Chưa chuyển vào bất kỳ sổ sách nào;<br/>
+-      Chuyển KTTH: Nếu có chứng từ thuế VAT thì hóa đơn sẽ chuyển vào sổ sách, báo cáo thuế. Nếu là chứng từ liên quan thanh toán theo hóa đơn, sẽ 
+được chuyển vào sổ công nợ chi tiết theo hóa đơn;
+<br/>
+-      Đã chuyển vào sổ cái: ghi vào tất cả sổ sách liên quan.
+</ul>
+
+<p id="td2">Mô tả các trường phần thông tin chi tiết</p>
+<p class="node">Mã hàng</p>
+<p class="node_d">Mã vật tư trong hóa đơn, được nhập trực tiếp trên màn hình từ “Danh mục vật tư” hoặc được lấy từ các bước quy trình trước như 
+“Phiếu xuất” hoặc “Đơn hàng”.</p>
+<p class="node">Đvt</p>
+<p class="node_d">Đơn vị tính của vật tư hàng hóa, có thể được lấy mặc nhiên như trong danh mục vật tư nhưng cũng có thể thay đổi qua đơn vị tính quy
+ đổi trong những trường hợp đặc biệt. Trường này chỉ có hiệu lực khi mã hàng được chọn có quản lý theo nhiều đơn vị tính.</p>
+<p class="node">Khuyến mãi</p>
+<p class="node_d">Nhập theo hướng dẫn nghiệp vụ từng loại như sau:</p>
+<ul class="lo_2">
+0 – Hàng bán: Không khuyến mãi;<br/>
+1 – Hàng khuyến mãi không chịu thuế: Nhập cho trường hợp có đăng ký hàng khuyến mại với sở công thương nhưng không kèm điều kiện; <br/>
+2 – Hàng khuyến mãi chịu thuế:  Nhập cho trường hợp có đăng ký hàng khuyến mại với sở công thương và có kèm điều kiện, thực chất là giảm giá. 
+(Cách nhập: nhập 2 dòng 1 dòng bán 1 dòng khuyến mãi và chọn loại khuyến mãi = 2);<br/>
+3 – Hàng cho, biếu, tặng: Biếu tặng không có thuế chỉ nhập 1 dòng.
+</ul>
+<p class="note">Ghi chú về hạch toán<br/> 
+- Trường hợp “khuyến mãi” = 1: Hạch toán bút toán ghi nhận chi phí khuyến mãi. Chương trình xử lý: “tài khoản giá vốn” là “tài khoản cp km” (khai báo trong danh mục vật tư) sẽ đối ứng với tài khoản vật tư;
+(“Tài khoản cp khuyến mãi” để trống, không nhập;<br/> 
+- 	Trường hợp “khuyến mãi” = 2, 3: Hạch toán bút toán ghi nhận chi phí khuyến mãi gồm giá vốn và thuế đối ứng tài khoản chi phí khuyến mãi. Trường hợp này phải nhập “tài khoản cp km”.
+</p>
+<!--br/> 
++	Trường hợp tùy chọn “Nhập thuế GTGT trong grid chi tiết” thì thêm ràng buộc khi “khuyến mãi” = 1: read only và không focus con trỏ vào các trường thông tin thuế;
++	Tab khác: luôn hiện “Thuế khuyến mãi”, “Cộng khuyến mãi” (ko phụ thuộc vào tham số “Tính thuế hàng khuyến mãi”).
+-	Xử lý:
++	Post sổ cái:
+	Bỏ cặp định khoản doanh thu nội bộ hàng khuyến mãi: ghi Nợ “tài khoản cp km”/ ghi Có “tài khoản doanh thu”;
+	Cặp định khoản thuế hàng khuyến mãi (trường hợp thuế nhập trong grid chi tiết): ghi Nợ “tài khoản cp km”/ ghi Có “tài khoản thuế” -> Chỉ hạch toán khi “Tiền thuế” của hàng khuyến mãi # 0.
+	Cặp định khoản thuế hàng khuyến mãi (trường hợp thuế nhập ngoài): ghi Nợ “tài khoản cp km”/ ghi Có “tài khoản thuế” (như cũ) -> Chỉ tính dựa vào các dòng có chọn “khuyến mãi” = 2,3 và chỉ hạch toán khi “Tiền thuế” hàng khuyến mãi # 0;
+	Khử trùng: theo chuẩn (kiểm tra lại).
++	Post sổ kho (hóa đơn, thực tế):
+	Các dòng “khuyến mãi” = 1,2,3: luôn không post “Đơn giá”, “Thành tiền” (tien2)..</p>
+<-->
+<p class="node_d">Căn cứ pháp lý: Thông tư 200/2014/TT-BTC
+	<label class="tt">(chi tiết...)<input type="checkbox"/>
+			<span> 
+				- Về thuế GTGT <br/>
+				+ Nếu thực hiện khuyến theo pháp luật về thương mại (có đăng ký hàng khuyến mại với sở công thương) thì không phải tính thuế GTGT đầu ra.<br/>
+				+ Nếu thực hiện khuyến không theo pháp luật về thương mại (không đăng ký hàng khuyến mại với sở công thương) thì phải tính thuế GTGT đầu ra như
+				bán hàng bình thường.<br/>
+
+				- Về cách hạch toán hàng khuyến mại: Theo khoản 8 điều 23 về Nguyên tắc hàng tồn kho tại Thông tư 200/2014/TT-BTC:
+				 Trường hợp xuất hàng tồn kho để khuyến mại, quảng cáo thì thực hiện theo nguyên tắc:<br/>
+
+				+ Trường hợp xuất hàng tồn kho để khuyến mại, quảng cáo không thu tiền, không kèm theo các điều kiện khác như phải mua sản phẩm, hàng hóa....,
+				kế toán ghi nhận giá trị hàng tồn kho vào chi phí bán hàng (chi tiết hàng khuyến mại, quảng cáo);<br/>
+
+				+ Trường hợp xuất hàng tồn kho để khuyến mại, quảng cáo nhưng khách hàng chỉ được nhận hàng khuyến mại, quảng cáo kèm theo các điều kiện khác như
+				phải mua sản phẩm, hàng hóa (ví dụ như mua 2 sản phẩm được tặng 1 sản phẩm...) thì kế toán phải phân bổ số tiền thu được để tính doanh thu
+				cho cả hàng khuyến mại, giá trị hàng khuyến mại được tính vào giá vốn 
+				(trường hợp này bản chất giao dịch là giảm giá hàng bán).
+			</span>
+	</label>
+</p>
+<!--
+Trường hợp bán hàng có kèm theo hàng khuyến mãi thì cần nhập giá trị 1 vào cột này.
+<br/> Doanh thu hàng khuyến mãi sẽ được loại trừ để không tính thuế VAT trên hoá đơn nếu khai báo “Tính thuế đối với các mặt hàng khuyến mãi” nếu chọn là “Không”.
+<br/> Cột này có thể được khai báo ẩn (hiện) tại mục “Hệ thống/ Danh mục/ Khai báo các tham số tuỳ chọn”.( Hiển thị khuyến mãi trên hóa đơn bán hàng)
+-->
+<p class="node">Mã kho</p>
+<p class="node_d">Kho xuất hàng trong hóa đơn, được nhập trực tiếp trên màn hình từ “Danh mục kho” hoặc được lấy từ các bước quy trình trước như “Phiếu xuất” 
+hoặc “Đơn hàng”.</p>
+<p class="node">Mã vị trí</p>
+<p class="node_d">Vị trí xuất hàng trong kho, lấy từ Danh mục vị trí, được sử dụng trong trường hợp doanh nghiệp có theo dõi 
+vật tư theo vị trí kho.</p>
+<p class="node">Mã lô</p>
+<p class="node_d">Số lô của hàng hóa, được sử dụng trong trường hợp doanh nghiệp có theo dõi vật tư theo lô. Khai báo về lô hàng
+ được thực hiện ở phân hệ hàng tồn kho.</p>
+ <p class="note">
+ Việc nhập lô và vị trí kho phục thuộc tham số "Kế toán theo dõi thông tin vị trí kho/Kế toán theo dõi thông tin lô vật tư"
+ Tùy chọn này chỉ áp dụng cho các chứng từ kế toán hàng hóa, nếu chọn là "Không" thì các chứng từ theo dõi tồn kho kế toán sẽ không được theo dõi theo Vị trí/Lô. 
+ Còn các chứng từ theo dõi tồn kho thực tế vẫn được theo dõi theo Vị trí/Lô.
+Ngoài ra, việc khai báo các chứng từ cũng được ưu tiên xét tại "Khai báo theo dõi vị trí, lô theo chứng từ", nếu chứng từ được phép 
+theo dõi thì sẽ ưu tiên theo quyền tại đây. 
+ </p>
+
+<p class="node">Số lượng</p>
+<p class="node_d">Số lượng hàng hóa từng loại trên hoá đơn, có thể tự nhập hoặc lấy giá trị ngầm định từ trường số lượng trong đơn hàng / phiếu xuất.</p>
+<p class="node">Giá đích danh</p>
+<p class="node_d">Nếu kích chọn vào mục này thì người dùng phải tự xác định giá vốn hàng bán và nhập vào chương trình. Trường hợp không kích chọn thì 
+chương trình sẽ tự động tính toán giá vốn theo phương pháp tính giá mà hàng bán đã chọn khi khai báo danh mục hàng hoá, vật tư.</p>
+<p class="node">Giá bán</p>
+<p class="node_d">Giá bán của sản phẩm theo đồng tiền hạch toán. Nếu là một chứng từ phải thu thì giá bán sẽ lấy theo giá chuẩn. Nếu lấy thông tin từ đơn hàng
+ hoặc phiếu xuất thì giá bán sẽ lấy theo giá bán trong đơn hàng hoặc phiếu xuất;<br/> 
+Trường hợp phát sinh bán hàng thuộc diện được chiết khấu mà mã chiết khấu này được khai báo là không “Tính trên tiền hàng” thì giá bán sẽ bằng giá chuẩn trừ đi 
+tiền chiết khấu.</p>
+<p class="node">Tỷ lệ chiết khấu / chiết khấu</p>
+<p class="node_d">Tiền chiết khấu trong trường hợp phát sinh bán hàng thuộc diện được chiết khấu mà mã chiết khấu này được khai báo là “Tính trên tiền hàng”.</p>
+<p class="node">Tk d.thu / tài khoản ch.khấu / tài khoản kho / tài khoản giá vốn</p>
+<p class="node_d">Tài khoản doanh thu, chiết khấu, tài khoản vật tư và tài khoản giá vốn của hàng hóa được hạch toán trong hóa đơn. Những tài khoản này được khai 
+báo trước trong danh mục vật tư hàng hóa.</p>
+<p class="note">Chú ý: <br/>Nếu nhập tài khoản chiết khấu thì định khoản chiết khấu sẽ hạch toán riêng. Nếu không nhập tài khoản chiết khấu, định khoản doanh thu 
+sẽ giảm xuống bằng tiền hàng trừ CK.</p>
+
+
+<p class="node">Thuế bảo vệ môi trường</p>
+<p class="node_d">Tiền thuế môi trường tính theo tiền hạch toán và ngoại tệ. Tiền thuế tự động tính dựa vào “Khai báo vật tư tính thuế môi trường”.
+</p>
+
+<p class="node">Tài khoản thuế bảo vệ môi trường</p>
+<p class="node_d">Tài khoản hạch toán thuế môi trường, dựa vào “Khai báo vật tư tính thuế môi trường”.
+</p>
+
+<p class="note"> Lưu ý:<br/> Các thông tin liên quan đến bảo vệ môi trường chỉ thể hiện khi có khai báo sử dụng. Khai báo sử dụng tùy thuộc vào 
+doanh nghiệp cụ thể. Chi tiết khai báo sử dụng liên hệ nhân viên tư vấn.</p>
+
+<p id="td2">Thông tin xuất khẩu</p>
+<p id="p2">Thông tin xuất khẩu nếu có nhập thì khi chọn mẫu “Hóa đơn tự in” và “Hóa đơn tiền ngoại tệ tự in”; 
+Nếu là hóa đơn xuất khẩu thì chương trình sẽ tự động in mẫu xuất khẩu, ngược lại sẽ in mẫu hóa đơn GTGT như chuẩn.</p>
+
+<p id="td2">Ứng trước</p> <!--SP21-->
+<p id="p2">Nếu số liệu ứng trước có nhập và chứng từ có ngoại tệ khác với đồng tiền hạch toán thì chương trình sẽ thực hiện hạch toán 
+phát sinh bút toán doanh thu theo tỷ giá tại thời điểm ứng trước. Phần chênh lệch sẽ được phân bổ cho các dòng chi tiết theo tiêu thức giá trị
+</p>
+<!--Phân bổ cho các dòng trên grid chi tiết đối với trường tiền, trừ các dòng khuyến mãi.
+   Như chuẩn: nếu lẻ thì đưa vào dòng cuối?-->
+<p class="fml">	Cách tính tiền chênh lệch = Tiền ứng trước ngoại tệ * (Tỷ giá tại thời điểm ứng trước - Tỷ giá hóa đơn)
+</p>
+
+<p class="note">Chú ý: <br/>
+- "Tiền ứng trước ngoại tệ" không được lớn hơn tổng tiền ngoại tệ của hóa đơn;<br/>
+- Trường hợp tiền ứng trước ít hơn tiền trên hóa đơn, tiền hạch toán sẽ tính như sau: 
+(tỷ giá ứng trước)*(số tiền ngoại tệ ứng trước)+(tỷ giá hóa đơn)*(số tiền ngoại tệ hóa đơn - số tiền ngoại tệ ứng trước)  ;<br/>
+- Số liệu bảng kê thuế sẽ theo tỷ giá hóa đơn;<br/>
+- Số liệu các báo cáo công nợ sẽ theo tỷ giá ứng trước.
+</p>
+<p class="node"> Lấy dữ liệu từ "Phiếu thu" hoặc "Báo có"</p>
+<p class="node_d"> Chương trình cho phép chọn "Phiếu thu" hoặc "Báo có" đã dùng để ghi nhận tiền ứng để tham chiếu. Từ thẻ "Ứng trước", 
+nhấn <img src="vie\retrieve.png"> - “Lấy dữ liệu" để chọn chứng từ ứng trước.</p>
+
+<p id="td2">Thông tin xác thực hóa đơn điện tử</p>
+<p id="p2">Phần thông tin hóa đơn điện tử sẽ hiển thị nếu tham số tùy chọn "Sử dụng hóa đơn điện tử" là có.</p>
+<p class="node">Xác thực</p>
+<p class="node_d">Nếu chọn là 1 (Có), thì khi lưu chứng từ với trạng thái chuyển sổ cái, sẽ cho phép chọn để 
+tạo hóa đơn điện tử trong chức năng "Cập nhật hóa đơn điện tử".
+<br/>
+Trường hợp 0 - Không, hóa đơn được hiểu không phải là hóa đơn điện tử, in giấy bình thường.</p>
+<p class="node">Xử lý</p>
+<p class="node_d">
+Tùy chọn xử lý dữ liệu "Ghi chú" phía dưới.<br/>0 - Không xử lý: <br/>
+1 - Thêm vào chi tiết hóa đơn: Khi xem bản thể hiện của hóa đơn, dòng ghi chú này sẽ được thêm vào chi tiết, thứ tự sau các dòng chi tiết (và ghi chú chiết khấu nếu có).<br/>
+2 - Thay thế dòng điều chỉnh: Khi xem bản thể hiện của hóa đơn, dòng ghi chú này sẽ thay thế dòng ghi chú điều chỉnh hoặc thay thế (góc phía trái, bên dưới bản thể hiện).
+</p>
+<p class="node">Ghi chú</p>
+<p class="node_d">
+Như giải thích trên phần chọn xử lý. Trường hợp ghi chú có nội dung dài (vượt quá 128 ký tự) chỉ được chọn đưa vào chi tiết vì sẽ ảnh hưởng việc trình bày dòng ghi chú điều chỉnh (thay thế).</p>
+<p class="note">Lưu ý: <br/>
+-	Đối với hoá đơn thay thế/điều chỉnh thì dòng ghi chú chuẩn sẽ bị thay thế bằng giá trị tại trường “Ghi chú” (người sử dụng tự nhập) nếu tuỳ chọn “Xử lý” = 1 hoặc 2.
+ Không khuyến nghị sử dụng trong trường hợp điều chỉnh/thay thế cho 1 hoá đơn vì thông tin trên mẫu in có thể sẽ khác so với thông tin trong tệp hóa đơn (xml);<br/>
+-	Trường hợp cần điều chỉnh thông tin cho nhiều hoá đơn, hoặc hoá đơn bị điều chỉnh chưa có trong hệ thống hoặc là hoá đơn giấy thì có thể dùng tính năng này để ghi chú cho hoá đơn khi phát hành hoá đơn điều chỉnh.
+</p>
+
+<p class="node">Mẫu hóa đơn/Ký hiệu/Số chứng từ</p>
+<p class="node_d">Các trường này không cần nhập, khi tạo hóa đơn điện tử thành công, chương trình sẽ tự cập nhật lại. 
+Giá trị trả về do ứng dụng của nhà cung cấp dịch vụ hóa đơn điện tử kiểm soát và có giá trị pháp lý. Khi in hóa đơn 
+đã được cập nhật các trường này (các hóa đơn đã phát hành), chương trình không sử dụng các giá trị do chương trình tự sinh nữa.
+Với các hóa đơn thường hoặc sử dụng hóa đơn điện tử nhưng chưa được phát hành, chương trình vẫn sử dụng các giá trị do chương trình tự sinh.
+</p>	
+						
+<p class="node">Tình trạng</p>
+<p class="node_d">
+0 - Chưa xác thực: trạng thái hóa đơn điện tử chưa được phát hành hoặc phát hành không thành công;<br/> 
+1 - Chờ xác thực: trạng thái hóa đơn điện tử được đăng ký phát hành nhưng chưa trả về kết quả thành công;<br/>  
+2 - Đã xác thực: trạng thái hóa đơn điện tử đã được phát hành thành công;<br/> 
+3 - Điều chỉnh: trạng thái những hóa đơn điện tử được phát hành và đồng thời có phát hành hóa đơn điều chỉnh. Các chứng từ chọn xử lý: 
+Hóa đơn giảm giá hàng hóa - dịch vụ, Hóa đơn điều chỉnh giá hàng bán và Hóa đơn điều chỉnh thông tin. 
+(trong chức năng "Cập nhật hóa đơn điện tử", xử lý: 2 - Điều chỉnh);<br/> 
+4 - Thay thế: trạng thái những hóa đơn điện tử đã được phát hành và đồng thời có phát hành thành công hóa đơn thay thế;<br/>
+8 - Chờ Hủy: trạng thái hóa đơn điện tử được hủy phát hành nhưng chưa trả về kết quả thành công;<br/>  
+9 - Hủy: trạng thái những hóa đơn điện tử được phát hành và đồng thời có thông tin đăng ký hủy. 
+</p>
+
+<p class="node">Thư (Email)</p>
+<p class="node_d">Trong trường hợp lập hóa đơn cho khách lẻ, do không khai báo được email để gửi theo mã khách, nên người dùng sẽ sử dụng trường này. </p>
+
+<p class="note">
+Chú ý: <br/>
+- Nếu có email người nhận thì không gửi cho người phát hành;<br/>
+- Có thể nhập nhiều địa chỉ, cách nhau bởi dấu phẩy (,) hoặc chấm phẩy (;).
+</p>
+<p class="note">Lưu ý chung<br/>
+- Với các hóa đơn điện tử đã được phát hành, người dùng không thể chỉnh sửa;<br/> 
+- Khi lưu chứng từ, nếu hóa đơn có sử dụng hóa đơn điện tử thì trường mã khách phải được khai báo trước trong 
+"Cập nhật khách hàng hóa đơn điện tử";<br/>
+- Khi đã tạo hóa đơn điện tử, khi in mẫu tự in sẽ in mẫu có dấu "BẢN SAO".
+</p>
+<p id="td2">Tệp đính kèm</p>
+<p id="p3">Chương trình cho phép tải tệp đính kèm vào chứng từ. Tham khảo "Thao tác với tệp đính kèm".</p>
+<p id="td2"> Ngăn "Ghi chú"</p>
+<p id="p3"> Ngăn "Ghi chú" dùng để chia sẻ thông tin và tương tác với những người dùng khác, cho phép người 
+sử dụng có thể khai thác các tính năng: <br/>
+    - Đăng tin, ảnh, đoạn phim ngắn, tải tập tin có tính chất chia sẻ chung cho mọi người;<br/>
+    - Xem nhanh thông tin tình hình phản hồi;
+</p>
+<p class="note">
+Lưu ý:<br/>
+- Những thông tin mang tính chất riêng tư không nên đăng trên chức năng này;<br/>
+- Chỉ người dùng có quyền "quản trị" mới xóa các nội dung  của người khác; Với người dùng thông thường, chỉ xóa các nội dung do người dùng đó tạo ra;<br/>
+- Khi xóa 1 dòng nội dung  thì các nội dung "trả lời" cũng bị xóa;<br/>
+- Khi xem vẫn cho nhập nội dung, kể cả không có quyền sửa chứng từ. Những người dùng có quyền truy nhập vào chứng từ có thể tham gia viết;<br/>
+- Khi có nhiều nội dung viết, muốn xem các nội dung bị che khuất, nhấn "Xem thêm...";<br/>
+- Sau khi nhập đoạn văn bản, chèn hình ảnh...phải nhấn "Gửi nội dung", nếu không, khi thoát chứng từ, các nội dung sẽ không được lưu.
+</p>
+
+<p id="td2">Mô tả các trường phần thông tin Khác</p>
+<p class="node">Tên khách hàng / Địa chỉ / Mã số thuế</p>
+<p class="node_d">Trong trường hợp mã khách mua ghi trên hoá đơn khác mã khách trong chứng từ công nợ thì phải nhập vào các trường này.
+<br/> Tên khách hàng: Hiện tên của "Mã khách" cập nhật ở phần thông tin chung và được phép sửa lại. Tên khách hàng để lên cột tên khách hàng trong bảng kê thuê đầu ra.
+<br/> Địa chỉ: Hiện địa chỉ của "Mã khách" cập nhật ở phần thông tin chung và được phép sửa lại. Địa chỉ khách hàng để lên cột địa chỉ khách hàng trong bảng kê 
+thuế đầu ra
+<br/> Mã số thuế: Hiện mã số thuế của "Mã khách" cập nhật ở phần thông tin chung và  được phép sửa lại. Mã số thuế để lên cột mã số thuế của khách hàng trong 
+bảng kê thuế đầu ra.</p>
+<p class="node">Nhóm hàng</p>
+<p class="node_d">Tên hàng hoá dịch vụ thể hiện trong bảng kê thuế GTGT đầu ra. 
+Trường hợp không nhập tại trường này thì chương trình tự động lấy tên mặt hàng có doanh số bán lớn nhất.
+</p>
+<p class="node_d">Khi in hóa đơn GTGT mẫu bảng kê, nhóm hàng sẽ là dòng chi tiết đầu tiên. Số bảng kê sẽ in tại dòng 2. (Mẫu tự in, GTGT đặt in, hóa đơn bán hàng đặt in)</p>
+<p class="node">Ghi chú</p>
+<p class="node_d">Thông tin ghi chú được nhập để lên ghi chú trong báo cáo thuế. (Bảng kê hoá đơn chứng từ bán ra).</p>
+<p class="note">Liên quan cách nhập liệu thuế GTGT đầu ra, xem thêm <a href=OutputVATEntry.htm> Cập nhật các hóa đơn GTGT đầu ra </a></p>
+
+
+<p id="td2">Một số thao tác</p>
+<p class="node">	Lấy số liệu từ phiếu xuất bán</p>
+<p class="node_d">
+Tạo mới hóa đơn, nhấn chức năng “<img src="vie\retrieve.png"/> - Lấy dữ liệu", chọn chức năng “Lấy số liệu từ phiếu xuất bán”, 
+nhập ngày giới hạn đầu, sau đó nhấn tìm phiếu xuất bán. Màn hình chọn phiếu xuất chỉ hiện những phiếu xuất có trạng thái là “Xuất” của mã khách đã khai báo. <br/>
+Chọn phiếu xuất bán cần chuyển, nhập số lượng hóa đơn, sau đó thoát khỏi màn hình phiếu xuất bán. 
+Chương trình sẽ tự động cập nhật vào hóa đơn những dòng hàng hóa đã chọn trong danh sách trên.
+</p>
+<p class="node"> Lấy số liệu từ đơn hàng</p>
+<p class="node_d">
+Tạo mới hóa đơn, nhấn chức năng “<img src="vie\retrieve.png"/> - Lấy dữ liệu", chọn chức năng “Lấy số liệu từ đơn hàng”, 
+nhập ngày giới hạn đầu, sau đó nhấn tìm đơn hàng. Màn hình chọn đơn hàng chỉ hiện những đơn hàng của khách hàng đã chọn ở trạng thái “Đã duyệt” hoặc “Đang xuất hàng”. <br/>
+Chọn đơn hàng cần chuyển, nhập số lượng hóa đơn, sau đó thoát khỏi màn hình đơn hàng.  
+Chương trình sẽ tự động cập nhật vào hóa đơn những dòng hàng hóa đã chọn trong danh sách trên.</p>
+<p class="node">Xem chứng từ nhập</p>
+<p class="node_d">Trong trường hợp cần tham khảo giá cụ thể trong một chứng từ nhập đã được nhập trước đó (từ hóa đơn mua hàng trong nước, hóa đơn mua hàng nhập khẩu, phiếu nhập kho, tồn kho đầu kỳ), 
+nhấn chức năng "<img src="vie\view.png"/> Xem chứng từ nhập" để lọc những phiếu có nhập vật tư này. </p>
+
+<p class="node">Tiện ích kết nhập dữ liệu từ tệp bảng tính</p>
+<p class="node_d">Chương trình cho phép chuyển dữ liệu từ tệp bảng tính, nhằm giảm thiểu thời gian nhập liệu thủ công.
+Quy trình thực hiện đề nghị xem thêm <a href="GeneralVouchertask.htm"> “Những hướng dẫn chung về cập nhật các chứng từ”</a>, mục "Kết nhập dữ liệu từ bảng tính"
+</p>
+<p id="td2">Một số hướng dẫn khác</p>
+<p class="node">In hóa đơn</p>
+<p class="node_d">
+- Trường hợp cần in nhiều hóa đơn, chương trinh có hỗ trợ chức năng này; <br/>
+- Trường hợp hóa đơn có xác thực, khi in mẫu "Tự in" sẽ luôn luôn có ký hiệu "BẢN SAO". 
+Trường hợp hóa đơn không xác thực, khi in mẫu "Tự in", từ lần in thứ hai trở đi sẽ luôn luôn có ký hiệu "BẢN SAO". </p>
+<p id="p1"> Chi tiết các thao tác làm việc với chứng từ đề nghị xem thêm <a href=GeneralVouchertask.htm> “Những hướng dẫn chung về cập nhật các chứng từ”</a></p>
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>
+
+
+

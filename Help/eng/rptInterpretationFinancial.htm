@@ -1,0 +1,262 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="Reason.doc" />
+<title>Interpretation of Financial Statements</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+
+</head> 
+<body>
+<p id="td1">Interpretation of Financial Statements</p>
+
+<p id="td2"> Interpretation of Financial Statements Definition
+
+<p id="td3">Definition screen</p>
+
+<p id="pic"><img src="eng/rptInterpretationFinancial1.png"/></p>
+ 
+<p id="td3">Field descriptions</p>
+
+<p class ="node">    Type
+<p class="node_d">There are 3 types:<br/>
+<ul class="lo_2">
+- Normal: used to define articles in form of 2 columns: current year/ previous year (or year-end/ year-opening);<br/>
+- Cross tab: used to define articles in form of many columns: “Fixed asset increase/decrease (tangible, intangible, financial lease)", “Owner Capital”.
+Each column is an account defined in "Accounts" field. For example: If there are 6 accounts: 2111, 2112, 2113, 2114, 2115, 2118, 
+the report will include 6 columns;<br/>
+- Balance: used to define articles in form of 4 columns: (Opening Balance/ Increase/Decrease/Closing Balance) as “Property (Real Estate) increase/decrease”.
+</ul>
+
+<p class ="node">    Calculating Way
+<p class="node_d">There are 3 ways:<br/>
+<ul class="lo_2">
+- Based on Formula: calculating by code defined in formula section;<br/>
+- Balance: calculating by account balance defined in account field;<br/>
+- Arising: calculating by account arising amount defined in account field.
+</ul>
+
+<p class ="node">    Data
+<p class="node_d">The period in which data are retrieved; there are 2 options: 1 – This period, 2 – Previous period.
+
+<p class ="node">   Classify
+<p class="node_d"> There are 2 types: Debit and Credit; define to get debit or credit of account.
+
+
+<p class ="node">    Opening/Closing
+<p class="node_d"> Define to get opening or closing balance of accounts 
+
+<p class ="node">    Plus/Minus
+<p class="node_d"> Define to show the system-calculated results in positive (plus) or negative (minus)
+
+<p class ="node">    Value is at least 0
+<p class="node_d">
+If this option is "Yes", when the calculated balances of articles type 3 - Balance are negative numbers, they will be shown as 0. 
+
+<p class ="node">   Type
+<p class="node_d">1 - AR/AP Items, 0 - No<br/>
+If this option is 1, to AR/AP accounts which can have balances in 2 sides (debit/credit), only debit or credit balance in accordance with 
+debit/credit AR/AP objects is processed. There is no AR/AP balancing between these objects.
+
+<p class ="node">    Display
+<p class="node_d">1 - Show Balance Detailed by AR-AP Object, 0 - No<br/>
+If this option is 1, AR/AP account balances are shown detailed by AR/AP object (customer/supplier).
+
+<p class ="node">    Accounts 
+<p class="node_d">List of accounts from which data are retrieved.
+The result depends on the defined calculating way: based on balance or arising; debit or credit balance; opening or closing balances…
+
+<p class ="node">    Reference Accounts
+<p class="node_d">List of reference accounts corresponding to “Accounts” above.
+This information is used only when calculating way is based on arising.
+
+<p class ="node">    None Deduction Accounts
+<p class="node_d">
+This information is used only when calculating way is based on arising.<br/> 
+In case there are "Reference Accounts", "None Deduction Accounts" is only used to inform that there is "deduction" (any account can be input).
+Then, the result will be equal to all arising of “Accounts” (debit/credit) minus a deduction amount. <br/>
+This deduction amount will be arising amounts in the other side of “Accounts” (credit/debit) corresponding to "Reference Accounts".
+<p class="e">For example:<br/>
+Debit on 111/Credit on 511: 1,000,000;(A)<br/>
+Debit on 111/Credit on 112: 2,000,000;(B)<br/>
+Credit on 111/Debit on 112: 150,000.(C)<br/>
+Credit on 111/Debit on 642: 200,000.(D)
+<p class="e2">Define an article xxx: Debit;
+<br/>Account: 111;
+<br/>Reference account: 112;
+<br/>None deduction account: any account.
+<p class="e2">The result of article xxx will be: 2,000,000(B) - 150,000(C) = 1,850,000.
+<p class="node_d">
+In case there is no "Reference Account", "None Deduction Account" will be used to inform that the arising amounts in the other side of "Accounts" 
+corresponding to "None Deduction Accounts" will not be deducted in the article calculation.
+Then, the result will be equal to all arising amount of "Accounts" (debit/credit) minus a deduction amount.<br/>
+This deduction amount will be arising amounts in the other side of "Accounts" (credit/debit) corresponding to any accounts, except "None Deduction Accounts".
+<p class="e">For example: 
+<br/>The same double entries (ABCD) as above
+<p class="e2">
+Define an article yyy: Debit;
+<br/>Account: 111;
+<br/>Reference account: None;
+<br/>None deduction account: 642.
+<p class="e2">The result of article yyy will be: 2,000,000(A) + 1,000,000(B) - 150,000(C) = 2,850,000.
+
+<p class="tip">This way of definition is useful in case the number of deduction accounts is greater than none deduction accounts. 
+On the contrary, it should be defined to directly get from accounts and reference accounts.
+
+
+<p class ="node">    Formula
+<p class="node_d"> Define the expression to calculate articles by code. 
+This formula is only valid in case calculating way is 1 - “Based on Formula”. 
+This expression includes addition (+), subtraction (-), multiplication (*) and division (/); codes are put in square brackets ([]).
+
+<p id="td2"> Some guides in Interpretation of Financial Statement - Export to Excel 
+<p id="td3">Common guides
+<p class ="node">Print
+<p class="node_d">
+This report is specially designed to be exported to Excel file in a default template instead of directly printed from the system. It be edited and printed from Excel.
+Therefore, you have to defined the way for the system to dump correct data into Excel file. 
+
+
+<p class ="node">Upload/Download
+<p class="node_d">When you want to edit the default Excel template, download the temple to edit and upload the edited one to the system.<br/>
+
+- To upload the completed template to server, click <img src="eng\upload.png"/> icon;<br/>
+- To download the default template to client to edit, click <img src="eng\download.png"/> icon.
+
+<p class="note">Note<br/>
+- The browse screen includes articles selected in filter condition only. If you want to print the whole interpretation of statements, 
+you should print from the Excel file.<br/>
+- The statement is supported in Excel (Microsoft Office) version 2007 or newer only, the uploaded file should have the extension ".xlsx".
+ 
+<p id="td3">Guides in Excel template definition
+<p class ="node">"Normal" articles 
+<p class="node_d">
+The structure for row title getting: used to export article name in report form setup to Excel file<br/>
+
+!1.xkey#ma_so = 'code - define in report form setup'
+
+<p class="e">For example:<br/>
+"Short-term Security Investments" article will be defined as:<br/>
+!1.xkey#ma_so = '121'. <br/>
+'121' is the code defined in report form setup.
+
+<p id="pic"><img src="eng/rptInterpretationFinancial2.png"/></p>
+
+
+<p class="node_d">Structure for data getting<br/>
+
++	 Year-end <br/>
+!1.ps#ma_so = 'code - define in report form setup'
+
+<p class="e2">
+ !1.ps#ma_so = '121' 
+ <p id="pic"><img src="eng/rptInterpretationFinancial3.png"/></p>
+
+
+<p class="node_d">
++	Year-beginning<br/>
+ !1.ps0#ma_so = 'code - define in report form setup' <br/>
+<p class="e2">
+!1.ps0#ma_so = '121'
+
+<p id="pic"><img src="eng/rptInterpretationFinancial4.png"/></p>
+
+<p class ="node">"Crosstab" articles 
+<p class="node_d">
+-	First column<br/>
+!2.ps01#ma_so = 'code - define in report form setup' 
+
+<p class="e">
+For example: "Historical cost of tangible fixed asset"
+ - Opening balance - Houses, Architectural objects us defined as:<br/>
+!2.ps01#ma_so = '2221'<br/>
+
+<p id="pic"><img src="eng/rptInterpretationFinancial5.png"/></p>
+<p class="node_d">
+-	Second column<br/>
+  !2.ps02#ma_so = 'code - define in report form setup'
+
+<p class="e2">Machines and Equipment<br/>
+  !2.ps02#ma_so = '2221' <br/>
+
+<p id="pic"><img src="eng/rptInterpretationFinancial6.png"/></p>
+
+<p class ="node"> "Balance" articles 
+
+<p class="node_d">
+-	Opening Balance<br/>
+
+!3.du_dau#ma_so = 'code - define in report form setup' <br/>
+
+<p class="e">
+For example: "Historical cost of investment property" will be defined as:<br/>
+!3.du_dau#ma_so = '241' <br/>
+
+<p id="pic"><img src="eng/rptInterpretationFinancial7.png"/></p>
+
+ <p class="node_d">
+-	Increase in year<br/>
+
+ !3.tang#ma_so = 'code - define in report form setup'<br/> 
+ 
+ <p class="e2">
+ !3.tang#ma_so = '241'
+ 
+ <p id="pic"><img src="eng/rptInterpretationFinancial8.png"/></p>
+ 
+<p class="node_d">
+-	Decrease in year<br/>
+
+ !3.giam#ma_so = 'code - define in report form setup'<br/> 
+ 
+ <p class="e2">
+ !3.giam#ma_so = '241'
+ 
+ <p id="pic"><img src="eng/rptInterpretationFinancial9.png"/></p>
+
+<p class="node_d">
+-	Closing balance<br/>
+
+ !3.du_cuoi#ma_so = 'code - define in report form setup' <br/>
+
+<p class="e2">
+
+ !3.du_cuoi#ma_so = '241'
+ 
+ <p id="pic"><img src="Eng/rptInterpretationFinancial10.png"/></p>
+
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>

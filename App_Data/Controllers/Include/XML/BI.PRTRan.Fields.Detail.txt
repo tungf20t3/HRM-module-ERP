@@ -1,0 +1,86 @@
+﻿<field name="loai_vt" width="50" allowNulls="false" clientDefault="1" defaultValue="1" aliasName="a">
+  <header v="Loại" e="Type"></header>
+  <items style="AutoComplete" controller="GroupTypePurchasingItem" reference="ten_loai_vt%l" key="status = '1'" check="nhom = '01'" information="ma_loai$dmloai.ten_loai%l"/>
+</field>
+<field name="ten_loai_vt%l" external="true" readOnly="true" defaultValue="''" inactivate="true" hidden="true">
+  <header v="" e=""></header>
+</field>
+<field name="loai_dt" width="50" aliasName="a" readOnly="true" inactivate="true">
+  <header v="Loại chỉ định đối tượng" e="Account Assignment Category"></header>
+  <items style="AutoComplete" controller="BIAccountAssignmentCategory" reference="ten_loai%l" key ="status = '1'" check="1 = 1"/>
+  <clientScript><![CDATA[onchange="onChange$GridVoucherDetail$AccountAssignment(this);"]]></clientScript>
+</field>
+<field name="ten_loai%l" external="true" readOnly="true" defaultValue="''" inactivate="true" width="0" hidden="true" aliasName="d">
+<header v="" e=""></header>
+</field>
+
+<field name="ma_bp0" width="100" aliasName="a" onDemand="true">
+  <header v="Đơn vị mua" e="Purchasing Org."></header>
+  <items style="AutoComplete" controller="BIPurchasingOrganization" reference="ten_bp%l" key="status = '1' and (not exists(select 1 from bidmbp0g1 where ma_vung = '{[$ma_vung]}') or exists(select 1 from bidmbp0g1 b where b.ma_bp0 = bidmbp0.ma_bp and b.ma_vung = '{[$ma_vung]}'))" check="(not exists(select 1 from bidmbp0g1 where ma_vung = '{[$ma_vung]}') or exists(select 1 from bidmbp0g1 b where b.ma_bp0 = bidmbp0.ma_bp and b.ma_vung = '{[$ma_vung]}'))"/>
+  <clientScript><![CDATA[onchange="onChange$GridVoucherDetail$PurOrg(this);"]]></clientScript>
+</field>
+<field name="ten_bp%l" external="true" readOnly="true" defaultValue="''" inactivate="true" hidden="true">
+  <header v="" e=""></header>
+</field>
+
+<field name="ma_nh0" width="100" aliasName="a" onDemand="true">
+  <header v="Nhóm mua" e="Purchasing Group"></header>
+  <items style="AutoComplete" controller="BIPurchasingGroup" reference="ten_nh%l" key="status = '1'" check="1 = 1"/>
+</field>
+<field name="ten_nh%l" external="true" readOnly="true" defaultValue="''" inactivate="true" hidden="true">
+  <header v="" e=""></header>
+</field>
+
+<field name="ma_ncc_dn" width="100" clientDefault="Default" aliasName="a" onDemand="true">
+  <header v="Nhà cung cấp đề nghị" e="Desire Vendor"></header>
+  <items style="AutoComplete" controller="&VendorController;" reference="ten_ncc_dn%l" key ="status = '1' and cc_yn = 1" check="cc_yn = 1"/>
+</field>
+<field name="ten_ncc_dn%l" external="true" readOnly="true" defaultValue="''" inactivate="true" hidden="true">
+  <header v="" e=""></header>
+</field>
+<field name="ma_ncc_cd" width="100" aliasName="a" onDemand="true">
+  <header v="Nhà cung cấp chỉ định" e="Assigned Vendor"></header>
+  <items style="AutoComplete" controller="&VendorController;" reference="ten_ncc_cd%l" key ="status = '1' and cc_yn = 1" check="cc_yn = 1"/>
+</field>
+<field name="ten_ncc_cd%l" external="true" readOnly="true" defaultValue="''" inactivate="true" hidden="true">
+  <header v="" e=""></header>
+</field>
+<field name="ma_vung_dn" width="100" clientDefault="Default" aliasName="a" onDemand="true">
+  <header v="Vùng cung ứng đề nghị" e="Desire Plant"></header>
+  <items style="AutoComplete" controller="BIPlant" reference="ten_vung_dn%l" key ="status = '1'" check="1 = 1"/>
+</field>
+<field name="ten_vung_dn%l" external="true" readOnly="true" defaultValue="''" inactivate="true" hidden="true">
+  <header v="" e=""></header>
+</field>
+<field name="ma_vung_cd" width="100" aliasName="a" onDemand="true">
+  <header v="Vùng cung ứng chỉ định" e="Assigned Plant"></header>
+  <items style="AutoComplete" controller="BIPlant" reference="ten_vung_cd%l" key ="status = '1'" check="1 = 1"/>
+</field>
+<field name="ten_vung_cd%l" external="true" readOnly="true" defaultValue="''" inactivate="true" hidden="true">
+  <header v="" e=""></header>
+</field>
+
+<field name="so_theo_doi" width="80" aliasName="a" dataFormatString="@upperCaseFormat" align="right">
+  <header v="Số theo dõi" e="Tracking No."></header>
+  <items style="Mask"/>
+</field>
+<field name="ma_vt_ncc" width="100" aliasName="a" dataFormatString="@upperCaseFormat">
+  <header v="Mã của nhà cung cấp" e="Vendor's Item Code"></header>
+  <items style="Mask"/>
+  <handle key="([ma_ncc_cd] != '')" field="ma_ncc_cd"/>
+</field>
+
+<field name="so_tham_chieu" width="80" dataFormatString="@upperCaseFormat" readOnly="true" align="right" inactivate="true">
+  <header v="Số tham chiếu giá mua" e="Info Record"></header>
+  <items style="Mask"/>
+</field>
+
+<field name="kieu_pb" external="true" defaultValue="''" inactivate="true" readOnly="true" aliasName="d" hidden="true">
+<header v="" e=""></header>
+</field>
+<field name="stt_rec_oa" readOnly="true" width="0" hidden="true">
+  <header v="" e=""></header>
+</field>
+<field name="stt_rec0oa" readOnly="true" width="0" hidden="true">
+  <header v="" e=""></header>
+</field>

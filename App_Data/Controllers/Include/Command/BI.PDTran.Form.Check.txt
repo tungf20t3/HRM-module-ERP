@@ -1,0 +1,155 @@
+﻿<![CDATA[
+if @status <> '0' begin
+  declare @q$Delivery nvarchar(4000), @e$Delivery$Conflict nvarchar(512), @e$Delivery$Invalid nvarchar(512), @e$Delivery$Line int
+
+  select @e$Delivery$Conflict = case when @@language = 'v' then N'Vật tư <span class="Highlight">%s</span> đã được khai báo hoàn thành nhận hàng.' else N'The item <span class="Highlight">%s</span> was marked as received.' end
+  select @e$Delivery$Invalid = case when @@language = 'v' then N'Đã có phát sinh liên quan đến vật tư <span class="Highlight">%s</span> của đơn hàng, không sửa hoặc xóa được.' else N'There existed processing against Purchase Order for item <span class="Highlight">%s</span>, it cannot be edited or deleted.' end
+
+  select a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_hd, a.stt_rec0hd, min(line_nbr) as line_nbr, cast(null as datetime) as datetime2 into #d$Delivery from ]]>&BI.PDTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and (a.stt_rec_dh <> '' or a.stt_rec_hd <> '') group by a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_hd, a.stt_rec0hd
+  select top 0 stt_rec_dh, stt_rec0dh, stt_rec_hd, stt_rec0hd, datetime2 into #h$Delivery from #d$Delivery
+  #IF @@action = 'Edit' #THEN
+    update #d$Delivery set datetime2 = (select top 1 datetime2 from m96$$partition$previous where stt_rec = @stt_rec and status <> '0')
+  #END
+  update #d$Delivery set datetime2 = getdate() where datetime2 is null
+
+  if exists(select 1 from #d$Delivery where stt_rec_dh <> '') begin
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih94$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec <> b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 < b.datetime2
+    if @e$Delivery$Line is not null begin
+      select 'd96' as field, replace(@e$Delivery$Invalid, '%s', rtrim(a.ma_vt)) as message from ]]>&BI.PDTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih95$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec <> b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 < b.datetime2
+    if @e$Delivery$Line is not null begin
+      select 'd96' as field, replace(@e$Delivery$Invalid, '%s', rtrim(a.ma_vt)) as message from ]]>&BI.PDTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+  end
+  if exists(select 1 from #d$Delivery where stt_rec_hd <> '') begin
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih06$000000 b on a.stt_rec_hd = b.stt_rec_hd and a.stt_rec0hd = b.stt_rec0hd where a.stt_rec <> b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 < b.datetime2
+    if @e$Delivery$Line is not null begin
+      select 'd96' as field, replace(@e$Delivery$Invalid, '%s', rtrim(a.ma_vt)) as message from ]]>&BI.PDTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+  end
+
+  if exists(select 1 from #d$Delivery where stt_rec_dh <> '') begin
+    insert into #h$Delivery (stt_rec_dh, stt_rec0dh, datetime2)
+      select h.stt_rec_dh, h.stt_rec0dh, max(h.datetime2)
+        from bih94$000000 h where exists(select 1 from #d$Delivery d where d.stt_rec <> h.stt_rec and d.stt_rec_dh = h.stt_rec_dh and d.stt_rec0dh = h.stt_rec0dh and (h.ma_ct = 'PD1' or (h.ma_ct in ('PXC', 'PXR') and h.tt_yn = 1)) and d.datetime2 > h.datetime2)
+          group by h.stt_rec_dh, h.stt_rec0dh
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join #h$Delivery b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh join bih94$000000 c on a.stt_rec_dh = c.stt_rec_dh and a.stt_rec0dh = c.stt_rec0dh and b.datetime2 = c.datetime2 where c.po_ht_yn = 1
+    if @e$Delivery$Line is not null begin
+      select 'd96' as field, replace(@e$Delivery$Conflict, '%s', rtrim(a.ma_vt)) as message, 'message$Voucher$Detail$Show(this, "d96", ' + rtrim(@e$Delivery$Line) + ', "ma_vt");' as script from ]]>&BI.PDTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+
+    insert into #h$Delivery (stt_rec_dh, stt_rec0dh, datetime2)
+      select h.stt_rec_dh, h.stt_rec0dh, max(h.datetime2)
+        from bih95$000000 h where exists(select 1 from #d$Delivery d where d.stt_rec <> h.stt_rec and d.stt_rec_dh = h.stt_rec_dh and d.stt_rec0dh = h.stt_rec0dh and (h.ma_ct = 'PD1' or (h.ma_ct in ('PXC', 'PXR') and h.tt_yn = 1)) and d.datetime2 > h.datetime2)
+          group by h.stt_rec_dh, h.stt_rec0dh
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join #h$Delivery b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh join bih95$000000 c on a.stt_rec_dh = c.stt_rec_dh and a.stt_rec0dh = c.stt_rec0dh and b.datetime2 = c.datetime2 where c.po_ht_yn = 1
+    if @e$Delivery$Line is not null begin
+      select 'd96' as field, replace(@e$Delivery$Conflict, '%s', rtrim(a.ma_vt)) as message, 'message$Voucher$Detail$Show(this, "d96", ' + rtrim(@e$Delivery$Line) + ', "ma_vt");' as script from ]]>&BI.PDTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+  end
+
+  if exists(select 1 from #d$Delivery where stt_rec_hd <> '') begin
+    insert into #h$Delivery (stt_rec_hd, stt_rec0hd, datetime2)
+      select h.stt_rec_hd, h.stt_rec0hd, max(h.datetime2)
+        from bih06$000000 h where exists(select 1 from #d$Delivery d where d.stt_rec <> h.stt_rec and d.stt_rec_hd = h.stt_rec_hd and d.stt_rec0hd = h.stt_rec0hd and (h.ma_ct = 'PD1' or (h.ma_ct in ('PXC', 'PXR') and h.tt_yn = 1)) and d.datetime2 > h.datetime2)
+          group by h.stt_rec_hd, h.stt_rec0hd
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join #h$Delivery b on a.stt_rec_hd = b.stt_rec_hd and a.stt_rec0hd = b.stt_rec0hd join bih06$000000 c on a.stt_rec_hd = c.stt_rec_hd and a.stt_rec0hd = c.stt_rec0hd and b.datetime2 = c.datetime2 where c.po_ht_yn = 1
+    if @e$Delivery$Line is not null begin
+      select 'd96' as field, replace(@e$Delivery$Conflict, '%s', rtrim(a.ma_vt)) as message, 'message$Voucher$Detail$Show(this, "d96", ' + rtrim(@e$Delivery$Line) + ', "ma_vt");' as script from ]]>&BI.PDTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+  end
+end
+
+#IF @@action = 'Edit' #THEN
+  if exists(select 1 from @@prime$partition$previous a join bikd00$$partition$previous b on a.stt_rec = b.stt_rec_goc where a.stt_rec = @stt_rec and a.status <> '0' and b.datetime0 <> b.datetime2) begin
+    select top 1 @e$Delivery$Line = a.line_nbr from d96$partition$previous a join bikd01$$partition$previous b on a.stt_rec = b.stt_rec_goc and a.stt_rec0 = b.stt_rec0 join bikd02$$partition$previous c on b.stt_rec = c.stt_rec where a.stt_rec = @stt_rec
+    select 'd96' as field, case when @@language = 'v' then N'Tồn tại lô kiểm định thuộc phiếu nhập đã phát sinh, không sửa hoặc xóa được.' else N'There existed an inspection lot which belong to goods receipt has been used, it cannot be edited or deleted.' end as message, 'message$Voucher$Detail$Show(this, "d96", ' + rtrim(@e$Delivery$Line) + ', "ma_vt");' as script 
+    return
+  end
+#END
+
+declare @e$PDCheck nvarchar(4000), @e$PDScript nvarchar(4000), @e$PDLine int, @e$PDItem nvarchar(4000), @q$PD nvarchar(4000), @o$PD varchar(1), @v$PD varchar(3), @p$PD varchar(6), @e$PDWarning bit, @e$PDErr bit
+
+select a.ma_bp0, min(a.line_nbr) as line_nbr, identity(int, 1, 1) as id into #d from ]]>&BI.PDTran.DetailTableSource;<![CDATA[ a where a.ma_bp0 <> '' group by a.ma_bp0
+if exists(select 1 from #d where id > 1) begin
+  select top 1 @e$PDScript = 'message$Voucher$Detail$Show(this, "d96", ' + rtrim(line_nbr) + ', "ma_vt");',
+      @e$PDCheck = case when @@language = 'V' then N'Tồn tại <span class="Highlight">Đơn vị mua</span> khác nhau trên các dòng chứng từ kế thừa.' else N'There existed multiple <span class="Highlight">Purchasing Organization</span> on process extracted data' end
+    from #d
+  select 'd96' as fields, @e$PDCheck as message, @e$PDScript as script
+  return
+end
+
+select @o$PD = rtrim(val) from options where name = 'm_bi_cl_gh'
+if isnull(@o$PD, '0') <> '0' begin
+  select a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_hd, a.stt_rec0hd, sum(a.so_luong * a.he_so) as so_luong0, a.so_luong1, a.so_luong2, min(a.ma_vt) as ma_vt, min(a.line_nbr) as line_nbr into #q96
+    from ]]>&BI.PDTran.DetailTableSource;<![CDATA[ a where a.so_luong1 <> 0 or a.so_luong2 <> 0 group by a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_hd, a.stt_rec0hd, a.so_luong1, a.so_luong2
+  if exists(select 1 from #q96 where so_luong1 <> 0 and so_luong0 < so_luong1) begin
+    select @e$PDItem = '', @e$PDCheck = case when @@language = 'V' then N'Vật tư <span class="Highlight">%s</span> có số lượng nhận nhỏ hơn số lượng nhận tối thiểu cho phép.' else N'Receipt quantity of the item <span class="Highlight">%s</span> does not meet the allowable minimum receipt quantity.' end
+    select @e$PDLine = min(line_nbr) from #q96 where so_luong1 <> 0 and so_luong0 < so_luong1
+    select @e$PDItem = @e$PDItem + case when @e$PDItem <> '' then ', ' else '' end + rtrim(ma_vt) from #q96 where so_luong1 <> 0 and so_luong0 < so_luong1 group by ma_vt
+    select @e$PDScript = 'message$Voucher$Detail$Show(this, "d96", ' + rtrim(@e$PDLine) + ', "so_luong");', @e$PDCheck = replace(@e$PDCheck, '%s', rtrim(@e$PDItem)) from #q96 where line_nbr = @e$PDLine
+    if @o$PD = '1' begin
+      select @$warning = case when @$warning = '' then '' else @$warning + ' ' end + @e$PDCheck
+    end else begin
+      select 'd96' as fields, @e$PDCheck as message, @e$PDScript as script
+      return
+    end
+  end
+  if exists(select 1 from #q96 where so_luong2 <> 0 and so_luong0 > so_luong2) begin
+    select @e$PDItem = '', @e$PDCheck = case when @@language = 'V' then N'Vật tư <span class="Highlight">%s</span> có số lượng nhận lớn hơn số lượng nhận tối đa cho phép.' else N'Receipt quantity of the item <span class="Highlight">%s</span> exceeds the allowable maximum receipt quantity.' end
+    select @e$PDLine = min(line_nbr) from #q96 where so_luong2 <> 0 and so_luong0 > so_luong2
+    select @e$PDItem = @e$PDItem + case when @e$PDItem <> '' then ', ' else '' end + rtrim(ma_vt) from #q96 where so_luong2 <> 0 and so_luong0 > so_luong2 group by ma_vt
+    select @e$PDScript = 'message$Voucher$Detail$Show(this, "d96", ' + rtrim(@e$PDLine) + ', "so_luong");', @e$PDCheck = replace(@e$PDCheck, '%s', rtrim(@e$PDItem)) from #q96 where line_nbr = @e$PDLine
+    if @o$PD = '1' select @$warning = case when @$warning = '' then '' else @$warning + ' ' end + @e$PDCheck
+    else begin
+      select 'd96' as fields, @e$PDCheck as message, @e$PDScript as script
+      return
+    end
+  end
+end
+
+if exists(select 1 from ]]>&BI.PDTran.DetailTableSource;<![CDATA[ a where a.stt_rec_dh <> '' or a.stt_rec_hd <> '') begin
+  select top 0 cast('' as varchar(32)) as ma_vung, stt_rec, cast('' as varchar(3)) as stt_rec0, cast('' as varchar(6)) as p into #c96 from c96$000000
+  insert into #c96 select distinct a.ma_vung, a.stt_rec_dh, a.stt_rec0dh, convert(varchar(6), b.ngay_ct, 112) from ]]>&BI.PDTran.DetailTableSource;<![CDATA[ a left join c94$000000 b on a.stt_rec_dh = b.stt_rec where a.stt_rec_dh <> ''
+  insert into #c96 select distinct a.ma_vung, a.stt_rec_dh, a.stt_rec0dh, convert(varchar(6), b.ngay_ct, 112) from ]]>&BI.PDTran.DetailTableSource;<![CDATA[ a left join c95$000000 b on a.stt_rec_dh = b.stt_rec where a.stt_rec_dh <> ''
+  insert into #c96 select distinct a.ma_vung, a.stt_rec_hd, a.stt_rec0hd, convert(varchar(6), b.ngay_ct, 112) from ]]>&BI.PDTran.DetailTableSource;<![CDATA[ a left join bic06$000000 b on a.stt_rec_hd = b.stt_rec where a.stt_rec_hd <> ''
+
+  select distinct a.stt_rec_dh as stt_rec into #d96 from ]]>&BI.PDTran.DetailTableSource;<![CDATA[ a where a.stt_rec_dh <> ''
+  select distinct right(a.stt_rec, 3) as v, b.m$ as m, b.d$ as d into #v from #c96 a join dmct9 b on right(a.stt_rec, 3) = b.ma_ct
+  select distinct p into #p96 from #c96
+
+  if exists(select 1 from #p96) begin
+    select @p$PD = min(p) from #p96
+    while @p$PD is not null begin
+      select @v$PD = min(v) from #v
+      while @v$PD is not null begin
+        if @v$PD <> 'PA2' begin
+          select @q$PD = 'if exists(select 1 from #d96 a join ' + rtrim(m) + @p$PD + ' b on a.stt_rec = b.stt_rec where (@loai_ct = ''1'' and b.loai_ct <> ''3'') or (@loai_ct = ''2'' and b.loai_ct <> ''4'')) select @e$PDErr = 1' from #v where v = @v$PD
+          exec sp_executesql @q$PD, N'@e$PDErr bit out, @loai_ct varchar(2)', @e$PDErr out, @loai_ct
+          if isnull(@e$PDErr, 0) = 1 begin
+            select 'ma_gd' as fields, case when @@language = 'V' then N'Dữ liệu trong chi tiết không phù hợp với mã giao dịch.' else N'Detail data does not match transaction.' end as message
+            return
+          end
+        end
+        if isnull(@e$PDWarning, 0) = 0 begin
+          select @q$PD = 'if exists(select 1 from #c96 a join ' + rtrim(d) + @p$PD + ' b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0 where b.ma_vung <> a.ma_vung) select @e$PDWarning = 1' from #v where v = @v$PD
+          exec sp_executesql @q$PD, N'@e$PDWarning bit out', @e$PDWarning out
+          if isnull(@e$PDWarning, 0) = 1
+            select @$warning = case when @$warning = '' then '' else @$warning + ' ' end
+              + case when @@language = 'V' then N'Thông tin vùng ' + case @v$PD when 'PO1' then N'của đơn hàng mua trong nước' when 'PO2' then N'của đơn hàng mua nhập khẩu' when 'PA2' then N'của hợp đồng mua hàng' else '' end + N' không giống với phiếu nhập mua hàng.'
+                  else N'Purchase Receipt should have same plant' + case @v$PD when 'PO1' then N' as Domestic Purchase Order.' when 'PO2' then N' as Import Purchase Order.' when 'PA2' then N' as Schedule Agreement.' else N'.' end end
+        end
+        select @v$PD = min(v) from #v where v > @v$PD
+      end
+      select @p$PD = min(p) from #p96 where p > @p$PD
+    end
+  end
+end
+]]>

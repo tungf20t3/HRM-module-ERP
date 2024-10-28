@@ -1,0 +1,11 @@
+﻿<![CDATA[
+if exists(select * from knnh00$$partition$current where stt_rec = @stt_rec) begin
+  declare @$edatetime2 datetime
+  select @$edatetime2 = datetime2 from @@prime$partition$current where stt_rec = @stt_rec
+  update knnh00$$partition$current set ma_dvcs = @ma_dvcs, ngay_ct = @ngay_ct, ngay_ct_goc = @ngay_ct, nh_dt_yn = @$enh_dt_yn, chu_tk = @$echu_tk, tk_nh = @$etk_nh, ma_nh_dt = @$ema_nh_dt, ten_nh = @$eten_nh, chi_nhanh = @$echi_nhanh, tinh_thanh = @$etinh_thanh, quoc_gia = @$equoc_gia, loai_gd = @$eloai_gd, dien_giai = @$edien_giai, phi_nhan_yn = @$ephi_nhan_yn, ma_citad = @$ema_citad, status = case when @$status = '2' then '1' else '0' end, tinh_trang = case when tinh_trang = '4' then '0' else tinh_trang end, datetime2 = @$edatetime2, user_id2 = @@userID where stt_rec = @stt_rec
+end
+if not exists(select * from knnh00$$partition$current where stt_rec = @stt_rec)
+  insert knnh00$$partition$current(stt_rec, ma_dvcs, ngay_ct, ngay_ct_goc, ma_ct, chu_tk, tk_nh, ma_nh_dt, ten_nh, chi_nhanh, quoc_gia, tinh_thanh, loai_gd, dien_giai, phi_nhan_yn, nh_dt_yn, ma_citad, ma_gd, ma_tt_nh, tinh_trang, nd_loi_nh, status, user_id0, user_id2, datetime0, datetime2)
+    select stt_rec, ma_dvcs, ngay_ct, ngay_ct, ma_ct, @$echu_tk, @$etk_nh, @$ema_nh_dt, @$eten_nh, @$echi_nhanh, @$equoc_gia, @$etinh_thanh, @$eloai_gd, @$edien_giai, @$ephi_nhan_yn, @$enh_dt_yn, @$ema_citad, '', '', 0, '', case when @$status = '2' then '1' else '0' end, user_id0, user_id2, datetime0, datetime2
+      from @@prime$partition$current where stt_rec = @stt_rec
+]]>

@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIPQSourceListForm">
+
+  <!ENTITY % Conditional.BIMode "INCLUDE">
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+]>
+
+<dir table="bim01$000000"  code="stt_rec" xmlns="urn:schemas-ai-erp:data-dir">
+
+  <title v="Cập nhật nguồn cung ứng" e="Source List Input"></title>
+  <fields>
+    <field name="ma_bp0" allowNulls="false" inactivate="true">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+      <items style="AutoComplete" controller="BIPurchasingOrganization" reference="ten_bp0%l"/>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_vung" allowNulls="false">
+      <header v="Mã vùng" e="Plant"></header>
+      <items style="AutoComplete" controller="BIPlant.Right" reference="ten_vung%l" key="(('{$%c[ma_dvcs]}' = '' and ma_dvcs = @@unit) or (ma_dvcs = '{$%c[ma_dvcs]}')) and status = '1'" check="(('{$%c[ma_dvcs]}' = '' and ma_dvcs = @@unit) or (ma_dvcs = '{$%c[ma_dvcs]}'))" information="ma_vung$bidmvung.ten_vung%l"/>
+    </field>
+    <field name="ten_vung%l" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_vt" allowNulls="false" inactivate="true">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_kh" allowNulls="false" inactivate="true">
+      <header v="Mã nhà cung cấp" e="Vendor"></header>
+      <items style="AutoComplete" controller="&VendorController;" reference="ten_kh%l" key="cc_yn = 1 and status = '1'" check="cc_yn = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_hl_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày hiệu lực từ" e="Effective Date from"></header>
+      <footer v="Ngày hl từ/đến" e="Effective Date from/to"></footer>
+    </field>
+    <field name="ngay_hl_den" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày hiệu lực đến" e="Effective Date to"></header>
+    </field>
+
+    <field name="cd_ncc" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Cố định nhà cung cấp" e="Vendor Fix"></header>
+      <footer v="0 - Không, 1 - Có" e="0 - No, 1 - Yes"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="ghi_chu" maxLength="256">
+      <header v="Ghi chú" e="Note"></header>
+    </field>
+    <field name="ma_dvcs" allowNulls="false" disabled="true" hidden="true">
+      <header v="Đơn vị" e="Unit"></header>
+    </field>
+    <field name="so_ct" disabled="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left" disabled="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="11010: [ma_bp0].Label, [ma_bp0], [ten_bp0%l]"/>
+      <item value="11010: [ma_vung].Label, [ma_vung], [ten_vung%l]"/>
+      <item value="11010: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11010: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="1101-1: [ngay_hl_tu].Description, [ngay_hl_tu], [ngay_hl_den], [so_ct]"/>
+      <item value="111001: [cd_ncc].Label, [cd_ncc], [cd_ncc].Description, [ngay_ct]"/>
+      <item value="110001: [ghi_chu].Label, [ghi_chu], [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        &BIMode.Structure.Check;
+        <![CDATA[
+declare @q nvarchar(4000), @stt_rec varchar(32), @status char(1), @wsID varchar(8), @vcDate smalldatetime, @dUpdate datetime, @line int
+select @stt_rec = stt_rec, @status = status from bim01$000000 where ma_bp0 = @ma_bp0 and ma_vt = @ma_vt and ma_vung = @ma_vung
+
+select @dUpdate = getdate(), @vcDate = convert(char(8), @dUpdate, 112)
+if @stt_rec is null begin
+  select @wsID = rtrim(val) from options where name = 'm_ws_id'
+  create table #idNumber (stt_rec varchar(32))
+  insert into #idNumber exec AI_ERP$App$GetIdentityNumber @wsID, 'P01', 'bim01$000000', @@userID
+  select @stt_rec = stt_rec, @status = '1' FROM #idNumber
+
+  insert into bim01$000000(stt_rec, ma_dvcs, ma_ct, ma_bp0, ma_vt, ma_vung, dien_giai, status, user_id0, user_id2, datetime0, datetime2)
+  select @stt_rec, @ma_dvcs, 'P01', @ma_bp0, @ma_vt, @ma_vung, '', '1', @@userID, @@userID, @dUpdate, @dUpdate
+
+  set @q = 'stt_rec = ''' + @stt_rec + ''''
+  exec rs_DefaultValue 1, 'bim01$000000', 'stt_rec, ma_dvcs, ma_ct, ma_bp0, ma_vt, ma_vung, dien_giai, status, user_id0, user_id2, datetime0, datetime2', 1, default, @q
+end
+update bim01$000000 set user_id2 = @@userID, datetime2 = @dUpdate where stt_rec = @stt_rec
+
+select @line = max(line_nbr) + 1 from bid01$000000 where stt_rec = @stt_rec
+select top 0 * into #d01 from bid01$000000
+select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, ma_bp0, ma_vung, c$, m$, d$, identity(int, 1, 1) as id into #i01 from bii01$000000
+
+insert into #d01(stt_rec, stt_rec0, ma_ct, ma_kh, vung_cu, ngay_hl_tu, ngay_hl_den, cd_ncc, ghi_chu, so_tc, ngay_tc, ma_nguon, line_nbr)
+  select @stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(isnull(@line, 1)), 'P01', @ma_kh, '', @ngay_hl_tu, @ngay_hl_den, @cd_ncc, @ghi_chu, @so_ct, @ngay_ct, 'PQ2', isnull(@line, 1)
+    where not exists(select 1 from bid01$000000 x where x.stt_rec = @stt_rec and x.ma_kh = @ma_kh and (x.ngay_hl_tu is null or x.ngay_hl_tu <= @ngay_hl_den) and (x.ngay_hl_den is null or x.ngay_hl_den >= @ngay_hl_tu))
+
+exec rs_DefaultValue 2, '#d01', 'stt_rec, stt_rec0, ma_ct, ma_kh, vung_cu, ngay_hl_tu, ngay_hl_den, cd_ncc, ghi_chu, so_tc, ngay_tc, ma_nguon, line_nbr', 1
+insert into bid01$000000 select * from #d01
+
+if exists(select 1 from #d01) begin
+  truncate table #d01
+  insert into #d01 select * from bid01$000000 where stt_rec = @stt_rec
+  insert into #i01 select stt_rec, null, '', ma_dvcs, ma_bp0, ma_vung, rtrim(ma_dvcs) + rtrim(ma_bp0) + rtrim(ma_vung) + rtrim(ma_vt) + stt_rec,
+    '#10$' + rtrim(ma_bp0) + '#20$' + rtrim(ma_vung) + '#30$' + rtrim(ma_vt), '' from bim01$000000 where stt_rec = @stt_rec
+  select @q = dbo.AI_ERP$Function$Update$Inquiry('#i01', '#d01', 'd$', 'ma_kh, vung_cu, ma_nguon', '#10$, #20$, #30$', 'stt_rec', default, default, default, default, default)
+  exec sp_executesql @q
+
+  delete bii01$000000 where stt_rec = @stt_rec
+  insert into bii01$000000(stt_rec, ngay_ct, so_ct, ma_dvcs, ma_bp0, ma_vung, status, user_id0, c$, m$, d$)
+    select stt_rec, ngay_ct, '', ma_dvcs, ma_bp0, ma_vung, @status, @@userID, c$, m$, d$ from #i01
+end
+]]>
+      </text>
+    </command>
+    <command event="Inserted">
+      <text>
+        <![CDATA[
+select '' as field, '' as messeage, 'insert$]]>&Identity;<![CDATA[Filter$QueryComplete(this);' as script
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,id=f.get_id(),d1=f.getItemValue("ngay_hl_tu"),d2=f.getItemValue("ngay_hl_den");if(f._checked&&d1>d2){var msg=f._language=="v"?'Trường <span class="Highlight">Ngày hiệu lực đến</span> phải lớn hơn hoặc bằng trường <span class="Highlight">Ngày hiệu lực từ</span>.':'<span class="Highlight">Effective date to</span> must be larger than or equal to <span class="Highlight">Effective date from</span>.';$func.hideWait(id);$message.show(msg,String.format("$find('{0}').getItem('ngay_hl_den').focus()",id));f._checked=false}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[$Form(f) {
+  var g = f.grid, d = g._detailInfo;
+  f.setReadOnlyFields('ma_bp0, ma_vt, ma_kh');
+  f.setItemValues('so_ct, ngay_ct, ma_dvcs, ma_bp0, ten_bp0%l, ma_vung, ten_vung%l, ma_kh, ten_kh%l, ma_vt, ten_vt%l, ngay_hl_tu, ngay_hl_den', [d.so_ct, d.ngay_ct, d.ma_dvcs, d.ma_bp0, d.ten_bp0, d.ma_vung, d.ten_vung, d.ma_kh, d.ten_kh, d.ma_vt, d.ten_vt, d.ngay_hl_tu, d.ngay_hl_den]);
+  if (d.ma_vung) {
+    f.setReadOnlyFields('ma_vung');
+    f.live(f.getItem('ngay_hl_tu'));
+    f.getItem('ngay_hl_tu').focus();
+  }
+  else f.getItem('ma_vung').focus();
+  g._gridMemvars = g._memvars;
+}
+
+function insert$]]>&Identity;<![CDATA[Filter$QueryComplete(f) {
+  var z = f.grid;
+  z._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';
+}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g) {
+  g._memvars = g._gridMemvars;
+  g._gridMemvars = [];
+}
+]]>
+    </text>
+  </script>
+
+</dir>

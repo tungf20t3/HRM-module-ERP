@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY NotifyContentCss SYSTEM "..\Include\XML\NotifyContentCss.txt">
+
+  <!ENTITY FormNoPaddingWidth "753">
+  <!ENTITY FormNoPaddingScript SYSTEM "..\Include\Javascript\FormNoPadding.txt">
+]>
+
+<dir id="0" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chi tiết duyệt" e="Detail Approval"></title>
+  <fields>
+    <field name="noi_dung" external="true" readOnly="true" defaultValue="''" filterSource="Plugin">
+      <header v="" e=""></header>
+      <footer v="&lt;div id=&quot;viewContent&quot; class=&quot;viewContent&quot;&gt;&lt;div id=&quot;viewContentDetail&quot; class=&quot;viewContentDetail&quot;&gt;&lt;/div&gt;&lt;/div&gt;" e="&lt;div id=&quot;viewContent&quot; class=&quot;viewContent&quot;&gt;&lt;div id=&quot;viewContentDetail&quot; class=&quot;viewContentDetail&quot;&gt;&lt;/div&gt;&lt;/div&gt;"></footer>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="279" anchor="1">
+      <item value="&FormNoPaddingWidth;"/>
+      <item value="1: [noi_dung].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'show$APVHistoryDetail$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$APVHistoryDetail$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$APVHistoryDetail$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function show$APVHistoryDetail$(f) {
+  show$NoPadding$Form(f, 'viewContent');
+}
+function active$APVHistoryDetail$(f) {
+  active$NoPadding$Form(f);
+  $get('viewContentDetail').innerHTML= f.grid._currentContent;
+  f._findButton('Close').focus();
+}
+
+function close$APVHistoryDetail$(f) {close$NoPadding$Form(f);}
+]]>
+      &FormNoPaddingScript;
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.viewContent{overflow:auto;background-color: #F3F7F8;}
+.viewContentDetail{word-wrap:break-word;white-space: normal;padding:8px;}
+]]>
+    </text>
+  </css>
+</dir>

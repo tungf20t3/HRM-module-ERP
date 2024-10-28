@@ -1,0 +1,324 @@
+﻿<%@ Master Language="VB" AutoEventWireup="false" Inherits="AI_ERP.ReportExtender.UI.Master" %>
+
+<%@ Import Namespace="AI_ERP" %>
+<%@ Import Namespace="AI_ERP.MenuExtender" %>
+<%@ Import Namespace="System" %>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>AI ERP</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=8;IE=edge;" />
+    <link href="~/Images/favicon.ico" rel="shortcut icon" type="image/ico" />
+    <link href="~/Css/Menu.css?v=1" rel="stylesheet" type="text/css" />
+    <link rel="preconnect" href="~/font/">
+    <link rel="stylesheet" href="~/font/inter.css">
+
+
+
+    <asp:ContentPlaceHolder ID="head" runat="server" />
+    <%-- <script runat="server">
+        Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+                               Dim str As String
+        Dim _userID As String = AjaxControlExtender.Session.GetSession(AjaxControlExtender.Session.SessionName.userID)
+        Dim _language As String = AjaxControlExtender.Session.GetSession(AjaxControlExtender.Session.SessionName.language)
+        Dim _cookie As String = AjaxControlExtender.Data.Cookie(Convert.ToInt32(_userID), "MenuExtender")
+        Dim _menuExtenderService As MenuExtenderService = New MenuExtenderService()
+        str = _menuExtenderService.GetMenuItemsExtender(_userID, _language, _cookie)
+              literaltbl.Text = str
+                                  End Sub
+    </script>--%>
+</head>
+<body translate="no">
+    <form id="frmMaster" runat="server" onsubmit="return false;">
+        <asp:ScriptManager ID="ScriptManagerMasterPage" runat="server" EnablePageMethods="true" ScriptMode="Release" LoadScriptsBeforeUI="false" EnablePartialRendering="false">
+            <compositescript scriptmode="Release" path="~/ClientScript/j8.js">
+                <scripts>
+                    <asp:ScriptReference Name="MicrosoftAjax.js" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.ExtenderBase.BaseScripts.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.Common.Common.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.Compat.Timer.Timer.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.Compat.DragDrop.DragDropScripts.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.Animation.Animations.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.Animation.AnimationBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.HoverExtender.HoverBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.PopupExtender.PopupBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.DynamicPopulate.DynamicPopulateBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.DropDown.DropDownBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.DropShadow.DropShadowBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.DragPanel.FloatingBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.PopupControl.PopupControlBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.ModalPopup.ModalPopupBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.RoundedCorners.RoundedCornersBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.AlwaysVisibleControl.AlwaysVisibleControlBehavior.js" Assembly="AjaxControlToolkit" />
+                </scripts>
+            </compositescript>
+        </asp:ScriptManager>
+
+        <asp:ScriptManagerProxy ID="ScriptProxyMainPage" runat="server">
+            <compositescript scriptmode="Release" path="~/ClientScript/j3.js">
+                <scripts>
+                    <asp:ScriptReference Name="AjaxControlToolkit.Common.DateTime.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.Common.Threading.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.AutoComplete.AutoCompleteBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AI_ERP.AjaxControlExtender.Web.Command.js" Assembly="AI_ERP.AjaxControlExtender" />
+                    <asp:ScriptReference Name="AI_ERP.AjaxControlExtender.MaskExtender.js" Assembly="AI_ERP.AjaxControlExtender" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.Calendar.CalendarBehavior.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AI_ERP.AjaxControlExtender.NumericExtender.js" Assembly="AI_ERP.AjaxControlExtender" />
+                    <asp:ScriptReference Name="AI_ERP.AjaxControlExtender.ModalPopupExtender.js" Assembly="AI_ERP.AjaxControlExtender" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.Tabs.Tabs.js" Assembly="AjaxControlToolkit" />
+                    <asp:ScriptReference Name="AjaxControlToolkit.ResizableControl.ResizableControlBehavior.js" Assembly="AjaxControlToolkit" />
+                </scripts>
+            </compositescript>
+        </asp:ScriptManagerProxy>
+
+        <asp:ScriptManagerProxy ID="ScriptProxyControl" runat="server">
+            <compositescript scriptmode="Release">
+                <scripts>
+                    <asp:ScriptReference Name="AI_ERP.MenuExtender.MenuExtender.js" Assembly="AI_ERP.MenuExtender" />
+                    <asp:ScriptReference Name="AI_ERP.AjaxControlExtender.AutoCompleteExtender.js" Assembly="AI_ERP.AjaxControlExtender" />
+                    <asp:ScriptReference Name="AI_ERP.AjaxControlExtender.CalendarExtender.js" Assembly="AI_ERP.AjaxControlExtender" />
+                    <asp:ScriptReference Name="AI_ERP.ReportExtender.ReportExtender.js" Assembly="AI_ERP.ReportExtender" />
+                    <asp:ScriptReference Name="AI_ERP.ReportExtender.Functions.js" Assembly="AI_ERP.ReportExtender" />
+                    <asp:ScriptReference Name="AI_ERP.ReportExtender.GridControl.js" Assembly="AI_ERP.ReportExtender" />
+                    <asp:ScriptReference Name="AI_ERP.ReportExtender.FormControl.js" Assembly="AI_ERP.ReportExtender" />
+                    <asp:ScriptReference Name="AI_ERP.ReportExtender.Currency.js" Assembly="AI_ERP.ReportExtender" />
+                    <asp:ScriptReference Name="AI_ERP.ReportExtender.VoucherNumber.js" Assembly="AI_ERP.ReportExtender" />
+                </scripts>
+            </compositescript>
+        </asp:ScriptManagerProxy>
+        <div class="layout has-sidebar fixed-sidebar fixed-header">
+            <aside id="sidebar" class="sidebar break-point-lg has-bg-image">
+                <div class="sidebar-layout">
+                    <div class="sidebar-header">
+                        <%--<a class="sidebar-header-logo" href="Main.aspx"></a>--%>
+                        <a class="sidebar-header-logo-mini" href="Main.aspx"></a>
+                    </div>
+                    <div class="sidebar-content">
+                        <div class="navigation-search" id="NavigationSearch">
+                            <div class="navigation-input">                                
+                                <%--<div id="MenuExtender_SearchBox" class="MenuSearchBox">
+                                    <span class="MenuSearchButton" onclick="$find('ctl00_MenuExtender').executeCommand({commandName:'Search',commandArgument:'0'});return false;"></span>
+                                    <input id="_SearchInput" autocomplete="off" spellcheck="false" tabindex="-1" tabstop="false" maxlength="256" type="text" class="MenuSearchInput" onkeydown="$find('ctl00_MenuExtender').y$(event, this, 1);" onkeyup="$find('ctl00_MenuExtender').z$(event, this, 1);" placeholder="Tìm kiếm..." />
+                                </div>--%>
+                            </div>
+
+                        </div>
+                        <div id="NavigationMenu" class="sidebar-menu">
+                            <%--<nav class="menu open-current-submenu">
+                            <ul>
+                                <!--begin::Menu-->
+                                <asp:Literal ID="literaltbl" runat="server" />
+                                <!--end::Menu-->
+                                <li class="menu-item sub-menu">
+                                    <a href="#">
+                                        <span class="menu-icon">
+                                            <i class="purchasing-fill"></i>
+                                        </span>
+                                        <span class="menu-title">Mua hàng</span>
+                                    </a>
+                                    <div class="sub-menu-list" data-popper-escaped="" data-popper-placement="right" style="position: fixed; left: 0px; top: 0px; margin: 0px; visibility: hidden; transform: translate(263px, 99px);">
+                                        <ul>
+                                            <li class="menu-item">
+                                                <a href="#">
+                                                    <span class="menu-title">Phiếu nhu cầu vật tư</span>
+                                                </a>
+                                            </li>
+                                            <li class="menu-item">
+                                                <a href="#">
+                                                    <span class="menu-title">Duyệt phiếu nhu cầu</span>
+                                                </a>
+                                            </li>
+                                            <li class="menu-item sub-menu">
+                                                <a href="#">
+                                                    <span class="menu-title">Báo giá</span>
+                                                </a>
+                                                <div class="sub-menu-list">
+                                                    <ul>
+                                                        <li class="menu-item">
+                                                            <a href="#">
+                                                                <span class="menu-title">Đề nghị báo giá</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="menu-item">
+                                                            <a href="#">
+                                                                <span class="menu-title">Duyệt đề nghị báo giá</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </li>
+                                            <li class="menu-item sub-menu">
+                                                <a href="#">
+                                                    <span class="menu-title">Báo giá</span>
+                                                </a>
+                                                <div class="sub-menu-list">
+                                                    <ul>
+                                                        <li class="menu-item">
+                                                            <a href="#">
+                                                                <span class="menu-title">Đề nghị báo giá</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="menu-item">
+                                                            <a href="#">
+                                                                <span class="menu-title">Duyệt đề nghị báo giá</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </li>
+
+                                        </ul>
+                                    </div>
+                                </li>
+                                <li class="menu-item sub-menu">
+                                    <a href="#">
+                                        <span class="menu-icon">
+                                            <i class="sales-fill"></i>
+                                        </span>
+                                        <span class="menu-title">Bán hàng</span>
+                                    </a>
+                                    <div class="sub-menu-list" data-popper-escaped="" data-popper-placement="right" style="position: fixed; left: 0px; top: 0px; margin: 0px; visibility: hidden; transform: translate(263px, 99px);">
+                                        <ul>
+                                            <li class="menu-item">
+                                                <a href="#">
+                                                    <span class="menu-title">Phiếu nhu cầu vật tư</span>
+                                                </a>
+                                            </li>
+                                            <li class="menu-item">
+                                                <a href="#">
+                                                    <span class="menu-title">Duyệt phiếu nhu cầu</span>
+                                                </a>
+                                            </li>
+                                            <li class="menu-item sub-menu">
+                                                <a href="#">
+                                                    <span class="menu-title">Báo giá</span>
+                                                </a>
+                                                <div class="sub-menu-list">
+                                                    <ul>
+                                                        <li class="menu-item">
+                                                            <a href="#">
+                                                                <span class="menu-title">Đề nghị báo giá</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="menu-item">
+                                                            <a href="#">
+                                                                <span class="menu-title">Duyệt đề nghị báo giá</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </li>
+                                            <li class="menu-item sub-menu">
+                                                <a href="#">
+                                                    <span class="menu-title">Báo giá</span>
+                                                </a>
+                                                <div class="sub-menu-list">
+                                                    <ul>
+                                                        <li class="menu-item">
+                                                            <a href="#">
+                                                                <span class="menu-title">Đề nghị báo giá</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="menu-item">
+                                                            <a href="#">
+                                                                <span class="menu-title">Duyệt đề nghị báo giá</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </li>
+
+                                        </ul>
+                                    </div>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="#">
+                                        <span class="menu-icon">
+                                            <i class="inventory-fill"></i>
+                                        </span>
+                                        <span class="menu-title">Tồn kho</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>--%>
+                        </div>
+
+                    </div>
+                   <%-- <div class="sidebar-footer"><span>Sidebar footer</span></div>--%>
+                </div>
+            </aside>
+            <div id="overlay" class="overlay"></div>
+            <div class="layout">
+
+                <header class="header">
+                    <div class="header-headernavigation">
+                        <div>
+                            <a id="btn-collapse" href="#">
+                                <i class="menu-line"></i>
+                            </a>
+                            <a id="btn-toggle" href="#" class="sidebar-toggler break-point-lg">
+                                <i class="menu-line"></i>
+                            </a>
+                        </div>
+                        <%--<div class="header">  
+                        <table cellspacing="0" cellpadding="0" id="mpMainFrame" style="width: 100%; border: 0 none; border-collapse: collapse;">
+                            <tbody>
+                                <tr>
+                                    <td height="1">--%>
+                        <div id="mpHeader" style="display: contents;">
+                            <asp:Panel ID="MenuPanel" runat="server" />
+                            <AI_ERP:MenuExtender ID="MenuExtender" runat="server" TargetControlID="MenuPanel" Url="../Default.aspx" InformationUrl="~/Main/user.aspx" NotifyServicePath="../AppService/NotifyExtenderService.asmx" NotifyMethod="LoadNotify" NotifyMessageMethod="UpdateMessage" NotifyCommandMethod="NotifyCommand" />
+                        </div>
+                        <div style="position: absolute; top: 25px; right: 4px; z-index: 300000; display: none;">
+                            <AI_ERP:NotifyExtender runat="server" ID="NotifyPanel" Style="float: right" ServicePath="../AppService/NotifyExtenderService.asmx" />
+                        </div>
+                        <%--</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                       
+                            </div>--%>
+                        <%--<div class="header-right">
+                            <div class="avatar-container">
+                                <span class="user-avatar"></span>
+                            </div>
+                            <div class="user-infor-group">
+                                <div class="user-infor-content">
+                                    <span class="user-infor TextsmSemibold">
+                                        <span>Hiền Nguyễn</span>
+                                    </span>
+                                    <span class="user-infor-down"></span>
+                                </div>
+                                <span class="user-infor TextsmRegular">
+                                    <span>Đơn vị: CTY</span>
+                                </span>
+                            </div>
+                        </div>--%>
+                    </div>
+                </header>
+                <main class="content">
+                    <div id="bodyWrapper">
+                        <div id="mpMainBody" style="padding: 14px;">
+                            <asp:ContentPlaceHolder ID="AI_ERP" runat="server">
+                            </asp:ContentPlaceHolder>
+                        </div>
+                    </div>
+                    <footer class="footer">
+                        <div>
+                            <%--<table cellspacing="0" cellpadding="0" id="mpTableFooter" style="width: 100%; border: 0 none; border-collapse: collapse;">
+                                <tbody>
+                                    <tr>
+                                        <td id="mpFooter"></td>
+                                    </tr>
+                                </tbody>
+                            </table>--%>
+                        </div>
+                    </footer>
+                </main>
+                <div class="overlay"></div>
+            </div>
+        </div>
+    </form>
+    <script src="../ClientScript/External/Popperjs/popper.min.js" type="text/javascript" defer></script>    
+</body>
+</html>

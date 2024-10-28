@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="crdmtgsp" code="ma_vt, ngay_hl" order="ma_vt, ngay_hl" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tạo định mức tự động" e="Auto Generate Processing Time per Unit"></title>
+  <fields>
+    <field name="ma_vt" dataFormatString="@upperCaseFormat">
+      <header v="Mã sản phẩm" e="Product Code"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="kieu_hd &lt;&gt; '0' and status = '1' and loai_vt in ('41', '51')" check="kieu_hd &lt;&gt; '0' and loai_vt in ('41', '51')" information="ma_vt$dmvt.ten_vt%l"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vt1" clientDefault="Default" onDemand="true">
+      <header v="Nhóm vật tư 1" e="Item Group 1"></header>
+      <items style="AutoComplete" controller="ItemGroup" reference="ten_nh_vt1%l" key="loai_nh = 1 and status = '1'" check="loai_nh = 1" information="ma_nh$dmnhvt.ten_nh%l"/>
+    </field>
+    <field name="ten_nh_vt1%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vt2" clientDefault="Default" onDemand="true">
+      <header v="Nhóm vật tư 2" e="Item Group 2"></header>
+      <items style="AutoComplete" controller="ItemGroup" reference="ten_nh_vt2%l" key="loai_nh = 2 and status = '1'" check="loai_nh = 2" information="ma_nh$dmnhvt.ten_nh%l"/>
+    </field>
+    <field name="ten_nh_vt2%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vt3" clientDefault="Default" onDemand="true">
+      <header v="Nhóm vật tư 3" e="Item Group 3"></header>
+      <items style="AutoComplete" controller="ItemGroup" reference="ten_nh_vt3%l" key="loai_nh = 3 and status = '1'" check="loai_nh = 3" information="ma_nh$dmnhvt.ten_nh%l"/>
+    </field>
+    <field name="ten_nh_vt3%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_hl" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Hiệu lực từ" e="Effective Start"></header>
+    </field>
+    <field name="cong_suat" type="Decimal" dataFormatString="@CapacityNumberInputFormat" align="right" allowNulls="false">
+      <header v="Định mức thời gian" e="Proc. Time per Unit"></header>
+      <items style="Numeric"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 330"/>
+      <item value="111: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="111: [nh_vt1].Label, [nh_vt1], [ten_nh_vt1%l]"/>
+      <item value="111: [nh_vt2].Label, [nh_vt2], [ten_nh_vt2%l]"/>
+      <item value="111: [nh_vt3].Label, [nh_vt3], [ten_nh_vt3%l]"/>
+      <item value="11-: [ngay_hl].Label, [ngay_hl]"/>
+      <item value="11-: [cong_suat].Label, [cong_suat]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$CRProductionLeadtimeUnitAutoGenerate(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$CRProductionLeadtimeUnitAutoGenerate(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,g=f.grid;f._checked=false;f.request("CheckingBefore","CheckingBefore",["ma_vt","nh_vt1","nh_vt2","nh_vt3","ngay_hl"])]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$CRProductionLeadtimeUnitAutoGenerate(a){a.add_onResponseComplete(on$CRProductionLeadtimeUnitAutoGenerate$ResponseComplete)}function close$CRProductionLeadtimeUnitAutoGenerate(a){try{a.remove_onResponseComplete(on$CRProductionLeadtimeUnitAutoGenerate$ResponseComplete)}catch(b){}}function on$CRProductionLeadtimeUnitAutoGenerate$ResponseComplete(a,c){var d=c.type.Context,e=c.type.Result,b=a.grid;switch(d){case"CheckingBefore":if(0==e[0].Value){a._errorObject=a.getItem("ma_vt");var c=a._language=="v"?"Không có dữ liệu.":"No data found.";$message.show(c,String.format("$find('{0}')._errorObject.focus()",a.get_id()))}else{b._voucher$AutomaticTimePerUnit$Item=a.getItemValue("ma_vt");b._voucher$AutomaticTimePerUnit$Group1=a.getItemValue("nh_vt1");b._voucher$AutomaticTimePerUnit$Group2=a.getItemValue("nh_vt2");b._voucher$AutomaticTimePerUnit$Group3=a.getItemValue("nh_vt3");b._voucher$AutomaticTimePerUnit$Date=a.getItemValue("ngay_hl");b._voucher$AutomaticTimePerUnit$Hour=a.getItemValue("cong_suat");a.cancelDialog();b.showForm("CRProductionLeadtimeUnitAutoGenerateForm")}}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="CheckingBefore">
+      <text>
+        <![CDATA[
+declare @checkexists bit
+create table #dmvt(ma_vt char(16), ngay_hl smalldatetime)
+insert into #dmvt select ma_vt, @ngay_hl
+  from dmvt
+  where loai_vt in (41, 51) and ma_vt like (rtrim(@ma_vt) + '%')
+    and (@nh_vt1 = '' or nh_vt1 = @nh_vt1)
+    and (@nh_vt2 = '' or nh_vt2 = @nh_vt2)
+    and (@nh_vt3 = '' or nh_vt3 = @nh_vt3)
+if exists (select 1	from #dmvt a where not exists (select b.* from crdmtgsp b where b.ma_vt = a.ma_vt and b.ngay_hl = a.ngay_hl))
+  set @checkexists = 1
+else set @checkexists = 0
+drop table #dmvt
+select @checkexists as checkexists
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+</dir>

@@ -1,0 +1,307 @@
+﻿<!ENTITY % Conditional.BIMode SYSTEM "..\Include\BIMode.txt">
+
+<![%Conditional.BIMode;[
+  <!ENTITY BI.PKTran.ReadOnly "false">
+  <!ENTITY BI.PKTran.Form.Tax.v "Tiền thuế">
+  <!ENTITY BI.PKTran.Form.Tax.e "Tax Amount">
+
+  <!ENTITY BI.PKTran.PODefaultValue.Script.LoadGrid "g._$PODefaultForm.HiddenField = &#91;'ma_vung'&#93;;">
+
+  <!ENTITY BI.PKTran.Grid.Fields SYSTEM "..\Include\XML\BI.PKTran.Fields.Grid.txt">
+  <!ENTITY BI.PKTran.Grid.Views SYSTEM "..\Include\XML\BI.PKTran.Views.Grid.xml">
+  <!ENTITY BI.PKTran.Grid.Loading "select @message = @message + 'load$&Identity;$Grid(this);'">
+  <!ENTITY BI.PKTran.Grid.Closing "
+select 'dispose$&Identity;$Grid(this);' as message
+return
+">
+  <!ENTITY BI.PKTran.Grid.Script SYSTEM "..\Include\Javascript\BI.PKTran.Grid.Script.txt">
+  <!ENTITY XMLGetUOMConversion SYSTEM "..\Include\XML\BI.PKTran.Grid.UOM.xml">
+  <!ENTITY BI.PKTran.Grid.Response.Item ", 'PD3', default, default, default, @envTax, @$ngay_lct, '1', 1">
+
+  <!ENTITY BI.PKTran.Form.h "230">
+  <!ENTITY BI.PKTran.Form.r "170">
+  <!ENTITY BI.PKTran.Form.Bottom.Anchor "7">
+  <!ENTITY BI.PKTran.Form.TaxIndex "11">
+  <!ENTITY BI.PKTran.Form.OrganizationIndex "12">
+  <!ENTITY BI.PKTran.Form.Categories SYSTEM "..\Include\XML\BI.PKTran.Form.Categories.xml">
+  <!ENTITY BI.PKTran.Form.Fields SYSTEM "..\Include\XML\BI.PKTran.Form.Fields.txt">
+  <!ENTITY BI.PKTran.Form.Views SYSTEM "..\Include\XML\BI.PKTran.Form.Views.xml">
+  <!ENTITY BI.PKTran.Form.Inquiry.Parameter ", 'ma_bp0, ma_nh0', 2">
+  <!ENTITY BI.PKTran.Form.Loading "
+declare @envTax char(1), @excTax char(1)
+select @envTax = val from options where name = 'm_thue_mt'
+select @excTax = val from options where name = 'm_thue_ttdb'
+select @message = @message + ';this._envTax=' + @envTax + ';this._excTax=' + @excTax + ';'
+">
+  <!ENTITY BI.PKTran.Form.Script.Active "
+set$VoucherForm$Visible(f);
+f.getItem('d98')._controlBehavior.add_onRender(on$Voucher$GridRender);
+">
+  <!ENTITY BI.PKTran.Form.Script.Currency.Add "
+v.set_currencyFields('t_tien_nt0,t_tien_nt,t_cp_nt,t_gtgt_nt,t_thue_nt,t_ttdb_nt,t_nk_nt,t_tt_nt:t_tien0,t_tien,t_cp,t_gtgt,t_thue,t_tt,t_nk,t_ttdb');
+var u = 'gia_nt0, tien_nt0, tien_nt, nk_nt, ttdb_nt, thue_nt : gia0, tien0, tien, nk, ttdb, thue';
+v.addTotalFields(g, [['t_tien_nt0', 'tien_nt0'], ['t_tien0', 'tien0'], ['t_tien_nt', 'tien_nt'], ['t_tien', 'tien'], ['t_nk_nt', 'nk_nt'], ['t_nk', 'nk'], ['t_ttdb_nt', 'ttdb_nt'], ['t_ttdb', 'ttdb'], ['t_gtgt_nt', 'thue_nt'], ['t_gtgt', 'thue']]);
+">
+  <!ENTITY BI.PKTran.Form.Script.Currency.Expression "'[t_thue_nt]:= [t_nk_nt] + [t_ttdb_nt] + [t_gtgt_nt]', '[t_tt_nt]:=[t_tien_nt0] + [t_thue_nt] + [t_cp_nt]', '[t_thue]:=[t_nk] + [t_ttdb] + [t_gtgt]', '[t_tt]:=[t_tien0] + [t_thue] + [t_cp]'">
+  <!ENTITY BI.PKTran.Form.Script.Currency.Selected "set$VoucherForm$Visible(f);">
+  <!ENTITY BI.PKTran.Form.Script.Flow.MsgCheck.v "Thông tin mã nhà cung cấp của tờ khai hải quan phải giống với đơn hàng hoặc hợp đồng.">
+  <!ENTITY BI.PKTran.Form.Script.Flow.MsgCheck.e "Customs Declaration Sheet should have same supplier information as Purchase Order or Schedule Agreement.">
+  <!ENTITY BI.PKTran.Form.Script.Flow.Checking " || g._getItemValue(i, g._getColumnOrder('stt_rec_hd')) != ''">
+
+  <!ENTITY BI.PKTran.Form.TabChange ", null, 'ma_nh0'">
+
+  <!ENTITY BI.PKTran.Form.Warning "
+if exists(select 1 from &BI.PKTran.Form.Table.Detail; a join c95$000000 b on a.stt_rec_dh = b.stt_rec where a.stt_rec = @stt_rec and a.stt_rec_dh &lt;&gt; '' and b.ma_nh0 &lt;&gt; @ma_nh0) begin
+  select @$warning = case when @$warning = '' then '' else @$warning + ' ' end + case when @@language = 'v' then N'Thông tin nhóm mua của đơn hàng nhập khẩu không giống với tờ khai hải quan.' else N'Customs Declaration Sheet should have same purchasing group as Import Purchase Order.' end
+end
+if exists(select 1 from &BI.PKTran.Form.Table.Detail; a join bic06$000000 b on a.stt_rec_hd = b.stt_rec where a.stt_rec = @stt_rec and a.stt_rec_hd &lt;&gt; '' and b.ma_nh0 &lt;&gt; @ma_nh0) begin
+  select @$warning = case when @$warning = '' then '' else @$warning + ' ' end + case when @@language = 'v' then N'Thông tin nhóm mua của hợp đồng mua hàng không giống với tờ khai hải quan.' else N'Customs Declaration Sheet should have same purchasing group as Schedule Agreement.' end
+end
+">
+
+  <!ENTITY BI.PKTRan.Grid.Detail.Fields SYSTEM "..\Include\XML\BI.PKTRan.Grid.Detail.Fields.txt">
+  <!ENTITY BI.PKTran.Grid.Detail.Views SYSTEM "..\Include\XML\BI.PKTran.Grid.Detail.Views.xml">
+  <!ENTITY BI.PKTran.Grid.Detail.Button SYSTEM "..\Include\XML\BI.PKTran.Grid.Detail.Button.xml">
+  <!ENTITY BI.PKTran.Grid.Detail.ExecuteCommand "
+case 'Retrieve':
+  if (f._action == 'View') break;
+  if (!f.validFields('ma_kh, ngay_lct')) break;
+  switch (e.type.Value) {
+    case '05':
+      g.showForm('PKSAFilter');
+      break;
+    case '10':
+      g.showForm('PKOrderFilter');
+      break;
+    default:
+      break;
+  }
+  break;
+">
+  <!ENTITY BI.PKTran.Grid.Detail.ScriptCheckGridAction "
+case 'BeforeCloneRow':
+  if (g._getItem(g._activeRow, 1)._customerIdentity) e.type.cancelEvent = true;
+  if (g._getItemValue(g._activeRow, g._getColumnOrder('stt_rec_dh')) != '' || g._getItemValue(g._activeRow, g._getColumnOrder('stt_rec_hd')) != '') e.type.cancelEvent = true;
+  break;
+case 'BeforeMoveRow':
+  if (g._getItem(g._activeRow, 1)._customerIdentity || g._getItem(e.type.Value[1], 1)._customerIdentity) e.type.cancelEvent = true;
+  if (g._getItemValue(g._activeRow, g._getColumnOrder('stt_rec_dh')) != '' || g._getItemValue(g._activeRow, g._getColumnOrder('stt_rec_hd')) != '') e.type.cancelEvent = true;
+  break;
+">
+
+  <!ENTITY BI.PKTran.Filter.Fields SYSTEM "..\Include\XML\BI.PKTran.Filter.Fields.txt">
+  <!ENTITY BI.PKTran.Filter.Views SYSTEM "..\Include\XML\BI.PKTran.Filter.Views.xml">
+  <!ENTITY BI.PKTran.Filter.Categories.Filter SYSTEM "..\Include\XML\BI.SATran.Filter.Category.xml">
+
+  <!ENTITY BI.Post.History.PI "
+if @status = '1' begin
+  exec AI_ERP$BI$Voucher$Posting$HistoryPI 'm98$$partition$current', 'd98$$partition$current', @stt_rec, @@id, 'a.stt_rec_dh &lt;&gt; ''''',
+    'tien_nt2, tien2', 'so_seri, ma_khon, ma_nvbh, ma_nv', 'tien_xuat = 0, tien_nt_x = 0, tien_nhap = b.tien, tien_nt_n = b.tien_nt', '', 0
+end
+">
+  <!ENTITY BI.Delete.History.PI "delete bih95$000000 where stt_rec = @stt_rec">
+
+  <!ENTITY BI.Post.History.SA "
+if @status = '1' begin
+  exec AI_ERP$BI$Voucher$Posting$HistorySA 'm98$$partition$current', 'd98$$partition$current', @stt_rec, @@id, 'a.stt_rec_hd &lt;&gt; ''''',
+    'tien_nt2, tien2', 'so_seri, ma_khon, ma_nvbh, ma_nv', 'tien_xuat = 0, tien_nt_x = 0, tien_nhap = b.tien, tien_nt_n = b.tien_nt', '', 0
+end
+">
+  <!ENTITY BI.Delete.History.SA "delete bih06$000000 where stt_rec = @stt_rec">
+
+  <!ENTITY BI.PKTran.Charge.f ", t_tt: '[t_tt]:=[t_tien0]+[t_thue]+[t_cp]', t_tt_nt: '[t_tt_nt]:=[t_tien_nt0]+[t_thue_nt]+[t_cp_nt]'">
+  <!ENTITY BI.PKTran.Charge.Lookup.Key " and (tinh_thue_nk = 1)">
+
+  <!ENTITY BI.PKTran.Charge.Fields SYSTEM "..\Include\XML\BI.PKTran.Charge.Fields.txt">
+  <!ENTITY BI.PKTran.Charge.Views SYSTEM "..\Include\XML\BI.PKTran.Charge.Views.txt">
+  <!ENTITY BI.PKTran.Charge.Response.Query ", ltrim(tinh_thue_nk) as tinh_thue_nk">
+  <!ENTITY BI.PKTran.Charge.Response.Complete ", ['tinh_thue_nk', result[2].Value, '', true]">
+  <!ENTITY BI.PKTran.Charge.ExecuteCommand "on$Voucher$AllocateCharge$Import(y);">
+
+  <!ENTITY BI.PKTran.Charge.Script.Tiny "
+    g.executeExpression(o, [g.$a.cp_nt, g.$a.cp]);
+  }
+">
+
+  <!ENTITY BI.PKTran.Retrieve.Order.Fields SYSTEM "..\Include\XML\BI.PKTran.Retrieve.Order.Fields.txt">
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\BI.PKTran.Retrieve.Order.Views.xml">
+  <!ENTITY BI.PKTran.Retrieve.Order.Lookup.Key "
+select @custID = '&#37;#15$3&#37;#20$' + replace(rtrim(@ma_kh), '''', '''''')
+if @ma_bp0 &lt;&gt; '' select @custID = @custID + '&#37;#25$' + replace(rtrim(@ma_bp0), '''', '''''')
+if @ma_nh0 &lt;&gt; '' select @custID = @custID + '&#37;#35$' + replace(rtrim(@ma_nh0), '''', '''''')
+if @custID &lt;&gt; '' select @custID = @custID + '&#37;'
+">
+  <!ENTITY BI.PKTran.Retrieve.Order.Flow.Key "
+select @keyMaster = '&#37;#15$3&#37;#20$' + replace(rtrim(@ma_kh), '''', ''''''), @keyFlow = 'status in (''2'', ''3'')'
+if @ma_bp0 &lt;&gt; '' set @keyMaster = @keyMaster + '&#37;#25$' + replace(rtrim(@ma_bp0), '''', '''''')
+if @ma_nh0 &lt;&gt; '' set @keyMaster = @keyMaster + '&#37;#35$' + replace(rtrim(@ma_nh0), '''', '''''')
+if @keyMaster &lt;&gt; '' select @keyMaster = @keyMaster + '&#37;'
+">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\BI.PKTran.Retrieve.Script.FlowFilterFunction.txt">
+
+  <!ENTITY % Conditional.EnvironmentTax SYSTEM "..\Include\EnvironmentTax.txt">
+  <![%Conditional.EnvironmentTax;[
+    <!ENTITY BI.PKTran.Retrieve.Order.Flow.Fields ",muc_thue, tl_chiu_thue, he_so_mt">
+    <!ENTITY BI.PKTran.Retrieve.Order.Flow.Fields.EnvironmentTax "f1 += ', muc_thue, tl_chiu_thue, he_so_mt'; f2 += ', muc_thue, tl_chiu_thue, he_so_mt';">
+    <!ENTITY BI.PKTran.Retrieve.Order.Flow.Grid.ExecuteExpression "z.executeExpression(o, [z.$a.mt, z.$a.mt_tg]);">
+    <!ENTITY BI.PKTran.Retrieve.Order.Flow.Grid.ExecuteAggregate ", z.$a.t_bvmt_nt, z.$a.t_bvmt, z.$a.t_gtgt_nt, z.$a.t_gtgt">
+    <!ENTITY EnvironmentTaxAliasName "">
+    <!ENTITY EnvironmentTaxInheritanceFields SYSTEM "..\Include\XML\BI.EnvironmentTaxInheritanceFields.txt">
+    <!ENTITY EnvironmentTaxInheritanceViews SYSTEM "..\Include\XML\BI.EnvironmentTaxInheritanceViews.xml">
+  ]]>
+  <!ENTITY BI.PKTran.Retrieve.Order.Flow.Grid.ExecuteAggregate ", z.$a.t_gtgt_nt, z.$a.t_gtgt">
+
+  <!ENTITY BI.PKTran.Retrieve.Order.Flow.CustID.Index "3">
+  <!ENTITY BI.PKTran.Retrieve.Order.Flow.DateFrom.Index "4">
+  <!ENTITY BI.PKTran.Retrieve.Order.Flow.DateTo.Index "5">
+
+  <!ENTITY BI.PKTran.Retrieve.Order.Flow.Form.ExecuteExpression "z.$a.t_thue_nt, z.$a.t_thue, ">
+  <!ENTITY BI.PKTran.Retrieve.Order.Grid.Fields SYSTEM "..\Include\XML\BI.PKTran.Retrieve.Order.Grid.Fields.txt">
+  <!ENTITY BI.PKTran.Retrieve.Order.Grid.Views SYSTEM "..\Include\XML\BI.PKTran.Retrieve.Order.Grid.Views.xml">
+
+  <!ENTITY BI.PKTran.Retrieve.Order.FlowMulti.QueryFilterString "var queryFilterString = z._filter$Fields.join(c).replaceAll(&quot;'&quot;, c1);">
+  <!ENTITY BI.PKTran.Retrieve.Order.FlowMulti.Grid.Finding.Declare "
+declare @ma_bp0 varchar(32), @ma_nh0 varchar(32), @v$ID varchar(32), @purOrgKey nvarchar(4000), @purGrKey nvarchar(4000)
+select @ma_dvcs = replace(data, @d, '''') from #t where id = 1
+select @ma_bp0 = replace(data, @d, '''') from #t where id = 2
+select @ma_nh0 = replace(data, @d, '''') from #t where id = 3
+select @ma_kh = replace(data, @d, '''') from #t where id = 4
+select @ngay_ct1 = data from #t where id = 5
+select @ngay_ct2 = data from #t where id = 6
+select @v$ID = data from #t where id = 7
+">
+  <!ENTITY BI.PKTran.Retrieve.Order.FlowMulti.Grid.Finding.WhereClause "
+select @queryWhereClause = 'm.ma_dvcs = ''' + replace(rtrim(@ma_dvcs), '''', '''''') + ''' and m.ma_kh like ''' + replace(rtrim(@ma_kh), '''', '''''') + '&#37;'' and m.status in (''2'', ''3'') and m.loai_ct = ''3'''
+if @ma_bp0 &lt;&gt; '' set @queryWhereClause = @queryWhereClause + ' and m.ma_bp0 = ''' + replace(rtrim(@ma_bp0), '''', '''''') + ''''
+if @ma_nh0 &lt;&gt; '' set @queryWhereClause = @queryWhereClause + ' and m.ma_nh0 = ''' + replace(rtrim(@ma_nh0), '''', '''''') + ''''
+">
+
+  <!ENTITY BI.PKTran.Report.FileName "BI">
+  <!ENTITY BI.PKTran.Report.Query.Master.Select ",a.t_bvmt, a.t_bvmt_nt,a.t_gtgt as t_thue, a.t_gtgt_nt as t_thue_nt">
+]]>
+
+<!ENTITY BI.PKTran.ReadOnly "true">
+<!ENTITY BI.PKTran.Form.Tax.v "Thuế gtgt">
+<!ENTITY BI.PKTran.Form.Tax.e "VAT Amount">
+
+<!ENTITY BI.PKTran.PODefaultValue.Script.LoadGrid "">
+<!ENTITY BI.PKTran.Grid.Fields "">
+<!ENTITY BI.PKTran.Grid.Views "">
+<!ENTITY BI.PKTran.Grid.Loading "">
+<!ENTITY BI.PKTran.Grid.Closing "">
+<!ENTITY BI.PKTran.Grid.Script SYSTEM "..\Include\Javascript\BI.PKTran.Grid.Script.Standard.txt">
+<!ENTITY XMLGetUOMConversion SYSTEM "..\Include\XML\GetUOMConversion.xml">
+<!ENTITY BI.PKTran.Grid.Response.Item "">
+
+<!ENTITY BI.PKTran.Form.h "206">
+<!ENTITY BI.PKTran.Form.r "146">
+<!ENTITY BI.PKTran.Form.Bottom.Anchor "9">
+<!ENTITY BI.PKTran.Form.TaxIndex "-1">
+<!ENTITY BI.PKTran.Form.OrganizationIndex "">
+<!ENTITY BI.PKTran.Form.Categories "">
+<!ENTITY BI.PKTran.Form.Fields SYSTEM "..\Include\XML\BI.PKTran.Form.Standard.Fields.txt">
+<!ENTITY BI.PKTran.Form.Views SYSTEM "..\Include\XML\BI.PKTran.Form.Standard.Views.xml">
+<!ENTITY BI.PKTran.Form.Inquiry.Parameter "">
+<!ENTITY BI.PKTran.Form.Loading "
+declare @exciseTax char(1)
+select @exciseTax = rtrim(val) from options where name = 'm_thue_ttdb'
+select @message = @message + ';this._hideExciseTax =' + case when @exciseTax = '0' then 'true' else 'false' end + ';'
+">
+<!ENTITY BI.PKTran.Form.Script.Active "if (f._hideExciseTax) $get('idf_t_ttdb_nt').disabled = true;">
+<!ENTITY BI.PKTran.Form.Script.Currency.Add "
+v.set_currencyFields('t_tien_nt0, t_tien_nt, t_cp_nt, t_thue_nt, t_ttdb_nt, t_nk_nt, t_tt_nt : t_tien0, t_tien, t_cp, t_thue, t_ttdb, t_nk, t_tt');
+var u = (f._hideExciseTax ? 'gia_nt0, tien_nt0, tien_nt, nk_nt, thue_nt : gia0, tien0, tien, nk, thue' : 'gia_nt0, tien_nt0, tien_nt, nk_nt, ttdb_nt, thue_nt : gia0, tien0, tien, nk, ttdb, thue');
+v.addTotalFields(g, [['t_tien_nt0', 'tien_nt0'], ['t_tien0', 'tien0'], ['t_tien_nt', 'tien_nt'], ['t_tien', 'tien'], ['t_nk_nt', 'nk_nt'], ['t_nk', 'nk'], ['t_ttdb_nt', 'ttdb_nt'], ['t_ttdb', 'ttdb'], ['t_thue_nt', 'thue_nt'], ['t_thue', 'thue']]);
+">
+<!ENTITY BI.PKTran.Form.Script.Currency.Expression "'[t_tt_nt]:=[t_tien_nt0]+[t_nk_nt]+[t_ttdb_nt]+[t_cp_nt]+[t_thue_nt]', '[t_tt]:=[t_tien0]+[t_nk]+[t_ttdb]+[t_cp]+[t_thue]'">
+<!ENTITY BI.PKTran.Form.Script.Currency.Selected "">
+<!ENTITY BI.PKTran.Form.Script.Flow.MsgCheck.v "Thông tin mã nhà cung cấp của đơn hàng phải giống với tờ khai hải quan.">
+<!ENTITY BI.PKTran.Form.Script.Flow.MsgCheck.e "Purchase Order should have same supplier information as Customs Declaration Sheet.">
+<!ENTITY BI.PKTran.Form.Script.Flow.Checking "">
+
+<!ENTITY BI.PKTran.Form.TabChange "">
+<!ENTITY BI.PKTran.Form.Table.Detail "
+#IF $d98.NewValue &lt;&gt; $d98.OldValue #THEN
+  @d98
+#ELSE
+  d98$$partition$current
+#END
+">
+<!ENTITY BI.PKTran.Form.Warning "">
+
+<!ENTITY BI.PKTRan.Grid.Detail.Fields "">
+<!ENTITY BI.PKTran.Grid.Detail.Views SYSTEM "..\Include\XML\BI.PKTran.Grid.Detail.Views.Standard.xml">
+<!ENTITY BI.PKTran.Grid.Detail.Button SYSTEM "..\Include\XML\BI.PKTran.Grid.Detail.Button.Standard.xml">
+<!ENTITY BI.PKTran.Grid.Detail.ExecuteCommand "
+case 'Retrieve':
+  if (f._action == 'View') break;
+  if (!f.validFields('ma_kh, ngay_lct')) break;
+  g.showForm('PKOrderFilter');
+  break;
+">
+<!ENTITY BI.PKTran.Grid.Detail.ScriptCheckGridAction "&ScriptCheckGridAction;">
+
+<!ENTITY BI.PKTran.Filter.Fields "">
+<!ENTITY BI.PKTran.Filter.Views "">
+<!ENTITY BI.PKTran.Filter.Categories.Filter "">
+
+<!ENTITY BI.Post.History.PI "">
+<!ENTITY BI.Delete.History.PI "">
+
+<!ENTITY BI.Post.History.SA "">
+<!ENTITY BI.Delete.History.SA "">
+
+<!ENTITY BI.PKTran.Charge.f ", t_tt_nt: '[t_tt_nt]:=[t_tien_nt0]+[t_cp_nt]+[t_nk_nt]+[t_ttdb_nt]+[t_thue_nt]', t_tt: '[t_tt]:=[t_tien0]+[t_cp]+[t_nk]+[t_ttdb]+[t_thue]'">
+<!ENTITY BI.PKTran.Charge.Lookup.Key "">
+<!ENTITY BI.PKTran.Charge.Fields "">
+<!ENTITY BI.PKTran.Charge.Views "">
+<!ENTITY BI.PKTran.Charge.Response.Query "">
+<!ENTITY BI.PKTran.Charge.Response.Complete "">
+<!ENTITY BI.PKTran.Charge.ExecuteCommand "on$GridVoucherDetail$RowChange(g, f);">
+
+<!ENTITY BI.PKTran.Charge.Script.Tiny "
+    g.executeExpression(o, [g.$a.cp_nt, g.$a.cp, g.$a.tien_nt, g.$a.tien, g.$a.nk_nt, g.$a.nk, g.$a.ttdb_nt, g.$a.ttdb, g.$a.thue_nt, g.$a.thue]);
+  }
+  g.executeAggregate([g.$a.t_tien_nt, g.$a.t_tien, g.$a.t_nk_nt, g.$a.t_nk, g.$a.t_ttdb_nt, g.$a.t_ttdb, g.$a.t_thue_nt, g.$a.t_thue]);
+  f.executeExpression([g.$a.t_tt_nt, g.$a.t_tt]);
+">
+<!ENTITY BI.PKTran.Retrieve.Order.Fields "">
+<!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+<!ENTITY BI.PKTran.Retrieve.Order.Lookup.Key "select @custID = '&#37;#15$1#20$' + @ma_kh + '#&#37;'">
+<!ENTITY BI.PKTran.Retrieve.Order.Flow.Key "select @keyMaster = '&#37;#15$1#20$' + rtrim(@ma_kh) + '#&#37;', @keyFlow = 'status in (''2'', ''3'')'">
+<!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+<!ENTITY BI.PKTran.Retrieve.Order.Flow.Fields "">
+<!ENTITY BI.PKTran.Retrieve.Order.Flow.Fields.EnvironmentTax "">
+<!ENTITY BI.PKTran.Retrieve.Order.Flow.CustID.Index "1">
+<!ENTITY BI.PKTran.Retrieve.Order.Flow.DateFrom.Index "2">
+<!ENTITY BI.PKTran.Retrieve.Order.Flow.DateTo.Index "3">
+<!ENTITY BI.PKTran.Retrieve.Order.Flow.Grid.ExecuteExpression "">
+<!ENTITY BI.PKTran.Retrieve.Order.Flow.Grid.ExecuteAggregate "">
+<!ENTITY EnvironmentTaxInheritanceFields "">
+<!ENTITY EnvironmentTaxInheritanceViews "">
+<!ENTITY BI.PKTran.Retrieve.Order.Flow.Form.ExecuteExpression "">
+
+<!ENTITY BI.PKTran.Retrieve.Order.Grid.Fields "">
+<!ENTITY BI.PKTran.Retrieve.Order.Grid.Views "">
+
+<!ENTITY BI.PKTran.Retrieve.Order.FlowMulti.QueryFilterString "
+  var queryFilterString = ''
+  queryFilterString = h.getItemValue('ma_dvcs');
+  queryFilterString += c + h.getItemValue('ma_kh');
+  queryFilterString += c + z._filter$Fields[0];
+  var d = h.getItemValue('ngay_ct').z;
+  queryFilterString += c + d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2);
+">
+<!ENTITY BI.PKTran.Retrieve.Order.FlowMulti.Grid.Finding.Declare "
+select @ma_dvcs = replace(data, @d, '''') from #t where id = 1
+select @ma_kh = replace(data, @d, '''') from #t where id = 2
+select @ngay_ct1 = data from #t where id = 3
+select @ngay_ct2 = data from #t where id = 4
+">
+<!ENTITY BI.PKTran.Retrieve.Order.FlowMulti.Grid.Finding.WhereClause "
+select @queryWhereClause = 'm.ma_dvcs = ''' + replace(rtrim(@ma_dvcs), '''', '''''') + ''' and m.ma_kh like ''' + replace(rtrim(@ma_kh), '''', '''''') + '&#37;'' and m.status in (''2'', ''3'') and m.loai_ct = ''1'''
+">
+
+<!ENTITY BI.PKTran.Report.FileName "">
+<!ENTITY BI.PKTran.Report.Query.Master.Select ",a.t_thue, a.t_thue_nt">

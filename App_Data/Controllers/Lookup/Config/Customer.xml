@@ -1,0 +1,24 @@
+﻿<controller name="Customer">
+  <groups>
+    <group id="Voucher" response="&r1;&d2;&r2;&k2;&r3;" cache="true">
+      <text>&g1;&d2;&g2;&k2;&g3;&d2;&g4;</text>
+    </group>
+    <group id="Balance" implement="Voucher" cache="true"/>
+    <group id="Parent" implement="Voucher" cache="true"/>
+
+    <group id="List.Customer" reference="&Query;" response="&r1;&d2;&r2;&k2;&r3;" cache="true">
+      <text>select case when @unit$Filter$ = '' then '1=1' else &q4;&d2;&g6;&k2;') end as value</text>
+    </group>
+    <group id="Unit" cache="true">
+      <text>&g8;&d2;&g2;&k2;&g3;&d2;&g4;</text>
+    </group>
+
+    <group id="Asset" implement="Voucher" query="declare @r varchar(32); if @action = 'New' select @r = @@unit else begin select @r = rtrim(ma_dvcs) from dmts where so_the_ts = @value; select @r = isnull(@r, @@unit) end; select @r as value" filter="New" cache="true"/>
+    <group id="Tool" implement="Voucher" query="declare @r varchar(32); if @action = 'New' select @r = @@unit else begin select @r = rtrim(ma_dvcs) from dmcc where so_the_ts = @value; select @r = isnull(@r, @@unit) end; select @r as value" filter="New" cache="true"/>
+    <group id="Supply" implement="Voucher" query="declare @r varchar(32); if @action = 'New' select @r = @@unit else begin select @r = rtrim(ma_dvcs) from dmccdc where ma_dc = @value; select @r = isnull(@r, @@unit) end; select @r as value" filter="New" cache="true"/>
+
+    <group id="#" reference="&Query;" cache="true">
+      <text>&g5;&d2;&g6;&k2;&g7;</text>
+    </group>
+  </groups>
+</controller>

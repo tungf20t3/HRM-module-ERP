@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\Circular\A1080\ReportCircularTypeField.PIT.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="nam" type="Int16" dataFormatString="###0" allowNulls="false">
+      <header v ="Năm" e ="Year"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="bo_sung" type="Decimal" dataFormatString="##0">
+      <header v="Lần bổ sung" e="Additional Times"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_nv" onDemand="true">
+      <header v="Nhân viên" e="Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="mau_bc" clientDefault="10" external="true">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportCircularTypeField;
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11----: [nam].Label, [nam]"/>
+      <item value="11: [bo_sung].Label, [bo_sung]"/>
+      <item value="110100: [ma_nv].Label, [ma_nv], [ten]"/>
+      <item value="110100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="11000-: [chon_tt].Label, [chon_tt]"/>
+      <item value="11000-: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @nam as nam, @bo_sung as bo_sung
+exec hs_rpt05BBK @nam, @ma_nv, @ma_bp, @chon_tt, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);!a.getItemValue("nam")&&a.setItemValue("nam",(new Date).getFullYear());a.live(a.getItem("nam"))}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,e){var c=e.object,f=e.type.Context,h=e.type.Result;switch(f){case"Checking":var d=c.grid,g=c.getItem("nam").value,b=c.getItemValue("mau_bc"),a=c.getItemValue("chon_tt");d._alterTitle=[null,[["%s",g,true]]];d._hiddenFields=[{Fields:"tn_ct_nt, thue_da_kt_nt",Value:b=="10"},{Fields:"tn_gt_nt",Value:a=="5"||b=="10"},{Fields:"tn_gt",Value:a=="5"||b=="20"},{Fields:"tn_ct, thue_da_kt",Value:b=="20"},{Fields:"hiep_dinh",Value:a=="1"},{Fields:"thue_kt",Value:a=="2"||a=="3"||a=="5"||a=="1"&&b=="20"},{Fields:"thue_mg",Value:a=="1"||a=="5"||a=="2"&&b=="20"},{Fields:"hiep_dinh_nt, thue_mg_nt, thue_kt_nt,tn_phi_bh_nt, tn_gt_bh_nt",Value:a=="1"||a=="2"||(a=="3"||a=="5")&&b=="10"},{Fields:"tn_phi_bh, tn_gt_bh",Value:a=="1"||a=="2"||(a=="3"||a=="5")&&b=="20"},{Fields:", tn_ct_mien",Value:a!="5"}];d._hiddenForms=[{Form:[1,2,3,6,7,8],Value:a=="1"},{Form:[0,2,3,5,7,8],Value:a=="2"},{Form:[0,1,3,5,6,8],Value:a=="3"},{Form:[0,1,2,5,6,7],Value:a=="5"}];remove$GridReport$Filter(d)}}
+]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

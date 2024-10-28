@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir type="Report" id="0" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày giao từ" e="Date from"/>
+      <footer v="Ngày giao từ/đến" e="Date from/to"/>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày giao đến" e="Date to"/>
+    </field>
+    <field name="so_ct1"  align="right" dataFormatString="@upperCaseFormat">
+      <header v="Số chứng từ từ/đến" e="Voucher No. from/to"/>
+      <items style="Mask"/>
+    </field>
+    <field name="so_ct2" align="right" dataFormatString="@upperCaseFormat">
+      <header v="" e=""/>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_kh">
+      <header v="Mã khách" e="Customer"/>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1' and (kh_yn = 1 or nv_yn = 1)" check="kh_yn = 1 or nv_yn = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true">
+      <header v="" e=""/>
+    </field>
+    <field name="ma_vt">
+      <header v="Mã vật tư" e="Item"/>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true">
+      <header v="" e=""/>
+    </field>
+    <field name="maxLength" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101--: [tu_ngay].Description, [tu_ngay], [den_ngay]"/>
+      <item value="11011-: [so_ct1].Label, [so_ct1], [so_ct2], [maxLength] "/>
+      <item value="110100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_GetSTConfirmation @tu_ngay, @den_ngay, @so_ct1, @so_ct2, @ma_kh, @ma_vt, @maxLength, @@language
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);var b=a.getItem("maxLength");b.value=b.maxLength}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(h,a){var b=a.object,d=a.type.Context,g=a.type.Result;switch(d){case"Checking":var c=b.grid,e=b.getItem("tu_ngay").value,f=b.getItem("den_ngay").value;c._alterTitle=[null,[["%d1",e,true],["%d2",f,true]]];if(c._$k!=null)c._$k=[]}}]]>
+    </text>
+  </script>
+  &OutlineCss;
+</dir>

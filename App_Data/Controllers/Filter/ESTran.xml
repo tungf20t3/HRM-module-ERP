@@ -1,0 +1,287 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY r "'PXA', 'PXB'">
+  <!ENTITY j "'PX5'">
+  <!ENTITY f "(('{$&#37;c[xu_ly]}' in ('1', '3') and ma_ct in (&r;)) or ('{$&#37;c[xu_ly]}' = '2' and ma_ct in (&j;)) or ('{$&#37;c[xu_ly]}' in ('9') and ma_ct in (&r;)))">
+
+  <!ENTITY % DataRecovery SYSTEM "..\Include\Recovery.ent">
+  %DataRecovery;
+  <!ENTITY % EIUpdateHash SYSTEM "..\Include\EIUpdateHash.ent">
+  %EIUpdateHash;
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="xu_ly" dataFormatString="1, 2, 3, 9" clientDefault="1" align="right">
+      <header v="Loại" e="Type"></header>
+      <footer v="1 - Phát hành, 2 - Điều chỉnh, 3 - Thay thế, 9 - Hủy" e="1 - Release, 2 - Adjustment, 3 - Replacement, 9 - Cancelled"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange=onChange$Form$Type(this);]]></clientScript>
+    </field>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Chứng từ từ ngày" e="Date From"></header>
+      <footer v="Ngày chứng từ từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Chứng từ đến ngày" e="Date to"></header>
+    </field>
+    <field name="so_ct1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="Số chứng từ từ/đến" e="Voucher No. from/to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ct2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="" e=""></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="ma_ct" allowNulls="false" aliasName="defaultEIInventory">
+      <header v="Mã chứng từ" e="Voucher Code"></header>
+      <items style="AutoComplete" controller="Voucher" reference="ten_ct%l" key="&f; and status = '1'" check="&f;"/>
+      <clientScript><![CDATA[onchange=onChange$Form$VoucherCode(this);]]></clientScript>
+    </field>
+    <field name="ten_ct%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nt">
+      <header v="Mã ngoại tệ" e="Currency"></header>
+      <items style="AutoComplete" controller="Currency" reference="ten_nt%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_nt%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh">
+      <header v="Mã khách hàng" e="Customer"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho">
+      <header v="Kho xuất" e="Source Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho_xuat%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_kho_xuat%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_khon">
+      <header v="Kho nhập" e="Destination Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_khon%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_khon%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" allowNulls="false">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+      <clientScript><![CDATA[onchange="onChange$Form$Unit(this);"]]></clientScript>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_nk" onDemand="true" external="true" filterSource="Optional">
+      <header v="Mã quyển" e="Voucher Book"></header>
+      <items style="AutoComplete" controller="EIVoucherBook" reference="ten_nk%l" key="loai_sd = '2' and (ma_dvcs = '{$%c[ma_dvcs]}' or ma_dvcs = '') and (lstuser = '' or charindex(',' + rtrim(@@userName) + ',', ',' + replace(lstuser, ' ', '') + ',') &gt; 0) and status = '1'" check="loai_sd = '2' and (ma_dvcs = '{$%c[ma_dvcs]}' or ma_dvcs = '') and (lstuser = '' or charindex(',' + rtrim(@@userName) + ',', ',' + replace(lstuser, ' ', '') + ',') &gt; 0)"/>
+      <clientScript><![CDATA[onchange="onChange$Form$EIVoucherBook(this);"]]></clientScript>
+    </field>
+    <field name="ten_nk%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="user_id0" dataFormatString="0, 1" clientDefault="0" align="right" inactivate="true">
+      <header v="Người sử dụng" e="User"></header>
+      <footer v="1 - Lọc theo người sử dụng, 0 - Không" e="1 - Filter by User, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="adjust_mode" dataFormatString="0, 1" clientDefault="0" align="right" inactivate="true">
+      <header v="Chế độ điều chỉnh" e="Adjustment Mode"></header>
+      <footer v="1 - Sử dụng, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange="onChange$Form$ProcessMode(this);"]]></clientScript>
+    </field>
+    <field name="debug_mode" dataFormatString="0, 1" clientDefault="0" align="right" inactivate="true">
+      <header v="Chế độ kiểm tra lỗi" e="Debug Mode"></header>
+      <footer v="1 - Sử dụng, 0 - Không" e="1 - Debug, 0 - No"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange="onChange$Form$ProcessMode(this);"]]></clientScript>
+    </field>
+    <field name="maxLength" type="Int16" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+    <field name="mau_so" readOnly="true" external="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ky_hieu" readOnly="true" external="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    &RecoveryField;
+  </fields>
+
+  <views>
+    <view id="Dir" height="40">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="11100-: [xu_ly].Label, [xu_ly], [xu_ly].Description"/>
+      <item value="1101-1: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2], [mau_so]"/>
+      <item value="1101-1: [so_ct1].Label, [so_ct1], [so_ct2], [maxLength]"/>
+      <item value="11010-: [ma_ct].Label, [ma_ct], [ten_ct%l]"/>
+      <item value="11010-: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="11010-: [ma_kho].Label, [ma_kho], [ten_kho_xuat%l]"/>
+      <item value="11010-: [ma_khon].Label, [ma_khon], [ten_khon%l]"/>
+      <item value="11010-: [ma_nt].Label, [ma_nt], [ten_nt%l]"/>
+      <item value="11010-: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="110101: [ma_nk].Label, [ma_nk], [ten_nk%l], [ky_hieu]"/>
+      <item value="11100-: [user_id0].Label, [user_id0], [user_id0].Description"/>
+      <item value="11100-: [adjust_mode].Label, [adjust_mode], [adjust_mode].Description"/>
+      <item value="11100-: [debug_mode].Label, [debug_mode], [debug_mode].Description"/>
+
+      &RecoveryView;
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @unitName nvarchar(256)
+select @unitName = case when @@language = 'v' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit]]>
+        &EIAllowChangeHash;
+        <![CDATA[
+select 'this._unitCode=''' + @@unit + ''';this._unitName=''' + replace(replace(isnull(@unitName, ''), '\', '\\'), '''', '\''') + ''';set$Form$DefaultValue(this);this._$admin=' + rtrim(@@admin) + ]]>&EIScriptAllowChangeHash;<![CDATA[ as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @p int, @v bit, @e char(1), @t char(1)
+select @p = a.dich_vu_hddt from tkhddt a join tkhddtdv b on a.ma_kn = b.ma_kn where b.ma_dvcs = @ma_dvcs and b.status = 1
+select @e = rtrim(a.kieu_ky_so) from dmkysohddt a join tkhddtdv b on a.ma_kn = b.ma_kn where b.ma_dvcs = @ma_dvcs and b.status = 1
+select @e = case when @e is null then case when exists(select 1 from options where name = 'm_ky_hddt' and val = '1') then '1' else '0' end else @e end
+select @t = rtrim(a.kieu_ph) from dmkieuphhddt a join tkhddtdv b on a.ma_kn = b.ma_kn where b.ma_dvcs = @ma_dvcs and b.status = 1
+select @t = case when @t is null then case when exists(select 1 from options where name = 'm_import_hddt' and val = '1') then '1' else '0' end else @t end
+exec AI_ERP$EInvoice$GetOptions 'm_multi_check', @ma_dvcs, @v output
+
+select '' as message, '' as field, 'var g = this.grid;g._unitProvider=' + rtrim(isnull(@p, 0)) + ';g._allowMultiCheck=' + rtrim(@v) + ';g._use$Token=' + rtrim(@e) + ';g._import$Invoice=' + rtrim(@t) + ';remove$GridReport$Filter(g);' as script
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_LoadESTran @ngay_ct1, @ngay_ct2, @so_ct1, @so_ct2, @maxLength, @ma_kh, @ma_kho, @ma_khon, @ma_nt, @ma_ct, @xu_ly, @ma_dvcs, @user_id0, @@language, @@userID, @@admin, 1, @adjust_mode
+]]>
+      </text>
+    </command>
+
+    &EIUpdateHashChecking;
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);var d=a.getItem("maxLength");d.value=d.maxLength;var b=["ma_ct"];if(!a._extensions){a.request("GetDefaultValue","SetDefaultValue",b);onChange$Form$Unit(a.getItem("ma_dvcs"))}else{setReferenceValue(a,b);setItemAllowNulls(a,"ma_nk",a._allowNulls)}a.setReferenceKeyFilter("ma_nk");if(a.getItemValue("ma_nk")){var c=a.grid;a.setItemValues("mau_so, ky_hieu",[c._$form,c._$series])}!a._$showDebugMode&&add$FormDebugMode$KeyupHandler(a);onChange$Form$VoucherCode(a.getItem("ma_ct"));onChange$Form$Type(a.getItem("xu_ly"));a.live(a.getItem("xu_ly"));a._$checkHash=0}function close$VoucherFilter$(a){try{remove$FormDebugMode$KeyupHandler(a)}catch(b){}try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, dFrom = f.getItem('ngay_ct1').value, dTo = f.getItem('ngay_ct2').value, v = (f.getItemValue('ma_ct') != 'PXB' ? 1 : 0);
+      g._$unit = f.getItemValue('ma_dvcs');
+      g._$unitName = f.getItemValue('ten_dvcs%l');
+      g._$dFrom = f.getItemValue('ngay_ct1');
+      g._$dTo = f.getItemValue('ngay_ct2');
+      g._$voucherCode = f.getItemValue('ma_ct');
+      g._$process = f.getItemValue('xu_ly');
+      g._$processOriginal = f.getItemValue('xu_ly');
+      g._$resign = parseInt(f.getItemValue('adjust_mode'));
+      g._$debugMode = f.getItemValue('debug_mode');
+      g._$recoveryMode = parseInt(f.getItemValue('recovery_mode'));
+
+      g._$voucherBook = $func.trim(f.getItemValue('ma_nk'));
+      g._$form = f.getItemValue('mau_so');
+      g._$series = f.getItemValue('ky_hieu');
+
+      g._alterTitle = [null, [['%u1', g._$unit, true], ['%u2', g._$unitName, true], ['%d1', dFrom, true], ['%d2', dTo, true], ['%s1', g._$voucherCode, true], ['%s2', f.getItemValue('ten_ct%l'), true]]];
+      g._hiddenFields = [
+        {Fields: 'ma_kh, ten_kh', Value: (!v)},
+        {Fields: 'ma_kho, ma_khon', Value: (v)},
+        {Fields: 'so_ct1, ngay_ct1', Value: (g._$process != 3)}
+      ];
+      g._$i = g._getColumnOrder(g._$process == 3 ? 'stt_rec1' : 'stt_rec');
+      g._$y = g._getColumnOrder(g._$process == 3 ? 'ngay_ct1' : 'ngay_ct');
+      if (g._$k != null) g._$k = [], g._$ld = [], g._$lvd = [], g._$c = [];
+      break;
+    case 'EIVoucherBook':
+      f.setItemValues('mau_so, ky_hieu', [result[0].Value, result[1].Value]);
+      break;
+    case 'SetDefaultValue':
+      if (result[0].Value == '') f.setItemValue('ma_ct', '');
+        else f.setItemControlBehavior('ten_ct%l', result[0].Value, null, true);
+      break;
+    case 'GetSupplier':
+      f._allowNulls = result[0].Value;
+      setItemAllowNulls(f, 'ma_nk', result[0].Value);
+      f.grid._allowPreview = result[1].Value;
+      break;
+    ]]>&EICheckHashResponseComplete;<![CDATA[
+    default:
+      break;
+  }
+}
+function onChange$Form$Type(b){var a=b.parentForm,c=a.getItemValue("xu_ly")!="9";setItemAllowNulls(a,"ma_nk",c);a.setReferenceKeyFilter("ma_ct")}function onChange$Form$VoucherCode(b){var a=b.parentForm;window.setTimeout(String.format("onFocus$Form$VoucherCode('{0}');",a._id),2)}function onFocus$Form$VoucherCode(c){var a=$find(c),b=a.getItem("ma_ct").value!="PXB",d=a.getItem("ma_kh"),e=a.getItem("ma_kho");setItemLive(d,e,!b);setItemDisable(a,"ma_kho, ma_khon",b);setFieldsEmpty(a,"ma_kh, ten_kh%l",b);setItemDisable(a,"ma_kh",!b);setFieldsEmpty(a,"ma_kho, ten_kho_xuat%l, ma_khon, ten_khon%l",!b)}function onChange$Form$Unit(b){var a=b.parentForm;a.setReferenceKeyFilter("ma_nk");a.request("GetSupplier","GetSupplier",["ma_dvcs"])}function onChange$Form$EIVoucherBook(b){var a=b.parentForm;if(!$func.trim(b.value))a.setItemValues("mau_so, ky_hieu",["",""]);else a.request("EIVoucherBook","EIVoucherBook",["ma_nk"])}function set$Form$DefaultValue(a){!a._$showDebugMode&&setObjectFormHidden$DebugMode(a,true);a.setItemControlBehavior("ma_dvcs",a._unitCode,a._unitName,null)}function setReferenceValue(a,c){for(var b=0;b<c.length;b++){var d=$func.findField(c[b],a._fields).ItemReference;a.setItemValue(d,$func.findMemvar(d,a._extensions).NewValue)}}function setItemAllowNulls(e,g,f){for(var c=g.split(","),d,a,b=0;b<c.length;b++)if($func.trim(c[b])!=""){d=e.getItem($func.trim(c[b]));d.field.AllowNulls=!f;a=d.parentNode.parentNode;if(f){Sys.UI.DomElement.addCssClass(a,"Required");Sys.UI.DomElement.addCssClass(a,e._id)}else Sys.UI.DomElement.removeCssClass(a,"Required")}}function add$FormDebugMode$KeyupHandler(a){if(a._$admin){a._on$FormDebugMode$KeyupHandler=Function.createDelegate(a,on$FormDebugMode$KeyupHandler);$addHandler(document,"keyup",a._on$FormDebugMode$KeyupHandler)}}function remove$FormDebugMode$KeyupHandler(a){if(a._on$FormDebugMode$KeyupHandler){$removeHandler(document,"keyup",a._on$FormDebugMode$KeyupHandler);a._on$FormDebugMode$KeyupHandler=null}}function on$FormDebugMode$KeyupHandler(a){a.ctrlKey&&a.altKey&&a.keyCode==113&&setObjectFormHidden$DebugMode(this,false)}function setObjectFormHidden$DebugMode(a,b){$common.setVisible(a.getItem("debug_mode").parentNode.parentNode.parentNode,!b);$common.setVisible(a.getItem("adjust_mode").parentNode.parentNode.parentNode,!b);$common.setVisible(a.getItem("recovery_mode").parentNode.parentNode.parentNode,!b);if(!b){a._dlgModalPopupBehavior._fixupDropShadowBehavior();a._$showDebugMode=true;remove$FormDebugMode$KeyupHandler(this)}}function setItemLive(a,b,c){if(c){if(b.live){a.disabled=false;a.focus()}}else if(a.live){b.disabled=false;b.focus()}}function setItemDisable(f,e,d){for(var c=e.split(","),a=0;a<c.length;a++){var b=f.getItem($func.trim(c[a]));b.a&&$common.setVisible(b.a,!d);b.disabled=d}}function setFieldsEmpty(d,c,f){for(var b=c.split(","),a=0;a<b.length;a++){var e=d.getItem($func.trim(b[a]));if(!f)e.value=""}}]]>
+      &RecoveryProcessModeScript;
+      &EICheckHashShowFormScript;
+    </text>
+  </script>
+
+  <response>
+    <action id="EIVoucherBook">
+      <text>
+        <![CDATA[
+declare @c0 nvarchar(1024), @c1 nvarchar(1024)
+if exists (select 1 from dmnkhddt where ma_nk = @ma_nk) begin
+  select mau_so, ky_hieu from dmnkhddt where ma_nk = @ma_nk
+  return
+end
+]]>
+      </text>
+    </action>
+
+    <action id="GetDefaultValue">
+      <text>
+        <![CDATA[
+declare @c nvarchar(1024)
+select @c = ten_ct%l from dmct where ma_ct = @ma_ct
+select isnull(@c, '') as c
+return
+]]>
+      </text>
+    </action>
+
+    <action id="GetSupplier">
+      <text>
+        <![CDATA[
+declare @u bit, @v bit
+exec AI_ERP$EInvoice$GetOptions 'k_nk_hddt', @ma_dvcs, @u output
+exec AI_ERP$EInvoice$GetOptions 'm_preview', @ma_dvcs, @v output
+select @u as u, @v as v
+return
+]]>
+      </text>
+    </action>
+
+    &EICheckHashAction;
+  </response>
+</dir>

@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="Post" targetNamespace="urn:schemas-ai-erp:data-post" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-post" xmlns:a="urn:schemas-ai-erp:data-post" xmlns:mstns="urn:schemas-ai-erp:data-post" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="post" type ="postType">
+  </xs:element>
+
+  <xs:complexType name="postType">
+    <xs:all minOccurs="1" maxOccurs="1">
+      <xs:element name="views">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="view" type="viewType" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="queries" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="query" type="queryType">
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:all>
+
+    <xs:attribute name="table" type="xs:string" use="required" />
+    <xs:attribute name="key" type="xs:string" use="required"/>
+    <xs:attribute name="fileExtension" type="xs:string" use="required"/>
+    <xs:attribute name="mediaAudioFormat" type="xs:string" use="required"/>
+    <xs:attribute name="mediaVideoFormat" type="xs:string" use="required"/>
+    <xs:attribute name="fileMaxSize" type="xs:decimal" use="required"/>
+    <xs:attribute name="fileRecordTimeout" type="xs:decimal" use="required"/>
+    <xs:attribute name="mediaPreviewWidth" type="xs:decimal" use="required"/>
+    <xs:attribute name="mediaFullWidth" type="xs:decimal" use="required"/>
+    <xs:attribute name="delay" type="xs:decimal" use="required"/>
+    <xs:attribute name="timeout" type="xs:decimal" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="viewType">
+    <xs:all maxOccurs="1" minOccurs="1">
+      <xs:element name="title" type="titleType"  minOccurs="1" maxOccurs="1" />
+    </xs:all>
+    <xs:attribute name="controller" type="xs:string" use="required" />
+    <xs:attribute name="table" type="xs:string" use="optional"/>
+    <xs:attribute name="key" type="xs:string" use="optional"/>
+    <xs:attribute name="postPagingList" type="xs:string" use="optional"/>
+    <xs:attribute name="commentPageShowing" type="xs:decimal" use="optional"/>
+    <xs:attribute name="defaultPostLoading" type="xs:decimal" use="optional"/>
+    <xs:attribute name="defaultCommentLoading" type="xs:decimal" use="optional"/>
+    <xs:attribute name="postDataFilter" type="xs:string" use="optional"/>
+    <xs:attribute name="imageCacheTimeout" type="xs:decimal" use="optional"/>
+    <xs:attribute name="mediaCacheTimeout" type="xs:decimal" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="queryType">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Defines the command text that corresponds to the query type.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+
+    <xs:attribute name="event" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Posted"/>
+          <xs:enumeration value="Liked"/>
+          <xs:enumeration value="Deleted"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="titleType">
+    <xs:attribute name="v" type="xs:string" use="required"/>
+    <xs:attribute name="e" type="xs:string" use="required"/>
+  </xs:complexType>
+</xs:schema>

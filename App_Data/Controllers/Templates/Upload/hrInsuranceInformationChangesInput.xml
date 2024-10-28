@@ -1,0 +1,328 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrInsuranceInformationChangesInput' else 'hrInsuranceInformationChangesInput2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$hrInsuranceInformationChangesInputImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$hrInsuranceInformationChangesInputImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrbhdstg, hrnv"/>
+    <table value="hrbhdstg" alias="a"/>
+    <listTable value="#r"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="dot" column="A" isPrimaryKey="true" allowNulls="false" type="Decimal" updateValue="None" check="not(dot between 1 and 99)" errorCode="00002"/>
+    <field name="ma_nv" column="B" isPrimaryKey="true" allowNulls="false" reference="1" updateValue="None" check="ma_nv not in (select ma_nv from hrnv)" errorCode="00001"/>
+    <field name="ngay_thay_doi" column="D" isPrimaryKey="true" allowNulls="false" type="DateTime" updateValue="None"/>
+    <field name="loai_thay_doi" column="E" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="loai_thay_doi not in (select ma_loai from hrdmltdbh)" errorCode="00001"/>
+    <field name="tra_bhyt" column="F" type="Boolean"/>
+
+    <field name="ngay_bd_dong" column="G" type="DateTime"/>
+    <field name="ngay_kt_dong" column="H" type="DateTime"/>
+
+    <field name="ngay_tu" column="I" type="DateTime"/>
+    <field name="ngay_den" column="J" type="DateTime"/>
+
+    <field name="hs_luong_cb0" column="K" type="Decimal"/>
+    <field name="hs_luong_cb" column="L" type="Decimal"/>
+    <field name="phu_cap_cv0" column="M" type="Decimal"/>
+    <field name="phu_cap_cv" column="N" type="Decimal"/>
+    <field name="phu_cap_vuot0" column="O" type="Decimal"/>
+    <field name="phu_cap_vuot" column="P" type="Decimal"/>
+    <field name="phu_cap_tn0" column="Q" type="Decimal"/>
+    <field name="phu_cap_tn" column="R" type="Decimal"/>
+    <field name="phu_cap_kv0" column="S" type="Decimal"/>
+    <field name="phu_cap_kv" column="T" type="Decimal"/>
+    <field name="luong0" column="U" type="Decimal"/>
+    <field name="luong" column="V" type="Decimal"/>
+    <field name="phu_cap_lg0" column="W" type="Decimal"/>
+    <field name="phu_cap_lg" column="X" type="Decimal"/>
+    <field name="phu_cap_khac0" column="Y" type="Decimal"/>
+    <field name="phu_cap_khac" column="Z" type="Decimal"/>
+    <field name="luong_cb0" column="AA" type="Decimal"/>
+    <field name="luong_cb" column="AB" type="Decimal"/>
+    <field name="tl_xh_tang" column="AC" type="Decimal"/>
+    <field name="tl_xh_giam" column="AD" type="Decimal"/>
+    <field name="tl_yt_tang" column="AE" type="Decimal"/>
+    <field name="tl_yt_giam" column="AF" type="Decimal"/>
+    <field name="tl_tn_tang" column="AG" type="Decimal"/>
+    <field name="tl_tn_giam" column="AH" type="Decimal"/>
+
+    <field name="loai_trich" column="AI" defaultValue="1" check="loai_trich not in (1, 2, 3)" errorCode="00002"/>
+    <field name="muc_dong_xh0" column="AJ" type="Decimal"/>
+    <field name="muc_dong_yt0" column="AK" type="Decimal"/>
+    <field name="muc_dong_tn0" column="AL" type="Decimal"/>
+
+    <field name="tt_cu" column="AM"/>
+    <field name="tt_moi" column="AN"/>
+
+    <field name="ngay_bd_cvdh" column="AO" type="DateTime"/>
+    <field name="ngay_kt_cvdh" column="AP" type="DateTime"/>
+
+    <field name="ghi_chu" column="AQ"/>
+    <field name="ky_sau_yn" column="AR" type="Boolean"/>
+    <field name="tinh_trang" column="AS" type="Decimal" defaultValue="1" check="tinh_trang not in (0, 1)" errorCode="00002"/>
+
+    <field name="stt_rec" column="None" updateValue="None"/>
+    <field name="nam" column="None" type="Decimal" insertValue="@nam" updateValue="None"/>
+    <field name="ky" column="None" type="Decimal" insertValue="@thang" updateValue="None"/>
+    <field name="dc_pn" column="None" insertValue="case when ngay_tu is not null and ngay_den is not null then 1 else 0 end" updateValue="case when b.ngay_tu is not null and b.ngay_den is not null then 1 else 0 end"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật danh sách lao động tham gia bảo hiểm" e="Insurance Information Changes Input"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="dot" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đợt" e="Time"/>
+      </field>
+      <field name="ma_nv" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width ="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="ngay_thay_doi" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày thay đổi" e="Change Date"/>
+      </field>
+      <field name="loai_thay_doi" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại thay đổi" e="Type"/>
+      </field>
+      <field name="tra_bhyt" width ="16">
+        <text v="Không trả thẻ BHYT" e="Not Return HI Card"/>
+      </field>
+      <field name="ngay_bd_dong" width ="16">
+        <text v="Ngày đóng từ" e="Contribution Started Date"/>
+      </field>
+      <field name="ngay_kt_dong" width ="16">
+        <text v="Ngày đóng đến" e="Contribution Ended Date"/>
+      </field>
+      <field name="ngay_tu" width ="16">
+        <text v="Ngày hiệu lực từ" e="Effective Date from"/>
+      </field>
+      <field name="ngay_den" width ="16">
+        <text v="Ngày hiệu lực đến" e="Effective Date to"/>
+      </field>
+      <field name="hs_luong_cb0" width ="16">
+        <text v="Hs lương cb cũ" e="Old Basic Salary Coefficient"/>
+      </field>
+      <field name="hs_luong_cb" width ="16">
+        <text v="Hs lương cb mới" e="New Basic Salary Coefficient"/>
+      </field>
+      <field name="phu_cap_cv0" width ="16">
+        <text v="Pc chức vụ cũ" e="Old Position Allowance"/>
+      </field>
+      <field name="phu_cap_cv" width ="16">
+        <text v="Pc chức vụ mới" e="New Position Allowance"/>
+      </field>
+      <field name="phu_cap_vuot0" width ="16">
+        <text v="Pc vượt khung cũ" e="Old Off-scale Allowance"/>
+      </field>
+      <field name="phu_cap_vuot" width ="16">
+        <text v="Pc vượt khung mới" e="New Off-scale Allowance"/>
+      </field>
+      <field name="phu_cap_tn0" width ="16">
+        <text v="Pc thâm niên cũ" e="Old Seniority Allowance"/>
+      </field>
+      <field name="phu_cap_tn" width ="16">
+        <text v="Pc thâm niên mới" e="New Seniority Allowance"/>
+      </field>
+      <field name="phu_cap_kv0" width ="16">
+        <text v="Pc khu vực cũ" e="Old Region Allowance"/>
+      </field>
+      <field name="phu_cap_kv" width ="16">
+        <text v="Pc khu vực mới" e="New Region Allowance"/>
+      </field>
+      <field name="luong0" width ="16">
+        <text v="Lương cũ" e="Old Salary"/>
+      </field>
+      <field name="luong" width ="16">
+        <text v="Lương mới" e="New Salary"/>
+      </field>
+      <field name="phu_cap_lg0" width ="16">
+        <text v="Pc lương cũ" e="Old Allowances"/>
+      </field>
+      <field name="phu_cap_lg" width ="16">
+        <text v="Pc lương mới" e="New Allowances"/>
+      </field>
+      <field name="phu_cap_khac0" width ="16">
+        <text v="Các khoản bổ sung cũ" e="Old Additional Payment"/>
+      </field>
+      <field name="phu_cap_khac" width ="16">
+        <text v="Các khoản bổ sung mới" e="New Additional Payment"/>
+      </field>
+      <field name="luong_cb0" width ="16">
+        <text v="Mức đóng cũ" e="Old Sum of Payment"/>
+      </field>
+      <field name="luong_cb" width ="16">
+        <text v="Mức đóng mới" e="New Sum of Payment"/>
+      </field>
+      <field name="tl_xh_tang" width ="16">
+        <text v="Tỷ lệ BHXH tăng" e="Increase SI Rate"/>
+      </field>
+      <field name="tl_xh_giam" width ="16">
+        <text v="Tỷ lệ BHXH giảm" e="Decrease SI Rate"/>
+      </field>
+      <field name="tl_yt_tang" width ="16">
+        <text v="Tỷ lệ BHYT tăng" e="Increase HI Rate"/>
+      </field>
+      <field name="tl_yt_giam" width ="16">
+        <text v="Tỷ lệ BHYT giảm" e="Decrease HI Rate"/>
+      </field>
+      <field name="tl_tn_tang" width ="16">
+        <text v="Tỷ lệ BHTN tăng" e="Increase UI Rate"/>
+      </field>
+      <field name="tl_tn_giam" width ="16">
+        <text v="Tỷ lệ BHTN giảm  " e="Decrease UI Rate"/>
+      </field>
+
+      <field name="loai_trich" width ="16">
+        <text v="Loại trích" e="Type of Contribution"/>
+      </field>
+      <field name="muc_dong_xh0" width ="16">
+        <text v="Mức đóng trần cũ BHXH" e="SI Old Ceiling Salary"/>
+      </field>
+      <field name="muc_dong_yt0" width ="16">
+        <text v="Mức đóng trần cũ BHYT" e="HI Old Ceiling Salary"/>
+      </field>
+      <field name="muc_dong_tn0" width ="16">
+        <text v="Mức đóng trần cũ BHTN" e="UI Old Ceiling Salary"/>
+      </field>
+      <field name="tt_cu" width ="32">
+        <text v="Thông tin cũ" e="Old Information"/>
+      </field>
+      <field name="tt_moi" width ="32">
+        <text v="Thông tin mới" e="New Information"/>
+      </field>
+      <field name="ngay_bd_cvdh" width ="16">
+        <text v="Ngày cvđh từ" e="Malicious Jobs from"/>
+      </field>
+      <field name="ngay_kt_cvdh" width ="16">
+        <text v="Ngày cvđh đến" e="Malicious Jobs to"/>
+      </field>
+      <field name="ghi_chu" width ="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+      <field name="ky_sau_yn" width ="16">
+        <text v="Nghỉ việc báo giảm tháng sau" e="Decrease in the next month"/>
+      </field>
+      <field name="tinh_trang" width ="16">
+        <text v="Tình trạng" e="Status"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @join nvarchar(1023), @field varchar(32)
+declare @user int, @admin bit, @sys varchar(32), @joinUnit bit, @joinDept bit, @r int, @count int, @luong_nn tinyint, @n int
+
+select @admin = @@admin, @user = @@userID, @sys = '@@sysDatabaseName', @key = '', @joinUnit = 0, @joinDept = 0
+select @luong_nn = cast(val as int) from options where name = 'm_si_loai_nn'
+select @n = cast(val as int) from options where name = 'm_round_tien_luong'
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+]]>&EndErrorMode;<![CDATA[
+
+--
+if @luong_nn = 2 begin
+  update @@table set luong_cb = case when luong_cb = 0 then round((luong + phu_cap_lg + phu_cap_khac), @n) else luong_cb end, luong_cb0 = case when luong_cb0 = 0 then round((luong0 + phu_cap_lg0 + phu_cap_khac0), @n) else luong_cb0 end
+    where luong_cb = 0 or luong_cb0 = 0
+
+  update @@table set hs_luong_cb0 = 0, hs_luong_cb = 0, phu_cap_cv0 = 0, phu_cap_cv = 0, phu_cap_vuot0 = 0, phu_cap_vuot = 0, phu_cap_tn0 = 0, phu_cap_tn = 0, phu_cap_kv0 = 0, phu_cap_kv = 0
+end else begin
+  update @@table set luong_cb = case when a.luong_cb = 0 then round((hs_luong_cb + phu_cap_cv + (phu_cap_vuot / 100) + (phu_cap_tn / 100) + phu_cap_kv) *  b.luong_tt, @n) else a.luong_cb end,
+      luong_cb0 = case when a.luong_cb0 = 0 then round((hs_luong_cb0 + phu_cap_cv0 + (phu_cap_vuot0 / 100) + (phu_cap_tn0 / 100) + phu_cap_kv0) * b.luong_tt, @n) else a.luong_cb0 end
+    from @@table a join hrdmlttc b on b.ngay_hl = (select max(ngay_hl) as ngay_hl from hrdmlttc where ngay_hl <= a.ngay_thay_doi)
+      where a.luong_cb = 0 or a.luong_cb0 = 0
+
+  update @@table set luong0 = 0, luong = 0, phu_cap_lg0 = 0, phu_cap_lg = 0, phu_cap_khac0 = 0, phu_cap_khac = 0
+end
+update @@table set tl_xh_giam = 0, tl_yt_giam = 0, tl_tn_giam = 0 from @@table z where exists (select 1 from hrdmltdbh a join hrdmktdbh b on a.loai_td = b.ma_kieu where a.ma_loai = z.loai_thay_doi and b.tinh_chat <> 2)
+update @@table set tl_xh_tang = 0, tl_yt_tang = 0, tl_tn_tang = 0 from @@table z where exists (select 1 from hrdmltdbh a join hrdmktdbh b on a.loai_td = b.ma_kieu where a.ma_loai = z.loai_thay_doi and b.tinh_chat <> 1)
+update @@table set ky_sau_yn = 0 from @@table z where exists (select 1 from hrdmltdbh a where a.ma_loai = z.loai_thay_doi and a.tinh_chat <> 3)
+
+if @admin = 0 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'hrInsuranceInformationChangesInput', 'Edit') = 0 select @type = '0'
+  end
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+	select @key = case when @key = '' then '' else ' where (' + @key + ')' end
+end
+
+-- Gather
+select top 0 stt_rec, dot, ngay_thay_doi, loai_thay_doi, tra_bhyt, ngay_tu, ngay_den, hs_luong_cb0,
+    hs_luong_cb, phu_cap_cv0, phu_cap_cv, phu_cap_vuot0, phu_cap_vuot, phu_cap_tn0, phu_cap_tn, phu_cap_kv0, phu_cap_kv,
+    luong0, luong, phu_cap_lg0, phu_cap_lg, phu_cap_khac0, phu_cap_khac, luong_cb0, luong_cb, tl_xh_tang,
+    tl_xh_giam, tl_yt_tang, tl_yt_giam, tl_tn_tang, tl_tn_giam, ky_sau_yn, muc_dong_xh0,muc_dong_yt0, muc_dong_tn0, tt_cu, tt_moi, ghi_chu, loai_trich, tinh_trang,
+    ngay_bd_dong, ngay_kt_dong, ngay_bd_cvdh, ngay_kt_cvdh
+  into #r from hrbhdstg
+
+set @q = 'insert into #r select e.stt_rec, a.dot, a.ngay_thay_doi, a.loai_thay_doi, a.tra_bhyt , a.ngay_tu, a.ngay_den, a.hs_luong_cb0, '
+set @q = @q + 'a.hs_luong_cb, a.phu_cap_cv0, a.phu_cap_cv , a.phu_cap_vuot0, a.phu_cap_vuot, a.phu_cap_tn0, a.phu_cap_tn, a.phu_cap_kv0, a.phu_cap_kv, '
+set @q = @q + 'a.luong0, a.luong, a.phu_cap_lg0, a.phu_cap_lg, a.phu_cap_khac0, a.phu_cap_khac, a.luong_cb0, a.luong_cb, a.tl_xh_tang, '
+set @q = @q + 'a.tl_xh_giam, a.tl_yt_tang, a.tl_yt_giam, a.tl_tn_tang, a.tl_tn_giam, a.ky_sau_yn, a.muc_dong_xh0, a.muc_dong_yt0, a.muc_dong_tn0, a.tt_cu, a.tt_moi, a.ghi_chu, a.loai_trich, a.tinh_trang, '
+set @q = @q + 'a.ngay_bd_dong, a.ngay_kt_dong, a.ngay_bd_cvdh, a.ngay_kt_cvdh'
+select @q = @q + ' from @@table a join hrnv e on a.ma_nv = e.ma_nv' + @key
+exec sp_executesql @q
+
+if @type = '0' delete #r from #r a where exists(select 1 from hrbhdstg b where b.nam = @nam and b.ky = @thang and a.dot = b.dot and a.stt_rec = b.stt_rec and a.loai_thay_doi = b.loai_thay_doi and a.ngay_thay_doi = b.ngay_thay_doi)
+select a.* into #k from #r a where exists(select 1 from hrbhdstg b where b.nam = @nam and b.ky = @thang and a.dot = b.dot and a.stt_rec = b.stt_rec and a.loai_thay_doi = b.loai_thay_doi and a.ngay_thay_doi = b.ngay_thay_doi)
+delete #r from #r a where exists(select 1 from #k b where a.dot = b.dot and a.stt_rec = b.stt_rec and a.loai_thay_doi = b.loai_thay_doi and a.ngay_thay_doi = b.ngay_thay_doi)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin update hrbhdstg set @@list from hrbhdstg a join #k b on a.nam = @nam and a.ky = @thang and a.dot = b.dot and a.stt_rec = b.stt_rec and a.loai_thay_doi = b.loai_thay_doi and a.ngay_thay_doi = b.ngay_thay_doi end
+]]>
+    </text>
+  </processing>
+</import>

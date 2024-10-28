@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'RiskBusiness' else 'RiskBusiness2' end as file_name">
+
+  <!ENTITY Controller "RiskBusiness">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$RiskBusinessImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$RiskBusinessImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmdnruiro"/>
+    <table value="dmdnruiro" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="mst" column="A" isPrimaryKey="true" allowNulls="false" updateValue="None"/>
+    <field name="ten_dn" column="B" allowNulls="false"/>
+    <field name="tinh_tp" column="C"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh sách doanh nghiệp rủi ro" e="List of Enterprises at Risk of VAT Invoices"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="mst" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã số thuế" e="Tax code"/>
+      </field>
+      <field name="ten_dn" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tên người nộp thuế" e="Taxpayer"/>
+      </field>
+      <field name="tinh_tp" width="32">
+        <text v="Tên tỉnh/thành" e="Province/City Name"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'RiskBusiness', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @invalidValue nvarchar(4000), @field varchar(32), @r int, @t_yn bit
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> đã có.' else N'The value of cell <span class="Highlight">%invalidCell</span> is already exists.' end
+create index i on @@table (mst)
+
+-- Delete
+if @type = '0' delete @@table from @@table a join dmdnruiro b on a.mst = b.mst
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+-- Check tax code
+select cast(stt as int) as stt, mst into #v from #table
+exec AI_ERP$System$CheckTaxCode 'stt, mst', @t_yn output, @r output, '#v'
+if @t_yn = 0 begin
+  if @$mode = 1 begin
+    select top 0 cast(0 as int) as stt into #taxCodeInvalid
+    insert into #taxCodeInvalid exec AI_ERP$System$CheckTaxCode 'stt, mst', @t_yn output, @r output, '#v', @$mode, @$errorCount
+    ]]>&StartErrorCount;<![CDATA[
+    insert into #errorTable(@@errorTableField) select 'mst', stt, 'invalidValueMessage' from #taxCodeInvalid order by stt
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @field = 'mst']]>&Error;<![CDATA[
+  end
+end
+
+-- Gather
+select a.* into #k from @@table a join dmdnruiro b on a.mst = b.mst
+delete @@table from @@table a where exists(select 1 from #k b where a.mst = b.mst)
+
+-- Checking
+select @field = 'mst'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00004'' from @@table a, @@table b with (index(i)) where a.mst <> b.mst and a.mst = b.mst
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00004'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00004'' from @@table a with (index(i)), dmdnruiro b with (index(PK_dmdnruiro)) where a.mst = b.mst
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00004'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00004'' from dmdnruiro a with (index(PK_dmdnruiro)), @@table b with (index(i)) where a.mst = b.mst
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00004'']]>&w4;<![CDATA[ group by b.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.mst <> b.mst and a.mst = b.mst'
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  select @q = 'select top 1 @r = a.stt from @@table a with (index(i)), dmdnruiro b with (index(PK_dmdnruiro)) where a.mst = b.mst'
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  select @q = 'select top 1 @r = b.stt from dmdnruiro a with (index(PK_dmdnruiro)), @@table b with (index(i)) where a.mst = b.mst'
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  --]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+</import>

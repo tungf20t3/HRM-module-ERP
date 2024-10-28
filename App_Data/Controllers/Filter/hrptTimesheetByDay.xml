@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY ReportDataTypeField SYSTEM "..\Include\XML\ReportDataTypeField.xml">
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Từ/đến ngày" e="Date from/to"></footer>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+
+    <field name="ma_bp" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" onDemand="true">
+      <header v="Mã nhân viên" e="Employee ID"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="nh_bp1" onDemand="true">
+      <header v="Nhóm bộ phận 1" e="Department Group 1"></header>
+      <footer v="Nhóm bộ phận" e="Department Group"/>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nh_bp1%l" key="status = '1' and loai_nh = 1" check="loai_nh = 1"/>
+    </field>
+    <field name="ten_nh_bp1%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_bp2" onDemand="true">
+      <header v="Nhóm bộ phận 2" e="Department Group 2"></header>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nh_bp2%l" key="status = '1' and loai_nh = 2" check="loai_nh = 2"/>
+    </field>
+    <field name="ten_nh_bp2%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_bp3" onDemand="true">
+      <header v="Nhóm bộ phận 3" e="Department Group 3"></header>
+      <items style="AutoComplete" controller="hrDepartmentGroup" reference="ten_nh_bp3%l" key="status = '1' and loai_nh = 3" check="loai_nh = 3"/>
+    </field>
+    <field name="ten_nh_bp3%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="nh_nv1" onDemand="true">
+      <header v="Nhóm nhân viên 1" e="Employee Group 1"></header>
+      <footer v="Nhóm nhân viên" e="Employee Group"/>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv1%l" key="status = '1' and loai_nh = 1" check="loai_nh = 1"/>
+    </field>
+    <field name="ten_nh_nv1%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_nv2" onDemand="true">
+      <header v="Nhóm nhân viên 2" e="Employee Group 2"></header>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv2%l" key="status = '1' and loai_nh = 2" check="loai_nh = 2"/>
+    </field>
+    <field name="ten_nh_nv2%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_nv3" onDemand="true">
+      <header v="Nhóm nhân viên 3" e="Employee Group 3"></header>
+      <items style="AutoComplete" controller="hrEmployeeGroup" reference="ten_nh_nv3%l" key="status = '1' and loai_nh = 3" check="loai_nh = 3"/>
+    </field>
+    <field name="ten_nh_nv3%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="mau_bc">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu tổng hợp" e="General Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 20, 40, 100, 100, 130, 0, 0, 0"/>
+      <item value="11001--1: [tu_ngay].Description, [tu_ngay], [den_ngay], [ten_nh_bp3%l]"/>
+      <item value="11001001: [ma_bp].Label, [ma_bp], [ten_bp%l], [ten_nh_bp2%l]"/>
+      <item value="11001000: [ma_nv].Label, [ma_nv], [ten]"/>
+      <item value="110011-1: [nh_bp1].Description, [nh_bp1], [nh_bp2], [nh_bp3], [ten_nh_bp1%l]"/>
+      <item value="110011-111: [nh_nv1].Description, [nh_nv1], [nh_nv2], [nh_nv3], [ten_nh_nv1%l], [ten_nh_nv2%l], [ten_nh_nv3%l]"/>
+      <item value="110000--: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$Timesheet$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$Timesheet$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @d varchar(4000), @name nvarchar(4000), @i int, @keyDept nvarchar(4000), @keyData nvarchar(4000)
+select @d = '', @name = ''
+if @mau_bc = '20' begin
+  select top 20 @name = @name + case when lower(@@language) = 'v' then rtrim(ten_ct) else rtrim(ten_ct2) end + char(255) from hrkbctbcc with(nolock) where in_ck = 1 and status = '1' order by stt, ma_ct
+  select @i = count(*) from hrkbctbcc with(nolock) where in_ck = 1 and status = '1'
+end
+select @name = substring(@name, 0, len(@name)), @i = case when @i > 20 then 20 else @i end
+
+if exists(select 1 from dmstt where @tu_ngay <= ngay_gh2 and @den_ngay >= ngay_gh1) begin
+  if @ma_bp <> '' begin
+    select top 0 ma_bp, ngay into #ngaynghi from hrdmngaynghi
+    select @keyDept = 'bp_ref like ''' + replace(bp_ref, '''', '') + '%''' from hrbp where ma_bp = @ma_bp
+    select @keyData = 'a.status = 1 and a.ngay between ''' + convert(char(8), @tu_ngay, 112) + ''' and ''' + convert(char(8), @den_ngay, 112) + ''''
+    insert into #ngaynghi exec AI_ERP$HRM$DepartmentGetData @keyDept, 'hrdmngaynghi', 'ngay', @keyData, '', 0
+
+    select @d = @d + convert(char(8),ngay, 112) + ',' from #ngaynghi
+  end else begin
+    select @d = @d + convert(char(8),ngay, 112) + ',' from hrdmngaynghi where ngay between @tu_ngay and @den_ngay
+  end
+  select @d = substring(@d, 0, len(@d))
+end
+select '' as field, '' as message, 'this.grid._nonWorking = ''' + @d + ''';this.grid._itemText=''' + dbo.AI_ERP$Function$EncodeScript(@name) + ''';this.grid._count=' + rtrim(isnull(@i, 0)) + ';' as script
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @DeptName nvarchar(512)
+if @ma_bp <> '' select @DeptName = case when @@language = 'v' then N'Bộ phận: ' + rtrim(ten_bp) else 'Department: ' + rtrim(ten_bp2) end from hrbp where ma_bp = @ma_bp
+  else select @DeptName = case when @@language = 'v' then N'Tất cả các bộ phận' else 'All Department' end
+select @DeptName as ten_bp, @tu_ngay as tu_ngay, @den_ngay as den_ngay, datediff(day,@tu_ngay, @den_ngay) + 1 as so_ngay
+exec hs_rptTimesheetByDay @tu_ngay, @den_ngay, @ma_bp, @ma_nv, @nh_bp1, @nh_bp2, @nh_bp3, @nh_nv1, @nh_nv2, @nh_nv3, @mau_bc, @@language, @@userID, @@admin, '@@sysDatabaseName'
+
+if @mau_bc = '20' begin
+  declare @s varchar(4000), @i int
+  select @s = '', @i = 68
+  select top 0 cast('' as varchar(2)) as name, identity(int, 1, 1) as id into #column
+  select top 20 convert(int, kieu) as kieu, case when @@language = 'v' then ten_ct else ten_ct2 end as ten_ct, identity (int, 1, 1) as id into #declare from hrkbctbcc with(nolock) where in_ck = 1 and status = '1' order by stt, ma_ct
+  while @i <= 90 begin
+    insert into #column(name) select char(@i)
+    set @i = @i + 1
+  end
+  select @i = 65
+  while @i <= 81 begin
+    insert into #column(name) select 'A' + char(@i)
+    set @i = @i + 1
+  end
+  select @s = @s + name + ',' from #column where id > (datediff(day, @tu_ngay, @den_ngay) + 1)
+  select @s = substring(@s, 0, len(@s))
+  select * from #declare
+  if @s <> '' select @s as hiddenColumns
+end
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptQueryFilterString;
+      <![CDATA[function active$Timesheet$(a){a.add_onResponseComplete(on$Filter$ResponseComplete)}function close$Timesheet$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(u,f){var b=f.object,m=f.type.Context,t=f.type.Result;switch(m){case"Checking":var a=b.grid,g=b._language=="v",c=b.getItemValue("ma_bp"),n=b.getItemValue("ten_bp%l"),o=b.getItem("tu_ngay").value,p=b.getItem("den_ngay").value,k=b.getItemValue("mau_bc"),i=b.get_id(),j=b.getItem("tu_ngay").field.Label;a._dateFrom=b.getItemValue("tu_ngay",null,null,true);a._dateTo=b.getItemValue("den_ngay",null,null,true);var q=g?'Trường <span class="Highlight">'+j+"</span> chưa nhập hoặc giá trị nhập không hợp lệ.":'Field <span class="Highlight">'+j+"</span> must not be blank or has invalid value.",d=dateDiffInDays(a._dateFrom,a._dateTo);if(d<0||d>=40){$func.hideWait(i);$message.show(q,String.format("$find('{0}').getItem('tu_ngay').focus()",i));b._checked=false;break}a._hiddenForms=[{Form:[1],Value:k=="10"},{Form:[0],Value:k=="20"}];var l=getFieldsHidden(b,d),h=getFieldsShow(b,d);a._hiddenFields=[{Fields:l,Value:true},{Fields:h,Value:false}];c=c==""?g?"tất cả các bộ phận":"All Department":(g?"bộ phận: ":"Department: ")+n;a._alterTitle=[null,[["%d1",o,true],["%d2",p,true],["%s",c,true]]];a._lengthShow=h.split(",").length;a._form=b.getItemValue("mau_bc");if(a._fields.length>0)try{init$GridReport$(a)}catch(v){}var e=a._dateFrom.toString()+String.fromCharCode(253)+a._dateTo.toString();a._keyHidden=a._dateFrom.toString()+String.fromCharCode(253)+a._dateTo.toString()+String.fromCharCode(253)+a._form.toString();if(!a._template)a._template=a._form;if(!a._day)a._day=e;if(!a._v)a._v=a._keyHidden;if(a._v!=a._keyHidden){var r="n01,n02,n03,n04,n05,n06,n07,n08,n09,n10,n11,n12,n13,n14,n15,n16,n17,n18,n19,n20,n21,n22,n23,n24,n25,n26,n27,n28,n29,n30,n31,n32,n33,n34,n35,n36,n37,n38,n39,n40",s="c01,c02,c03,c04,c05,c06,c07,c08,c09,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20",c="";if(a._day!=e)c=r;if(a._template!=a._form)c=c+(c!=""?",":"")+s;remove$GridReport$Filter(a,c);a._v=a._keyHidden,a._day=e,a._template=a._form}}}function getFieldsHidden(d,c){for(var b="",a=c+2;a<=40;a++)b+=(b==""?"n":",n")+(a>9?a:"0"+a);return b}function getFieldsShow(d,c){for(var b="",a=1;a<=c+1;a++)b+=(b==""?"n":",n")+(a>9?a:"0"+a);return b}function dateDiffInDays(a,b){var c=Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()),d=Date.UTC(b.getFullYear(),b.getMonth(),b.getDate());return Math.floor((d-c)/864e5)}function remove$GridReport$Filter(a,f){var e=f.split(","),d,c;for(i=0;i<e.length;i++)for(var b=0;b<a._filter.length;b++){d=$func.trim(e[i]);c=$func.findField(d,a._fields);if(c)c.FilterPanelValue="";if(a._filter[b].match(/^(\w+):/)[1]==d){Array.removeAt(a._filter,b);break}}}
+]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

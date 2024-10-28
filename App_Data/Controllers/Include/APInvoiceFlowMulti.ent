@@ -1,0 +1,46 @@
+﻿<!ENTITY APInvoiceFlowMulti.FilterField SYSTEM "..\Include\XML\APInvoiceFlowMultiFilterField.xml">
+<!ENTITY APInvoiceFlowMulti.FilterView SYSTEM "..\Include\XML\APInvoiceFlowMultiFilterView.xml">
+
+<!ENTITY APInvoiceFlowMulti.FormScript SYSTEM "..\Include\Javascript\APInvoiceFlowMultiFormScript.txt">
+<!ENTITY APInvoiceFlowMulti.FormGetOtherField "
+declare @q nvarchar(4000)
+select top 0 tr.id, rtrim(a.tk) as tk_no, ty_gia as ty_gia_hd &FlowMultiUserDefinedFieldsQuery; into #d from #tagRow tr cross join &FlowMultiGeneralTable; a
+set @q = 'insert into #d select tr.id, rtrim(a.tk), ty_gia &FlowMultiUserDefinedFieldsQuery; from (select id, stt_rec from #tagRow) tr join &FlowMultiGeneralTable; a on tr.stt_rec = a.stt_rec'
+exec sp_executesql @q
+
+select '' as array$, id, &OtherCopyField; from #d &FlowMultiOrderBy;
+return
+">
+
+<!ENTITY APInvoiceFlowMulti.GridFieldHiddenAmmount "false">
+<!ENTITY APInvoiceFlowMulti.GridField SYSTEM "..\Include\XML\APInvoiceFlowMultiGridField.xml">
+<!ENTITY APInvoiceFlowMulti.GridView SYSTEM "..\Include\XML\APInvoiceFlowMultiGridView.xml">
+<!ENTITY APInvoiceFlowMulti.GridFinding "
+declare @ma_nt0 varchar(3)
+select @ma_nt0 = val from options where name = 'm_ma_nt0'
+select 1 as line_nbr, @ma_nt0 as ma_nt0 into #df
+
+select top 0 tt_qd, stt_rec_tt into #tt from cttt30
+
+&CheckRelativeProcess;
+
+declare @c char(1), @d char(1)
+select @c = char(253), @d = char(252)
+select * into #t from dbo.AI_ERP$Function$System$Split(@@queryString, @c)
+declare @ma_kh varchar(128), @ngay_ct1 smalldatetime, @ngay_ct2 smalldatetime, @ma_dvcs varchar(8000), @stt_rec char(13)
+
+select @ma_dvcs = replace(data, @d, '''') from #t where id = 1
+select @ma_kh = replace(data, @d, '''') from #t where id = 2
+select @ngay_ct1 = data from #t where id = 3
+select @ngay_ct2 = data from #t where id = 4
+select @stt_rec = data from #t where id = 5
+
+if @ma_dvcs = '' set @ma_dvcs = @@unit
+insert into #tt select sum(tt_qd), stt_rec_tt from cttt30 where @stt_rec &lt;&gt; '' and stt_rec = @stt_rec group by stt_rec_tt
+
+declare @queryWhereClause nvarchar(4000), @queryFormClause nvarchar(4000)
+set @queryFormClause = 'cttt30 m cross join #df a left join #tt tt on m.stt_rec = tt.stt_rec_tt left join dmtk b on m.tk = b.tk'
+set @queryWhereClause = 'm.ma_dvcs = ''' + replace(rtrim(@ma_dvcs), '''', '''''') + ''' and m.ma_kh like ''' + replace(rtrim(@ma_kh), '''', '''''') + '&#37;'' and m.loai_tt = 0'
+  + ' and (m.tat_toan = 0 or (m.stt_rec in (select stt_rec_tt from cttt30 where stt_rec = ''' + replace(@stt_rec, '''', '''''') + ''' and loai_tt = 1)))'
+">
+<!ENTITY APInvoiceFlowMulti.GridScript SYSTEM "..\Include\Javascript\APInvoiceFlowMultiGridScript.txt">

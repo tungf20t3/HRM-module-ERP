@@ -1,0 +1,49 @@
+﻿<!ENTITY % Conditional.ImportOverwrite SYSTEM "..\Include\ImportOverwriteVoucher.txt">
+
+<![%Conditional.ImportOverwrite;[
+  <!ENTITY ImportOverwriteMatchData "
++ ' join &ImportOverwriteMainTable; b with(nolock) on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct' + case when @check$Unit = '1' then ' and a.ma_dvcs = b.ma_dvcs' else '' end    
+">
+  
+  <!ENTITY ImportOverwriteDeleting "
+set @field = 'so_ct'
+if @$mode = 1 begin
+  &StartErrorCount;
+  &InsertErrorTable; select @field, o.stt, 'OW01' from #owdata o join cttt20 c on c.stt_rec like (left(o.stt_rec, 10) + '&#37;') and loai_tt = 1 and c.loai_ct &lt;&gt; '1'
+  &w1;@field&w2;o.stt&w3;'OW01'&w4;
+  &EndErrorCount;
+  &StartErrorCount;
+  &InsertErrorTable; select @field, o.stt, 'OW01' from #owdata o join cttt30 c on c.stt_rec_tt like (left(o.stt_rec, 10) + '&#37;') and c.loai_tt = 1
+  &w1;@field&w2;o.stt&w3;'OW01'&w4;
+  &EndErrorCount;
+
+  select @$owp = min(p) from #owpartition
+  while @$owp is not null begin
+    &StartErrorCount;
+    select @q = '&InsertErrorTable; select @field, o.stt, ''OW01'' from #owdata o join d&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where (b.stt_rec_tt &lt;&gt; '''' or b.stt_rec_dn &lt;&gt; '''') and o.p = ''' + @$owp + '''
+    &w1;@field&w2;o.stt&w3;''OW01''&w4; group by o.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    &EndErrorCount;
+    select @$owp = min(p) from #owpartition where p > @$owp
+  end
+end else begin
+  select top 1 @r = min(o.stt) from #owdata o join cttt20 c on c.stt_rec like (left(o.stt_rec, 10) + '&#37;') and loai_tt = 1 and c.loai_ct &lt;&gt; '1' &ImportOverwriteError;
+  select top 1 @r = min(o.stt) from #owdata o join cttt30 c on c.stt_rec_tt like (left(o.stt_rec, 10) + '&#37;') and c.loai_tt = 1 &ImportOverwriteError;
+
+  select @$owp = min(p) from #owpartition
+  while @$owp is not null begin
+    set @q = 'select top 1 @r = min(o.stt) from #owdata o join d&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where (b.stt_rec_tt &lt;&gt; '''' or b.stt_rec_dn &lt;&gt; '''') and o.p = ''' + @$owp + ''''
+    exec sp_executesql @q, N'@r int out', @r out &ImportOverwriteError;
+    select @$owp = min(p) from #owpartition where p > @$owp
+  end
+end
+
+">
+
+  <!ENTITY ImportOverwriteDeleted "&ImportOverwriteDeleteMultiVoucher;">
+  <!ENTITY ImportOverwriteInsertingByPart "&ImportOverwriteUpdateByPart;">
+]]>
+
+<!ENTITY ImportOverwriteDeleting "">
+<!ENTITY ImportOverwriteDeleted "">
+<!ENTITY ImportOverwriteInsertingByPart "">

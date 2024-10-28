@@ -1,0 +1,248 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="SVTran.doc" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<title>Sales Invoice</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<style type="text/css">
+<!--
+A:visited { color:#800080; }
+A:link { color:#0000ff; }
+→
+</style>
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+
+</head>
+<body>
+<p id="td1">Sales Invoice</p>
+<p id="td2">	Sales Invoice Process
+<ul class="lo_2">
+Previous step: 	Creating SO (or Pick List if Late Invoicing)<br/>
+Next step: 	Delivery (or Pick List if First Invoicing)<br/>
+Creating Dept.: 	Accounting or Sales Dept.</ul>
+<p id="p2">Sales Invoice creating can be carried out by many ways:
+<ul class="lo_2">
+-	Create new Sales Invoice.<br/>
+-	Extract data from a SO.<br/>
+-	Extract data from Pick List.</ul>
+
+<p id="td2">	Description of Transaction Codes in Sales Invoice
+<p id="p2">
+There are many transaction codes in Sales Invoice to use applications of the system in different environments. System will be defined in accordance with the applications of modules.
+<br/>These are some cases:
+</p>
+<p id="pic"><img src="eng/SVTran_1.png"/></p>
+
+<p class="note">Note:<br/>
+Only Sales Management: Sales is involved in on hand inventory, not financial inventory
+<br/>Only Accounting: Accounting is involved in financial inventory and accounting entry, not on hand inventory
+<br/>Both Sales + Accounting: Sales is involved in on hand inventory, accounting is involved in financial inventory, accounting entry
+
+</p>
+
+
+<p id="td2">Entry screen</p>
+<p id="pic"><img src="eng/SVtran.png"/></p>
+<p id="td2">   Field descriptions - format view</p>
+<p class="node">Customer</p>
+<p class="node_d">Customer ID and name, extracted from Customer/Supplier List, is usually used in debt control in case of Issue related to debt transactions as lending items from other units. In case transactions which are not related to debt control, this information is used to control internal objects as production line, shop floor…
+</p>
+
+<p class="node"> Transaction Code</p>
+<p class="node_d">The default transaction code of sales invoice is 2 - “Immediate SO Invoice”. </p>
+<p class="note">Note: <br/> 
+If sales invoices, domestic/import purchase invoices are wrongly entered following the data entry process, the system will not keep track of inherited data in process of invoice.
+
+<p class="e">For example: <br/>
+Creating sales invoice transaction code 3, retrieve data from sales order/ pick list, then change transaction code to 2. At that time, the invoice creating process is cancelled, the data inherited from sales order/ pick list are 0 (sales invoice transaction code 2 cannot be retrieved data from sales order/pick list).
+
+</p>
+
+<p class="node">Debit Account</p>
+<p class="node_d">Debit Account in revenue record</p>
+
+<p class="node">Credit Term</p>
+<p class="node_d">Extracted from “Customer List” but editable</p>
+<p class="node">Invoice Number / Serial Number</p>
+<p class="node_d">Invoice number and serial number is extracted from “Voucher Book List”. If “Voucher Book using definition” is not declared, they will be input by users.</p>
+
+<p class="note">
+- If the invoice is numbered by voucher book which has been defined the "Invoice Form", this "Invoice Form" will be used in tax 
+
+reports.<br/>
+- If the invoice is numbered by voucher book which has not been defined the "Invoice Form", the system will get the "Default Output 
+
+Invoice Form" in optional parameter.<br/>
+- If the "Default Output Invoice Form" parameter is also blank, there will be no "Invoice Form" in tax reports.
+<p class="node">Invoice Date / Posting Date</p>
+<p class="node_d">The date the invoice is created and the date the invoice is posted. Invoice date is un-editable if extracted from SO.</p>
+<p class="node">Ex. Rate</p>
+<p class="node_d">Exchange rate when invoicing in foreign currency. Choose FC code and enter exchange rate.
+If currency is base currency, Ex. Rate will be 1 and not be updated. On the Contrary, it is not base currency; it is extracted from the latest Ex. rate in “Exchange rate list” by default. When Ex. Rate changes, “amount”, “tax amount” and “total amount” field will also change.</p>
+<p class="node">Tax code</p>
+<p class="node_d">Select tax code (tax rate) of item</p>
+<p class="node">Tax Account</p>
+<p class="node_d">Extracted from “Tax Rate List” and general information of sales invoice; editable</p>
+<p class="node">Tax Authority</p>
+<p class="node_d">Tax authority (branch) relating to goods sold taxing following VAT regulations. This is an optional field due to management requirements of each company.<br/>
+“Tax Authority” is defined in “Supplier/ Customer List”.</p>
+<p class="note">Note: in case tax account is a receivable account, “Tax authority” is considered as a receivable object and required.</p>
+<p class="node">Amount</p>
+<p class="node_d">Total goods amount</p>
+<p class="node">Tax Amount</p>
+<p class="note">Note: if definition “calculate tax on promotion goods” is “yes”, taxable amount will be included promotion revenue.</p>
+<p class="node">Total Amount</p>
+<p class="node_d">Total payable goods and tax amount</p>
+<p class="node">Status</p>
+<p class="node_d">There are 3 statuses:</p>
+<ul class="lo_2">
+- No Action: the voucher has not been posted to any book;<br/>
+- Release Later: If there is VAT data, the invoice will be shown in VAT reports. If this is AR/AP invoice, it will be shown in AR/AP by 
+
+invoice reports;<br/>
+- Release: the voucher has been posted to all related books.
+</ul>
+
+<p id="td2">       Field descriptions - “Details” Tab</p>
+<p class="node">Item Code</p>
+<p class="node_d">Item code in invoice; extracted from “Item Master” </p>
+<p class="node">UOM</p>
+<p class="node_d">UOM of item, extracted from item master by default and it can be changed in case of condition that “controls multi UOM” configuration and in UOM conversion List declaration for this item.</p>
+<p class="node">Promotion</p>
+<p class="node_d">In case of sales with promotion, check in this box. This option is defined to hide (unhide) in “System/ List Maintenance/ Optional Parameters”.<br/>
+The revenue of goods on promotion will be excluding for calculating VAT on invoice (Show Sales Promotion)</p>
+<p class="note">Note: If goods on promotion are invoiced in another voucher, do not check in this box.</p>
+<p class="node">Site</p>
+<p class="node_d">Sites issuing goods; extracted from “Site List” </p>
+<p class="node">Location</p>
+<p class="node_d">Location of goods in site; extracted from “Location List”, used in case you wish to control items by location.</p>
+<p class="node">Lot</p>
+<p class="node_d">Lot of goods; required for items with lot control. Lot declaration has been done in Inventory Management.</p>
+
+<p class="node">Quantity</p>
+<p class="node_d">Quantity of items in invoice</p>
+<p class="node">SP.(specific) Cost</p>
+<p class="node_d">If you check in this option, you have to manually define “cost of goods sold” and enter it in the system. Otherwise, the system will auto calculate COGS following the costing method of goods defined in Item List.</p>
+
+<p class="node">Sales Price</p>
+<p class="node_d">Price of item in GL currency.</p>
+<p class="node">Discount
+</p>
+<p class="node_d">Discount amount </p>
+<p class="node">Sales Account / Discount Account / Inventory Account / COGS Account</p>
+<p class="node_d">Sales, Discount, Inventory, and Cost Price Accounts are accounts of goods in invoice; declared in “Item Master”.</p>
+
+<p class="note">
+"Note:<br/>
+If discount account is input, discount entry will be separately recorded. On the contrary, revenue will be decreased equal to goods amount minus discount."
+</p>
+<p id="td2"> Other Information - Field descriptions</p>
+<p class="node">Customer/ address/ tax code</p>
+<p class="node_d">In case of customer name show on VAT invoice (for VAT reports suppose) and AR/AP customer are not the same, users can input value for this field.</p>
+<p class="node_d">Customer name: Show customer name in general information and editable. Customer Name will be posted to customer column in output VAT report.</p>
+<p class="node_d">Customer Address: Show customer Address in general information and editable. Customer Address will be posted to Address column in output VAT report.</p>
+<p class="node_d">Tax code: Tax code of “customer ID” appears in general information and editable. Tax code posts to Tax code column in output VAT report.</p>
+<p class="node">     Item group</p>
+<p class="node_d">     Name of goods, services in output VAT list. If you do not input date in this field, the system will auto get the item with the greatest sales figures.</p>
+
+<p class="node">      Note</p>
+<p class="node_d">     Information enter in tax report (output VAT invoice list)</p>
+
+
+<p id="td2">Some common tasks in creating Sales Invoice
+<p class="node">Create Sales Invoice - Extract from Pick List
+<p class="node_d">Create a new Sales Invoice, click on function “<img src="eng\retrieve.png"/> - Extract Data", 
+select “Extract from Pick List” function and type start date. 
+Lookup and choose Pick List in Pick List selecting screen.<br/>
+Input invoice quantity then exit Pick List screen. Data in selected rows in this list will be system-updated to Sales Invoice.</p>
+
+<p class="node">Create Sales Invoice - Extract from Order
+<p class="node_d">Create a new Sales Invoice, click on function “<img src="eng\retrieve.png"/> - Extract Data", 
+select “Extract from Order” function and type start date. 
+Lookup and choose Orders in Order selecting screen.<br/>
+Input invoice quantity then exit Order screen. Data in selected rows in this list will be system-updated to Sales Invoice.</p>
+
+<p class="node">View Receipt
+<p class="node_d">
+If you want to refer specific calculated cost in some Receipt, press the icon <img src="eng\view.png"/> to filter these Receipts.
+
+<p class="node">Import data from excel file </p>
+<p class="node_d">The data importing process:
+<ul class="lo_2">
+	- Enter Sales Invoice;<br/>
+	- Click the icon <img src="eng/download.png"/> to download template file to put data in;<br/>
+	- After keying data in the spreadsheet, to up data to the system, click the icon <img src="eng/upload.png"/>, 
+	select the file, the system will get data from this file to grid view of the invoice.<br/>
+</ul>
+
+<p class="note">Notes of inputting data in template file:<br/>
+- Unit, Debit Account, Customer: Account must be detailed account;<br/>
+Unit is one of the assigned units with unit locking date before invoice date;<br/> 
+- UOM: is one defined in list. If an item has many units of measure, define in Unit Conversion List;<br/>
+- Site: input sites belonging to assigned units;<br/>
+- Location: required when site having location track;<br/>
+- Lot: required when item with lot control;<br/>
+- Sales Account: get from one defined in item list; otherwise the system will get from the imported file;<br/>
+- Currency: if voucher consists of many rows, the currency of the first row will be considered as currency of the voucher;<br/>
+- Site, Lot, Location, Currency, Tax Code, Tax Authority, Job, Department, MO, Product, Contract, Expense, Loan Contract: must be one existing in the corresponding list with the same length in add (edit) screen in list;<br/>
+- Tax Account: must be detailed account. If there is no tax account in the imported file, the system will get one in accordance with tax code;<br/>
+- Date: input in date format. Data closing date and voucher locking date must be before voucher creating date;<br/>
+- Quantity: input in number format, 9 digits maximum and 3 decimal digits (standard format);<br/>
+- Price: input in number format, 12 digits maximum and 4 decimal digits (standard format);<br/>
+- Amount: input in number format, 14 digits maximum and 2 decimal digits (standard format). The system will import the right amount input in the template file, not recalculate.
+</p>
+<p class="note">The system will give error message in some following cases:<br/>
+	- Data in column containing customer, supplier, account do not exist in the corresponding lists. Account is general account.
+	In this case, the system will indicate the specific invalid cell;<br/>
+	- The required fields (Invoice Number, Unit, Tax Authority,...) are blank;<br/>
+	- String data is longer than the available length of field; the field length is the same as one manually input.
+
+<p class="note">Other notes:<br/>
+- Cannot import data after system data closing, unit or voucher locking date (the data closing date after the beginning input date);<br/>
+- The current user must have the "New" right in "Sales Invoice" menu;<br/>
+- The current user must have the "New" right in "Access Right by Unit" menu;<br/>
+- Enable to import data for many units. If the data of the current unit has been closed, the system will give warning message when you click the  <img src="eng/download.png"/> icon; if data of other units has been closed, the system will also give warning message during importing process and indicate the specific invalid cell;<br/>
+- Check the duplicate vouchers by number only (if available);<br/>
+- If the invoice currency is the same as base currency, it is required to input exchange rate as 1;<br/>
+- Cannot import data from spreadsheet with macro;<br/>
+- Only support for spreadsheet in Excel 2007 or higher.
+</p>
+
+
+<p id="p1">  See <a href=GeneralVouchertask.htm> “Hints and Tips in voucher” </a>for details of common tasks</p>
+
+
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>

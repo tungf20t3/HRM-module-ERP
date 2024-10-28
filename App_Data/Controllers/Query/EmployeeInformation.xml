@@ -1,0 +1,1083 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<query xmlns="urn:schemas-ai-erp:data-query">
+  <title v="Thông tin nhân viên" e="Employee Information"/>
+
+  <filterTitle v="Danh sách điều kiện lọc" e="Filter List"/>
+  <filterSubTitle v="Kéo thả các trường để thêm vào danh sách" e="Drag and drop to add fields to the list"/>
+
+  <previewTitle v="Danh sách nhân viên" e="Employee List"/>
+  <previewSubTitle v="Xem, kết xuất thông tin dưới dạng tệp bảng tính..." e="View, Export the data as a spreadsheet file..."/>
+
+  <format>
+    <type name="AllowNulls" value="false"></type>
+    <type name="Numeric" value="#########0.00"></type>
+    <type name="ItemCount" value="10"></type>
+    <type name="PagingCount" value="10"></type>
+    <type name="PagingList" value="5,10,15,20,25"></type>
+    <type name="ColumnList" value="1050,1000,1020,1040,1060"></type>
+    <type name="GroupList" value="1030"></type>
+
+    <type name="HeaderBeginRow" value="3"></type>
+    <type name="DetailBeginRow" value="5"></type>
+    <type name="RowHeight" value="12"></type>
+    <type name="ColumnWidth" value="10"></type>
+    <type name="DeltaWidth" value="5"></type>
+    <type name="OnProcessFailure" value="parent.on$EmployeeInformation$OnProcessFailure({0});"></type>
+  </format>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+if @@admin <> 1 exec dbo.AI_ERP$HRM$Query$Initialize @@controller, @@tables, @@alias, @@userID, @@admin, @@sysDatabaseName
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+if @@admin <> 1 exec dbo.AI_ERP$HRM$Query$Checking @@controller, @@tables, @@userID, @@admin, @@language, @@sysDatabaseName
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <data>
+    <tables>
+      <table id="10" parentID="" name="" controller="" key="" type="0" prime="true">
+        <title v="Thông tin cá nhân" e="Personal Information"/>
+      </table>
+      <table id="10.1" parentID="10" name="" controller="" key="stt_rec" type="0">
+        <title v="Thông tin chung" e="General Information"/>
+      </table>
+      <table id="10.1.1" parentID="10.1" name="vqhrnv" controller="hrPIGeneralInformation" key="stt_rec" type="1" force="true" prime="true">
+        <title v="Thông tin chung" e="General Information"/>
+      </table>
+      <table id="10.1.5" parentID="10.1" name="vqhrnv" controller="hrPIGeneralInformation" key="stt_rec" type="1" prime="true">
+        <title v="Công việc" e="Working"/>
+      </table>
+      <table id="10.1.10" parentID="10.1" name="vqhrnv" controller="hrPIGeneralInformation" key="stt_rec" type="1" prime="true">
+        <title v="Trình độ học vấn" e="Education"/>
+      </table>
+      <table id="10.1.15" parentID="10.1" name="vqhrnv" controller="hrPIGeneralInformation" key="stt_rec" type="1" prime="true">
+        <title v="Ngoại ngữ" e="Foreign Language"/>
+      </table>
+      <table id="10.1.20" parentID="10.1" name="vqhrnv" controller="hrPIGeneralInformation" key="stt_rec" type="1" prime="true">
+        <title v="Địa chỉ liên hệ" e="Resident Address"/>
+      </table>
+      <table id="10.1.25" parentID="10.1" name="vqhrnv" controller="hrPIGeneralInformation" key="stt_rec" type="1" prime="true">
+        <title v="Khác" e="Other"/>
+      </table>
+      <table id="10.5" parentID="10" name="vqhrnv" controller="hrPIPassportVisa" key="stt_rec" type="1" prime="true">
+        <title v="Hộ chiếu, thị thực" e="Passport, Visa"/>
+      </table>
+      <table id="10.10" parentID="10" name="vqhrnv" controller="hrPIHealth" key="stt_rec" type="1" prime="true">
+        <title v="Sức khỏe" e="Health"/>
+      </table>
+      <table id="10.15" parentID="10" name="vqhregd" controller="hrPIFamily" key="stt_rec" type="0">
+        <title v="Gia đình" e="Family Background"/>
+      </table>
+      <table id="20" parentID="" name="" controller="" key="" type="0">
+        <title v="Học vấn, nghề nghiệp" e="Educational Background"/>
+      </table>
+      <table id="20.1" parentID="20" name="vqhrehv" controller="hrPIRegularEducation" key="stt_rec" type="0">
+        <title v="Đào tạo chính quy" e="Regular Education"/>
+      </table>
+      <table id="20.5" parentID="20" name="vqhrenn" controller="hrPIForeignLanguage" key="stt_rec" type="0">
+        <title v="Ngoại ngữ" e="Foreign Language"/>
+      </table>
+      <table id="20.10" parentID="20" name="vqhrebcm" controller="hrPISpeciality" key="stt_rec" type="0">
+        <title v="Bậc nghề nghiệp chuyên môn" e="Speciality"/>
+      </table>
+      <table id="20.15" parentID="20" name="vqhredt" controller="hrPITrainingCourses" key="stt_rec" type="0">
+        <title v="Các khóa học ngắn hạn" e="Training Courses"/>
+      </table>
+      <table id="20.20" parentID="20" name="vqhrektr" controller="hrPITestResult" key="stt_rec" type="0">
+        <title v="Kết quả kiểm tra tuyển dụng" e="Recruitment Test"/>
+      </table>
+      <table id="20.25" parentID="20" name="vqhrepv" controller="hrPIInterviewResult" key="stt_rec" type="0">
+        <title v="Kết quả phỏng vấn" e="Interview"/>
+      </table>
+      <table id="30" parentID="" name="" controller="" key="" type="0">
+        <title v="Quá trình làm việc" e="Working History"/>
+      </table>
+      <table id="30.1" parentID="30" name="vqhreqtlvht" controller="hrPIWHCurrent" key="stt_rec" type="0">
+        <title v="Quá trình làm việc tại công ty" e="Current Working History"/>
+      </table>
+      <table id="30.5" parentID="30" name="vqhreqtlvtd" controller="hrPIWHPrevious" key="stt_rec" type="0">
+        <title v="Quá trình công tác trước đây" e="Previous Working History"/>
+      </table>
+      <table id="30.10" parentID="30" name="vqhrnv" controller="hrPIWorkingHistory" key="stt_rec" type="1" prime="true">
+        <title v="Thông tin khác" e="Other Information"/>
+      </table>
+      <table id="40" parentID="" name="" controller="" key="" type="0">
+        <title v="Quá trình lương" e="Salary History"/>
+      </table>
+      <table id="40.1" parentID="40" name="" controller="" key="" type="0">
+        <title v="Quá trình lương kinh doanh" e="Actual Salary History"/>
+      </table>
+      <table id="40.1.1" parentID="40.1" name="vqhreqtlkdht" controller="hrPIASCurrent" key="stt_rec" type="0">
+        <title v="Lương hiện tại" e="Current Salary"/>
+      </table>
+      <table id="40.1.5" parentID="40.1" name="vqhreqtlkddk" controller="hrPIASPlanned" key="stt_rec" type="0">
+        <title v="Lương dự kiến" e="Planned Salary"/>
+      </table>
+      <table id="40.5" parentID="40" name="" controller="" key="" type="0">
+        <title v="Quá trình lương đóng BHXH" e="Base Salary History"/>
+      </table>
+      <table id="40.5.1" parentID="40.5" name="vqhreqtlbhht" controller="hrPIBSCurrent" key="stt_rec" type="0">
+        <title v="Lương hiện tại" e="Current Salary"/>
+      </table>
+      <table id="40.5.5" parentID="40.5" name="vqhreqtlbhdk" controller="hrPIBSPlanned" key="stt_rec" type="0">
+        <title v="Lương dự kiến" e="Planned Salary"/>
+      </table>
+      <table id="50" parentID="" name="" controller="" key="" type="0">
+        <title v="Khen thưởng, kỷ luật" e="Award, Violation"/>
+      </table>
+      <table id="50.1" parentID="50" name="vqhrekt" controller="hrPIAward" key="stt_rec" type="0">
+        <title v="Khen thưởng" e="Award"/>
+      </table>
+      <table id="50.5" parentID="50" name="vqhrekl" controller="hrPIViolation" key="stt_rec" type="0">
+        <title v="Kỷ luật" e="Violation"/>
+      </table>
+      <table id="60" parentID="" name="" controller="" key="" type="0">
+        <title v="Thông tin đảng, đoàn, quân đội" e="Party, Union, Army Service Information"/>
+      </table>
+      <table id="60.1" parentID="60" name="vqhrnv" controller="hrPIUnionPartyArmy" key="stt_rec" type="1" prime="true">
+        <title v="Thông tin chung" e="General Information"/>
+      </table>
+      <table id="60.5" parentID="60" name="vqhrnv" controller="hrPIUnionPartyArmy" key="stt_rec" type="1" prime="true">
+        <title v="Đảng" e="Party"/>
+      </table>
+      <table id="60.10" parentID="60" name="vqhrnv" controller="hrPIUnionPartyArmy" key="stt_rec" type="1" prime="true">
+        <title v="Đoàn" e="Union"/>
+      </table>
+      <table id="60.15" parentID="60" name="vqhrnv" controller="hrPIUnionPartyArmy" key="stt_rec" type="1" prime="true">
+        <title v="Quân đội" e="Army Service"/>
+      </table>
+      <table id="70" parentID="" name="vqhretn" controller="hrPIWorkAccident" key="stt_rec" type="0">
+        <title v="Tai nạn lao động" e="Work Accident"/>
+      </table>
+    </tables>
+
+    <columns>
+      <column id="1000" tableID="10.1.1" name="ma_nv" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã nhân viên" e="Employee ID"/>
+      </column>
+      <column id="1020" tableID="10.1.1" name="ho_ten" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Họ và tên" e="Employee Name"/>
+      </column>
+      <column id="1021" tableID="10.1.1" name="ho_nv" dataType="nvarchar" maxLength="64" width="120" indent="true">
+        <title v="Họ nhân viên" e="Last Name"/>
+      </column>
+      <column id="1022" tableID="10.1.1" name="ten_nv" dataType="nvarchar" maxLength="16" width="120" indent="true">
+        <title v="Tên nhân viên" e="First Name"/>
+      </column>
+      <column id="1030" tableID="10.1.1" name="bo_phan" reference="ten_bo_phan%l" order="stt_ref" dataType="nvarchar" maxLength="16" width="200" mapping="ma_bp$hrbp.ma_bp">
+        <title v="Bộ phận" e="Department"/>
+      </column>
+      <column id="1031" tableID="10.1.1" name="bo_phan" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" indent="true">
+        <title v="Mã bộ phận" e="Department ID"/>
+      </column>
+      <column id="1032" tableID="10.1.1" name="bac_bp" dataType="int" align="right" dataFormatString="##0" width="80" indent="true" aggregate="Max">
+        <title v="Bậc bộ phận" e="Department Grade"/>
+      </column>
+      <column id="1040" tableID="10.1.1" name="gioi_tinh" reference="ten_gioi_tinh%l" dataType="char" maxLength="1" width="100">
+        <title v="Giới tính" e="Gender"/>
+      </column>
+      <column id="1050" tableID="10.1.1" name="stt" dataType="int" align="right" width="100" dataFormatString="####0" aggregate="Max">
+        <title v="Stt sắp xếp" e="Ordinal Number"/>
+      </column>
+      <column id="1060" tableID="10.1.1" name="ngay_sinh" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày sinh" e="Date of Birth"/>
+      </column>
+      <column id="1061" tableID="10.1.1" name="ngay_sinh_ngay" dataType="int" align="right" dataFormatString="#0" width="80" indent="true" aggregate="Max">
+        <title v="Ngày" e="Day"/>
+      </column>
+      <column id="1062" tableID="10.1.1" name="ngay_sinh_thang" dataType="int" align="right" dataFormatString="#0" width="80" indent="true" aggregate="Max">
+        <title v="Tháng" e="Month"/>
+      </column>
+      <column id="1063" tableID="10.1.1" name="ngay_sinh_nam" dataType="int" align="right" dataFormatString="###0" width="80" indent="true" aggregate="Max">
+        <title v="Năm" e="Year"/>
+      </column>
+      <column id="1070" tableID="10.1.1" name="noi_sinh" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Nơi sinh" e="Place of Birth"/>
+      </column>
+      <column id="1075" tableID="10.1.1" name="ma_loai_gt" dataType="varchar" maxLength="2" width="120">
+        <title v="Loại giấy tờ" e="Identity Paper Type"/>
+      </column>
+      <column id="1080" tableID="10.1.1" name="cmnd_so" dataType="varchar" maxLength="16" width="120">
+        <title v="Số CMND/CCCD" e="ID Card No."/>
+      </column>
+      <column id="1090" tableID="10.1.1" name="cmnd_noi_cap" reference="ten_cmnd_noi_cap%l" dataType="varchar" maxLength="8" width="200">
+        <title v="Nơi cấp" e="Place of Issue"/>
+      </column>
+      <column id="1100" tableID="10.1.1" name="cmnd_ngay_hl" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày cấp" e="Date of Issue"/>
+      </column>
+      <column id="1110" tableID="10.1.1" name="cmnd_ngay_hh" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày hết hạn" e="Expiry Date"/>
+      </column>
+      <column id="1120" tableID="10.1.1" name="quoc_tich" reference="ten_quoc_tich%l" dataType="char" maxLength="16" width="200">
+        <title v="Quốc tịch" e="Nationality"/>
+      </column>
+      <column id="1130" tableID="10.1.1" name="dan_toc" reference="ten_dan_toc%l" dataType="char" maxLength="2" width="120">
+        <title v="Dân tộc" e="Ethnic"/>
+      </column>
+      <column id="1140" tableID="10.1.1" name="ton_giao" reference="ten_ton_giao%l" dataType="char" maxLength="2" width="200">
+        <title v="Tôn giáo" e="Religion"/>
+      </column>
+      <column id="1150" tableID="10.1.1" name="hon_nhan" reference="ten_hon_nhan%l" dataType="char" maxLength="2" width="200">
+        <title v="Tình trạng hôn nhân" e="Marital Status"/>
+      </column>
+      <column id="1160" tableID="10.1.1" name="dien_thoai_dd" dataType="varchar" maxLength="24" width="120">
+        <title v="Điện thoại di động" e="Mobile Phone"/>
+      </column>
+      <column id="1170" tableID="10.1.1" name="email_cty" dataType="nvarchar" maxLength="48" width="200">
+        <title v="Thư (Email)" e="Email Address"/>
+      </column>
+      <column id="1180" tableID="10.1.1" name="dia_chi_ht" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Địa chỉ hiện tại" e="Current Address"/>
+      </column>
+      <column id="1190" tableID="10.1.1" name="dia_chi_ht_so" dataType="nvarchar" maxLength="190" width="200" indent="true">
+        <title v="Địa chỉ hiện tại số" e="Current Address Number"/>
+      </column>
+      <column id="1200" tableID="10.1.1" name="dia_chi_ht_phuong" dataType="nvarchar" maxLength="64" width="200" indent="true">
+        <title v="Địa chỉ hiện tại xã/phường" e="Current Address Ward"/>
+      </column>
+      <column id="1210" tableID="10.1.1" name="dia_chi_ht_tinh" reference="ten_dia_chi_ht_tinh%l" dataType="char" maxLength="8" width="200" indent="true">
+        <title v="Địa chỉ hiện tại tỉnh/thành" e="Current Address Province"/>
+      </column>
+      <column id="1220" tableID="10.1.1" name="dia_chi_ht_quan" reference="ten_dia_chi_ht_quan%l" dataType="char" maxLength="8" width="200" indent="true">
+        <title v="Địa chỉ hiện tại quận/huyện" e="Current Address District"/>
+      </column>
+      <column id="1230" tableID="10.1.5" name="ngay_vao" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày vào công ty" e="Join Date"/>
+      </column>
+      <column id="1231" tableID="10.1.5" name="ngay_vao_ngay" dataType="int" align="right" dataFormatString="#0" width="80" indent="true" aggregate="Max">
+        <title v="Ngày" e="Day"/>
+      </column>
+      <column id="1232" tableID="10.1.5" name="ngay_vao_thang" dataType="int" align="right" dataFormatString="#0" width="80" indent="true" aggregate="Max">
+        <title v="Tháng" e="Month"/>
+      </column>
+      <column id="1233" tableID="10.1.5" name="ngay_vao_nam" dataType="int" align="right" dataFormatString="###0" width="80" indent="true" aggregate="Max">
+        <title v="Năm" e="Year"/>
+      </column>
+      <column id="1240" tableID="10.1.5" name="ngay_chinh_thuc" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày vào chính thức" e="Official Hire Date"/>
+      </column>
+      <column id="1241" tableID="10.1.5" name="ngay_chinh_thuc_ngay" dataType="int" align="right" dataFormatString="#0" width="80" indent="true" aggregate="Max">
+        <title v="Ngày" e="Day"/>
+      </column>
+      <column id="1242" tableID="10.1.5" name="ngay_chinh_thuc_thang" dataType="int" align="right" dataFormatString="#0" width="80" indent="true" aggregate="Max">
+        <title v="Tháng" e="Month"/>
+      </column>
+      <column id="1243" tableID="10.1.5" name="ngay_chinh_thuc_nam" dataType="int" align="right" dataFormatString="###0" width="80" indent="true" aggregate="Max">
+        <title v="Năm" e="Year"/>
+      </column>
+      <column id="1250" tableID="10.1.5" name="vi_tri" reference="ten_vi_tri%l" dataType="char" maxLength="16" width="200">
+        <title v="Vị trí công việc" e="Position"/>
+      </column>
+      <column id="1260" tableID="10.1.5" name="bac_quan_ly" reference="ten_bac_quan_ly%l" dataType="char" maxLength="2" width="200">
+        <title v="Bậc quản lý" e="Job Grade"/>
+      </column>
+      <column id="1270" tableID="10.1.5" name="nv_ql" reference="ten_nv_ql" dataType="char" maxLength="16" width="120">
+        <title v="Người quản lý trực tiếp" e="Direct Supervisor"/>
+      </column>
+      <column id="1280" tableID="10.1.10" name="ma_tdhv" reference="ten_ma_tdhv%l" dataType="char" maxLength="2" width="200">
+        <title v="Trình độ học vấn" e="Education Level"/>
+      </column>
+      <column id="1290" tableID="10.1.10" name="truong_hoc" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Trường tốt nghiệp" e="Graduation from"/>
+      </column>
+      <column id="1300" tableID="10.1.10" name="ma_cn" reference="ten_ma_cn%l" dataType="char" maxLength="8" width="200">
+        <title v="Chuyên ngành" e="Education Major"/>
+      </column>
+      <column id="1310" tableID="10.1.10" name="ngay_hoc_tu" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Từ ngày" e="From Date"/>
+      </column>
+      <column id="1320" tableID="10.1.10" name="ngay_hoc_den" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Đến ngày" e="To Date"/>
+      </column>
+      <column id="1330" tableID="10.1.10" name="ngay_tot_nghiep" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày tốt nghiệp" e="Graduation Date"/>
+      </column>
+      <column id="1340" tableID="10.1.10" name="loai_tot_nghiep" dataType="nvarchar" maxLength="64" width="120">
+        <title v="Xếp loại tốt nghiệp" e="Rank of Graduation"/>
+      </column>
+      <column id="1350" tableID="10.1.15" name="ma_nn" reference="ten_ma_nn%l" dataType="char" maxLength="8" width="200">
+        <title v="Ngoại ngữ" e="Foreign Language"/>
+      </column>
+      <column id="1360" tableID="10.1.15" name="bang_cap" reference="ten_bang_cap%l" dataType="char" maxLength="8" width="200">
+        <title v="Bằng cấp" e="Certificate"/>
+      </column>
+      <column id="1370" tableID="10.1.15" name="diem" dataType="nvarchar" maxLength="64" width="120">
+        <title v="Bằng/Điểm" e="Grade/Score"/>
+      </column>
+      <column id="1380" tableID="10.1.15" name="ngay_cap_bang" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày cấp" e="Date of Issue"/>
+      </column>
+      <column id="1390" tableID="10.1.20" name="dien_thoai_cty" dataType="varchar" maxLength="24" width="120">
+        <title v="Điện thoại công ty" e="Office Phone"/>
+      </column>
+      <column id="1400" tableID="10.1.20" name="dien_thoai_nha" dataType="varchar" maxLength="24" width="120">
+        <title v="Điện thoại nhà riêng" e="Home Phone"/>
+      </column>
+      <column id="1410" tableID="10.1.20" name="email_ca_nhan" dataType="nvarchar" maxLength="48" width="200">
+        <title v="Thư (Email) cá nhân" e="Email Address"/>
+      </column>
+      <column id="1420" tableID="10.1.20" name="giam_ho" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Cha/mẹ hoặc giám hộ" e="Father/Mother/Guardian"/>
+      </column>
+      <column id="1430" tableID="10.1.20" name="nguoi_than" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Thân nhân khác" e="Others"/>
+      </column>
+      <column id="1440" tableID="10.1.20" name="dia_chi_th_tru" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Địa chỉ thường trú" e="Permanent Address"/>
+      </column>
+      <column id="1450" tableID="10.1.20" name="dia_chi_th_tru_so" dataType="nvarchar" maxLength="190" width="200" indent="true">
+        <title v="Địa chỉ thường trú số" e="Permanent Address Number"/>
+      </column>
+      <column id="1460" tableID="10.1.20" name="dia_chi_th_tru_phuong" dataType="nvarchar" maxLength="64" width="200" indent="true">
+        <title v="Địa chỉ thường trú xã/phường" e="Permanent Address Ward"/>
+      </column>
+      <column id="1470" tableID="10.1.20" name="dia_chi_th_tru_tinh" reference="ten_dia_chi_th_tru_tinh%l" dataType="char" maxLength="8" width="200" indent="true">
+        <title v="Địa chỉ thường trú tỉnh/thành" e="Permanent Address Province"/>
+      </column>
+      <column id="1480" tableID="10.1.20" name="dia_chi_th_tru_quan" reference="ten_dia_chi_th_tru_quan%l" dataType="char" maxLength="8" width="200" indent="true">
+        <title v="Địa chỉ thường trú quận/huyện" e="Permanent Address District"/>
+      </column>
+      <column id="1490" tableID="10.1.20" name="que_quan" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Quê quán" e="Native Country"/>
+      </column>
+      <column id="1500" tableID="10.1.20" name="que_quan_so" dataType="nvarchar" maxLength="190" width="200" indent="true">
+        <title v="Quê quán số" e="Native Country Address Number"/>
+      </column>
+      <column id="1510" tableID="10.1.20" name="que_quan_phuong" dataType="nvarchar" maxLength="64" width="200" indent="true">
+        <title v="Quê quán xã/phường" e="Native Country Ward"/>
+      </column>
+      <column id="1520" tableID="10.1.20" name="que_quan_tinh" reference="ten_que_quan_tinh%l" dataType="char" maxLength="8" width="200" indent="true">
+        <title v="Quê quán tỉnh/thành" e="Native Country Province"/>
+      </column>
+      <column id="1530" tableID="10.1.20" name="que_quan_quan" reference="ten_que_quan_quan%l" dataType="char" maxLength="8" width="200" indent="true">
+        <title v="Quê quán quận/huyện" e="Native Country District"/>
+      </column>
+      <column id="1540" tableID="10.1.25" name="nh_nv1" reference="ten_nh_nv1%l" dataType="char" maxLength="8" width="200">
+        <title v="Nhóm nhân viên 1" e="Employee Group 1"/>
+      </column>
+      <column id="1550" tableID="10.1.25" name="nh_nv2" reference="ten_nh_nv2%l" dataType="char" maxLength="8" width="200">
+        <title v="Nhóm nhân viên 2" e="Employee Group 2"/>
+      </column>
+      <column id="1560" tableID="10.1.25" name="nh_nv3" reference="ten_nh_nv3%l" dataType="char" maxLength="8" width="200">
+        <title v="Nhóm nhân viên 3" e="Employee Group 3"/>
+      </column>
+      <column id="1570" tableID="10.1.25" name="tinh_trang_nv" reference="ten_tinh_trang_nv%l" dataType="char" maxLength="2" width="200">
+        <title v="Tình trạng hiện tại" e="Current Status"/>
+      </column>
+      <column id="1580" tableID="10.1.25" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="1590" tableID="10.5" name="ho_chieu_so" dataType="varchar" maxLength="16" width="120">
+        <title v="Số hộ chiếu" e="Passport No."/>
+      </column>
+      <column id="1600" tableID="10.5" name="ho_chieu_ngay_hl" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày cấp hộ chiếu" e="Date of Issue"/>
+      </column>
+      <column id="1610" tableID="10.5" name="ho_chieu_noi_cap" reference="ten_ho_chieu_noi_cap%l" dataType="varchar" maxLength="16" width="200">
+        <title v="Nơi cấp hộ chiếu" e="Place of Issue"/>
+      </column>
+      <column id="1620" tableID="10.5" name="ho_chieu_ngay_hh" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title  v="Ngày hết hạn" e="Expiry Date"/>
+      </column>
+      <column id="1630" tableID="10.5" name="visa_so" dataType="varchar" maxLength="16" width="120">
+        <title v="Số thị thực (Visa)" e="Visa No."/>
+      </column>
+      <column id="1640" tableID="10.5" name="visa_ngay_hl" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày cấp thị thực" e="Date of Issue"/>
+      </column>
+      <column id="1650" tableID="10.5" name="visa_noi_cap" reference="ten_visa_noi_cap%l" dataType="varchar" maxLength="16" width="200">
+        <title v="Nơi cấp thị thực" e="Place of Issue"/>
+      </column>
+      <column id="1660" tableID="10.5" name="visa_ngay_hh" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title  v="Ngày hết hạn" e="Expiry Date"/>
+      </column>
+      <column id="1670" tableID="10.10" name="ngay_kham" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày khám sức khỏe" e="Health Care Date"/>
+      </column>
+      <column id="1680" tableID="10.10" name="chieu_cao" dataType="numeric" align="right" width="100" dataFormatString="#0.00" aggregate="Max">
+        <title v="Chiều cao" e="Height"/>
+      </column>
+      <column id="1690" tableID="10.10" name="can_nang" dataType="numeric" align="right" width="100" dataFormatString="#000" aggregate="Max">
+        <title v="Cân nặng" e="Weight"/>
+      </column>
+      <column id="1700" tableID="10.10" name="mat_phai" dataType="nvarchar" maxLength="128" width="120">
+        <title v="Mắt phải" e="Right Eye"/>
+      </column>
+      <column id="1710" tableID="10.10" name="mat_trai" dataType="nvarchar" maxLength="128" width="120">
+        <title v="Mắt trái" e="Left Eye"/>
+      </column>
+      <column id="1720" tableID="10.10" name="nhom_mau" dataType="char" maxLength="2" width="100">
+        <title v="Nhóm máu" e="Blood Type"/>
+      </column>
+      <column id="1730" tableID="10.10" name="loai_sk" dataType="nvarchar" maxLength="128" width="120">
+        <title v="Loại sức khỏe" e="Health Type"/>
+      </column>
+      <column id="1740" tableID="10.10" name="ghi_chu_sk" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Thông tin khác" e="Other Information"/>
+      </column>
+      <column id="1750" tableID="10.15" name="ma_qh" reference="ten_ma_qh%l" dataType="char" maxLength="2" width="200">
+        <title v="Quan hệ" e="Relationship"/>
+      </column>
+      <column id="1760" tableID="10.15" name="ho_ten" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Họ và tên" e="Full Name"/>
+      </column>
+      <column id="1770" tableID="10.15" name="ngay_sinh" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày sinh" e="Date of Birth"/>
+      </column>
+
+      <column id="1771" tableID="10.15" name="ngay_sinh_ngay" dataType="int" align="right" dataFormatString="#0" width="80" indent="true" aggregate="Max">
+        <title v="Ngày" e="Day"/>
+      </column>
+      <column id="1772" tableID="10.15" name="ngay_sinh_thang" dataType="int" align="right" dataFormatString="#0" width="80" indent="true" aggregate="Max">
+        <title v="Tháng" e="Month"/>
+      </column>
+      <column id="1773" tableID="10.15" name="ngay_sinh_nam" dataType="int" align="right" dataFormatString="###0" width="80" indent="true" aggregate="Max">
+        <title v="Năm" e="Year"/>
+      </column>
+
+      <column id="1780" tableID="10.15" name="da_mat" dataType="bit" width="100">
+        <title v="Đã mất" e="Passed Away"/>
+      </column>
+      <column id="1790" tableID="10.15" name="nghe_nghiep" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Nghề nghiệp" e="Occupation"/>
+      </column>
+      <column id="1800" tableID="10.15" name="dia_chi" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Địa chỉ nơi ở" e="Address"/>
+      </column>
+      <column id="1810" tableID="10.15" name="dien_thoai_dd" dataType="varchar" maxLength="24" width="120">
+        <title v="Điện thoại di động" e="Mobile Phone"/>
+      </column>
+      <column id="1820" tableID="10.15" name="email" dataType="nvarchar" maxLength="32" width="200">
+        <title v="Thư (Email)" e="Email"/>
+      </column>
+      <column id="1830" tableID="10.15" name="khan_cap" dataType="bit" width="100">
+        <title v="Liên hệ khẩn cấp" e="Emergency Contact"/>
+      </column>
+      <column id="1840" tableID="10.15" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="1850" tableID="20.1" name="ma_tdhv" reference="ten_ma_tdhv%l" dataType="char" maxLength="2" width="200">
+        <title v="Cấp đào tạo" e="Education Level"/>
+      </column>
+      <column id="1860" tableID="20.1" name="truong_hoc" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Trường đào tạo" e="Training Place"/>
+      </column>
+      <column id="1870" tableID="20.1" name="ma_cn" reference="ten_ma_cn%l" dataType="char" maxLength="8" width="200">
+        <title v="Chuyên nghành" e="Education Major"/>
+      </column>
+      <column id="1880" tableID="20.1" name="mac_dinh_yn" dataType="bit" width="100">
+        <title v="Bằng cấp chính" e="Major Certificate"/>
+      </column>
+      <column id="1890" tableID="20.1" name="ngay_tu" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Từ ngày" e="From Date"/>
+      </column>
+      <column id="1900" tableID="20.1" name="ngay_den" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Đến ngày" e="To Date"/>
+      </column>
+      <column id="1910" tableID="20.1" name="ngay_tot_nghiep" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày tốt nghiệp" e="Graduation Date"/>
+      </column>
+      <column id="1920" tableID="20.1" name="loai_tot_nghiep" dataType="nvarchar" maxLength="64" width="200">
+        <title v="Xếp loại" e="Rank of Graduation"/>
+      </column>
+      <column id="1930" tableID="20.1" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="1940" tableID="20.5" name="ma_nn" reference="ten_ma_nn%l" dataType="char" maxLength="8" width="200">
+        <title v="Ngoại ngữ" e="Language"/>
+      </column>
+      <column id="1950" tableID="20.5" name="mac_dinh_yn" dataType="bit" width="100">
+        <title v="Ngoại ngữ chính" e="Main Language"/>
+      </column>
+      <column id="1960" tableID="20.5" name="bang_cap" reference="ten_bang_cap%l" dataType="char" maxLength="8" width="200">
+        <title v="Loại bằng cấp" e="Certificate"/>
+      </column>
+      <column id="1970" tableID="20.5" name="diem" dataType="nvarchar" maxLength="64" width="200">
+        <title v="Bằng/Điểm" e="Grade/Marks"/>
+      </column>
+      <column id="1980" tableID="20.5" name="ngay_cap" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày cấp" e="Date of Issue"/>
+      </column>
+      <column id="1990" tableID="20.5" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="2000" tableID="20.10" name="ma_cm" reference="ten_ma_cm%l" dataType="char" maxLength="8" width="200">
+        <title v="Chuyên môn" e="Speciality"/>
+      </column>
+      <column id="2010" tableID="20.10" name="mac_dinh_yn" dataType="bit" width="100">
+        <title v="Chuyên môn chính" e="Main Speciality"/>
+      </column>
+      <column id="2020" tableID="20.10" name="ma_bac" reference="ten_ma_bac%l" dataType="char" maxLength="2" width="200">
+        <title v="Bậc" e="Level"/>
+      </column>
+      <column id="2030" tableID="20.10" name="ngay_hl" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày hiệu lực" e="Effective Date"/>
+      </column>
+      <column id="2040" tableID="20.10" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="2050" tableID="20.15" name="ma_khoa" reference="ten_ma_khoa%l" dataType="varchar" maxLength="16" width="200">
+        <title v="Mã khóa học" e="Course Code"/>
+      </column>
+      <column id="2060" tableID="20.15" name="ma_mh" reference="ten_ma_mh%l" dataType="char" maxLength="8" width="200">
+        <title v="Môn học" e="Subject"/>
+      </column>
+      <column id="2070" tableID="20.15" name="loai_hinh_dt" reference="ten_loai_hinh_dt%l" dataType="char" maxLength="2" width="200">
+        <title v="Loại hình đào tạo" e="Training Type"/>
+      </column>
+      <column id="2080" tableID="20.15" name="ma_dvdt" reference="ten_ma_dvdt%l" dataType="char" maxLength="8" width="200">
+        <title v="Đơn vị đào tạo" e="Training Provider"/>
+      </column>
+      <column id="2090" tableID="20.15" name="ngay_hoc1" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày học từ" e="Training Date from"/>
+      </column>
+      <column id="2100" tableID="20.15" name="ngay_hoc2" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày học đến" e="Training Date to"/>
+      </column>
+      <column id="2110" tableID="20.15" name="so_gio" dataType="numeric" align="right" width="100" dataFormatString="### ### ##0.00" aggregate="Max">
+        <title v="Tổng số giờ học" e="No. of Training Hours"/>
+      </column>
+      <column id="2120" tableID="20.15" name="diem" dataType="numeric" align="right" width="100" dataFormatString="@markInputFormat" aggregate="Max">
+        <title v="Điểm" e="Mark"/>
+      </column>
+      <column id="2130" tableID="20.15" name="xep_loai" reference="ten_xep_loai%l" dataType="char" maxLength="2" width="200">
+        <title v="Xếp loại" e="Grade"/>
+      </column>
+      <column id="2140" tableID="20.15" name="dat_yn" dataType="bit" width="100">
+        <title v="Kết quả" e="Result"/>
+      </column>
+      <column id="2150" tableID="20.15" name="chung_chi" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Chứng chỉ" e="Certificate"/>
+      </column>
+      <column id="2160" tableID="20.15" name="ngay_cap" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày cấp" e="Date of Issue"/>
+      </column>
+      <column id="2170" tableID="20.15" name="ngay_hl" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title  v="Hiệu lực từ ngày" e="Effective Date from"/>
+      </column>
+      <column id="2180" tableID="20.15" name="ngay_hh" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Hiệu lực đến ngày" e="Effective Date to"/>
+      </column>
+      <column id="2190" tableID="20.15" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="2200" tableID="20.20" name="ma_ktr" reference="ten_ma_ktr%l" dataType="char" maxLength="8" width="200">
+        <title v="Loại kiểm tra" e="Test Code"/>
+      </column>
+      <column id="2210" tableID="20.20" name="ngay_ktr" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày kiểm tra" e="Test Date"/>
+      </column>
+      <column id="2220" tableID="20.20" name="diem" dataType="numeric" align="right" width="100" dataFormatString="@markInputFormat" aggregate="Max">
+        <title v="Điểm" e="Mark"/>
+      </column>
+      <column id="2230" tableID="20.20" name="ma_kq" reference="ten_ma_kq%l" dataType="char" maxLength="1" width="200">
+        <title v="Kết quả" e="Result"/>
+      </column>
+      <column id="2240" tableID="20.20" name="trong_so" dataType="numeric" align="right" width="100" dataFormatString="### ### ##0" aggregate="Max">
+        <title v="Trọng số (%)" e="Weight (%)"/>
+      </column>
+      <column id="2250" tableID="20.20" name="ghi_chu" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="2260" tableID="20.25" name="ma_pv" reference="ten_ma_pv%l" dataType="char" maxLength="8" width="200">
+        <title v="Loại phỏng vấn" e="Interview Code"/>
+      </column>
+      <column id="2270" tableID="20.25" name="ngay_pv" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày phỏng vấn" e="Interview Date"/>
+      </column>
+      <column id="2280" tableID="20.25" name="diem" dataType="numeric" align="right" width="100" dataFormatString="@markInputFormat" aggregate="Max">
+        <title v="Điểm" e="Mark"/>
+      </column>
+      <column id="2290" tableID="20.25" name="ma_kq" reference="ten_ma_kq%l" dataType="char" maxLength="1" width="200">
+        <title v="Kết quả" e="Result"/>
+      </column>
+      <column id="2300" tableID="20.25" name="trong_so" dataType="numeric" align="right" width="100" dataFormatString="### ### ##0" aggregate="Max">
+        <title v="Trọng số (%)" e="Weight (%)"/>
+      </column>
+      <column id="2310" tableID="20.25" name="ghi_chu" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="2320" tableID="30.1" name="loai" reference="ten_loai%l" dataType="char" maxLength="1" width="200">
+        <title v="Loại" e="Type"/>
+      </column>
+      <column id="2330" tableID="30.1" name="tinh_chat" reference="ten_tinh_chat%l" dataType="char" maxLength="1" width="200">
+        <title v="Tính chất" e="Nature"/>
+      </column>
+      <column id="2340" tableID="30.1" name="loai_thay_doi" reference="ten_loai_thay_doi%l" dataType="char" maxLength="1" width="200">
+        <title v="Loại thay đổi" e="Change Category"/>
+      </column>
+      <column id="2350" tableID="30.1" name="bo_phan" reference="ten_bo_phan%l" dataType="char" maxLength="16" width="200">
+        <title v="Bộ phận" e="Department"/>
+      </column>
+      <column id="2360" tableID="30.1" name="vi_tri" reference="ten_vi_tri%l" dataType="char" maxLength="16" width="200">
+        <title v="Vị trí công việc" e="Position"/>
+      </column>
+      <column id="2370" tableID="30.1" name="bac_quan_ly" reference="ten_bac_quan_ly%l" dataType="char" maxLength="2" width="200">
+        <title v="Bậc quản lý" e="Job Grade"/>
+      </column>
+      <column id="2380" tableID="30.1" name="nguoi_quan_ly" reference="ten_nguoi_quan_ly" dataType="char" maxLength="16" width="120">
+        <title v="Người quản lý trực tiếp" e="Direct Supervisor"/>
+      </column>
+      <column id="2390" tableID="30.1" name="ngay_tu" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày bắt đầu" e="Start Date"/>
+      </column>
+      <column id="2400" tableID="30.1" name="ly_do" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Lý do thay đổi" e="Reason for Change"/>
+      </column>
+      <column id="2410" tableID="30.1" name="so_quyet_dinh" dataType="nvarchar" maxLength="64" width="200">
+        <title v="Số quyết định" e="Decision No."/>
+      </column>
+      <column id="2420" tableID="30.1" name="ngay_quyet_dinh" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày quyết định" e="Date of Decision"/>
+      </column>
+      <column id="2430" tableID="30.1" name="nguoi_quyet_dinh" dataType="nvarchar" maxLength="64" width="200">
+        <title v="Người quyết định" e="Decision Maker"/>
+      </column>
+      <column id="2440" tableID="30.1" name="ngay_den" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày kết thúc" e="End Date"/>
+      </column>
+      <column id="2450" tableID="30.1" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="2460" tableID="30.5" name="cong_ty" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Đơn vị" e="Organization"/>
+      </column>
+      <column id="2470" tableID="30.5" name="vi_tri" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Vị trí công việc" e="Position"/>
+      </column>
+      <column id="2480" tableID="30.5" name="luong" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Max">
+        <title v="Lương" e="Salary"/>
+      </column>
+      <column id="2490" tableID="30.5" name="thoi_gian_lv" dataType="numeric" align="right" width="100" dataFormatString="# ### ##0.00" aggregate="Max">
+        <title v="Năm công tác" e="Seniority"/>
+      </column>
+      <column id="2500" tableID="30.5" name="ngay_tu" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Từ ngày" e="From Date"/>
+      </column>
+      <column id="2510" tableID="30.5" name="ngay_den" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Đến ngày" e="To Date"/>
+      </column>
+      <column id="2520" tableID="30.5" name="ly_do_den" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Lý do chuyển đến" e="Reason for Employment"/>
+      </column>
+      <column id="2530" tableID="30.5" name="ly_do_di" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Lý do chuyển đi" e="Reason for Leaving"/>
+      </column>
+      <column id="2540" tableID="30.5" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="2550" tableID="30.10" name="nguoi_tiep_nhan" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Người ký tiếp nhận" e="Recruited by"/>
+      </column>
+      <column id="2560" tableID="30.10" name="nguon_tuyen_dung" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Nguồn tuyển dụng" e="Recruitment Source"/>
+      </column>
+      <column id="2570" tableID="30.10" name="nguoi_gioi_thieu" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Người giới thiệu" e="Introduced by"/>
+      </column>
+      <column id="2580" tableID="30.10" name="ngay_nghi" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày nghỉ việc" e="Date of Leaving"/>
+      </column>
+      <column id="2590" tableID="30.10" name="ly_do_nghi" reference="ten_ly_do_nghi%l" dataType="char" maxLength="8" width="200">
+        <title v="Lý do nghỉ" e="Reason for Leaving"/>
+      </column>
+      <column id="2600" tableID="30.10" name="ghi_chu_tt" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="2610" tableID="40.1.1" name="ngay_bd" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày bắt đầu" e="Start Date"/>
+      </column>
+      <column id="2620" tableID="40.1.1" name="ma_nt" reference="ten_ma_nt%l" dataType="char" maxLength="3" width="120">
+        <title v="Loại tiền" e="Currency"/>
+      </column>
+      <column id="2630" tableID="40.1.1" name="tinh_chat" reference="ten_tinh_chat%l" dataType="char" maxLength="1" width="120">
+        <title v="Tính chất" e="Nature"/>
+      </column>
+      <column id="2640" tableID="40.1.1" name="he_so" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số lương" e="Salary Coefficient"/>
+      </column>
+      <column id="2650" tableID="40.1.1" name="luong_co_ban" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Max">
+        <title v="Lương cơ bản" e="Basic Salary"/>
+      </column>
+      <column id="2660" tableID="40.1.1" name="hs_phu_cap1" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số phụ cấp 1" e="Allowance Coeff. 1"/>
+      </column>
+      <column id="2670" tableID="40.1.1" name="tien_phu_cap1" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền phụ cấp 1" e="Allowance Amount 1"/>
+      </column>
+      <column id="2680" tableID="40.1.1" name="hs_phu_cap2" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số phụ cấp 2" e="Allowance Coeff. 2"/>
+      </column>
+      <column id="2690" tableID="40.1.1" name="tien_phu_cap2" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền phụ cấp 2" e="Allowance Amount 2"/>
+      </column>
+      <column id="2700" tableID="40.1.1" name="hs_phu_cap3" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số phụ cấp 3" e="Allowance Coeff. 3"/>
+      </column>
+      <column id="2710" tableID="40.1.1" name="tien_phu_cap3" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền phụ cấp 3" e="Allowance Amount 3"/>
+      </column>
+      <column id="2720" tableID="40.1.1" name="t_tien_phu_cap" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tổng tiền phụ cấp" e="Total Allowance"/>
+      </column>
+      <column id="2730" tableID="40.1.1" name="t_thu_nhap" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tổng thu nhập" e="Total Income"/>
+      </column>
+      <column id="2740" tableID="40.1.1" name="ly_do" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Lý do thay đổi" e="Reason for Change"/>
+      </column>
+      <column id="2750" tableID="40.1.1" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="2760" tableID="40.1.5" name="ngay_bd" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày bắt đầu" e="Start Date"/>
+      </column>
+      <column id="2770" tableID="40.1.5" name="ma_nt" reference="ten_ma_nt%l" dataType="char" maxLength="3" width="120">
+        <title v="Loại tiền" e="Currency"/>
+      </column>
+      <column id="2780" tableID="40.1.5" name="he_so" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số lương" e="Salary Coefficient"/>
+      </column>
+      <column id="2790" tableID="40.1.5" name="luong_co_ban" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Lương cơ bản" e="Basic Salary"/>
+      </column>
+      <column id="2800" tableID="40.1.5" name="hs_phu_cap1" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số phụ cấp 1" e="Allowance Coeff. 1"/>
+      </column>
+      <column id="2810" tableID="40.1.5" name="tien_phu_cap1" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền phụ cấp 1" e="Allowance Amount 1"/>
+      </column>
+      <column id="2820" tableID="40.1.5" name="hs_phu_cap2" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số phụ cấp 2" e="Allowance Coeff. 2"/>
+      </column>
+      <column id="2830" tableID="40.1.5" name="tien_phu_cap2" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền phụ cấp 2" e="Allowance Amount 2"/>
+      </column>
+      <column id="2840" tableID="40.1.5" name="hs_phu_cap3" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số phụ cấp 3" e="Allowance Coeff. 3"/>
+      </column>
+      <column id="2850" tableID="40.1.5" name="tien_phu_cap3" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền phụ cấp 3" e="Allowance Amount 3"/>
+      </column>
+      <column id="2860" tableID="40.1.5" name="t_tien_phu_cap" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tổng tiền phụ cấp" e="Total Allowance"/>
+      </column>
+      <column id="2870" tableID="40.1.5" name="t_thu_nhap" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tổng thu nhập" e="Total Income"/>
+      </column>
+      <column id="2890" tableID="40.1.5" name="ly_do" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Lý do thay đổi" e="Reason for Change"/>
+      </column>
+      <column id="2900" tableID="40.1.5" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="2910" tableID="40.5.1" name="ngay_thay_doi" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày thay đổi từ" e="Change Date from"/>
+      </column>
+      <column id="2911" tableID="40.5.1" name="ngay_thay_doi2" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày thay đổi đến" e="Change Date to"/>
+      </column>
+      <column id="2920" tableID="40.5.1" name="loai_thay_doi" reference="ten_loai_thay_doi%l" dataType="char" maxLength="8" width="200">
+        <title v="Loại thay đổi" e="Reason for Change"/>
+      </column>
+      <column id="2930" tableID="40.5.1" name="cap_bac" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Cấp bậc" e="Level"/>
+      </column>
+      <column id="2940" tableID="40.5.1" name="chuc_danh" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Chức danh nghề" e="Job Title"/>
+      </column>
+      <column id="2950" tableID="40.5.1" name="don_vi" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Đơn vị" e="Unit"/>
+      </column>
+      <column id="2960" tableID="40.5.1" name="dia_chi" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Địa chỉ" e="Address"/>
+      </column>
+      <column id="2970" tableID="40.5.1" name="hs_luong" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số lương" e="Salary Coefficient"/>
+      </column>
+      <column id="2980" tableID="40.5.1" name="hs_pc_chuc_vu" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số pc chức vụ" e="Position Coeff."/>
+      </column>
+      <column id="2990" tableID="40.5.1" name="hs_pc_vuot_khung" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hs pc vượt khung(%)" e="Off-scale Coeff.(%)"/>
+      </column>
+      <column id="3000" tableID="40.5.1" name="hs_pc_khu_vuc" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số pc khu vực" e="Region Coeff."/>
+      </column>
+      <column id="3010" tableID="40.5.1" name="hs_pc_tham_nien" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số pc thâm niên(%)" e="Seniority Coeff.(%)"/>
+      </column>
+      <column id="3020" tableID="40.5.1" name="t_he_so" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Tổng hệ số" e="Total Coefficient"/>
+      </column>
+      <column id="3030" tableID="40.5.1" name="luong_toi_thieu" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Lương tối thiểu" e="Minimum Salary"/>
+      </column>
+      <column id="3040" tableID="40.5.1" name="luong_co_ban" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Lương cơ bản" e="Basic Salary"/>
+      </column>
+      <column id="3050" tableID="40.5.1" name="ty_le_bhxh" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Tỷ lệ đóng BHXH (%)" e="SI Contri. Rate (%)"/>
+      </column>
+      <column id="3060" tableID="40.5.1" name="tien_bhxh" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền BHXH" e="SI Premium"/>
+      </column>
+      <column id="3070" tableID="40.5.1" name="ty_le_bhyt" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Tỷ lệ đóng BHYT (%)" e="HI Contri. Rate (%)"/>
+      </column>
+      <column id="3080" tableID="40.5.1" name="tien_bhyt" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền BHYT" e="HI Premium"/>
+      </column>
+      <column id="3090" tableID="40.5.1" name="ty_le_bhtn" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Tỷ lệ đóng BHTN (%)" e="UI Contri. Rate (%)"/>
+      </column>
+      <column id="3100" tableID="40.5.1" name="tien_bhtn" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền BHTN" e="UI Premium"/>
+      </column>
+      <column id="3110" tableID="40.5.1" name="ty_le_kpcd" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Tỷ lệ đóng KPCĐ (%)" e="Union Due Rate (%)"/>
+      </column>
+      <column id="3120" tableID="40.5.1" name="tien_kpcd" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền KPCĐ" e="Union Dues"/>
+      </column>
+      <column id="3130" tableID="40.5.1" name="can_cu" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Căn cứ đóng" e="Payment Basis"/>
+      </column>
+      <column id="3140" tableID="40.5.1" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="3150" tableID="40.5.5" name="ngay_thay_doi" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày thay đổi từ" e="Change Date from"/>
+      </column>
+      <column id="3151" tableID="40.5.5" name="ngay_thay_doi2" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày thay đổi đến" e="Change Date to"/>
+      </column>
+      <column id="3160" tableID="40.5.5" name="loai_thay_doi" reference="ten_loai_thay_doi%l" dataType="char" maxLength="8" width="200">
+        <title v="Loại thay đổi" e="Reason for Change"/>
+      </column>
+      <column id="3170" tableID="40.5.5" name="cap_bac" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Cấp bậc" e="Level"/>
+      </column>
+      <column id="3180" tableID="40.5.5" name="chuc_danh" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Chức danh nghề" e="Job Title"/>
+      </column>
+      <column id="3190" tableID="40.5.5" name="don_vi" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Đơn vị" e="Unit"/>
+      </column>
+      <column id="3200" tableID="40.5.5" name="dia_chi" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Địa chỉ" e="Address"/>
+      </column>
+      <column id="3210" tableID="40.5.5" name="hs_luong" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số lương" e="Salary Coefficient"/>
+      </column>
+      <column id="3220" tableID="40.5.5" name="hs_pc_chuc_vu" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số pc chức vụ" e="Position Coeff."/>
+      </column>
+      <column id="3230" tableID="40.5.5" name="hs_pc_vuot_khung" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hs pc vượt khung(%)" e="Off-scale Coeff.(%)"/>
+      </column>
+      <column id="3240" tableID="40.5.5" name="hs_pc_khu_vuc" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số pc khu vực" e="Region Coeff."/>
+      </column>
+      <column id="3250" tableID="40.5.5" name="hs_pc_tham_nien" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Hệ số pc thâm niên(%)" e="Seniority Coeff.(%)"/>
+      </column>
+      <column id="3260" tableID="40.5.5" name="t_he_so" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Tổng hệ số" e="Total Coefficient"/>
+      </column>
+      <column id="3270" tableID="40.5.5" name="luong_toi_thieu" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Lương tối thiểu" e="Minimum Salary"/>
+      </column>
+      <column id="3280" tableID="40.5.5" name="luong_co_ban" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Lương cơ bản" e="Basic Salary"/>
+      </column>
+      <column id="3290" tableID="40.5.5" name="ty_le_bhxh" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Tỷ lệ đóng BHXH (%)" e="SI Contri. Rate (%)"/>
+      </column>
+      <column id="3300" tableID="40.5.5" name="tien_bhxh" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền BHXH" e="SI Premium"/>
+      </column>
+      <column id="3310" tableID="40.5.5" name="ty_le_bhyt" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Tỷ lệ đóng BHYT (%)" e="HI Contri. Rate (%)"/>
+      </column>
+      <column id="3320" tableID="40.5.5" name="tien_bhyt" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền BHYT" e="HI Premium"/>
+      </column>
+      <column id="3330" tableID="40.5.5" name="ty_le_bhtn" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Tỷ lệ đóng BHTN (%)" e="UI Contri. Rate (%)"/>
+      </column>
+      <column id="3340" tableID="40.5.5" name="tien_bhtn" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền BHTN" e="UI Premium"/>
+      </column>
+      <column id="3350" tableID="40.5.5" name="ty_le_kpcd" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Tỷ lệ đóng KPCĐ (%)" e="Union Due Rate (%)"/>
+      </column>
+      <column id="3360" tableID="40.5.5" name="tien_kpcd" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Tiền KPCĐ" e="Union Dues"/>
+      </column>
+      <column id="3370" tableID="40.5.5" name="can_cu" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Căn cứ đóng" e="Payment Basis"/>
+      </column>
+      <column id="3380" tableID="40.5.5" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="3390" tableID="50.1" name="hinh_thuc" reference="ten_hinh_thuc%l" dataType="char" maxLength="8" width="200">
+        <title v="Loại khen thưởng" e="Award"/>
+      </column>
+      <column id="3400" tableID="50.1" name="noi_bo_yn" dataType="bit" width="100">
+        <title v="Công ty khen thưởng" e="Company"/>
+      </column>
+      <column id="3410" tableID="50.1" name="cap_quyet_dinh" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Cấp quyết định" e="Decided by"/>
+      </column>
+      <column id="3420" tableID="50.1" name="bac_kt" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Bậc khen thưởng" e="Award Level"/>
+      </column>
+      <column id="3430" tableID="50.1" name="so_quyet_dinh" dataType="nvarchar" maxLength="64" width="200">
+        <title v="Số quyết định" e="Decision No."/>
+      </column>
+      <column id="3440" tableID="50.1" name="ngay_ky" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày ký" e="Date Signed"/>
+      </column>
+      <column id="3450" tableID="50.1" name="nguoi_ky" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Người ký" e="Signed by"/>
+      </column>
+      <column id="3460" tableID="50.1" name="ly_do" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Lý do khen thưởng" e="Reason"/>
+      </column>
+      <column id="3470" tableID="50.1" name="tien" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Giá trị khen thưởng" e="Award Value"/>
+      </column>
+      <column id="3480" tableID="50.1" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="3490" tableID="50.5" name="hinh_thuc" reference="ten_hinh_thuc%l" dataType="char" maxLength="8" width="200">
+        <title v="Loại kỷ luật" e="Disciplinary Action"/>
+      </column>
+      <column id="3500" tableID="50.5" name="noi_bo_yn" dataType="bit" width="100">
+        <title v="Công ty kỷ luật" e="Company"/>
+      </column>
+      <column id="3510" tableID="50.5" name="cap_quyet_dinh" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Cấp quyết định" e="Decided by"/>
+      </column>
+      <column id="3520" tableID="50.5" name="so_quyet_dinh" dataType="nvarchar" maxLength="64" width="200">
+        <title v="Số quyết định" e="Decision No."/>
+      </column>
+      <column id="3530" tableID="50.5" name="ngay_ky" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày ký" e="Date Signed"/>
+      </column>
+      <column id="3540" tableID="50.5" name="nguoi_ky" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Người ký" e="Signed by"/>
+      </column>
+      <column id="3550" tableID="50.5" name="ly_do" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Lý do kỷ luật" e="Reason"/>
+      </column>
+      <column id="3560" tableID="50.5" name="tien" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat" aggregate="Sum">
+        <title v="Số tiền phạt" e="Amount"/>
+      </column>
+      <column id="3570" tableID="50.5" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="3580" tableID="60.1" name="thanh_phan_gd" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Thành phần gia đình" e="Family Background"/>
+      </column>
+      <column id="3590" tableID="60.1" name="thanh_phan_bt" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Thành phần bản thân" e="Personal Background"/>
+      </column>
+      <column id="3600" tableID="60.5" name="dang_vien_yn" dataType="bit" width="100">
+        <title v="Đang là đảng viên" e="Party Member"/>
+      </column>
+      <column id="3610" tableID="60.5" name="ngay_vao_dang" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày vào đảng" e="Join Date"/>
+      </column>
+      <column id="3620" tableID="60.5" name="ngay_vd_chinh_thuc" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày chính thức" e="Official Admitted Date"/>
+      </column>
+      <column id="3630" tableID="60.5" name="noi_ket_nap" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Nơi kết nạp" e="Place of Admission"/>
+      </column>
+      <column id="3640" tableID="60.5" name="so_the_dang" dataType="nvarchar" maxLength="32" width="200">
+        <title v="Số thẻ đảng" e="Party Card No."/>
+      </column>
+      <column id="3650" tableID="60.5" name="chuc_vu_dang" dataType="nvarchar" maxLength="128" width="200">
+        <title  v="Chức vụ hiện tại" e="Current Position"/>
+      </column>
+      <column id="3660" tableID="60.5" name="chuc_vu_dang2" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Chức vụ cao nhất" e="Highest Position"/>
+      </column>
+      <column id="3670" tableID="60.5" name="trinh_do_ly_luan" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Trình độ lý luận" e="Political Theory Level"/>
+      </column>
+      <column id="3680" tableID="60.5" name="ngay_ra_dang" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày ra khỏi đảng" e="Leaving Date"/>
+      </column>
+      <column id="3690" tableID="60.5" name="ghi_chu_dd2" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="3700" tableID="60.10" name="doan_vien_yn" dataType="bit" width="100">
+        <title v="Đang là đoàn viên" e="Union Member"/>
+      </column>
+      <column id="3710" tableID="60.10" name="ngay_vao_doan" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày vào đoàn" e="Join Date"/>
+      </column>
+      <column id="3720" tableID="60.10" name="chuc_vu_doan" dataType="nvarchar" maxLength="128" width="200">
+        <title  v="Chức vụ hiện tại" e="Current Position"/>
+      </column>
+      <column id="3730" tableID="60.10" name="chuc_vu_doan2" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Chức vụ cao nhất" e="Highest Position"/>
+      </column>
+      <column id="3740" tableID="60.10" name="ngay_ra_doan" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày ra khỏi đảng" e="Leaving Date"/>
+      </column>
+      <column id="3750" tableID="60.10" name="ghi_chu_dd1" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="3760" tableID="60.15" name="nhap_ngu_yn" dataType="bit" width="100">
+        <title v="Đã nhập ngũ" e="Army Joined"/>
+      </column>
+      <column id="3770" tableID="60.15" name="ngay_nhap_ngu" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày nhập ngũ" e="Join Date"/>
+      </column>
+      <column id="3780" tableID="60.15" name="quan_ham" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Quân hàm cao nhất" e="Highest Rank"/>
+      </column>
+      <column id="3790" tableID="60.15" name="ngay_xuat_ngu" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày xuất ngũ" e="Date of Discharge"/>
+      </column>
+      <column id="3800" tableID="60.15" name="ghi_chu_dd3" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+      <column id="3810" tableID="70" name="loai_tn" reference="ten_loai_tn%l" dataType="char" maxLength="8" width="200">
+        <title v="Loại tai nạn" e="Accident Type"/>
+      </column>
+      <column id="3820" tableID="70" name="tn_ld_yn" dataType="bit" width="100">
+        <title v="Tai nạn lao động" e="Work Accident"/>
+      </column>
+      <column id="3830" tableID="70" name="ngay_tn" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày xảy ra" e="Date of Occurence"/>
+      </column>
+      <column id="3840" tableID="70" name="so_ngay_nghi" dataType="numeric" align="right" width="120" dataFormatString="##0.00" aggregate="Max">
+        <title v="Số ngày nghỉ" e="No. of Days off"/>
+      </column>
+      <column id="3850" tableID="70" name="muc_do" dataType="nvarchar" maxLength="128" width="200">
+        <title v="Mức độ" e="Level"/>
+      </column>
+      <column id="3860" tableID="70" name="ghi_chu" dataType="nvarchar" maxLength="256" width="200">
+        <title v="Ghi chú" e="Note"/>
+      </column>
+    </columns>
+  </data>
+
+</query>

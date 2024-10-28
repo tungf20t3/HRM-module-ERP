@@ -1,0 +1,35 @@
+﻿<![CDATA[
+function load$Grid$]]>&TransferID;<![CDATA[(g) {
+  g.add_onResponseComplete(on$Grid$]]>&TransferID;<![CDATA[$ResponseComplete);  
+  g.add_commandEvent(on$Grid$]]>&TransferID;<![CDATA[$ExecuteCommand);
+}
+function dispose$Grid$]]>&TransferID;<![CDATA[(g) {
+  try {g.remove_commandEvent(on$Grid$]]>&TransferID;<![CDATA[$ExecuteCommand);} catch (ex) {}
+  try {g.remove_onResponseComplete(on$Grid$]]>&TransferID;<![CDATA[$ResponseComplete);} catch (ex) {}  
+}
+function on$Grid$]]>&TransferID;<![CDATA[$ExecuteCommand(sender, e) {
+  var action = e.type.Action, g = sender;
+  switch (action) {
+    case 'ImportData':
+      show$Form(g, ']]>&TransferID;<![CDATA[Import');
+      break;
+    case 'Download':
+      ]]>&UserDefinedDownload;<![CDATA[
+      break;
+    default:
+      break;
+  }
+}
+function on$Grid$]]>&TransferID;<![CDATA[$ResponseComplete(sender, e) {
+  var g = e.object, context = e.type.Context, result = e.type.Result, o = e.type.Object;
+  switch (context) {
+    case 'Download':
+      g._key = result[0].Value;
+      break;
+    default:
+      break;
+  }
+}
+function show$Form(g, c) {(g._authorize == 1) ? g.showForm(c) : $message.show($df.getResources(g._language, "Message.NotAccess"));}
+]]>
+&DowloadScript;

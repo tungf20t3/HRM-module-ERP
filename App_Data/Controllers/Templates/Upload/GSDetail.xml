@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY CheckImportUserDefinedFields SYSTEM "..\..\Include\Command\CheckImportUserDefinedFields.txt">
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.GSTran;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'GSDetail' else 'GSDetail2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$GSDetailImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$GSDetailImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+    <baseTable value="d10$000000"/>
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    &Tiny.External.Import.View.GSDetail;
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Bút toán điều chỉnh số dư đầu năm" e="Opening Balance Adjustment Entry"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="tk" width="16">
+        <text v="Tài khoản" e="Account"/>
+      </field>
+      <field name="ten_tk" afterField="tk" width="32">
+        <text v="Tên tài khoản" e="Description"/>
+      </field>
+      <field name="ma_kh" width="16">
+        <text v="Mã khách hàng" e="Customer"/>
+      </field>
+      <field name="ten_kh" afterField="ma_kh" width="32">
+        <text v="Tên khách hàng" e="Customer Name"/>
+      </field>
+
+      <field name="ps_no_nt" width="16">
+        <text v="Phát sinh nợ" e="Debit"/>
+      </field>
+      <field name="ps_co_nt" width="16">
+        <text v="Phát sinh có" e="Credit"/>
+      </field>
+      <field name="dien_giai" width="50">
+        <text v="Diễn giải" e="Description"/>
+      </field>
+      <field name="ma_vv" width="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_hd" width ="16">
+        <text v="Hợp đồng" e="Contract"/>
+      </field>
+      <field name="ma_ku" width ="16">
+        <text v="Khế ước" e="Loan Contract"/>
+      </field>
+      <field name="nh_dk" width="16">
+        <text v="Nhóm định khoản" e="Group"/>
+      </field>
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @user int, @admin bit, @language char(1), @sys varchar(32), @m int
+select @admin = @@admin, @user = @@userID, @language = @@language, @sys = '@@sysDatabaseName'
+select @message = case @language when 'v' then N'Dữ liệu trong tệp không có hoặc không hợp lệ.' else N'The content of the data file is empty or invalid.' end
+
+create table #r(tk varchar(32), ten_tk nvarchar(512), ma_kh varchar(32), ten_kh nvarchar(512), tk_cn tinyint, ps_no_nt numeric(19, 4), ps_co_nt numeric(19, 4), dien_giai nvarchar(512),
+  ma_vv varchar(32), ma_hd varchar(32), ma_ku varchar(32), nh_dk varchar(32), ref varchar(32), stt int)
+
+select @q = 'insert into #r(tk, ten_tk, ma_kh, ten_kh, tk_cn, ps_no_nt, ps_co_nt, dien_giai, ma_vv, ma_hd, ma_ku, nh_dk, ref, stt)'
+select @q = @q + ' select a.tk, case when b.loai_tk = 1 then b.ten_tk%l else null end, a.ma_kh, c.ten_kh%l, '
+select @q = @q + 'b.tk_cn, ps_no_nt, ps_co_nt, dien_giai, a.ma_vv, a.ma_hd, a.ma_ku, a.nh_dk, '''', a.stt'
+select @q = @q + ' from @@table a left join dmtk b on a.tk = b.tk left join dmkh c on a.ma_kh = c.ma_kh'
+exec sp_executesql @q
+
+if not exists(select 1 from #r where ma_vv <> '') update #r set ref = ref + '1'
+  else update #r set ref = ref + case when a.ma_vv = '' or b.ma_vv is not null then '1' else '0' end from #r a left join dmvv b on a.ma_vv = b.ma_vv
+if not exists(select 1 from #r where ma_hd <> '') update #r set ref = ref + '1'
+  else update #r set ref = ref + case when a.ma_hd = '' or b.ma_hd is not null then '1' else '0' end from #r a left join dmhd b on a.ma_hd = b.ma_hd
+if not exists(select 1 from #r where ma_ku <> '') update #r set ref = ref + '1'
+  else update #r set ref = ref + case when a.ma_ku = '' or b.ma_ku is not null then '1' else '0' end from #r a left join dmku b on a.ma_ku = b.ma_ku
+
+select '' as message, 'this.frameElement.result = @@result;parent.set$Grid$ImportResult(this.frameElement);' as script
+select tk, ten_tk, ma_kh, ten_kh, tk_cn, ps_no_nt, ps_co_nt, dien_giai, ma_vv, ma_hd, ma_ku, rtrim(nh_dk) as nh_dk, ref from #r order by stt
+return
+]]>
+    </text>
+  </processing>
+
+</import>

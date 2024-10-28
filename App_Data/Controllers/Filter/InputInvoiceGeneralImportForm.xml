@@ -1,0 +1,333 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+  <!ENTITY ScriptQueryData SYSTEM "..\Include\Javascript\QueryData.txt">
+
+  <!ENTITY Identity "InputInvoiceGeneralImport">
+  <!ENTITY DetailTable "d15f">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Supplier">
+  <!ENTITY c21 "Số hóa đơn">
+  <!ENTITY c22 "Invoice Number">
+  <!ENTITY c31 "Ngày hóa đơn">
+  <!ENTITY c32 "Invoice Date">
+]>
+
+<dir table="m15$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Hóa đơn" e="Invoice"></title>
+  <fields>
+    <field name="stt_rec" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_ncc">
+      <header v="Tên ncc gốc" e="Original &c12;"></header>
+    </field>
+    <field name="ma_kh" allowNulls="false" onDemand="true">
+      <header v="&c11;" e="&c12;"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1' and cc_yn = 1" check="cc_yn = 1" information="ma_kh$dmkh.ten_kh%l" new="Default" row="1"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&Identity;<![CDATA[$Customer(this);"]]></clientScript>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_ct" dataFormatString="@upperCaseFormat" align="right" inactivate="true">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left" inactivate="true">
+      <header v="&c31;" e="&c32;"></header>
+    </field>
+
+    <field name="tk" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_tk%l" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_tt" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_tt%l" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ong_ba" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="dia_chi" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_so_thue" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nvbh" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_nvbh%l" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="tk_nh" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="Tk ngân hàng" e="Bank Account"></header>
+    </field>
+    <field name="ten_nh" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="Tên ngân hàng" e="Bank Name"></header>
+    </field>
+    <field name="chi_nhanh" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="Chi nhánh" e="Branch"></header>
+    </field>
+    <field name="tinh_thanh" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="Tỉnh thành" e="Province/City"></header>
+    </field>
+    <field name="quoc_gia" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="Quốc gia" e="Nation"></header>
+    </field>
+
+    <field name="&DetailTable;" external="true" clientDefault="0" defaultValue="0" rows="208" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="&Identity;Grid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="1100000000-101: [ten_ncc].Label, [ten_ncc], [so_ct].Label, [so_ct]"/>
+      <item value="1101000000-101: [ma_kh].Label, [ma_kh], [ten_kh%l], [ngay_ct].Label, [ngay_ct]"/>
+
+      <item value="1: [&DetailTable;]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'show$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptQueryData;
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid;
+  f.setReadOnlyFields('ten_ncc, so_ct, ngay_ct');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  f.getItem('ma_kh').focus();
+
+  f.getItem(']]>&DetailTable;<![CDATA[')._controlBehavior.add_onRender(on$]]>&Identity;<![CDATA[$GridRender$Detail);
+
+  g._grid = createGrid($get('subReport'), g, 'SubReport', '');
+  g._grid.add_onRender(on$subReport$Render);
+  g._grid._$external = true;
+  g._grid._$result = g._$result;
+  g._grid._$inputInvoiceLength = g._$inputInvoiceLength;
+  g._grid._$sttRec = g._$sttRec;
+  g._grid._$ngayCt = g._$ngayCt;
+  g._grid._$status = g._$status;
+  g._grid._$parentGrid = g;
+
+  f._setReadOnly(f.getItem('ma_kh'), g._$voucherCode == 'PK1' || g._$voucherCode == 'HD9' || g._$voucherCode == 'PN9');
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid, result = g._$result, multi = g._$inputInvoiceLength && g._$inputInvoiceLength > 1;
+  f._denyFocus = true;
+
+  if (!multi) f.setItemValues('so_ct, ngay_ct', [result[0][1], result[0][2]]);
+
+  switch (g._$voucherCode) {
+    case 'PNA':
+    case 'PNG':
+    case 'PNE':
+      f.setItemValues('ten_ncc, ma_kh, ten_kh%l, dia_chi, ma_so_thue, ong_ba, ma_tt, ten_tt%l, tk, ten_tk%l', [result[0][39], result[0][38], result[0][53], result[0][40], result[0][41], result[0][42], result[0][37], result[0][4], result[0][43], result[0][44]]);
+      break;
+    case 'HDF':
+      f.setItemValues('ten_ncc, ma_kh, ten_kh%l, dia_chi, ma_so_thue, ong_ba, ma_tt, ten_tt%l, tk, ten_tk%l, ma_nvbh, ten_nvbh%l', [result[0][39], result[0][38], result[0][53], result[0][40], result[0][41], result[0][42], result[0][37], result[0][4], result[0][43], result[0][44], result[0][63], result[0][64]]);
+      break;
+    case 'PN1':
+    case 'PNC':
+      f.setItemValues('ten_ncc, ma_kh, ten_kh%l, dia_chi, ma_so_thue, ong_ba, ma_tt, ten_tt%l, tk, ten_tk%l', [result[0][29], result[0][28], result[0][44], result[0][30], result[0][31], result[0][32], result[0][27], result[0][4], result[0][33], result[0][34]]);
+      break;
+    case 'HD3':
+      f.setItemValues('ten_ncc, ma_kh, ten_kh%l, dia_chi, ma_so_thue, ong_ba, ma_tt, ten_tt%l, tk, ten_tk%l, ma_nvbh, ten_nvbh%l', [result[0][29], result[0][28], result[0][44], result[0][30], result[0][31], result[0][32], result[0][27], result[0][4], result[0][33], result[0][34], result[0][54], result[0][55]]);
+      break;
+    case 'PN2':
+    case 'PC1':
+    case 'BN1':
+    case 'PK1':
+    case 'HD9':
+    case 'PN9':
+      var c1 = true, c2 = true, mst = result[0][31];
+      for (var i = 1; i < result.length; i++) {
+        if ($func.trim(mst) != $func.trim(result[i][31])) {
+          c1 = false;
+          break;
+        }
+      }
+      if (g._$voucherCode == 'PK1' || g._$voucherCode == 'HD9' || g._$voucherCode == 'PN9') {
+        c2 = false;
+        setItemDisable(f, 'ma_kh', true);
+        if (c1) f.setItemValue('ten_ncc', result[0][29]);
+      }
+      if (c1 && c2) {
+        f.setItemValues('ten_ncc, ma_kh, ten_kh%l, dia_chi, ma_so_thue, ong_ba', [result[0][29], result[0][28], result[0][44], result[0][30], mst, result[0][32]]);
+        if (g._$voucherCode == 'BN1') f.setItemValues('tk_nh, ten_nh, chi_nhanh, tinh_thanh, quoc_gia', [result[0][55], result[0][56], result[0][57], result[0][58], result[0][59]]);
+      }
+      f.setItemValues('ma_tt, ten_tt%l, tk, ten_tk%l', [result[0][27], result[0][4], result[0][33], result[0][34]]);
+      break;
+    default:
+      break;
+  }
+}
+function show$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid, o = f.getItem('ma_kh'), key, check;
+  switch (g._$voucherCode) {
+    case 'PNA':
+    case 'PN1':
+    case 'PN2':
+    case 'PNG':
+    case 'PNE':
+    case 'PNC':
+      key = "status = '1' and cc_yn = 1";
+      check = "cc_yn = 1";
+      break;
+    case 'HDF':
+    case 'HD3':
+      key = "(kh_yn = 1 or nv_yn = 1) and status = '1'";
+      check = "kh_yn = 1 or nv_yn = 1";
+      break;
+    case 'PC1':
+    case 'BN1':
+    case 'PK1':
+    case 'HD9':
+    case 'PN9':
+      key = "status = '1'";
+      check = "1 = 1";
+      break;
+    default:
+      break;
+  }
+  o.field.ItemCheckFilter = check;
+  o.field.ItemKeyFilter = key;
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+  try {f.getItem(']]>&DetailTable;<![CDATA[')._controlBehavior.remove_onRender(on$]]>&Identity;<![CDATA[$GridRender$Detail);} catch (ex) {}
+  var input = $get('fileuploadXml');
+  if (input) input.value = '';
+}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, g = f.grid, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Customer':
+      f.setItemValues('tk, ten_tk%l, ma_tt, ten_tt%l, ong_ba, dia_chi, ma_so_thue, ma_nvbh, ten_nvbh%l, tk_nh, ten_nh, tinh_thanh, chi_nhanh, quoc_gia', [result[0].Value, result[1].Value, result[2].Value, result[3].Value, result[4].Value, result[5].Value, result[6].Value, result[7].Value, result[8].Value, result[9].Value, result[10].Value, result[11].Value, result[12].Value, result[13].Value]);
+      f.live(f.getItem('ma_kh'));
+      break;
+    case 'Checking':
+      var list = [];
+      for (var i = 0; i < f._fields.length; i++) {
+        var name = f._fields[i].Name;
+        list.push({name: name, value: f.getItemValue(name)});
+      }
+
+      g._grid._$detailImportData = list;
+      g._grid._$detailImport = f;
+      g._grid._$gridDetailImport = f.getItem(']]>&DetailTable;<![CDATA[')._controlBehavior;
+
+      f._flowScript = 'request$ARCreate(this.grid)';
+      break;
+    default:
+      break;
+  }
+}
+function on$]]>&Identity;<![CDATA[$GridRender$Detail(sender, eventArgs) {
+  var f = eventArgs.grid.get_element().parentForm;
+  set$]]>&Identity;<![CDATA[$GridColumns(f, f.grid._$voucherCode);
+}
+function onChange$]]>&Identity;<![CDATA[$Customer(o) {
+  var f = o.parentForm;
+  if (!$func.trim(f.getItemValue('ma_kh'))) {
+    f.setItemValues('ong_ba, dia_chi, ma_so_thue, ma_nvbh, ten_nvbh%l, tk_nh, ten_nh, tinh_thanh, chi_nhanh, quoc_gia', ['', '', '', '', '', '', '', '', '', '']);
+    return;
+  }
+  f.request('Customer', 'Customer', ['ma_kh'], o);
+}
+function onChange$]]>&Identity;<![CDATA[$VoucherCode(o) {set$]]>&Identity;<![CDATA[$GridColumns(o.parentForm, o.value);}
+function set$]]>&Identity;<![CDATA[$GridColumns(f, v) {
+  var g = f.getItem(']]>&DetailTable;<![CDATA[')._controlBehavior;
+
+  setItemAllowNull(f, 'ma_kh', v == 'PN2' || v == 'BN1' || v == 'PC1' || v == 'PK1' || v == 'HD9' || v == 'PN9');
+
+  g._suspendLayout();
+  setObjectColumnHidden$(g, 'ma_vt, ten_vt%l, ten_vt_goc', v == 'PNA' || v == 'PNG' || v == 'PNE' || v == 'HDF' || v == 'PNC');
+  setObjectColumnHidden$(g, 'dien_giai', v == 'PN1' || v == 'PN2' || v == 'HD3' || v == 'PC1' || v == 'BN1' || v == 'PK1' || v == 'HD9' || v == 'PN9');
+  g._resumeLayout();
+}
+
+function on$subReport$Render(c,b){var a=b.grid;if(a._rowCount==1){a._setActiveCell(a._getItem(1,1));a.executeCommand({commandName:"New",commandArgument:"0"})}}function request$ARCreate(a){a._grid.executeCommand({commandName:"New",commandArgument:"0"})}function createGrid(c,a,d,b){return $create(AI_ERP.AjaxControlExtender.ReportExtender,{memvars:[],externalKey:[],offsetHeight:b,baseUrl:a._baseUrl,controller:a._$gridController,cookie:a._cookie,denySessionStorage:a._denySessionStorage,id:d,parentGrid:a,initPageSize:0,language:a._language,offsetTime:a._offsetTime,readOnly:true,serviceLookup:a._serviceLookup,serviceMethod:a._serviceMethod,servicePath:a._servicePath},null,null,c)}function setObjectColumnHidden$(c,d,e){for(var b=d.split(","),a=0;a<b.length;a++)c._setColumnVisible(c._getColumnOrder($func.trim(b[a])),e)}function setItemHidden(f,e,d){for(var b=e.split(","),c,a=0;a<b.length;a++)if($func.trim(b[a])!=""){c=f.getItem($func.trim(b[a]));c.field.AllowNulls=d;$common.setVisible(c.parentNode.parentNode.parentNode,!d)}}function setItemAllowNull(b,e,d){var c=b.getItem($func.trim(e)),a=c.parentNode.parentNode;c.field.AllowNulls=d;if(!d){Sys.UI.DomElement.addCssClass(a,"Required");Sys.UI.DomElement.addCssClass(a,b._id)}else Sys.UI.DomElement.removeCssClass(a,"Required")}function setItemDisable(d,c,b){var a=d.getItem($func.trim(c));a.a&&$common.setVisible(a.a,!b);a.disabled=b}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Customer">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmkh where ma_kh = @ma_kh and cc_yn = 1) begin
+  select rtrim(a.tk) as tk, b.ten_tk%l, rtrim(a.ma_tt) as ma_tt, c.ten_tt%l, rtrim(doi_tac) as ong_ba, rtrim(a.dia_chi) as dia_chi, rtrim(a.ma_so_thue) as ma_so_thue, rtrim(a.ma_nvbh) as ma_nvbh, d.ten_nvbh%l, rtrim(a.tk_nh) as tk_nh, rtrim(a.ngan_hang) as ngan_hang, rtrim(a.tinh_thanh) as tinh_thanh, rtrim(a.chi_nhanh) as chi_nhanh, rtrim(a.quoc_gia) as quoc_gia
+    from dmkh a left join dmtk b on a.tk = b.tk left join dmtt c on a.ma_tt = c.ma_tt left join dmnvbh d on a.ma_nvbh = d.ma_nvbh
+    where a.ma_kh = @ma_kh
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

@@ -1,0 +1,251 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIPIPRMultiForm">
+  <!ENTITY ParentController "BIPITran">
+  <!ENTITY GridController "BIPIPRMultiGrid">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+  <!ENTITY FlowMultiGeneralTable "c91$000000">
+
+  <!ENTITY EnvironmentTaxValidTotal.ExecuteExpression.Condition "if (!v) w.executeExpression([z.$a.t_thue_nt, z.$a.t_thue, z.$a.t_tt_nt, z.$a.t_tt]);">
+  <!ENTITY EnvironmentTaxValidTotal ",z.$a.t_bvmt_nt, z.$a.t_bvmt">
+  <!ENTITY EnvironmentTaxQuery.DateEffective "@ngay_mt">
+  <!ENTITY % EnvironmentTax SYSTEM "..\Include\BIEnvironmentTax.ent">
+  %EnvironmentTax;
+  <!ENTITY EnvironmentTaxType "1">
+  <!ENTITY EnvironmentTaxComma ",">
+
+  <!ENTITY OtherCopyField "nhieu_dvt, he_so, ma_thue, thue_suat, ma_thue_nk, thue_suat_nk, loai_dt, ct_dt_pb, ten_loai&#37;l, kieu_pb&FlowMultiUserDefinedFieldsCopy;&EnvironmentTaxCopyFields;">
+
+  <!ENTITY BIGetPriceScriptMulti SYSTEM "..\Include\Javascript\BIPRGetPriceScriptMulti.txt">
+  <!ENTITY RetrieveGetPrice SYSTEM "..\Include\Command\BIRetrieveGetPriceMulti.txt">
+  <!ENTITY IRFields ", ir_dong, ir_gia_chuan_nt, ir_gia_nt, ir_so_ct, ir_ma_rb, ir_sl_dat_tt, ir_sl_dat_td, ir_sai_can_duoi,ir_sai_can_tren, ir_so_ngay_giao, ir_ct_gia_dk, ir_ck_dv_nt, ir_cp_dv_nt, ir_ck_nt, ir_cp_nt, ir_exist_price, ir_get_price,ir_stt_rec, ir_stt_rec0">
+  <!ENTITY IRReturnFields ", isnull(ir.dong, 0) as ir_dong, isnull(ir.gia_chuan_nt, 0) as ir_gia_chuan_nt, isnull(ir.gia_nt, 0) as ir_gia_nt, isnull(ir.so_ct, '') as ir_so_ct, isnull(ir.ma_rb ,'') as ir_ma_rb, isnull(ir.sl_dat_tt, 0) as ir_sl_dat_tt, isnull(ir.sl_dat_td, 0) as ir_sl_dat_td, isnull(ir.sai_can_duoi, 0) as ir_sai_can_duoi,
+  isnull(ir.sai_can_tren, 0) as ir_sai_can_tren, isnull(ir.so_ngay_giao, 0) as ir_so_ngay_giao, isnull(ir.ct_gia_dk, 0) as ir_ct_gia_dk, isnull(ir.ck_dv_nt, 0) as ir_ck_dv_nt, isnull(ir.cp_dv_nt, 0) as ir_cp_dv_nt, isnull(ir.ck_nt, 0) as ir_ck_nt, isnull(ir.cp_nt, 0) as ir_cp_nt, isnull(ir.exist_price, '') as ir_exist_price, @getPrice as ir_get_price,
+  isnull(ir.stt_rec, '') as ir_stt_rec, isnull(ir.stt_rec0, '') as ir_stt_rec0">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Phiếu nhu cầu" e="Requisition"></title>
+  <fields>
+    &FlowMultiFormField;
+  </fields>
+
+  <views>
+    &FlowMultiFormView;
+  </views>
+
+  <commands>
+    &FlowMultiFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function show$]]>&Identity;<![CDATA[$(f) {
+  var z = f.grid, h = z.get_element().parentForm, c = String.fromCharCode(253), c1 = String.fromCharCode(252);
+  var queryFilterString = z._filter$Fields.join(c).replaceAll("'", c1);
+  show$FlowMulti$Form(f, queryFilterString, ']]>&Identity;<![CDATA[DataGridPanel', ']]>&ParentController;<![CDATA[', ']]>&GridController;<![CDATA[', ']]>&OtherCopyField;&IRFields;<![CDATA[');
+}
+
+function active$]]>&Identity;<![CDATA[$(f) {
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  active$FlowMulti$Form(f);
+}
+
+function close$]]>&Identity;<![CDATA[$(f) {
+  close$FlowMulti$Form(f);
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+}
+
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = getGrid$FlowMulti$(f);
+      var c = String.fromCharCode(255), k1 = g._getColumnOrder('stt_rec') - 1, k2 = g._getColumnOrder('stt_rec0') - 1;
+      f._$k = '';
+      for (var i = 0; i < g._$k.length; i++) {
+        f._$k += (f._$k != '' ? ',' : '') + g._$k[i][k1] + c + g._$k[i][k2];
+      }
+      if (f._$k == '') {
+        f.grid._formScript = 'show$FlowMulti$RetrieveGrid(this)';
+        f.grid._focusWhenTabChanged();
+      } else {
+        f._checked = false;
+        var a = get$]]>&Identity;<![CDATA[Form$DataIR(f);
+        var listRow = '', listQuantity = '', customer = '';
+        var z = f.grid, w = z.get_element().parentForm;
+        if (a) listRow = a.Row.join(',') + ',', listQuantity = a.Quantity.join(',') + ',', customer = a.Customer;
+
+        f.request('GetOtherField', 'GetOtherField', [
+          ['k', 'Infinite', f._$k],
+          ['ds_dong', 'Infinite', listRow],
+          ['ds_so_luong', 'Infinite', listQuantity],
+          ['voucherCode', 'String', z._voucherCode],
+          ['defaultUOM', 'String', '0'],
+          ['getPrice', 'String', '1'],
+          ['ma_dvcs', 'String', w.getItemValue('ma_dvcs')],
+          ['ma_bp0', 'String', w.getItemValue('ma_bp0')],
+          ['ma_nh0', 'String', w.getItemValue('ma_nh0')],
+          ['ma_kh', 'String', customer],
+          ['ngay_lct', 'DateTime', w.getItemValue('ngay_lct')],
+          ['ma_nt', 'String', w.getItemValue('ma_nt')]]]>&EnvironmentTaxRequest.DateEffective;<![CDATA[
+        ]);
+      }
+      break;
+    case 'GetOtherField':
+      var g = getGrid$FlowMulti$(f), a = [];
+      for (var i = 0; i < result.length; i++) {
+        a[i] = g._$k[i].concat(result[i].slice(2));
+      }
+      on$]]>&Identity;<![CDATA[$TransferData(f, g, a);
+      break;
+    default:
+      break;
+  }
+}
+
+function on$]]>&Identity;<![CDATA[$TransferData(f, g, a) {
+  var z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, ngay_yc, stt_rec, stt_rec0, ma_vt_ncc', f2 = 'so_luong, ngay_giao, stt_rec_nc, stt_rec0nc, ma_vt0';
+  var append = false, first = true, qf = f._$queryFilterString.split(String.fromCharCode(253));
+  var ma_nt = w.getItemValue('ma_nt'), m = qf[2];
+
+  var l0 = z._getColumnOrder('ma_vt'), l1 = z._getColumnOrder('dvt'), l2 = getColumnOrderTagRow(g, 'nhieu_dvt'), l3 = getColumnOrderTagRow(g, 'so_luong0');
+  var l7 = getColumnOrderTagRow(g, 'ma_nt'), l8 = getColumnOrderTagRow(g, 'ma_ncc_cd'), l9 = getColumnOrderTagRow(g, 'ma_nh0'), l10 = getColumnOrderTagRow(g, 'ma_thue_nk');
+  var c2 = z._getColumnOrder('gia_chuan_nt'), c3 = z._getColumnOrder('gia_nt'), c4 = z._getColumnOrder('gia');
+
+  var fields = 'ma_vt, ten_vt%l, dvt, he_so, ma_vung, ma_thue, thue_suat, ma_thue_nk, thue_suat_nk, so_theo_doi, loai_dt, ct_dt_pb, ten_loai%l, kieu_pb]]>&EnvironmentTaxCopyFields;&FlowMultiUserDefinedFieldsCopy;<![CDATA[';
+  var cusID = '';
+  var ir1 = getColumnOrderTagRow(g, 'ir_dong'), ir2 = getColumnOrderTagRow(g, 'ir_gia_chuan_nt'), ir3 = getColumnOrderTagRow(g, 'ir_gia_nt'),
+    ir4 = getColumnOrderTagRow(g, 'ir_so_ct'), ir5 = getColumnOrderTagRow(g, 'ir_ma_rb'), ir6 = getColumnOrderTagRow(g, 'ir_sl_dat_tt'),
+    ir7 = getColumnOrderTagRow(g, 'ir_sl_dat_td'), ir8 = getColumnOrderTagRow(g, 'ir_sai_can_duoi'), ir9 = getColumnOrderTagRow(g, 'ir_sai_can_tren'),
+    ir10 = getColumnOrderTagRow(g, 'ir_so_ngay_giao'), ir11 = getColumnOrderTagRow(g, 'ir_ct_gia_dk'), ir12 = getColumnOrderTagRow(g, 'ir_ck_dv_nt'),
+    ir13 = getColumnOrderTagRow(g, 'ir_cp_dv_nt'), ir14 = getColumnOrderTagRow(g, 'ir_ck_nt'), ir15 = getColumnOrderTagRow(g, 'ir_cp_nt'),
+    ir16 = getColumnOrderTagRow(g, 'ir_exist_price'), ir17 = getColumnOrderTagRow(g, 'ir_get_price'), ir18 = getColumnOrderTagRow(g, 'ir_stt_rec'),
+    ir19 = getColumnOrderTagRow(g, 'ir_stt_rec0');
+
+  for (var r = 0; r < a.length; r++) {
+    var v = (ma_nt == a[r][l7]), map = fields;
+    if (v) {f1 += ', gia_nt'; f2 += ', gia_chuan_nt';}
+    if (a[r][l3] != 0) {
+      append = true;
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (check$GridVoucherDetail$DefaultMemvar(z, row)) {ins = false; first = false;}
+
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      if (a[r][l8] != '') z._getItem(row, 1)._customerIdentity = a[r][l8];
+      if (cusID == '') cusID = a[r][l8];
+      z._getItem(row, 1)._purGroup = a[r][l9];
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$RetrieveTagRow$Items(g, a, r, z, row, map, f1, f2);
+
+      if (a[r][ir1]) {
+        z._activeRow = o.row;
+        if (a[r][ir17] == '1' && a[r][ir16] == '1') {
+          z.setItemGridBehavior(o, [
+            ['gia_chuan_nt', [a[r][ir2], true], null, null],
+            ['so_tham_chieu', [a[r][ir4], true], null, null],
+            ['ma_rb', [a[r][ir5], true], null, null],
+            ['ct_gia_dk', [a[r][ir11], true], null, null],
+            ['stt_rec_tc', [a[r][ir18], true], null, null],
+            ['stt_rec0tc', [a[r][ir19], true], null, null],
+            ['sai_can_duoi', a[r][ir8], null, false],
+            ['sai_can_tren', a[r][ir9], null, false]
+          ]);
+
+          if (a[r][ir11] == '') {
+            z.setItemGridBehavior(o, [
+              ['gia_nt', [a[r][ir3], true], null, null],
+              ['pp_ck_dv_nt', [a[r][ir12], true], null, null],
+              ['pp_cp_dv_nt', [a[r][ir13], true], null, null],
+              ['pp_ck_nt', [a[r][ir14], true], null, null],
+              ['pp_cp_nt', [a[r][ir15], true], null, null]
+            ]);
+          } else {
+            on$GridVoucherDetail$CalcPrice(z, o.row, null, null, null, null, 'gia_nt');
+          }
+          on$GridVoucherDetail$ValidPrice(z, o.row, 'gia_chuan_nt');
+          onChange$GridVoucherDetail$Allocation(o.row, z, w);
+        }
+      }
+
+      z.setItemGridBehavior(o, [['loai_hang', '1', '', null]]);
+      $func.setObjectWhen(z._getItem(row, l1), a[r][l2]);
+      $func.setObjectWhen(z._getItem(row, c2), true);
+      $func.setObjectWhen(z._getItem(row, c3), true);
+      $func.setObjectWhen(z._getItem(row, c4), true);
+
+      ]]>&EnvironmentTaxValidDetail.ExecuteExpression;<![CDATA[
+      if (v) {z.executeExpression(o, [z.$a.gia_nt, z.$a.gia_tg, z.$a.tien_nt0, z.$a.tien0_tg, z.$a.tien_nt, z.$a.tien_tg, z.$a.nk_nt, z.$a.nk_tg, z.$a.ttdb_nt, z.$a.ttdb_tg, z.$a.thue_nt, z.$a.thue_tg]);}
+    }
+  }
+
+  if (w.getItemValue('ma_kh') == '' && cusID != '') {
+    w.setItemValue('ma_kh', cusID);
+    w.setReferenceKeyFilter('ma_kh');
+    onChange$Voucher$Customer(w.getItem('ma_kh'));
+  }
+  z.executeAggregate([z.$a.t_so_luong]]>&EnvironmentTaxValidTotal;<![CDATA[]);
+  if (v) {
+    z.executeAggregate([z.$a.t_tien_nt0, z.$a.t_tien0, z.$a.t_tien_nt, z.$a.t_tien, z.$a.t_nk_nt, z.$a.t_nk, z.$a.t_ttdb_nt, z.$a.t_ttdb, z.$a.t_gtgt_nt, z.$a.t_gtgt]);
+    w.executeExpression([z.$a.t_thue_nt, z.$a.t_thue, z.$a.t_tt_nt, z.$a.t_tt]);
+  }
+  ]]>&EnvironmentTaxValidTotal.ExecuteExpression;<![CDATA[
+
+  if (append && w.getItemValue('t_cp_nt')) w._is$Allocated = 0;
+  z._focusWhenTabChanged();
+  f.cancelDialog();
+}
+]]>
+      &BIGetPriceScriptMulti;
+    </text>
+  </script>
+
+  <response>
+    <action id="GetOtherField">
+      <text>
+        &FlowMultiTagRowRequest;
+        &EnvironmentTaxDeclare;
+        <![CDATA[
+declare @p char(6), @r nvarchar(4000), @q nvarchar(4000)
+
+select top 0 tr.id, b.nhieu_dvt, a.he_so, b.ma_thue, c.thue_suat, b.ma_thue_nk, c.thue_suat as thue_suat_nk,
+    rtrim(a.ma_vt) as ma_vt, rtrim(a.dvt) as dvt, rtrim(m.ma_vung) as ma_vung, a.loai_dt, a.ct_dt_pb, d.ten_loai%l, d.kieu_pb
+    ]]>&FlowMultiUserDefinedFieldsQuery;&EnvironmentTaxFields;<![CDATA[
+  into #d from #tagRow tr cross join d91$000000 a cross join dmvt b cross join dmthue c cross join bidmlcddt d]]>&EnvironmentTaxJoin;<![CDATA[ cross join m91$000000 m
+
+set @r = '
+insert into #d
+select tr.id, b.nhieu_dvt, a.he_so, rtrim(b.ma_thue) as ma_thue, isnull(t2.thue_suat, 0) as thue_suat, rtrim(b.ma_thue_nk) as ma_thue_nk, isnull(t1.thue_suat, 0) as thue_suat_nk,
+    rtrim(a.ma_vt) as ma_vt, rtrim(a.dvt) as dvt, rtrim(m.ma_vung) as ma_vung, rtrim(a.loai_dt), a.ct_dt_pb, rtrim(d.ten_loai%l) as ten_loai%l, d.kieu_pb
+    ]]>&FlowMultiUserDefinedFieldsQuery;&EnvironmentTaxFields;<![CDATA[
+  from (select id, stt_rec, stt_rec0 from #tagRow where p = ''%Partition'') tr
+    join d91$%Partition a on tr.stt_rec = a.stt_rec and tr.stt_rec0 = a.stt_rec0
+    left join dmvt b on a.ma_vt = b.ma_vt
+    left join dmthuenk t1 on b.ma_thue_nk = t1.ma_thue left join dmthue t2 on b.ma_thue = t2.ma_thue
+    left join bidmlcddt d on a.loai_dt = d.ma_loai
+    join m91$%Partition m on tr.stt_rec = m.stt_rec
+    ]]>&EnvironmentTaxJoin;<![CDATA[
+'
+
+select distinct p into #p from #tagRow
+select @p = min(p) from #p
+while @p is not null begin
+  set @q = replace(@r, '%Partition', @p)
+  exec sp_executesql @q
+  select @p = min(p) from #p where p > @p
+end
+]]>&EnvironmentTaxQuery;<![CDATA[
+]]>&RetrieveGetPrice;<![CDATA[
+select '' as array$, id, ]]>&OtherCopyField;&IRReturnFields;<![CDATA[ from #d a left join #ir ir on a.id = ir.dong ]]>&FlowMultiOrderBy;<![CDATA[
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

@@ -1,0 +1,29 @@
+﻿      <![CDATA[
+function on$Voucher$GridDownPaymentRender(g, eventArgs) {set$Voucher$GridColumns(g);}
+function set$Voucher$GridColumns(g) {
+  var f = g.get_element().parentForm, v = f.getItemValue('ma_nt').toUpperCase() == f._baseCurrency;
+  if (!g._$ec) {
+    g._$fc = g._getColumnOrder('tien_nt');
+    g._$bc = g._getColumnOrder('tien');
+    g._$ec = g._getColumnOrder('ty_gia');
+    
+    var field = g._fields[g._$fc - 1];
+    g._saveDataFormatString = field.DataFormatString;
+    g._saveHeaderText = field.HeaderText;
+    
+    field = g._fields[g._$bc - 1];
+    g._$dataFormatString = field.DataFormatString;
+    g._$headerText = field.HeaderText;
+  }
+  
+  if (g._flush) g._suspendLayout();
+  
+  g._setColumnVisible(g._$bc, !v);
+  g._setColumnVisible(g._$ec, !v);
+  
+  g._setHeaderItemText(g._$fc, v ? g._$headerText : g._saveHeaderText);
+  g._setColumnFormat(g._$fc, v ? g._$dataFormatString : g._saveDataFormatString);
+  
+  if (g._flush) g._resumeLayout();
+}
+]]>

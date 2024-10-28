@@ -1,0 +1,20 @@
+﻿<![CDATA[
+var f$ = this;
+if ('259'.indexOf($func.trim(f$.getItemValue('loai_ct'))) != -1) {
+  var v$ = (f$._language == 'v'), name$ = ']]>&Tag;<![CDATA[', g$ = f$.getItem(name$)._controlBehavior, d$ = 5;
+  var a$ = query$Select(g$, 'sum$ps_no_nt, sum$ps_co_nt, sum$ps_no, sum$ps_co, sum$([ps_no] == 0 ? 0 : 1), sum$([ps_co] == 0 ? 0 : 1) $groupBy nh_dk');
+
+  var e1$ = (v$ ? 'Chưa nhập đủ tài khoản nợ hoặc có trong nhóm định khoản <span class="Highlight">%s</span>.' : 'You have not entered all debit or credit entries in the records (group = <span class="Highlight">%s</span>).');
+  var e2$ = (v$ ? 'Có hạch toán nhiều nợ, nhiều có trong nhóm định khoản <span class="Highlight">%s</span>.' : 'There are multi debit credit entries in the records (group = <span class="Highlight">%s</span>).');
+  var e3$ = (v$ ? 'Phát sinh nợ và phát sinh có khác nhau trong nhóm định khoản <span class="Highlight">%s</span>.' : 'Difference between total debit and total credit (group = <span class="Highlight">%s</span>).');
+
+  if (f$._checked) {
+    for (var i$ = 0; i$ < a$.length; i$++) {
+      var c$ = a$[i$][0], n1$ = a$[i$][5], n2$ = a$[i$][6];
+      if (n1$ * n2$ == 0) {on$Deductible$Error(f$, e1$, c$, name$); break;}
+      if ((n1$ - 1) * (n2$ - 1) != 0) {on$Deductible$Error(f$, e2$, c$, name$); break;}
+      if ((a$[i$][1].toFixed(d$) != a$[i$][2].toFixed(d$)) || (a$[i$][3].toFixed(d$) != a$[i$][4].toFixed(d$))) {on$Deductible$Error(f$, e3$, c$, name$); break;}
+    }
+  }
+}
+]]>

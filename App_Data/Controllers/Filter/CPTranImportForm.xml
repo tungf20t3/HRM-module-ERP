@@ -1,0 +1,267 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+  <!ENTITY ScriptQueryData SYSTEM "..\Include\Javascript\QueryData.txt">
+
+  <!ENTITY Identity "CPTranImport">
+  <!ENTITY DetailTable "d56f">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Supplier">
+  <!ENTITY c21 "Số hóa đơn">
+  <!ENTITY c22 "Invoice Number">
+  <!ENTITY c31 "Ngày hóa đơn">
+  <!ENTITY c32 "Invoice Date">
+
+  <!ENTITY % InputInvoice SYSTEM "..\Include\InputInvoice.ent">
+  %InputInvoice;
+  %InputInvoice.Include.CPTran;
+]>
+
+<dir table="m56$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Hóa đơn" e="Invoice"></title>
+  <fields>
+    <field name="stt_rec" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_ncc">
+      <header v="Tên ncc gốc" e="Original &c12;"></header>
+    </field>
+    <field name="ma_kh" onDemand="true">
+      <header v="&c11;" e="&c12;"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1' and cc_yn = 1" check="cc_yn = 1" information="ma_kh$dmkh.ten_kh%l" new="Default" row="1"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&Identity;<![CDATA[Voucher$Customer(this);"]]></clientScript>
+    </field>
+    <field name="ten_kh%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_ct" dataFormatString="@upperCaseFormat" align="right" inactivate="true">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left" inactivate="true">
+      <header v="&c31;" e="&c32;"></header>
+    </field>
+
+
+    <field name="tk" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_tk%l" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_tt" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_tt%l" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ong_ba" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="dia_chi" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_so_thue" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="tk_nh" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="Tk ngân hàng" e="Bank Account"></header>
+    </field>
+    <field name="ten_nh" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="Tên ngân hàng" e="Bank Name"></header>
+    </field>
+    <field name="chi_nhanh" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="Chi nhánh" e="Branch"></header>
+    </field>
+    <field name="tinh_thanh" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="Tỉnh thành" e="Province/City"></header>
+    </field>
+    <field name="quoc_gia" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="Quốc gia" e="Nation"></header>
+    </field>
+    <field name="ma_nh_dt" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="Mã ngân hàng" e="Bank Code"></header>
+    </field>
+
+
+    <field name="&DetailTable;" external="true" clientDefault="0" defaultValue="0" rows="208" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="&Identity;Grid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="1100000000-101: [ten_ncc].Label, [ten_ncc], [so_ct].Label, [so_ct]"/>
+      <item value="1101000000-101: [ma_kh].Label, [ma_kh], [ten_kh%l], [ngay_ct].Label, [ngay_ct]"/>
+
+      <item value="1: [&DetailTable;]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptQueryData;
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  f.setReadOnlyFields('ten_ncc, so_ct, ngay_ct');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  f.getItem('ma_kh').focus();
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid, w = g.get_element().parentForm;
+  var voucherCode = g._voucherCode, c = true, result = g._result;
+  f._denyFocus = true;
+  var mst = result[0][31];
+  for (var i = 1; i < result.length; i++) {
+    if ($func.trim(mst) != $func.trim(result[i][31])) {
+      c = false;
+      break;
+    }
+  }
+
+  if (c) f.setItemValues('ten_ncc, ma_kh, ten_kh%l, dia_chi, ma_so_thue, ong_ba, tk_nh, ten_nh, chi_nhanh, tinh_thanh, quoc_gia', [result[0][29], result[0][28], result[0][44], result[0][30], mst, result[0][32], result[0][55], result[0][56], result[0][57], result[0][58], result[0][59]]);
+  f.setItemValues('ma_tt, ten_tt%l, tk, ten_tk%l', [result[0][27], result[0][4], result[0][33], result[0][34]]);
+  if (!(g._inputInvoiceLength && g._inputInvoiceLength > 1)) f.setItemValues('so_ct, ngay_ct', [result[0][1], result[0][2]]);
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+  var input = $get('fileuploadXml');
+  if (input) input.value = '';
+}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Customer':
+      f.setItemValues('tk, ten_tk%l, ma_tt, ten_tt%l, ong_ba, dia_chi, ma_so_thue, tk_nh, ten_nh, tinh_thanh, chi_nhanh, quoc_gia, ma_nh_dt', [result[0].Value, result[1].Value, result[2].Value, result[3].Value, result[4].Value, result[5].Value, result[6].Value, result[7].Value, result[8].Value, result[9].Value, result[10].Value, result[11].Value, result[12].Value]);
+      f.live(f.getItem('ma_kh'));
+      break;
+    case 'Checking':
+      set$]]>&Identity;<![CDATA[Form$FlowScript(f);
+      break;
+    default:
+      break;
+  }
+}
+function onChange$]]>&Identity;<![CDATA[Voucher$Customer(o) {o.parentForm.request('Customer', 'Customer', ['ma_kh'], o);}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(df) {
+  var gridf = df.grid, gf = df.getItem(']]>&DetailTable;<![CDATA[')._controlBehavior,
+    f = gridf.get_element().parentForm, g = f.grid, d = f.getItem('d56')._controlBehavior, r = f.getItem('r30')._controlBehavior,
+    result = gridf._result, count = gf._rowCount;
+  if (count == 0) return;
+  var customer = df.getItemValue('ma_kh'), customerName = df.getItemValue('ten_kh%l');
+
+  // Insert Master:
+  f.setItemValues('ma_nt, ty_gia, t_tien_nt, t_thue_nt, t_tt_nt', [result[0][5], result[0][6], result[0][7], result[0][9], result[0][10]]);
+  if (!(d._inputInvoiceLength && d._inputInvoiceLength > 1)) f.setItemValues('so_seri0, ngay_ct, ngay_lct, dien_giai', [result[0][0], result[0][2], result[0][2], result[0][15]]);
+  f.setItemValues('tk_ex, ten_tk_ex, ma_tt0, ten_tt0', [df.getItemValue('tk'), df.getItemValue('ten_tk%l'), df.getItemValue('ma_tt'), df.getItemValue('ten_tt%l')]);
+
+  f.setItemControlBehavior('echu_tk', customerName, null, true);
+  f.setItemControlBehavior('etk_nh', df.getItemValue('tk_nh'), null, true);
+  f.setItemControlBehavior('eten_nh', df.getItemValue('ten_nh'), null, true);
+  f.setItemControlBehavior('etinh_thanh', df.getItemValue('tinh_thanh'), null, true);
+  f.setItemControlBehavior('echi_nhanh', df.getItemValue('chi_nhanh'), null, true);
+  f.setItemControlBehavior('equoc_gia', df.getItemValue('quoc_gia'), null, true);
+
+  if ($func.trim(customer)) {
+    f.setItemControlBehavior('ma_kh', customer, customerName, true);
+    f.setItemValues('ong_ba, dia_chi, ten_ncc, ma_so_thue', [df.getItemValue('ong_ba'), df.getItemValue('dia_chi'), customerName, df.getItemValue('ma_so_thue')]);
+  }
+
+  if (f.grid._$external) {
+    f.setItemValue('loai_ct', '9');
+    set$Voucher$GridColumns(d);
+  }
+
+  // Insert Tab Detail:
+  insert$Form$Data$Detail(f, d, gf, result, count, true);
+
+  f._tabContainer.set_activeTabIndex(1);
+  f._tabContainer.raiseActiveTabChanged();
+  set$DefaultPosition]]>&Identity;<![CDATA[Grid(r);
+
+  // Insert Tab Tax:
+  insert$Form$Data$Tax(f, r, gf, result, count, customer, customerName, false);
+
+  on$GridVoucherTax$RowChange(r, f);
+  f._tabContainer.set_activeTabIndex(0);
+  f._tabContainer.raiseActiveTabChanged();
+}
+]]>&IIInsertDataScriptDetail;<![CDATA[
+]]>&IIInsertDataScriptTax;<![CDATA[
+function set$DefaultPosition]]>&Identity;<![CDATA[Grid(g) {
+  g._scrollLeft = 0;
+  g._changePosition(1, 0);
+  g._divGrid.scrollLeft = 0;
+  g._divHeader.scrollLeft = 0;
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Customer">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmkh where ma_kh = @ma_kh) begin
+  select rtrim(a.tk) as tk, rtrim(b.ten_tk%l) as ten_tk%l, rtrim(a.ma_tt) as ma_tt, rtrim(c.ten_tt%l) as ten_tt%l, rtrim(doi_tac) as ong_ba, rtrim(a.dia_chi) as dia_chi, rtrim(a.ma_so_thue) as ma_so_thue, rtrim(a.tk_nh) as tk_nh, rtrim(a.ngan_hang) as ngan_hang, rtrim(a.tinh_thanh) as tinh_thanh, rtrim(chi_nhanh) as chi_nhanh, rtrim(quoc_gia) as quoc_gia, rtrim(ma_nh_dt) as ma_nh_dt
+    from dmkh a left join dmtk b on a.tk = b.tk left join dmtt c on a.ma_tt = c.ma_tt where a.ma_kh = @ma_kh
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

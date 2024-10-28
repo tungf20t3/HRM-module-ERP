@@ -1,0 +1,27 @@
+    <action id="Location">
+      <text>
+        <![CDATA[
+declare @unitCode varchar(32), @stock numeric(25, 5)
+select @unitCode = case when @$ma_dvcs = '' then @@unit else @$ma_dvcs end
+if exists(select 1 from dmvitri where ma_kho = @ma_kho and ma_vi_tri = @ma_vi_tri) begin
+  exec AI_ERP$Current$Stock 3, @ma_vt, @ma_kho, @ma_vi_tri, @ma_lo, @$stt_rec, @he_so, @voucherCode, @unitCode, @action, ]]>&Type;<![CDATA[, @stock output
+  select @stock as stock
+  return
+end
+]]>
+      </text>
+    </action>
+
+    <action id="Lot">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmlo where ma_vt = @ma_vt and ma_lo = @ma_lo) begin
+  declare @unitCode varchar(32), @stock numeric(25, 5)
+  select @unitCode = case when @$ma_dvcs = '' then @@unit else @$ma_dvcs end
+  exec AI_ERP$Current$Stock 4, @ma_vt, @ma_kho, @ma_vi_tri, @ma_lo, @$stt_rec, @he_so, @voucherCode, @unitCode, @action, ]]>&Type;<![CDATA[, @stock output
+  select @stock as stock
+  return
+end
+]]>
+      </text>
+    </action>

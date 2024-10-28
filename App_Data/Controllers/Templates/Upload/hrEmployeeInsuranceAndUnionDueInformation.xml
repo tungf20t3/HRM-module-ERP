@@ -1,0 +1,345 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Controller "hrEmployeeInsuranceAndUnionDueInformation">
+  <!ENTITY PrimeFieldImport "stt_rec">
+  <!ENTITY TypeImport "2">
+  <!ENTITY TableDestinationImport "hrttctxh, hrttctyt, hrttcttn, hrttctcd, hrttctdtbh">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrEmployeeInsuranceAndUnionDueInformation' else 'hrEmployeeInsuranceAndUnionDueInformation2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$EmployeeInsuranceAndUnionDueInformationImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$EmployeeInsuranceAndUnionDueInformationImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrttbh, hrnv, hrttctdtbh"/>
+    <dependence value="hrttbh, hrttctxh, hrttctyt, hrttcttn, hrttctcd, hrttctdtbh"/>
+    <listTable value="#r, #d, #d, #d, #d, #d"/>
+    <temporary value="#k, #d1, #d2, #d3, #d4, #d5" alias="b, b, b, b, b, b"/>
+    <alias value="insurance, social, health, unemployment, unionDue, objectType"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="A" isPrimaryKey="true" allowNulls="false" reference="1" check="ma_nv not in (select ma_nv from hrnv)" errorCode="00001"/>
+    <field name="ma_so_bhxh" column="C" resource="insurance"/>
+    <field name="ma_so_hgd" column="D" resource="insurance"/>
+    <field name="si_no" column="E" resource="insurance"/>
+    <field name="si_date" column="F" type="DateTime" resource="insurance"/>
+    <field name="si_date2" column="G" type="DateTime" resource="insurance"/>
+    <field name="hi_no" column="H" resource="insurance"/>
+    <field name="hi_date" column="I" type="DateTime" resource="insurance"/>
+    <field name="hi_date2" column="J" type="DateTime" resource="insurance"/>
+    <field name="noi_kham" column="K" upperCase="true" resource="insurance" check="noi_kham &lt;&gt; '' and noi_kham not in (select ma_kcb from hrdmkcb)" errorCode="00001"/>
+    <field name="quyen_loi" column="L" resource="insurance"/>
+    <field name="ngay_hl_tu_bhxh" column="M" type="DateTime" insertValue="ngay_hl_tu" updateValue="None" relation="ngay_hl_tu" resource="social" check="ngay_hl_tu_bhxh is null and ngay_hl_den_bhxh is not null&And;ngay_hl_tu_bhxh is not null and ngay_hl_den_bhxh is not null and ngay_hl_tu_bhxh &gt; ngay_hl_den_bhxh" errorCode="00002&And;00002"/>
+    <field name="ngay_hl_den_bhxh" column="N" type="DateTime" insertValue="ngay_hl_den" updateValue="b.ngay_hl_den" relation="ngay_hl_den" resource="social"/>
+    <field name="ngay_hl_tu_bhyt" column="O" type="DateTime" insertValue="ngay_hl_tu" updateValue="None" relation="ngay_hl_tu" resource="health" check="ngay_hl_tu_bhyt is null and ngay_hl_den_bhyt is not null&And;ngay_hl_tu_bhyt is not null and ngay_hl_den_bhyt is not null and ngay_hl_tu_bhyt &gt; ngay_hl_den_bhyt" errorCode="00002&And;00002"/>
+    <field name="ngay_hl_den_bhyt" column="P" type="DateTime" insertValue="ngay_hl_den" updateValue="b.ngay_hl_den" relation="ngay_hl_den" resource="health"/>
+    <field name="ngay_hl_tu_bhtn" column="Q" type="DateTime" insertValue="ngay_hl_tu" updateValue="None" relation="ngay_hl_tu" resource="unemployment" check="ngay_hl_tu_bhtn is null and ngay_hl_den_bhtn is not null&And;ngay_hl_tu_bhtn is not null and ngay_hl_den_bhtn is not null and ngay_hl_tu_bhtn &gt; ngay_hl_den_bhtn" errorCode="00002&And;00002"/>
+    <field name="ngay_hl_den_bhtn" column="R" type="DateTime" insertValue="ngay_hl_den" updateValue="b.ngay_hl_den" relation="ngay_hl_den" resource="unemployment"/>
+    <field name="ngay_hl_tu_kpcd" column="S" type="DateTime" insertValue="ngay_hl_tu" updateValue="None" relation="ngay_hl_tu" resource="unionDue" check="ngay_hl_tu_kpcd is null and (ngay_hl_den_kpcd is not null or tien &lt;&gt; 0)&And;ngay_hl_tu_kpcd is not null and ngay_hl_den_kpcd is not null and ngay_hl_tu_kpcd &gt; ngay_hl_den_kpcd" errorCode="00002&And;00002"/>
+    <field name="ngay_hl_den_kpcd" column="T" type="DateTime" insertValue="ngay_hl_den" updateValue="b.ngay_hl_den" relation="ngay_hl_den" resource="unionDue"/>
+    <field name="tien" column="U" type="Decimal" resource="unionDue"/>
+
+    <field name="loai_dt" column="V" resource="objectType" upperCase="true" reference="2" relation="loai_dt" check="loai_dt &lt;&gt; '' and loai_dt not in (select ma_loai from hrdmloaidtbh)&And;loai_dt = '' and ngay_hl_tu_dt is not null" errorCode="00001&And;00002"/>
+    <field name="ngay_hl_tu_dt" column="W" type="DateTime" insertValue="ngay_hl_tu" updateValue="None" relation="ngay_hl_tu" resource="objectType" check="loai_dt = '' and ngay_hl_tu_dt is null&And;ngay_hl_tu_dt is not null and ngay_hl_den_dt is not null and ngay_hl_tu_dt &gt; ngay_hl_den_dt" errorCode="00002&And;00002"/>
+    <field name="ngay_hl_den_dt" column="X" type="DateTime" insertValue="ngay_hl_den" updateValue="b.ngay_hl_den" relation="ngay_hl_den" resource="objectType"/>
+    <field name="dien_giai" column="Y" resource="objectType" reference="2"/>
+
+    <field name="stt_rec" column="None" updateValue="None" resource="insurance, social, health, unemployment, unionDue, objectType"/>
+    <field name="stt_rec0" column="None" insertValue="replace(str(stt, 3), ' ', '0')" updateValue="None" resource="social, health, unemployment, unionDue, objectType"/>
+    <field name="line_nbr" column="None" type="Int" insertValue="stt" updateValue="None" resource="social, health, unemployment, unionDue, objectType"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getDate()" updateValue="None" resource="insurance"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getDate()" updateValue="getDate()" resource="insurance"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@user" updateValue="None" resource="insurance"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@user" updateValue="@user" resource="insurance"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Thông tin bảo hiểm, công đoàn" e="Employee Insurance and Union Due Information"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_nv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="ma_so_bhxh" width="16">
+        <text v="Mã số BHXH" e="SI No."/>
+      </field>
+      <field name="ma_so_hgd" width="16">
+        <text v="Mã số hộ gia đình" e="Household ID"/>
+      </field>
+      <field name="si_no" width="16">
+        <text v="Số sổ bảo hiểm xã hội" e="SI Book No."/>
+      </field>
+      <field name="si_date" width="16">
+        <text v="Ngày cấp sổ" e="Date of Issue"/>
+      </field>
+      <field name="si_date2" width="16">
+        <text v="Ngày tham gia" e="SI Joining Date"/>
+      </field>
+      <field name="hi_no" width="16">
+        <text v="Số sổ bảo hiểm y tế" e="HI Card No."/>
+      </field>
+      <field name="hi_date" width="16">
+        <text v="Ngày cấp sổ" e="Date of HI Issue"/>
+      </field>
+      <field name="hi_date2" width="16">
+        <text v="Ngày tham gia" e="HI Joining Date"/>
+      </field>
+      <field name="noi_kham" width="16">
+        <text v="Nơi đăng ký khám chữa bệnh" e="Medical Care Center"/>
+      </field>
+      <field name="quyen_loi" width="32">
+        <text v="Quyền lợi" e="Benefits"/>
+      </field>
+      <field name="ngay_hl_tu_bhxh" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hiệu lực bảo hiểm xã hội từ" e="SI Effective Date from"/>
+      </field>
+      <field name="ngay_hl_den_bhxh" width="16">
+        <text v="Ngày hiệu lực bảo hiểm xã hội đến" e="SI Effective Date to"/>
+      </field>
+      <field name="ngay_hl_tu_bhyt" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hiệu lực bảo hiểm y tế từ" e="HI Effective Date from"/>
+      </field>
+      <field name="ngay_hl_den_bhyt" width="16">
+        <text v="Ngày hiệu lực bảo hiểm y tế đến" e="HI Effective Date to"/>
+      </field>
+      <field name="ngay_hl_tu_bhtn" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hiệu lực bảo hiểm thất nghiệp từ" e="UI Effective Date from"/>
+      </field>
+      <field name="ngay_hl_den_bhtn" width="16">
+        <text v="Ngày hiệu lực bảo hiểm thất nghiệp đến" e="UI Effective Date to"/>
+      </field>
+      <field name="ngay_hl_tu_kpcd" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hiệu lực kinh phí công đoàn từ" e="UD Effective Date from"/>
+      </field>
+      <field name="ngay_hl_den_kpcd" width="16">
+        <text v="Ngày hiệu lực kinh phí công đoàn đến" e="UD Effective Date to"/>
+      </field>
+      <field name="tien" width="16">
+        <text v="Phí công đoàn" e="Union Due"/>
+      </field>
+
+      <field name="loai_dt" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Loại đối tượng" e="Type of Participant Code"/>
+      </field>
+      <field name="ngay_hl_tu_dt" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hiệu lực đối tượng từ" e="Type of Participant Effective Date from"/>
+      </field>
+      <field name="ngay_hl_den_dt" width="16">
+        <text v="Ngày hiệu lực đối tượng đến" e="Type of Participant Effective Date to"/>
+      </field>
+      <field name="dien_giai" width="32">
+        <text v="Diễn giải đối tượng" e="Type of Participant Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @join nvarchar(1023), @field varchar(32)
+declare @user int, @admin bit, @sys varchar(32), @joinUnit bit, @joinDept bit, @r int, @count int
+
+select @admin = @@admin, @user = @@userID, @sys = '@@sysDatabaseName', @key = '', @joinUnit = 0, @joinDept = 0
+
+-- Check
+]]>&Checking;<![CDATA[
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_hl_tu_bhxh', a.stt, '00002' from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrttctxh b on c.stt_rec = b.stt_rec and ((a.ngay_hl_tu_bhxh <> b.ngay_hl_tu and a.ngay_hl_den_bhxh is null and b.ngay_hl_den is null) or (a.ngay_hl_den_bhxh is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhxh > b.ngay_hl_tu and a.ngay_hl_tu_bhxh <= b.ngay_hl_den)) or (a.ngay_hl_den_bhxh is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhxh < b.ngay_hl_tu and a.ngay_hl_tu_bhxh <= b.ngay_hl_den)) or (a.ngay_hl_den_bhxh is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhxh < b.ngay_hl_tu)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhxh is not null and (b.ngay_hl_tu > a.ngay_hl_tu_bhxh and b.ngay_hl_tu <= a.ngay_hl_den_bhxh)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhxh is not null and (a.ngay_hl_tu_bhxh > b.ngay_hl_tu and b.ngay_hl_tu <= a.ngay_hl_den_bhxh)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhxh is not null and (a.ngay_hl_tu_bhxh > b.ngay_hl_tu)) or (a.ngay_hl_tu_bhxh > b.ngay_hl_tu and a.ngay_hl_tu_bhxh <= b.ngay_hl_den) or (a.ngay_hl_tu_bhxh <> b.ngay_hl_tu and a.ngay_hl_den_bhxh > b.ngay_hl_tu and a.ngay_hl_den_bhxh <= b.ngay_hl_den) or (b.ngay_hl_tu > a.ngay_hl_tu_bhxh and b.ngay_hl_tu <= a.ngay_hl_den_bhxh) or (a.ngay_hl_tu_bhxh <> b.ngay_hl_tu and b.ngay_hl_den > a.ngay_hl_tu_bhxh and b.ngay_hl_den <= a.ngay_hl_den_bhxh))
+  where 1=1]]>&w1;<![CDATA['ngay_hl_tu_bhxh']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ngay_hl_tu_bhxh', @r = min(a.stt) from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrttctxh b on c.stt_rec = b.stt_rec and ((a.ngay_hl_tu_bhxh <> b.ngay_hl_tu and a.ngay_hl_den_bhxh is null and b.ngay_hl_den is null) or (a.ngay_hl_den_bhxh is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhxh > b.ngay_hl_tu and a.ngay_hl_tu_bhxh <= b.ngay_hl_den)) or (a.ngay_hl_den_bhxh is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhxh < b.ngay_hl_tu and a.ngay_hl_tu_bhxh <= b.ngay_hl_den)) or (a.ngay_hl_den_bhxh is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhxh < b.ngay_hl_tu)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhxh is not null and (b.ngay_hl_tu > a.ngay_hl_tu_bhxh and b.ngay_hl_tu <= a.ngay_hl_den_bhxh)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhxh is not null and (a.ngay_hl_tu_bhxh > b.ngay_hl_tu and b.ngay_hl_tu <= a.ngay_hl_den_bhxh)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhxh is not null and (a.ngay_hl_tu_bhxh > b.ngay_hl_tu)) or (a.ngay_hl_tu_bhxh > b.ngay_hl_tu and a.ngay_hl_tu_bhxh <= b.ngay_hl_den) or (a.ngay_hl_tu_bhxh <> b.ngay_hl_tu and a.ngay_hl_den_bhxh > b.ngay_hl_tu and a.ngay_hl_den_bhxh <= b.ngay_hl_den) or (b.ngay_hl_tu > a.ngay_hl_tu_bhxh and b.ngay_hl_tu <= a.ngay_hl_den_bhxh) or (a.ngay_hl_tu_bhxh <> b.ngay_hl_tu and b.ngay_hl_den > a.ngay_hl_tu_bhxh and b.ngay_hl_den <= a.ngay_hl_den_bhxh))
+  ]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_hl_tu_bhyt', a.stt, '00002' from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrttctyt b on c.stt_rec = b.stt_rec and ((a.ngay_hl_tu_bhyt <> b.ngay_hl_tu and a.ngay_hl_den_bhyt is null and b.ngay_hl_den is null) or (a.ngay_hl_den_bhyt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhyt > b.ngay_hl_tu and a.ngay_hl_tu_bhyt <= b.ngay_hl_den)) or (a.ngay_hl_den_bhyt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhyt < b.ngay_hl_tu and a.ngay_hl_tu_bhyt <= b.ngay_hl_den)) or (a.ngay_hl_den_bhyt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhyt < b.ngay_hl_tu)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhyt is not null and (b.ngay_hl_tu > a.ngay_hl_tu_bhyt and b.ngay_hl_tu <= a.ngay_hl_den_bhyt)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhyt is not null and (a.ngay_hl_tu_bhyt > b.ngay_hl_tu and b.ngay_hl_tu <= a.ngay_hl_den_bhyt)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhyt is not null and (a.ngay_hl_tu_bhyt > b.ngay_hl_tu)) or (a.ngay_hl_tu_bhyt > b.ngay_hl_tu and a.ngay_hl_tu_bhyt <= b.ngay_hl_den) or (a.ngay_hl_tu_bhyt <> b.ngay_hl_tu and a.ngay_hl_den_bhyt > b.ngay_hl_tu and a.ngay_hl_den_bhyt <= b.ngay_hl_den) or (b.ngay_hl_tu > a.ngay_hl_tu_bhyt and b.ngay_hl_tu <= a.ngay_hl_den_bhyt) or (a.ngay_hl_tu_bhyt <> b.ngay_hl_tu and b.ngay_hl_den > a.ngay_hl_tu_bhyt and b.ngay_hl_den <= a.ngay_hl_den_bhyt))
+  where 1=1]]>&w1;<![CDATA['ngay_hl_tu_bhyt']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ngay_hl_tu_bhyt', @r = min(a.stt) from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrttctyt b on c.stt_rec = b.stt_rec and ((a.ngay_hl_tu_bhyt <> b.ngay_hl_tu and a.ngay_hl_den_bhyt is null and b.ngay_hl_den is null) or (a.ngay_hl_den_bhyt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhyt > b.ngay_hl_tu and a.ngay_hl_tu_bhyt <= b.ngay_hl_den)) or (a.ngay_hl_den_bhyt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhyt < b.ngay_hl_tu and a.ngay_hl_tu_bhyt <= b.ngay_hl_den)) or (a.ngay_hl_den_bhyt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhyt < b.ngay_hl_tu)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhyt is not null and (b.ngay_hl_tu > a.ngay_hl_tu_bhyt and b.ngay_hl_tu <= a.ngay_hl_den_bhyt)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhyt is not null and (a.ngay_hl_tu_bhyt > b.ngay_hl_tu and b.ngay_hl_tu <= a.ngay_hl_den_bhyt)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhyt is not null and (a.ngay_hl_tu_bhyt > b.ngay_hl_tu)) or (a.ngay_hl_tu_bhyt > b.ngay_hl_tu and a.ngay_hl_tu_bhyt <= b.ngay_hl_den) or (a.ngay_hl_tu_bhyt <> b.ngay_hl_tu and a.ngay_hl_den_bhyt > b.ngay_hl_tu and a.ngay_hl_den_bhyt <= b.ngay_hl_den) or (b.ngay_hl_tu > a.ngay_hl_tu_bhyt and b.ngay_hl_tu <= a.ngay_hl_den_bhyt) or (a.ngay_hl_tu_bhyt <> b.ngay_hl_tu and b.ngay_hl_den > a.ngay_hl_tu_bhyt and b.ngay_hl_den <= a.ngay_hl_den_bhyt))
+  ]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_hl_tu_bhtn', a.stt, '00002' from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrttcttn b on c.stt_rec = b.stt_rec and ((a.ngay_hl_tu_bhtn <> b.ngay_hl_tu and a.ngay_hl_den_bhtn is null and b.ngay_hl_den is null) or (a.ngay_hl_den_bhtn is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhtn > b.ngay_hl_tu and a.ngay_hl_tu_bhtn <= b.ngay_hl_den)) or (a.ngay_hl_den_bhtn is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhtn < b.ngay_hl_tu and a.ngay_hl_tu_bhtn <= b.ngay_hl_den)) or (a.ngay_hl_den_bhtn is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhtn < b.ngay_hl_tu)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhtn is not null and (b.ngay_hl_tu > a.ngay_hl_tu_bhtn and b.ngay_hl_tu <= a.ngay_hl_den_bhtn)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhtn is not null and (a.ngay_hl_tu_bhtn > b.ngay_hl_tu and b.ngay_hl_tu <= a.ngay_hl_den_bhtn)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhtn is not null and (a.ngay_hl_tu_bhtn > b.ngay_hl_tu)) or (a.ngay_hl_tu_bhtn > b.ngay_hl_tu and a.ngay_hl_tu_bhtn <= b.ngay_hl_den) or (a.ngay_hl_tu_bhtn <> b.ngay_hl_tu and a.ngay_hl_den_bhtn > b.ngay_hl_tu and a.ngay_hl_den_bhtn <= b.ngay_hl_den) or (b.ngay_hl_tu > a.ngay_hl_tu_bhtn and b.ngay_hl_tu <= a.ngay_hl_den_bhtn) or (a.ngay_hl_tu_bhtn <> b.ngay_hl_tu and b.ngay_hl_den > a.ngay_hl_tu_bhtn and b.ngay_hl_den <= a.ngay_hl_den_bhtn))
+  where 1=1]]>&w1;<![CDATA['ngay_hl_tu_bhtn']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ngay_hl_tu_bhtn', @r = min(a.stt) from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrttcttn b on c.stt_rec = b.stt_rec and ((a.ngay_hl_tu_bhtn <> b.ngay_hl_tu and a.ngay_hl_den_bhtn is null and b.ngay_hl_den is null) or (a.ngay_hl_den_bhtn is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhtn > b.ngay_hl_tu and a.ngay_hl_tu_bhtn <= b.ngay_hl_den)) or (a.ngay_hl_den_bhtn is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhtn < b.ngay_hl_tu and a.ngay_hl_tu_bhtn <= b.ngay_hl_den)) or (a.ngay_hl_den_bhtn is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_bhtn < b.ngay_hl_tu)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhtn is not null and (b.ngay_hl_tu > a.ngay_hl_tu_bhtn and b.ngay_hl_tu <= a.ngay_hl_den_bhtn)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhtn is not null and (a.ngay_hl_tu_bhtn > b.ngay_hl_tu and b.ngay_hl_tu <= a.ngay_hl_den_bhtn)) or (b.ngay_hl_den is null and a.ngay_hl_den_bhtn is not null and (a.ngay_hl_tu_bhtn > b.ngay_hl_tu)) or (a.ngay_hl_tu_bhtn > b.ngay_hl_tu and a.ngay_hl_tu_bhtn <= b.ngay_hl_den) or (a.ngay_hl_tu_bhtn <> b.ngay_hl_tu and a.ngay_hl_den_bhtn > b.ngay_hl_tu and a.ngay_hl_den_bhtn <= b.ngay_hl_den) or (b.ngay_hl_tu > a.ngay_hl_tu_bhtn and b.ngay_hl_tu <= a.ngay_hl_den_bhtn) or (a.ngay_hl_tu_bhtn <> b.ngay_hl_tu and b.ngay_hl_den > a.ngay_hl_tu_bhtn and b.ngay_hl_den <= a.ngay_hl_den_bhtn))
+  ]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_hl_tu_kpcd', a.stt, '00002' from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrttctcd b on c.stt_rec = b.stt_rec and ((a.ngay_hl_tu_kpcd <> b.ngay_hl_tu and a.ngay_hl_den_kpcd is null and b.ngay_hl_den is null) or (a.ngay_hl_den_kpcd is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_kpcd > b.ngay_hl_tu and a.ngay_hl_tu_kpcd <= b.ngay_hl_den)) or (a.ngay_hl_den_kpcd is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_kpcd < b.ngay_hl_tu and a.ngay_hl_tu_kpcd <= b.ngay_hl_den)) or (a.ngay_hl_den_kpcd is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_kpcd < b.ngay_hl_tu)) or (b.ngay_hl_den is null and a.ngay_hl_den_kpcd is not null and (b.ngay_hl_tu > a.ngay_hl_tu_kpcd and b.ngay_hl_tu <= a.ngay_hl_den_kpcd)) or (b.ngay_hl_den is null and a.ngay_hl_den_kpcd is not null and (a.ngay_hl_tu_kpcd > b.ngay_hl_tu and b.ngay_hl_tu <= a.ngay_hl_den_kpcd)) or (b.ngay_hl_den is null and a.ngay_hl_den_kpcd is not null and (a.ngay_hl_tu_kpcd > b.ngay_hl_tu)) or (a.ngay_hl_tu_kpcd > b.ngay_hl_tu and a.ngay_hl_tu_kpcd <= b.ngay_hl_den) or (a.ngay_hl_tu_kpcd <> b.ngay_hl_tu and a.ngay_hl_den_kpcd > b.ngay_hl_tu and a.ngay_hl_den_kpcd <= b.ngay_hl_den) or (b.ngay_hl_tu > a.ngay_hl_tu_kpcd and b.ngay_hl_tu <= a.ngay_hl_den_kpcd) or (a.ngay_hl_tu_kpcd <> b.ngay_hl_tu and b.ngay_hl_den > a.ngay_hl_tu_kpcd and b.ngay_hl_den <= a.ngay_hl_den_kpcd))
+  where 1=1]]>&w1;<![CDATA['ngay_hl_tu_kpcd']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ngay_hl_tu_kpcd', @r = min(a.stt) from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrttctcd b on c.stt_rec = b.stt_rec and ((a.ngay_hl_tu_kpcd <> b.ngay_hl_tu and a.ngay_hl_den_kpcd is null and b.ngay_hl_den is null) or (a.ngay_hl_den_kpcd is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_kpcd > b.ngay_hl_tu and a.ngay_hl_tu_kpcd <= b.ngay_hl_den)) or (a.ngay_hl_den_kpcd is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_kpcd < b.ngay_hl_tu and a.ngay_hl_tu_kpcd <= b.ngay_hl_den)) or (a.ngay_hl_den_kpcd is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_kpcd < b.ngay_hl_tu)) or (b.ngay_hl_den is null and a.ngay_hl_den_kpcd is not null and (b.ngay_hl_tu > a.ngay_hl_tu_kpcd and b.ngay_hl_tu <= a.ngay_hl_den_kpcd)) or (b.ngay_hl_den is null and a.ngay_hl_den_kpcd is not null and (a.ngay_hl_tu_kpcd > b.ngay_hl_tu and b.ngay_hl_tu <= a.ngay_hl_den_kpcd)) or (b.ngay_hl_den is null and a.ngay_hl_den_kpcd is not null and (a.ngay_hl_tu_kpcd > b.ngay_hl_tu)) or (a.ngay_hl_tu_kpcd > b.ngay_hl_tu and a.ngay_hl_tu_kpcd <= b.ngay_hl_den) or (a.ngay_hl_tu_kpcd <> b.ngay_hl_tu and a.ngay_hl_den_kpcd > b.ngay_hl_tu and a.ngay_hl_den_kpcd <= b.ngay_hl_den) or (b.ngay_hl_tu > a.ngay_hl_tu_kpcd and b.ngay_hl_tu <= a.ngay_hl_den_kpcd) or (a.ngay_hl_tu_kpcd <> b.ngay_hl_tu and b.ngay_hl_den > a.ngay_hl_tu_kpcd and b.ngay_hl_den <= a.ngay_hl_den_kpcd))
+  ]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_hl_tu_dt', a.stt, '00002' from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrttctdtbh b on c.stt_rec = b.stt_rec and ((a.ngay_hl_tu_dt <> b.ngay_hl_tu and a.ngay_hl_den_dt is null and b.ngay_hl_den is null) or (a.ngay_hl_den_dt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_dt > b.ngay_hl_tu and a.ngay_hl_tu_dt <= b.ngay_hl_den)) or (a.ngay_hl_den_dt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_dt < b.ngay_hl_tu and a.ngay_hl_tu_dt <= b.ngay_hl_den)) or (a.ngay_hl_den_dt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_dt < b.ngay_hl_tu)) or (b.ngay_hl_den is null and a.ngay_hl_den_dt is not null and (b.ngay_hl_tu > a.ngay_hl_tu_dt and b.ngay_hl_tu <= a.ngay_hl_den_dt)) or (b.ngay_hl_den is null and a.ngay_hl_den_dt is not null and (a.ngay_hl_tu_dt > b.ngay_hl_tu and b.ngay_hl_tu <= a.ngay_hl_den_dt)) or (b.ngay_hl_den is null and a.ngay_hl_den_dt is not null and (a.ngay_hl_tu_dt > b.ngay_hl_tu)) or (a.ngay_hl_tu_dt > b.ngay_hl_tu and a.ngay_hl_tu_dt <= b.ngay_hl_den) or (a.ngay_hl_tu_dt <> b.ngay_hl_tu and a.ngay_hl_den_dt > b.ngay_hl_tu and a.ngay_hl_den_dt <= b.ngay_hl_den) or (b.ngay_hl_tu > a.ngay_hl_tu_dt and b.ngay_hl_tu <= a.ngay_hl_den_dt) or (a.ngay_hl_tu_dt <> b.ngay_hl_tu and b.ngay_hl_den > a.ngay_hl_tu_dt and b.ngay_hl_den <= a.ngay_hl_den_dt))
+  where 1=1]]>&w1;<![CDATA['ngay_hl_tu_dt']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ngay_hl_tu_dt', @r = min(a.stt) from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrttctdtbh b on c.stt_rec = b.stt_rec and ((a.ngay_hl_tu_dt <> b.ngay_hl_tu and a.ngay_hl_den_dt is null and b.ngay_hl_den is null) or (a.ngay_hl_den_dt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_dt > b.ngay_hl_tu and a.ngay_hl_tu_dt <= b.ngay_hl_den)) or (a.ngay_hl_den_dt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_dt < b.ngay_hl_tu and a.ngay_hl_tu_dt <= b.ngay_hl_den)) or (a.ngay_hl_den_dt is null and b.ngay_hl_den is not null and (a.ngay_hl_tu_dt < b.ngay_hl_tu)) or (b.ngay_hl_den is null and a.ngay_hl_den_dt is not null and (b.ngay_hl_tu > a.ngay_hl_tu_dt and b.ngay_hl_tu <= a.ngay_hl_den_dt)) or (b.ngay_hl_den is null and a.ngay_hl_den_dt is not null and (a.ngay_hl_tu_dt > b.ngay_hl_tu and b.ngay_hl_tu <= a.ngay_hl_den_dt)) or (b.ngay_hl_den is null and a.ngay_hl_den_dt is not null and (a.ngay_hl_tu_dt > b.ngay_hl_tu)) or (a.ngay_hl_tu_dt > b.ngay_hl_tu and a.ngay_hl_tu_dt <= b.ngay_hl_den) or (a.ngay_hl_tu_dt <> b.ngay_hl_tu and a.ngay_hl_den_dt > b.ngay_hl_tu and a.ngay_hl_den_dt <= b.ngay_hl_den) or (b.ngay_hl_tu > a.ngay_hl_tu_dt and b.ngay_hl_tu <= a.ngay_hl_den_dt) or (a.ngay_hl_tu_dt <> b.ngay_hl_tu and b.ngay_hl_den > a.ngay_hl_tu_dt and b.ngay_hl_den <= a.ngay_hl_den_dt))
+  ]]>&Error;<![CDATA[
+end
+]]>&EndErrorMode;<![CDATA[
+
+if @admin = 0 begin
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+  select @key = case when @key = '' then '' else ' where (' + @key + ')' end
+end
+
+-- Gather
+create table #r (stt_rec char(13), ma_so_bhxh varchar(32), ma_so_hgd varchar(32), si_no varchar(32), si_date smalldatetime, si_date2 smalldatetime, hi_no varchar(32), hi_date smalldatetime, hi_date2 smalldatetime,
+  noi_kham varchar(32), quyen_loi nvarchar(256), ngay_hl_tu_bhxh smalldatetime, ngay_hl_den_bhxh smalldatetime, ngay_hl_tu_bhyt smalldatetime, ngay_hl_den_bhyt smalldatetime,
+  ngay_hl_tu_bhtn smalldatetime, ngay_hl_den_bhtn smalldatetime, ngay_hl_tu_kpcd smalldatetime, ngay_hl_den_kpcd smalldatetime, tien decimal(20, 5), loai_dt varchar(8), ngay_hl_tu_dt smalldatetime, ngay_hl_den_dt smalldatetime, dien_giai nvarchar(256))
+
+select top 0 cast('' as varchar(32)) as xkey, cast('' as varchar(32)) as xtable, stt_rec, cast('' as char(3)) as stt_rec0, ngay_hl_tu_bhxh as ngay_hl_tu, ngay_hl_den_bhxh as ngay_hl_den,
+  tien, loai_dt, cast(null as nvarchar(256)) as dien_giai, cast(0 as tinyint) as stt into #d from #r
+
+set @q = 'insert into #r select e.stt_rec, a.ma_so_bhxh, a.ma_so_hgd, a.si_no, si_date, a.si_date2, a.hi_no, a.hi_date, a.hi_date2,'
+set @q = @q + 'a.noi_kham, a.quyen_loi, a.ngay_hl_tu_bhxh, a.ngay_hl_den_bhxh, a.ngay_hl_tu_bhyt, a.ngay_hl_den_bhyt,'
+set @q = @q + 'a.ngay_hl_tu_bhtn, a.ngay_hl_den_bhtn, a.ngay_hl_tu_kpcd, a.ngay_hl_den_kpcd, a.tien, a.loai_dt, a.ngay_hl_tu_dt, a.ngay_hl_den_dt, a.dien_giai'
+select @q = @q + ' from @@table a join hrnv e on a.ma_nv = e.ma_nv' + @key
+exec sp_executesql @q
+
+insert into #d select '', 'hrttctxh', stt_rec, '', ngay_hl_tu_bhxh, ngay_hl_den_bhxh, 0, '', '', 0 from #r where ngay_hl_tu_bhxh is not null
+insert into #d select '', 'hrttctyt', stt_rec, '', ngay_hl_tu_bhyt, ngay_hl_den_bhyt, 0, '', '', 0 from #r where ngay_hl_tu_bhyt is not null
+insert into #d select '', 'hrttcttn', stt_rec, '', ngay_hl_tu_bhtn, ngay_hl_den_bhtn, 0, '', '', 0 from #r where ngay_hl_tu_bhtn is not null
+insert into #d select '', 'hrttctcd', stt_rec, '', ngay_hl_tu_kpcd, ngay_hl_den_kpcd, tien, '', '', 0 from #r where ngay_hl_tu_kpcd is not null
+insert into #d select '', 'hrttctdtbh', stt_rec, '', ngay_hl_tu_dt, ngay_hl_den_dt, tien, loai_dt, dien_giai, 0 from #r where ngay_hl_tu_dt is not null
+
+-- Delete
+if @type = '0' begin
+  delete #r from #r a where exists(select 1 from hrttbh b where a.stt_rec = b.stt_rec)
+  delete #d from #d a where exists(select 1 from hrttctxh b where a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctxh')
+  delete #d from #d a where exists(select 1 from hrttctyt b where a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctyt')
+  delete #d from #d a where exists(select 1 from hrttcttn b where a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttcttn')
+  delete #d from #d a where exists(select 1 from hrttctcd b where a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctcd')
+  delete #d from #d a where exists(select 1 from hrttctdtbh b where a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctdtbh')
+end
+
+select b.stt_rec, a.ma_so_bhxh, a.ma_so_hgd, a.si_no, a.si_date, a.si_date2, a.hi_no, a.hi_date, a.hi_date2, a.noi_kham, a.quyen_loi into #k
+  from #r a join hrttbh b on a.stt_rec = b.stt_rec
+delete #r from #r a where exists(select 1 from #k b where a.stt_rec = b.stt_rec)
+
+select b.stt_rec, b.stt_rec0, a.ngay_hl_tu, a.ngay_hl_den into #d1 from #d a join hrttctxh b on a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctxh'
+select b.stt_rec, b.stt_rec0, a.ngay_hl_tu, a.ngay_hl_den into #d2 from #d a join hrttctyt b on a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctyt'
+select b.stt_rec, b.stt_rec0, a.ngay_hl_tu, a.ngay_hl_den into #d3 from #d a join hrttcttn b on a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttcttn'
+select b.stt_rec, b.stt_rec0, a.ngay_hl_tu, a.ngay_hl_den, a.tien into #d4 from #d a join hrttctcd b on a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctcd'
+select b.stt_rec, b.stt_rec0, a.ngay_hl_tu, a.ngay_hl_den, a.loai_dt, a.dien_giai into #d5 from #d a join hrttctdtbh b on a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctdtbh'
+
+delete #d from #d a where exists(select 1 from #d1 b where a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctxh')
+delete #d from #d a where exists(select 1 from #d2 b where a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctyt')
+delete #d from #d a where exists(select 1 from #d3 b where a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttcttn')
+delete #d from #d a where exists(select 1 from #d4 b where a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctcd')
+delete #d from #d a where exists(select 1 from #d5 b where a.stt_rec = b.stt_rec and a.ngay_hl_tu = b.ngay_hl_tu and a.xtable = 'hrttctdtbh')
+if @type = '1' ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+--Insert
+@@inserting(insurance);
+
+select @count = count(*) from #d
+if @count > 0 begin
+  update #d set xkey = xtable + stt_rec
+  create table #stt(xtable varchar(32), stt_rec char(13), stt_rec0 char(3))
+  create table #o1(xgroup varchar(32), ngay_hl smalldatetime, stt int not null identity (1, 1))
+
+  insert into #stt select 'hrttctxh', b.stt_rec, max(b.stt_rec0)
+    from #d a join hrttctxh b on a.stt_rec = b.stt_rec group by b.stt_rec
+  insert into #stt select 'hrttctyt', b.stt_rec, max(b.stt_rec0)
+    from #d a join hrttctyt b on a.stt_rec = b.stt_rec group by b.stt_rec
+	insert into #stt select 'hrttcttn', b.stt_rec, max(b.stt_rec0)
+    from #d a join hrttcttn b on a.stt_rec = b.stt_rec group by b.stt_rec
+	insert into #stt select 'hrttctcd', b.stt_rec, max(b.stt_rec0)
+    from #d a join hrttctcd b on a.stt_rec = b.stt_rec group by b.stt_rec
+  insert into #stt select 'hrttctdtbh', b.stt_rec, max(b.stt_rec0)
+    from #d a join hrttctdtbh b on a.stt_rec = b.stt_rec group by b.stt_rec
+
+  insert into #o1(xgroup, ngay_hl)
+    select xgroup, ngay_hl
+      from (select xkey as xgroup, ngay_hl_tu as ngay_hl from #d
+         union select distinct xkey as xgroup, null from #d) a order by xgroup, ngay_hl
+
+  select stt, xgroup into #o2 from #o1 where ngay_hl is null
+
+  update #d set stt = b.stt + cast(isnull(c.stt_rec0, 0) as int) from #d a
+    left join (select c.stt - d.stt as stt, c.xgroup, c.ngay_hl from #o1 c join #o2 d on c.xgroup = d.xgroup) b
+      on a.xkey = b.xgroup and a.ngay_hl_tu = b.ngay_hl
+    left join #stt c
+      on a.stt_rec = c.stt_rec and a.xtable = c.xtable
+
+  @@inserting(social); where rtrim(xtable) = 'hrttctxh'
+  @@inserting(health); where rtrim(xtable) = 'hrttctyt'
+  @@inserting(unemployment); where rtrim(xtable) = 'hrttcttn'
+  @@inserting(unionDue); where rtrim(xtable) = 'hrttctcd'
+  @@inserting(objectType); where rtrim(xtable) = 'hrttctdtbh'
+end
+
+-- Update
+if @type = 1 begin
+  update hrttbh set @@list(insurance); from hrttbh a join #k b on a.stt_rec = b.stt_rec
+  update hrttctxh set @@list(social); from hrttctxh a join #d1 b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0
+  update hrttctyt set @@list(health); from hrttctyt a join #d2 b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0
+  update hrttcttn set @@list(unemployment); from hrttcttn a join #d3 b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0
+  update hrttctcd set @@list(unionDue); from hrttctcd a join #d4 b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0
+  update hrttctdtbh set @@list(objectType); from hrttctdtbh a join #d5 b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0
+end
+]]>
+    </text>
+  </processing>
+
+</import>

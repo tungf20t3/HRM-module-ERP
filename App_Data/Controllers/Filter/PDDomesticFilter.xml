@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "PDDomestic">
+  <!ENTITY c11 "Đơn hàng từ ngày">
+  <!ENTITY c12 "Order Date From">
+  <!ENTITY c21 "Số đơn hàng">
+  <!ENTITY c22 "Order Number">
+  <!ENTITY ext "94">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'PDDomesticFilter', 'Filter', 'PDTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+
+  <!ENTITY % BIMode.PDTran SYSTEM "..\Include\BIMode.PDTran">
+  %BIMode.PDTran;
+]>
+
+<dir table="m94$000000" code="stt_rec" order="ngay_ct, so_ct" id="PO1" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn đơn hàng" e="Select Order"></title>
+  <fields>
+    &FlowMultiFilterFields;
+
+    <field name="loai_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="110111: [ngay_ct1].Label, [ngay_ct1], [ngay_ct2], [ma_kh], [loai_ct]"/>
+      <item value="11011: [so_ct].Label, [so_ct], [stt_rec_ct], [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @so_ct <> '' begin
+  declare @fields nvarchar(64), @keyFlow nvarchar(4000), @keyMaster nvarchar(4000), @$none nvarchar(512)
+  select @keyMaster = '%#15$]]>&BI.PDTran.Form.Flow.Filter.PO.Master;<![CDATA[#20$' + rtrim(@ma_kh) + '#%', @fields = 'ma_nt + char(255) + status'
+  select @keyFlow = 'status in (''2'', ''3'')', @$none = case when @@language = 'v' then N'Không có đơn hàng theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+  ]]>&BI.PDTran.Form.Flow.Plant.Key;<![CDATA[
+  ]]>&CheckRelativeProcess;&XMLFlowFilterCheck;<![CDATA[
+end else begin
+  select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, '''', '''', '''', '''', '']]>&Identity;<![CDATA[MultiForm'', [''' + convert(char(8), @ngay_ct1, 112) + ''']);' as script
+  return
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {f.getItem('so_ct')._idle = 9;}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f._looking.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);
+
+  var g = f.grid, w = g.get_element().parentForm, d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs')]]>&BI.PDTran.Retrieve.GetValue.PO;<![CDATA[;
+  g._custID = w.getItemValue('ma_kh');
+  g._custName = w.getItemValue('ten_kh%l');
+  f.setItemValues('ngay_ct2, ma_kh, ma_dvcs', [d2, g._custID, u]);
+  ]]>&BI.PDTran.Retrieve.SetValue.PO;<![CDATA[
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Filter$Before$Loading(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1')) e.type.cancelEvent = true;
+  else {
+    var g = f.grid, w = g.get_element().parentForm;
+    var d1 = f.getItemValue('ngay_ct1'), d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs')]]>&BI.PDTran.Retrieve.GetValue.PO;<![CDATA[;
+
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: d1},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: d2},
+      {Name: 'ma_kh', Type: 'String', Value: g._custID},
+      {Name: 'ma_dvcs', Type: 'String', Value: u}
+      ]]>&BI.PDTran.Retrieve.AddValue.PO;<![CDATA[
+    ];
+    sender.set_memvars(a);
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, c, d, k, e, h, l) {
+  var g = f.grid;
+  if (c != '') {
+    g._voucher$Retrieve$ID = d;
+    g._voucher$Retrieve$Number = c;
+    g._voucher$Retrieve$Fields = k;
+    g._voucher$Retrieve$Date = $func.formatStringToDate(e);
+  } else {
+    g._filter$Fields = l;
+  }
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g, h);
+}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g, h) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this,\'' + (h ? h : '') + '\')';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g, h) {
+  if (h != '') {
+    g.showForm(h);
+  } else {
+    g.showForm(']]>&Identity;<![CDATA[Form');
+  }
+  g._memvars = [];
+}
+]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

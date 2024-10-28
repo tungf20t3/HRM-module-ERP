@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="vdccdkh" code="nam, ma_dvcs, tk, ma_kh" order="nam, ma_dvcs, tk, ma_kh" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc dữ liệu" e="Filter Data"></title>
+
+  <fields>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"/>
+      <items style="Numeric"></items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 230"/>
+      <item value="11: [nam].Label, [nam]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @c varchar(4), @d varchar(4), @startYear int
+select @c = rtrim(year(ngay_ks)), @startYear = nam_bd from dmstt
+select @d = rtrim(year(ngay_ks)) from dmdvcsks where ma_dvcs = @@unit and ngay_ks is not null
+select @d = isnull(@d, '')
+select 'this._lockedDate = ''' + @c + ''';this._lockedUnit = ''' + @d + ''';this._startYear = ' + rtrim(@startYear) + ';active$CustomerBalanceAdjustment$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$CustomerBalanceAdjustment$(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$CustomerBalanceAdjustment$(a){a.add_onResponseComplete(on$CustomerBalanceAdjustment$ResponseComplete);a.setItemValue("nam",(new Date).getFullYear())}function close$CustomerBalanceAdjustment$(a){try{a.remove_onResponseComplete(on$CustomerBalanceAdjustment$ResponseComplete)}catch(b){}}function on$CustomerBalanceAdjustment$ResponseComplete(i,e){var c=e.object,g=e.type.Context,h=e.type.Result;switch(g){case"Checking":var a=c.grid,f=[];a._year=c.getItemValue("nam");var d=a._year.toString(),b=c._lockedDate>=d;a._denyNew=a._deny$Unit;a._denyMessage=null;if(!a._denyNew)a._denyNew=b;a._denyEdit=a._denyDelete=a._denyImport=b;if(!b&&!a._denyNew)b=a._denyNew=c._lockedUnit>=d;if(b)a._denyMessage=c._language=="v"?"Đã khóa số liệu, kiểm tra lại ngày khóa sổ.":"Data is locked, you must modify system locked date.";if(!b)b=a._denyNew=a._denyEdit=a._denyDelete=a._denyImport=c._startYear>=d;if(b)a._denyMessage=c._language=="v"?"Năm điều chỉnh có giá trị nhập không hợp lệ.":"Adjusted year is invalid.";Array.add(f,{Name:"nam",Opr:"=",Value:a._year,Type:"Numeric",Ignore:false});a._alterTitle=[null,[["%s1",d,true]]];a.set_externalKey(f)}}]]>
+    </text>
+  </script>
+</dir>

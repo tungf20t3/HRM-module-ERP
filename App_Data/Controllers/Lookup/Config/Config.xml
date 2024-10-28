@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE config [
+  <!ENTITY Config.Regular.Account "select ((rtrim[(]val[)])|tk) from (dmcltg|options) where">
+  <!ENTITY Config.Regular.Customer "select ma_kh from khhddt b where">
+  <!ENTITY Config.Regular.Product "exists[(]select 1 from ctsx a where">
+  <!ENTITY Config.Regular.Job "select ma_vv from dmvv where">
+  <!ENTITY Config.Regular.MO "select 1 from options where">
+
+  <!ENTITY Config.Deny.String "(\b(?!and|or|in|exists|[rl]?trim|charindex|replace\b)\w+(\s?)+[(])|(\b(current_timestamp|current_user|user|session_user|system_user)\b)">
+
+  <!ENTITY % Control.Unit SYSTEM "..\..\Include\Unit.ent">
+  %Control.Unit;
+  %Control.Unit.Ignore;
+]>
+
+<config xmlns="urn:schemas-ai-erp:data-filter">
+  <controllers>
+    <controller name="Account" pattern="{0}%, (({1} like @) or ({2} like '%' + @))" regular="&Lookup.Regular.Account;" deny="&Config.Deny.String;"/>
+    <controller name="Customer" regular="&Lookup.Regular.Customer;" deny="&Config.Deny.String;"/>
+    <controller name="Product" regular="&Lookup.Regular.Product;" deny="&Config.Deny.String;"/>
+    <controller name="Job" regular="&Lookup.Regular.Job;" deny="&Config.Deny.String;"/>
+    <controller name="MO" regular="&Lookup.Regular.MO;" deny="&Config.Deny.String;"/>
+
+    <controller name="APInvoice" regular="select stt_rec_tt from cttt30 where stt_rec" deny="&Config.Deny.String;" description="@@unit"/>
+    <controller name="ARInvoice" regular="select stt_rec_tt from cttt20 where stt_rec" deny="&Config.Deny.String;" description="@@unit"/>
+
+    <controller name="CDInvoiceLookup" regular="select stt_rec_tt from cttt30 where stt_rec" deny="&Config.Deny.String;" description="@@unit"/>
+    <controller name="CRInvoiceLookup" regular="select stt_rec_tt from cttt20 where stt_rec" deny="&Config.Deny.String;" description="@@unit"/>
+    <controller name="CRRoutingCodeList" regular="select 1 from (ctrtvt|ctrt) b where" deny="&Config.Deny.String;"/>
+    <controller name="DDInvoiceLookup" regular="select stt_rec_tt from cttt30 where stt_rec_pb" deny="&Config.Deny.String;" description="@@unit"/>
+    <controller name="DDTran" regular="select distinct stt_rec from cttt30 where stt_rec_pb" deny="&Config.Deny.String;" description="@@unit"/>
+
+    <controller name="Factor" regular="select 1 from options where name" deny="&Config.Deny.String;"/>
+
+    <controller name="FixedAsset" regular="select 1 from sysunitrights r where r.user_id = @@userID" deny="&Config.Deny.String;" description="@@admin"/>
+
+    <controller name="hrAccessRight" regular="select ma_quyen from hrquyennsd where user_id = @@userID" deny="&Config.Deny.String;" description="@@admin"/>
+
+    <controller name="hrDepartment" regular="select (a.ma_bp|(distinct ma_bp)) from ((hrbp a, @@sysDatabaseName..hrquyenbp b)|hrrmdotct) where" allow="(dbo[.])?\b(ff_Inlist)\b(\s?)+[(]" deny="&Config.Deny.String;" description="@@unit|@@admin|@@userID"/>
+    <controller name="hrEmployee" regular="select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist[(]a.bp_ref, b.r_access2[)] = 1 and b.user_id = @@userID" allow="(dbo[.])?\b(ff_Inlist)\b(\s?)+[(]" deny="&Config.Deny.String;" description="@@admin"/>
+
+    <controller name="hrEmployeeStatus" regular="select (val|1) from options where name" deny="&Config.Deny.String;"/>
+    <controller name="hrPosition" regular="select (distinct )?ma_vtr from hrrmdotct where" deny="&Config.Deny.String;"/>
+    <controller name="hrRMApplicantProfileInput" regular="@@admin = 1 or exists[(]select 1 from sysunitrights r where r.user_id = @@userID" deny="&Config.Deny.String;"/>
+    <controller name="hrRMPeriodInfoInput" regular="@@admin = 1 or (exists|(ma_dvcs in ))[(]select (1|ma_dvcs) from ((sysunitrights r)|@@appDatabaseName..sysunitrights) where" deny="&Config.Deny.String;" description="@@userID"/>
+    <controller name="hrRMRoundExamination" regular="select (a.)?ma_vong from hrrmhtttct ((where ma_ht)|(a join hrrmdotct b on a.ma_ht = b.ma_ht join hrrmhs c on b.ma_vtr = c.ma_vtr and b.ma_bp = c.ma_bp where))" deny="&Config.Deny.String;"/>
+    <controller name="hrSIChangeType" regular="select 1 from hrdmktdbh b where" deny="&Config.Deny.String;"/>
+    <controller name="hrWorkday" regular="select a.ma_cong from hrdmcong a join hrdmloaicong b on a.ma_loai = b.ma_loai where" deny="&Config.Deny.String;"/>
+
+    <controller name="PrivateUser" allow="@@0" deny="&Config.Deny.String;" prevent="pass, key"/>
+
+    <controller name="RDInvoiceLookup" regular="select stt_rec_tt from cttt20 where" deny="&Config.Deny.String;" description="@@unit"/>
+    <controller name="RDTran" regular="select distinct stt_rec from cttt20 where" deny="&Config.Deny.String;" description="@@unit"/>
+    <controller name="ReceivingAddress" regular="select (1|ma_kho) from syssiterights where user_id = @@userID" deny="&Config.Deny.String;"/>
+
+    <controller name="ReportForm" regular="select (form|1) from (v20dmmaubc|(options a)) where" allow="\b(isnull)\b(\s?)+[(]" deny="&Config.Deny.String;"/>
+
+    <controller name="RequiredFieldLookup" regular="select  [+] replace[(]rtrim[(]hide[)], , [)] [+]  from voucherinfo where" deny="&Config.Deny.String;"/>
+    <controller name="Section" regular="select ma_bp from dmbp(( where)|[)])" deny="&Config.Deny.String;"/>
+    <controller name="SFCWorkOrder" regular="select case when loai_ct =  then 1 else 2 end from dmmagd where" deny="&Config.Deny.String;"/>
+
+    <controller name="Site" regular="select (1|ma_kho|ma_dvcs) from (sysunitrights|syssiterights|(sfdmxuong b)|kkycct) where ((user_id = @@userID)|dmkho|stt_rec)" deny="&Config.Deny.String;" description="@@unit|@@userID"/>
+    <controller name="SiteGroup" regular="select (ma_nh|ma_dvcs) from (dmkho|sysunitrights) where ((user_id = @@userID)|isnull)" deny="&Config.Deny.String;"/>
+
+    <controller name="TS2Tran" regular="select ma_dvcs from sysunitrights where user_id = @@userID" deny="&Config.Deny.String;" description="@@admin"/>
+    <controller name="TSDepartment" regular="select 1 from (dmdcct|ctpsdc|dcbpsddc) (a|b) where" deny="&Config.Deny.String;"/>
+    <controller name="Unit" regular="select (ma_dvcs|(top 1 id)|(rtrim[(]a.ma_dvcs[)] as ma_dvcs)|name) from (sysunitrights|(sysunitrights r)|vsysuserinfo|dmdvcs|sysunitlimits2|(dbo.sysunitrights)|(dmdvcs a join sysunitrights b on a.ma_dvcs = b.ma_dvcs)) where" deny="&Config.Deny.String;" prevent="pass, key" description="@@admin|@@userID"/>
+    <controller name="User" deny="&Config.Deny.String;" prevent="pass, key"/>
+
+    <controller name="UserGroup" regular="select (id|(distinct user_id)|(distinct id)|(user_id)|(id)|(restrict_users)|( [+] replace[(]restrict_users,,[)] [+] )) from ((@@appDatabaseName..vsysunitrights)|(@@appDatabaseName..vbisyspurorgrights)|(@@appDatabaseName..vbisysinspectionrights)|(@@appDatabaseName..sodmduyet)|(@@appDatabaseName..vsysunitlimits)|(@@appDatabaseName..gndmduyet)|(@@appDatabaseName..dmduyet)|(userinfo2)|(dmtbnsd)|(hrquyennsd)) where" allow="(dbo[.])?\b(patindex|ff_ExactInlist)\b(\s?)+[(]" deny="&Config.Deny.String;" prevent="pass, key" description="@@admin|@@userID"/>
+
+    <controller name="Voucher" regular="select (xcode|ma_cn|1) from (kbctxoa|bidmngm|dmttck)( where|[)])" deny="&Config.Deny.String;"/>
+
+    <controller name="VoucherBook" regular="select (ma_nk|1|(distinct ma_ct)) from (v20dmctnk|(v20dmctnk c)|(v20dmctnk b)|dmct8|([)] and not exists[(]select 1 from v20dmctnk c))([)]|( where (([)ma_ct(])|ma_ct|((b|c).(ma_nk|ma_ct)))))" allow="\b(convert)\b(\s?)+[(]" deny="&Config.Deny.String;" description="@@unit|@@userName|@@id"/>
+    <controller name="VoucherType" regular="select ((distinct )?ma_ct|(loai_ct)) from (dmtktct|(bikdngct)|(gndmloaiduyet a left join gndmkieuduyet b on a.loai_duyet = b.loai_duyet)|(sodmloaiduyet a left join sodmkieuduyet b on a.loai_duyet = b.loai_duyet)) where" deny="&Config.Deny.String;"/>
+
+
+
+    <controller name="AccountExtension" regular="&Config.Regular.Account;" deny="&Config.Deny.String;"/>
+    <controller name="CustomerExtension" regular="&Config.Regular.Customer;" deny="&Config.Deny.String;"/>
+    <controller name="JobExtension" regular="&Config.Regular.Job;" deny="&Config.Deny.String;"/>
+    <controller name="MOExtension" regular="&Config.Regular.MO;" deny="&Config.Deny.String;"/>
+    <controller name="ProductExtension" regular="&Config.Regular.Product;" deny="&Config.Deny.String;"/>
+    <controller name="TransactionTypeExtension" regular="exists[(]select 1 from options where" deny="&Config.Deny.String;" description="@@id"/>
+    <controller name="UOMItemExtension" regular="select (1|(top 1 nhieu_dvt)) from dmvt where" deny="&Config.Deny.String;"/>
+
+    <controller name="VoucherExtension" regular="select ((ma_ct)|(distinct ma_ct)|1|(top 1 rtrim[(]parameter[)])|(rtrim[(]parameter[)])) from (dmct|Voucher|(@@sysDatabaseName..syscheckfields b|)|(@@sysDatabaseName..hdfields b)|(dmtktct)|(dmmagd)|(@@sysDatabaseName..wcommand)|(dmct8)|(bikdngct))( where|[)])" allow="(dbo[.])?\b(ff_Inlist)\b(\s?)+[(]" deny="&Config.Deny.String;"/>
+
+    <controller name="QuickMenuFunction" regular="select a.menu_id from wcommand a, userinfo2 b where dbo.ff_ExactInlist[(]a.menu_id, cast[(]b.r_access as nvarchar[(]4000[)][)][)] = 1 and b.id = @@userID" deny="&Config.Deny.String;" description="@@admin"/>
+
+
+
+    <controller name="PV0FIFOBalanceLookup" allow="\b(year)\b(\s?)+[(]" deny="&Config.Deny.String;"/>
+
+
+
+    <controller name="BIPurchasingOrganization" regular="select (1|ma_bp|ma_bp0|(ma_bp0 as ma_bp)) from (bidmbp0|bidmbp0g1|bidmbp0g1 b) where" allow="\b(convert)\b(\s?)+[(]" deny="&Config.Deny.String;" prevent="pass, key" description="@@admin|@@userID"/>
+    <controller name="BIPlant" regular="select (1|ma_vung) from (bidmvtvung|bidmbp0g1) where ((user_id = @@userID)|ma_vt|ma_bp0|ma_vung)" deny="&Config.Deny.String;" prevent="pass, key" description="@@admin|@@userID"/>
+
+    <controller name="BIPlant.Right" regular="select (1|ma_vung) from (bidmbp0g1) where" deny="&Config.Deny.String;"/>
+
+    <controller name="BIVEItem" regular="select (1|ma_vt) from (bidmvttsbp0|bidmvtts) b where" deny="&Config.Deny.String;"/>
+    <controller name="BIVEVendor" regular="select (1|ma_vt) from (bidmncctsbp0|bidmnccts) b where" deny="&Config.Deny.String;"/>
+
+
+
+    <controller name="BankingConnection" regular="select (ma_kn) from (dmtknhnsd) where" deny="&Config.Deny.String;"/>
+    <controller name="AccountTax" deny="&Config.Deny.String;" prevent="password, token"/>
+
+
+
+
+
+    <controller name="Default" deny="&Config.Deny.String;"/>
+  </controllers>
+</config>

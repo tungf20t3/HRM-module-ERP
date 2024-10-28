@@ -1,0 +1,7 @@
+﻿      <![CDATA[
+declare @$plant varchar(512)
+select @$plant = ''
+select @$plant = @$plant + dbo.ff_Dec2Seq(b.id) + '#' from ]]>&BIPurchasingTable;<![CDATA[ a join bidmvung b on a.ma_vung = b.ma_vung where ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[ order by b.id
+if @$plant <> '' select @$plant = '#' + @$plant
+update @@table set ds_vung = @$plant where ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;
+

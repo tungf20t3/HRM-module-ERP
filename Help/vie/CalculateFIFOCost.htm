@@ -1,0 +1,141 @@
+﻿
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html  xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="CalculateFIFOCost.doc" />
+<title>Tính giá nhập trước xuất trước</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Tính giá nhập trước xuất trước</p>
+<p id="td2">Lập luận Tính giá nhập trước xuất trước</p>
+
+<p id="p2">Giá nhập trước xuất trước (NTXT) được tính cho các phiếu xuất bằng cách trừ dần từ các phiếu nhập theo nguyên tắc nhập 
+trước xuất trước. </p>
+<p class="note">Lưu ý là chỉ đưa ra đơn giá xuất cuối cùng chứ không chỉ ra cho người sử dụng biết là phiếu xuất được xuất từ các 
+phiếu nhập nào.</p>
+<p class="node">Công thức tổng quát</p>
+<p class="node_d"> Giá  = (tiền hàng + tiền cp - tiền đích danh)/(số lượng gốc - sl đích danh).</p>
+
+<p class="node">Ưu tiên trong tính giá NTXT</p>
+<p class="node_d">Trong việc tính giá NTXT thì điều quan trọng là phải xác định phiếu nào trước và phiếu nào là sau. Trình tự trước 
+sau được xác định theo thứ tự ưu tiên:</p>
+<ul class="lo_2">
+-	1.Ngày của các phiếu xuất
+<br/>
+-	2.Tính giá và cập nhật cho tất cả các phiếu xuất điều chuyển
+<br/>
+-	3.Tính giá và cập nhật cho các hoá đơn và các phiếu xuất khác
+</ul>
+
+<p class="node_d">Trong mỗi bước tính 2 và 3 thì do có nhiều kho khác nhau, nhiều loại chứng từ nhập xuất khác nhau với hệ thống 
+đánh số khác nhau nên các tính toán lại được thực hiện theo ưu tiên sau:</p>
+<ul class="lo_2">
+-	1. Số thứ tự ưu tiên của các kho
+<br/>
+-	2. Số chứng từ của các phiếu xuất
+<br/>
+-	3. Số thứ tự ưu tiên của các phiếu nhập
+<br/>
+-	4. Số chứng từ của các phiếu nhập.
+</ul>
+
+<p class="node_d">Lý do phải xét thứ tự ưu tiên như trên được giải thích như sau:</p>
+<ul class="lo_2">
+-	Phiếu xuất điều chuyển được ưu tiên số 1 vì: Giá của phiếu xuất điều chuyển sẽ là giá nhập của kho đối ứng nên để phải tính trước 
+thì mới tính tiếp cho các phiếu xuất khác. Phiếu nhập điều chuyển có số chứng từ bằng số chứng từ của phiếu xuất điều chuyển vì vậy nó 
+sẽ khác hệ thống đánh số của các phiếu nhập mua và nhập khác. Để giải quyết 02 vấn đề không rõ ràng trên phiếu xuất điều chuyển được xếp
+ ưu tiên số 1.
+<br/>
+-	Trong trường hợp có nhiều kho và có sự điều chuyển giữa các kho thì chương trình không thể nhận biết được chứng từ nào phát sinh
+ trước vì chúng có thể được đánh số theo các hệ thống của từng kho. Để giải quyết vấn đề không rõ ràng này ta phải đánh số thứ tự ưu 
+ tiên cho các kho trong vấn đề điều chuyển. Ví dụ kho trung tâm là ưu tiên số 1, tiếp theo là các kho khác. Việc đánh số thứ tự ưu tiên
+ cho các kho được thực hiện ở phần khai báo “Danh mục kho”.
+<br/>
+-	Có nhiều loại phiếu khác nhau và mỗi phiếu lại có thể có hệ thống đánh số chứng từ khác nhau. 
+</ul>
+
+<p class="e">Ví dụ:
+<br/> Hệ thống đánh số hóa đơn khác với hệ thống đánh số của các phiếu xuất kho. Vì vậy để biết phiếu nào là trước hay là sau ta phải 
+có đánh số thứ tự ưu tiên cho các chứng từ vật tư. </p>
+<p class="node_d">Số thứ tự ưu tiên do quy định và có thể xem ở trường Stt_NTXT trong phần khai báo về “Danh mục chứng từ”.</p>
+<p class="node">Thứ tự ngày chứng từ nhập so với phiếu xuất</p>
+<p class="node_d">Giá NTXT được tính cho các phiếu xuất bằng cách trừ dần từ các phiếu nhập theo nguyên tắc nhập trước xuất trước, do 
+đó, nếu lượng tồn không đủ để xuất cho phiếu xuất thì chương trình cũng dừng tính toán và buộc phải kiểm tra lại ngày các phiếu nhập 
+cho dù tồn kho cuối kỳ vẫn đủ để xuất.
+<br/>
+Để tránh những rắc rối này khi áp dụng giá NTXT, có thể chọn “Tính đúng theo tháng” cho tính giá NTXT. Tuy nhiên, cũng nên áp dụng các 
+biện pháp quản lý sao cho số lượng tồn kho thực tế luôn đáp ứng số lượng nhu cầu trên các phiếu xuất để hệ thống được sử dụng hữu hiệu hơn. 
+<br/>
+
+Việc khai báo các vật tư tính giá theo phương pháp nhập trước xuất trước được thực hiện ở phần khai báo các thông tin về vật tư. 
+Chức năng tính giá NTXT được thực hiện ở menu “Tính giá nhập trước xuất trước”.</p>
+<p class="node">Chi phí mua hàng</p>
+<p class="node_d">Thông thường chi phí mua hàng sẽ được tính vào giá xuất kho. Tuy nhiên trong trường hợp chi phí về không cùng
+ kỳ với phiếu nhập thì trường hợp này phần chi phí sẽ bị treo lại trên sổ sách. Để xử lý trường hợp này, cần phải dùng phiếu xuất kho có loại chứng 
+ từ là điều chỉnh để xuất số lượng bằng 0 với vật tư tính gía NTXT.  
+ Chức năng “Tính giá nhập trước xuât trước” sẽ không tính toán hoặc áp giá gì cho phiếu xuất kho loại này.</p>
+
+<p id="td2">Những tham số hệ thống có liên quan</p>
+<p class="node">Cách tính giá NTXT:</p>
+<ul class="lo_2">
+-  “Đúng theo ngày”: Tùy chọn tính toán đúng theo từng ngày cho một phiếu xuất. Nếu một phiếu xuất theo giá NTXT có số lượng xuất 
+lớn hơn tồn kho cho đến ngày xuất thì chương trình sẽ không tính được giá cho phiếu xuất này và sẽ hiện thông báo “Không đủ vật tư
+ để xuất ” để người dùng kiểm tra lại.
+<br/>
+- “Đúng theo tháng”: Tùy chọn tính toán đúng theo tháng. Những phiếu nhập hoặc tồn kho chỉ cần đáp ứng số lượng xuất theo tháng.
+</ul>
+<p class="note">Trường hợp nhập xuất điều chuyển sau ngày xuất, hiện tại chương trình chưa tính được.</p>
+<p id="td2">Màn hình điều kiện tính</p>
+<p id="p2">Đường dẫn: Tồn kho → Tính giá nhập trước xuất trước</p>
+
+
+ <p id="pic"><img src="vie/CalculateFIFOCost.png"/></p>
+ 
+
+<p id="td2">Giải thích các trường thông tin điều kiện</p>
+<p class="node">Từ kỳ / đến kỳ / năm</p>
+<p class="node_d">Điều kiện thời gian tính toán. Thông thường giá nhập trước xuất trước được tính trong tháng. Lưu ý là phải tính 
+liên tuc theo từng tháng, nếu có tháng nào chưa tính thì phải tính lại từ tháng đó trở đi.</p>
+<p class="node">Mã vật tư / loại vật tư / nhóm vật tư</p>
+<p class="node_d">Điều kiện giới hạn phạm vi tính toán về vật tư / loại vật tư / nhóm vật tư.</p>
+<p class="node">Đơn vị</p>
+<p class="node_d">Tuỳ chọn tính theo đơn vị cơ sở.</p>
+<p class="node">Cập nhật giá NTXT                                   </p>
+<p class="node_d">Tùy chọn cho phép chọn quy trình cập nhật kết quả tính toán giá xuất kho vào hệ thống. Có 3 tùy chọn như sau:</p>
+<ul class="lo_2">
+-        “Tính giá nhập trước xuất trước rồi cập nhật vào thẻ kho”: trong trường hợp bộ phận kho hàng chỉ tính và tham khảo giá
+ xuất nhưng chưa hạch toán vào sổ cái. Việc áp giá trị xuất kho vào các hạch toán phiếu xuất trong sổ cái được thực hiện sau đó.
+<br/>-        “Tính giá nhập trước xuất trước rồi cập nhật vào thẻ kho, sổ cái”: tùy chọn cập nhật đầy đủ nhất.
+<br/>-        “Cập nhật giá nhập trước xuất trước đã tính vào sổ cái”: chỉ tính giá và không cập nhật vào thẻ kho.
+</ul>
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

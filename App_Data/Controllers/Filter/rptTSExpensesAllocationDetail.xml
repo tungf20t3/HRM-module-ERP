@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY LineCounter "4">
+  <!ENTITY Delta14 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tu_ky" type="Decimal" dataFormatString="#0" allowNulls="false" aliasName="fromPeriod" defaultValue="(new Date()).getMonth() + 1;">
+      <header v="Từ kỳ" e="From Period"></header>
+      <footer v="Từ kỳ/năm" e="From Period/Year"></footer>
+      <items style="Numeric"></items>
+    </field>
+    <field name="den_ky" type="Decimal" dataFormatString="#0" allowNulls="false" aliasName="toPeriod" defaultValue="(new Date()).getMonth() + 1;">
+      <header v="Đến kỳ" e="To Period"></header>
+      <footer v="Đến kỳ/năm" e="To Period/Year"></footer>
+      <items style="Numeric"></items>
+    </field>
+    <field name="tu_nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Từ năm" e="From Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="den_nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Đến năm" e="To Year"></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="tk_kh" allowNulls="false" categoryIndex="1">
+      <header v="Tk phân bổ" e="Alloc. Account"></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk_kh%l" key="loai_tk = 1 and status = '1'" check="loai_tk = 1" information="tk$dmtk.ten_tk%l" new="Default"/>
+    </field>
+    <field name="ten_tk_kh%l" clientDefault="Default" readOnly="true" hidden="false" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="tk_cp" allowNulls="false" categoryIndex="1">
+      <header v="Tk chi phí" e="Expense Account"></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk_cp%l" key="loai_tk = 1 and status = '1'" check="loai_tk = 1" information="tk$dmtk.ten_tk%l" new="Default"/>
+    </field>
+    <field name="ten_tk_cp%l" clientDefault="Default" readOnly="true" hidden="false" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="111----: [tu_ky].Description, [tu_ky], [tu_nam]"/>
+      <item value="111----: [den_ky].Description, [den_ky], [den_nam]"/>
+      <item value="1100100: [tk_kh].Label, [tk_kh], [ten_tk_kh%l]"/>
+      <item value="1100100: [tk_cp].Label, [tk_cp], [ten_tk_cp%l]"/>
+      <item value="110000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110000-: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 40, 30, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @ten_tk_kh nvarchar(1024), @ten_tk_kh2 nvarchar(1024), @ten_tk_cp nvarchar(1024), @ten_tk_cp2 nvarchar(1024)
+select @ten_tk_kh = ten_tk, @ten_tk_kh2 = ten_tk2 from dmtk where tk = @tk_kh
+select @ten_tk_cp = ten_tk, @ten_tk_cp2 = ten_tk2 from dmtk where tk = @tk_cp
+
+select dbo.ff_GetStartDateOfCycle(@tu_ky,@tu_nam) as tu_ky, dbo.ff_GetStartDateOfCycle(@den_ky,@den_nam) as den_ky
+  , @tk_kh as tk_kh, @ten_tk_kh as ten_tk_kh, @ten_tk_kh2 as ten_tk_kh2, @tk_cp as tk_cp, @ten_tk_cp as ten_tk_cp, @ten_tk_cp2 as ten_tk_cp2
+exec rs_rptTSExpensesAllocationDetail @tu_ky, @tu_nam, @den_ky, @den_nam, @ma_dvcs, @tk_kh, @tk_cp, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  if (f._convection) f._convection = null;
+  else {
+    changeLookupReadonly(f, 'ma_dvcs');
+    if (!f.getItemValue('tu_nam')) f.getItem('tu_nam').value = (new Date()).getFullYear();
+    if (!f.getItemValue('den_nam')) f.getItem('den_nam').value = (new Date()).getFullYear();
+  }
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(k,c){var b=c.object,d=c.type.Context,j=c.type.Result;switch(d){case"Checking":var a=b.grid;a._l1=a._language=="v"?"Tk phân bổ: ":"Allocation Account: ";a._l2=a._language=="v"?"Tk chi phí: ":"Expense Account: ";a._allocationAccount=b.getItemValue("tk_kh");a._allocationAccountName=b.getItemValue("ten_tk_kh%l");a._expenseAccount=b.getItemValue("tk_cp");a._expenseAccountName=b.getItemValue("ten_tk_cp%l");a._hiddenFields=[{Fields:"nguyen_gia_nt, gt_kh_ky_nt, gt_da_kh_nt, gt_cl_nt, ma_nt, ty_gia",Value:b.getItemValue("mau_bc")=="10"}];var e=b.getItem("tu_ky").value,f=b.getItem("den_ky").value,g=b.getItem("tu_nam").value,h=b.getItem("den_nam").value,i=a._l1+a._allocationAccount+(a._allocationAccountName!=""?" - ":"")+a._allocationAccountName+", "+a._l2+a._expenseAccount+(a._expenseAccountName!=""?" - ":"")+a._expenseAccountName;a._alterTitle=[null,[["%s",i,true],["%p1",e,true],["%y1",g,true],["%p2",f,true],["%y2",h,true]]];remove$GridReport$Filter(a)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

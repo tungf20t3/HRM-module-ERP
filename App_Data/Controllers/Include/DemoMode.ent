@@ -1,0 +1,24 @@
+﻿<!ENTITY % Conditional.DemoMode SYSTEM "..\Include\DemoMode.txt">
+
+<![%Conditional.DemoMode;[
+  <!ENTITY Filter.Process.Add.KeyupHandler "add$Process$KeyupHandler(f);">
+  <!ENTITY Filter.Process.Remove.KeyupHandler "remove$Process$KeyupHandler(f);">
+
+  <!ENTITY Filter.Process.Script "
+function add$Process$KeyupHandler(f) {
+  f._on$Process$KeyupHandler = Function.createDelegate(f, on$Process$KeyupHandler);
+  $addHandler(document, 'keyup', f._on$Process$KeyupHandler);
+  f.getItem('ngay_hd').disabled = true;
+}
+function remove$Process$KeyupHandler(f) {
+  if (f._on$Process$KeyupHandler) {
+    $removeHandler(document, 'keyup', f._on$Process$KeyupHandler);
+    f._on$Process$KeyupHandler = null;
+  }
+}
+function on$Process$KeyupHandler(e) {if ((e.ctrlKey) &amp;&amp; (e.altKey) &amp;&amp; (e.keyCode == 113)) this._setReadOnly(this.getItem('ngay_hd'), false);}">
+]]>
+
+<!ENTITY Filter.Process.Add.KeyupHandler "">
+<!ENTITY Filter.Process.Remove.KeyupHandler "">
+<!ENTITY Filter.Process.Script "">

@@ -1,0 +1,58 @@
+﻿<![CDATA[
+function set$Grid$ImportResult(z) {
+  var g = z.grid, f = z.form, w = g.get_element().parentForm, result = z.result, row = g._rowCount, first = true, fcAmountIndex = 9, refIndex = 24, editItemAccountIndex = 23, multiUOMIndex = 22;
+  var c0 = g._getColumnOrder('ma_vt'), reference = g._getColumnOrder('ten_vt%l'), c1 = g._getColumnOrder('dvt'), c2 = g._getColumnOrder('ma_kho'), c3 = g._getColumnOrder('ma_vi_tri'), c4 = g._getColumnOrder('ma_lo');
+  var c5 = g._getColumnOrder('tk_vt');
+
+  ]]>&ImportUserDefinedDeclare;<![CDATA[
+  var beginUDIndex = 5;
+
+  var fields = 'ma_vt, ten_vt%l, dvt, he_so, ma_kho, ma_vi_tri, ma_lo, so_luong, gia_nt0, tien_nt0,';
+  fields += 'tk_vt, ' + ']]>&ImportUserDefinedFields;<![CDATA[' + ', gia_ton, vi_tri_yn, lo_yn, tao_lo';
+
+  for (var i = 0; i < result.length; i++) {
+    var ins = true, row = g._rowCount, importItems = result[i];
+    if (first && row > 0) if (g.blankMemvar(row)) {ins = false; first = false;}
+    if (ins) g._appendRow(null, true);
+    row = g._rowCount;
+    var o = g._getItem(row, c0);
+    o.row = row;
+    insert$Import$Items(g, fields, row, importItems);
+
+    var ref = importItems[refIndex];
+    var itemID = g._getItemValue(row, c0), itemName = g._getItemValue(row, reference), b0 = (itemName != '' || itemID == '');
+    var itemGridBehavior = [
+        ['ma_vt', itemID, [itemName, b0], true],
+        ['dvt', g._getItemValue(row, c1), ['', ref.substr(0, 1) == '1'], true],
+        ['ma_kho', g._getItemValue(row, c2), ['', ref.substr(1, 1) == '1'], true],
+        ['ma_vi_tri', g._getItemValue(row, c3), ['', ref.substr(2, 1) == '1'], true],
+        ['ma_lo', g._getItemValue(row, c4), ['', ref.substr(3, 1) == '1'], true],
+        ['tk_vt', g._getItemValue(row, c5), ['', ref.substr(4, 1) == '1'], true]
+    ];
+    ]]>&ImportUserDefinedSetItem;<![CDATA[
+
+    if (importItems[fcAmountIndex] != 0) g.executeExpression(o, [g.$a.gia0_tg, g.$a.tien0_tg]);
+      else g.executeExpression(o, [g.$a.gia0_tg, g.$a.tien_nt0, g.$a.tien0, g.$a.tien0_tg]);
+
+    $func.setObjectWhen(g._getItem(row, c1), importItems[multiUOMIndex]);
+    $func.setObjectWhen(g._getItem(row, c5), importItems[editItemAccountIndex]);
+  }
+  on$GridVoucherDetail$RowChange(g, w);
+  g._focusWhenTabChanged();
+  f._busy = false;
+  parent.$func.hideWait(f.get_id());
+  ]]>&ImportDetailCloseForm;<![CDATA[
+  z.parentNode.removeChild(z);
+}
+function insert$Import$Items(g, fields, row, value) {
+  var field = fields.split(',');
+  for (var i = 0; i < field.length; i++) {
+    var column = g._getColumnOrder(parent.$func.trim(field[i]));
+    if (column > 0) {
+      var f = g._fields[column - 1], v = value[i];
+      if (f.ItemStyle == 'AutoComplete' && v && !$func.trim(v)) v = '';
+      g._setItemValue(row, column, v);
+    }
+  }
+}
+]]>

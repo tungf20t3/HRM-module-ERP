@@ -1,0 +1,134 @@
+﻿<![%Conditional.SourceList;[
+
+  <!ENTITY SourceListField SYSTEM "..\Include\XML\BISourceListField.xml">
+  <!ENTITY SourceListView SYSTEM "..\Include\XML\BISourceListView.xml">
+  <!ENTITY SourceListButton SYSTEM "..\Include\XML\BISourceListButton.xml">
+  <!ENTITY SourceListMenuItem SYSTEM "..\Include\XML\BISourceListMenuItem.xml">
+  <!ENTITY SourceListClass SYSTEM "..\Include\XML\BISourceListClass.txt">
+
+  <!ENTITY SourceListExecuteShow "
+      &SourceListConditionShow;
+      if (f.validFields('ma_bp0, ma_kh') {
+        var v = f._language == 'v', formID = f.get_id(), gridID = g.get_id();
+        if (r &lt;= 0) {
+          var msg = (v ? 'Chưa chọn dòng trong thông tin chi tiết.' : 'No detail line selected, please select one to process.');
+          $message.show(msg, String.format('$find(\'{0}\')._focusWhenTabChanged()', gridID));
+          break;
+        }
+        var l1 = g._getColumnOrder('ma_vt'), l2 = g._getColumnOrder('ten_vt&#37;l'), l3 = g._getColumnOrder('ma_vung'), l4 = g._getColumnOrder('ten_vung&#37;l');
+        var ma_vt = g._getItemValue(r, l1), ma_vung = g._getItemValue(r, l3);
+        var h1 = g._getItem(r, l2), h2 = g._getItem(r, l4), b = true;
+        if (f._action != 'View' &amp;&amp; (ma_vt == '' || (h1.Checked &amp;&amp; !h1.checked))) {
+          b = false;
+          var msg = String.format($df.getResources(f._language, 'Message.RequiredField'), g._fields[l1 - 1].Label);
+          g._errorObject = g._getItem(r, l1);
+          $message.show(msg, String.format('$find(\'{0}\').focus(\'bid10\');$find(\'{1}\')._errorObject.focus()', formID, gridID));
+        }
+        if (b &amp;&amp; f._action != 'View' &amp;&amp; (ma_vung == '' || (h2.Checked &amp;&amp; !h2.checked))) {
+          b = false;
+          var msg = String.format($df.getResources(f._language, 'Message.RequiredField'), g._fields[l3 - 1].Label);
+          g._errorObject = g._getItem(r, l3);
+          $message.show(msg, String.format('$find(\'{0}\').focus(\'&SourceListParentGridField;\');$find(\'{1}\')._errorObject.focus()', formID, gridID));
+        }
+        if (b) {
+          var l0 = g._getColumnOrder('ct_nguon_cung'), v0 = g._getItemValue(r, l0), ml = g._fields[l0 - 1].MaxLength;
+          var itemName = g._getItemValue(r, l2), unit = f.getItemValue('ma_dvcs');
+          var purOrg = f.getItemValue('ma_bp0'), purOrgName = f.getItemValue('ten_bp0&#37;l');
+          var custID = f.getItemValue('ma_kh'), custName = f.getItemValue('ten_kh&#37;l');
+          var d1 = f.getItemValue('ngay_hl_tu'), d2 = f.getItemValue('ngay_hl_den');
+          var plant = g._getItemValue(r, g._getColumnOrder('ma_vung')), plantName = g._getItemValue(r, g._getColumnOrder('ten_vung&#37;l'));
+
+          g._detailInfo = {
+            data: v0, maxLength: ml, handle: &SourceListRetrieveFunction;,
+            ma_dvcs: unit, ma_bp0: purOrg, ten_bp0: purOrgName, ma_kh: custID, ten_kh: custName, ngay_hl_tu: d1, ngay_hl_den: d2, ma_vt: ma_vt, ten_vt: itemName, ma_vung: plant, ten_vung: plantName
+          };
+          g.showForm('BIPOSourceListForm');
+        }
+      }
+      break;
+">
+
+  <!ENTITY SourceListExecuteCommand "
+    case 'PushSourceList':
+      &SourceListExecuteShow;
+      break;
+">
+
+  <!ENTITY SourceListParentFormChangeDateFrom "on$FormVoucher$SourceList$ChangeDateFrom(this);">
+  <!ENTITY SourceListParentFormChangeDateTo "on$FormVoucher$SourceList$ChangeDateTo(this);">
+
+  <!ENTITY SourceList.Script.Retrieve "
+function on$GridVoucherDetail$SourceListRetrieve(g, result) {
+  var jdata = result.data, r = g._activeRow, d = g._detailInfo;
+  var l0 = g._getColumnOrder('ct_nguon_cung');
+  g._getItem(r, l0)._detailInfo = {ma_kh: d.ma_kh, ma_vt: d.ma_vt, ma_vung: d.ma_vung};
+  g._setItemValue(r, l0, jdata);
+  g._focusWhenTabChanged();
+}
+
+function on$FormVoucher$SourceList$ChangeDateFrom(o) {
+  var f = o.parentForm, d1 = f.getItemValue('ngay_hl_tu'), d3 = o._lastValue;
+  if (!d1) return;
+
+  var v1 = '', v3 = '';
+  if (d3) {
+    v1 = d1.getFullYear() + String(d1.getMonth() + 1).padStart(2, '0') + String(d1.getDate()).padStart(2, '0');
+    v3 = d3.getFullYear() + String(d3.getMonth() + 1).padStart(2, '0') + String(d3.getDate()).padStart(2, '0');
+  }
+  if (v3 != '') {
+    var g = f.getItem('&SourceListParentGridField;')._controlBehavior, l1 = g._getColumnOrder('ct_nguon_cung');
+    for (var i = 1; i &lt;= g._rowCount; i++) {
+      var jdata = g._getItemValue(i, l1);
+      if (jdata != '') {
+        var d = eval(jdata);
+        if (d[0] == v3) {
+          d[0] = v1;
+          var jnew = JSON.stringify(d);
+          g._setItemValue(i, l1, jnew);
+        }
+      }
+    }
+  }
+}
+function on$FormVoucher$SourceList$ChangeDateTo(o) {
+  var f = o.parentForm, d2 = f.getItemValue('ngay_hl_den'), d3 = o._lastValue;
+  if (!d2) return;
+
+  var v2 = '', v3 = '';
+  if (d3) {
+    v2 = d2.getFullYear() + String(d2.getMonth() + 1).padStart(2, '0') + String(d2.getDate()).padStart(2, '0');
+    v3 = d3.getFullYear() + String(d3.getMonth() + 1).padStart(2, '0') + String(d3.getDate()).padStart(2, '0');
+  }
+  if (v3 != '') {
+    var g = f.getItem('&SourceListParentGridField;')._controlBehavior, l1 = g._getColumnOrder('ct_nguon_cung');
+    for (var i = 1; i &lt;= g._rowCount; i++) {
+      var jdata = g._getItemValue(i, l1);
+      if (jdata != '') {
+        var d = eval(jdata);
+        if (d[1] == v3) {
+          d[1] = v2;
+          var jnew = JSON.stringify(d);
+          g._setItemValue(i, l1, jnew);
+        }
+      }
+    }
+  }
+}
+">
+
+]]>
+
+<!ENTITY SourceListField "">
+<!ENTITY SourceListView "">
+<!ENTITY SourceListButton "">
+<!ENTITY SourceListMenuItem "">
+<!ENTITY SourceListClass "">
+<!ENTITY SourceListConditionShow "">
+<!ENTITY SourceListExecuteShow "">
+<!ENTITY SourceListExecuteCommand "">
+<!ENTITY SourceList.Script.Retrieve "">
+<!ENTITY SourceListRetrieveFunction "">
+<!ENTITY SourceListParentGridField "">
+
+<!ENTITY SourceListParentFormChangeDateFrom "">
+<!ENTITY SourceListParentFormChangeDateTo "">

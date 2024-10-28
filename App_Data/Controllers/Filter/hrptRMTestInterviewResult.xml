@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY LineCounter "11">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="date_from" allowNulls="false" type="DateTime" dataFormatString="@datetimeFormat" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày từ" e="Date from"></header>
+    </field>
+    <field name="date_to" allowNulls="false" type="DateTime" dataFormatString="@datetimeFormat" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày đến" e="Date to"></header>
+    </field>
+    <field name="ma_dot" categoryIndex="1">
+      <header v="Đợt tuyển dụng" e="Recruitment Period"></header>
+      <items style="AutoComplete" controller="hrRMPeriodInfoInput" reference="ten_dot%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_dot%l" external="true" defaultValue="''" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_uv" categoryIndex="1">
+      <header v="Mã ứng viên" e="Applicant"></header>
+      <items style="AutoComplete" controller="hrRMApplicantProfileInput" reference="ten_uv" key="1 = 1" check="1 = 1"/>
+    </field>
+    <field name="ten_uv" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="vtr_ut" onDemand="true" categoryIndex="1">
+      <header v="Vị trí" e="Vacancy"></header>
+      <items style="AutoComplete" controller="hrPosition" reference="ten_vtr_ut%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vtr_ut%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" onDemand="true" categoryIndex="1">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hreDepartment" reference="ten_bp%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vong" categoryIndex="1">
+      <header v="Vòng tuyển dụng" e="Recruitment Round"></header>
+      <items style="AutoComplete" controller="hrRMRoundExamination" reference="ten_vong%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vong%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="loai_tt" dataFormatString="1, 2, 3" clientDefault="3" align="right" categoryIndex="1">
+      <header v="Loại thi tuyển" e="Category"></header>
+      <footer v="1 - Kiểm tra, 2 - Phỏng vấn, 3 - Cả hai" e="1 - Test, 2 - Interview, 3 - Both"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange=onChange$Type(this);]]></clientScript>
+    </field>
+    <field name="ma_ktr" categoryIndex="1">
+      <header v="Loại kiểm tra" e="Test"></header>
+      <items style="AutoComplete" controller="hrRMTest" reference="ten_ktr%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_ktr%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_pv" categoryIndex="1">
+      <header v="Loại phỏng vấn" e="Interview"></header>
+      <items style="AutoComplete" controller="hrRMInterview" reference="ten_pv%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_pv%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="tt_hs" categoryIndex="1">
+      <header v="Trạng thái hồ sơ" e="Status"></header>
+      <items style="AutoComplete" controller="hrRMAppFormStatus" reference="ten_tt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_tt%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="kieu_bc" dataFormatString="1, 2" clientDefault="1" align="right" categoryIndex="1">
+      <header v="Kiểu báo cáo" e="Report Type"></header>
+      <footer v="1 - Chi tiết theo vòng tuyển dụng, 2 - Chi tiết theo nội dung kiểm tra" e="1 - By Recuitment Round, 2 - By Test Content"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="mau_bc" clientDefault="10" external="true" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="110---: [date_from].Label, [date_from]"/>
+      <item value="110---: [date_to].Label, [date_to]"/>
+      <item value="110100: [ma_dot].Label, [ma_dot], [ten_dot%l]"/>
+      <item value="110100: [ma_uv].Label, [ma_uv], [ten_uv]"/>
+      <item value="110100: [vtr_ut].Label, [vtr_ut], [ten_vtr_ut%l]"/>
+      <item value="110100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="110100: [ma_vong].Label, [ma_vong], [ten_vong%l]"/>
+      <item value="111000: [loai_tt].Label, [loai_tt], [loai_tt].Description"/>
+      <item value="110100: [ma_ktr].Label, [ma_ktr], [ten_ktr%l]"/>
+      <item value="110100: [ma_pv].Label, [ma_pv], [ten_pv%l]"/>
+      <item value="110100: [tt_hs].Label, [tt_hs], [ten_tt%l]"/>
+      <item value="111000: [kieu_bc].Label, [kieu_bc], [kieu_bc].Description"/>
+      <item value="11000-: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @date_from as tu_ngay, @date_to as den_ngay, @kieu_bc as kieu_bc, @loai_tt as loai_tt
+exec hs_rptRMTestInterviewResult @date_from, @date_to, @ma_dot, @ma_uv, @vtr_ut, @ma_bp, @ma_vong, @loai_tt, @ma_ktr, @ma_pv, @tt_hs, @kieu_bc, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  onChange$Type(f.getItem('loai_tt'));
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,b){var a=b.object,e=b.type.Context,h=b.type.Result;switch(e){case"Checking":var d=a.grid,f=a.getItem("date_from").value,g=a.getItem("date_to").value,j=a.getItemValue("kieu_bc"),c=a.getItemValue("loai_tt");d._alterTitle=[null,[["%d1",f,true],["%d2",g,true]]];d._hiddenForms=[{Form:[1,2,5,6],Value:c=="1"},{Form:[0,2,4,6],Value:c=="2"},{Form:[0,1,4,5],Value:c=="3"}]}}function onChange$Type(a){window.setTimeout(String.format("onFocus$Type('{0}', {1});",a.parentForm._id,1),2)}function onFocus$Type(f,e){var a=$find(f),d=a.getItem("loai_tt").value,c=a.getItem("ma_ktr"),b=a.getItem("ma_pv");setItemDisable(a,"ma_pv",d==1);setItemDisable(a,"ma_ktr",d==2);if(e)switch(d){case"1":setValueForItem(a,"ma_pv, ten_pv%l",",");setItemLive(b,c,false);break;case"2":setValueForItem(a,"ma_ktr","");setItemLive(b,c,true);break;case"3":setItemLive(c,b,true)}}function setItemLive(a,b,c){if(c){if(b.live){a.disabled=false;a.focus()}}else if(a.live){b.disabled=false;b.focus()}}function setItemDisable(f,e,d){for(var c=e.split(","),a=0;a<c.length;a++){var b=f.getItem($func.trim(c[a]));b.a&&$common.setVisible(b.a,!d);b.disabled=d}}function setValueForItem(e,d,g){for(var b=d.split(","),c=g.split(","),a=0;a<b.length;a++){var f=e.getItem($func.trim(b[a]));f.value=c[a]}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

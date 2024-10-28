@@ -1,0 +1,7 @@
+﻿<![CDATA[
+declare @tien_thue1 numeric(19, 2), @tien_thue1_nt numeric(19, 2), @tien_thue2 numeric(19, 2), @tien_thue2_nt numeric(19, 2)
+if @@action <> 'New' or @@copying = 1 begin
+  select @tien_thue1 = sum(thue), @tien_thue1_nt = sum(thue_nt) from ]]>&TaxGridDetailTable;<![CDATA[$$partition$current where stt_rec = @stt_rec
+  select @tien_thue2 = sum(t_thue), @tien_thue2_nt = sum(t_thue_nt) from r30$$partition$current where stt_rec = @stt_rec and loai_ct not in ('0', '#')
+end
+]]>

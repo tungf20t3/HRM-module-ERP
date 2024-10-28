@@ -1,0 +1,30 @@
+﻿<![CDATA[
+delete @]]>&BIParameterTable;<![CDATA[ from @]]>&BIParameterTable;<![CDATA[ a where exists(select 1 from bidmts b where b.controller = ']]>&BIController;<![CDATA[' and a.name = b.name and a.val = b.val)
+declare @$fieldCheck varchar(32), @$result varchar(32), @$val nvarchar(512), @$q nvarchar(4000), @$descriptParameter nvarchar(512), @$rowCheck int
+select a.name, a.val, b.sqlscript, case when @@language = 'v' then b.descript else b.descript2 end as descript, identity(int, 1, 1) as id into #]]>&BIParameterTable;<![CDATA[ from @]]>&BIParameterTable;<![CDATA[ a left join bidmts b on a.name = b.name where b.controller = ']]>&BIController;<![CDATA[' order by b.stt_sx
+select @$rowCheck = min(id) from #]]>&BIParameterTable;<![CDATA[
+while @$rowCheck is not null begin
+  select @$q = sqlscript, @$val = val, @$descriptParameter = rtrim(ltrim(descript)), @$result = null, @$fieldCheck = name from #]]>&BIParameterTable;<![CDATA[ where id = @$rowCheck
+  if @$q <> '' begin
+    exec sp_executesql @$q, N'@$result varchar(32) output, @$v nvarchar(512), @$name nvarchar(32), @$u int', @$result output, @$val, @$fieldCheck, @@userID
+    if @$result is null begin
+      declare @$errMessage nvarchar(512)
+      select @$errMessage = case when @@language = 'v' then N'Thông tin tham số <span class="Highlight">%s</span> giá trị nhập không hợp lệ.' else N'Parameter <span class="Highlight">%s</span> has invalid value.' end
+      select '' as field, replace(@$errMessage, '%s', @$descriptParameter) as message, 'onFocus$]]>&Identification;<![CDATA[$Parameter(this, "' + rtrim(@$fieldCheck) + '");' as script
+      return
+    end
+  end
+
+  select @$rowCheck = min(id) from #]]>&BIParameterTable;<![CDATA[ where id > @$rowCheck
+end
+
+if @]]>&BIFieldKey;<![CDATA[ <> $]]>&BIFieldKey;<![CDATA[.OldValue begin
+  if $]]>&BIParameterTable;<![CDATA[.NewValue = $]]>&BIParameterTable;<![CDATA[.OldValue begin
+    update ]]>&BIParameterTable;<![CDATA[ set ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[ where ]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue
+  end
+end
+update @]]>&BIParameterTable;<![CDATA[ set ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[
+
+if $]]>&BIParameterTable;<![CDATA[.NewValue <> $]]>&BIParameterTable;<![CDATA[.OldValue
+  delete ]]>&BIParameterTable;<![CDATA[ where ]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue
+]]>

@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\Circular\A1080\ReportCircularTypeField.PIT.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="nam" type="Int16" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e ="Year"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="bo_sung" type="Decimal" dataFormatString="##0">
+      <header v="Lần bổ sung" e="Additional Times"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_ns">
+      <header v="Nhân viên" e="Employee"></header>
+      <items style="AutoComplete" controller="TaxEmployee" reference="ten_ns%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_ns%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="TaxDepartment" reference="ten_bp%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="mau_bc" clientDefault="10">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportCircularTypeField;
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="11: [bo_sung].Label, [bo_sung]"/>
+      <item value="110100: [ma_ns].Label, [ma_ns], [ten_ns%l]"/>
+      <item value="110100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000: [chon_tt].Label, [chon_tt]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @nam as nam, @bo_sung as bo_sung
+exec rs_rpt05ABK @nam, @ma_ns, @ma_bp, @ma_dvcs, @chon_tt, @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");!a.getItemValue("nam")&&a.setItemValue("nam",(new Date).getFullYear());a.live(a.getItem("nam"))}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,e){var d=e.object,f=e.type.Context,h=e.type.Result;switch(f){case"Checking":var b=d.grid,c=d.getItemValue("mau_bc"),g=d.getItem("nam").value,a=d.getItemValue("chon_tt");b._ValueFormType=a;b._alterTitle=[null,[["%y",g,true]]];b._hiddenFields=[{Fields:"tn_ct_nt, gt_bt_nt, gt_pt_nt, gt_tt_nt, gt_bh_nt, tn_tt_nt, thue_dkt_nt, thue_qt_nt, thue_thua_nt, thue_ktthem_nt",Value:c=="10"},{Fields:"tn_gt_nt, thue_mg_nt, thue_pn_nt",Value:a=="5"||c=="10"},{Fields:"tn_ct, gt_bt, gt_pt, gt_tt, gt_bh, tn_tt, thue_dkt, thue_qt, thue_thua, thue_ktthem",Value:c=="20"},{Fields:"tn_gt, thue_mg, thue_pn",Value:a=="5"||c=="20"},{Fields:"huu_tri, hiep_dinh",Value:a=="1"},{Fields:"thue_pkt_nt",Value:a=="2"||a=="3"||a=="5"||a=="1"&&c=="10"},{Fields:"thue_pkt",Value:a=="2"||a=="3"||a=="5"||a=="1"&&c=="20"},{Fields:"cn_nn_duoi12, tn_dvkhac, thue_dkt2, tn_ct_mien, thue_mien50",Value:a!="5"}];b._hiddenForms=[{Form:[1,2,5,6,7],Value:a=="1"},{Form:[0,2,4,6,7],Value:a=="2"},{Form:[0,1,4,5,7],Value:a=="3"},{Form:[0,1,2,3,4,5,6],Value:a=="5"}];remove$GridReport$Filter(b);if(!b._v)b._v=b._ValueFormType;remove$GridReport$FilterExt(b,b._ValueFormType);if(b._fields.length>0)try{init$GridReport$(b)}catch(j){}}}function remove$GridReport$FilterExt(a,g){var f="thue_mg, thue_mg_nt".split(","),d,c,e=!(a._v==g);for(i=0;i<f.length;i++)for(var b=0;b<a._filter.length;b++){d=$func.trim(f[i]);c=$func.findField(d,a._fields);if(c&&e)c.FilterPanelValue="";if(a._filter[b].match(/^(\w+):/)[1]==d&&e){Array.removeAt(a._filter,b);a._v=g;break}}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

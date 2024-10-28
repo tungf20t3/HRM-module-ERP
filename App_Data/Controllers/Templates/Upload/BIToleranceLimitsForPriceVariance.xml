@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Enter "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Controller "BIToleranceLimitsForPriceVariance">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BIToleranceLimitsForPriceVarianceImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BIToleranceLimitsForPriceVarianceImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="bighclgm"/>
+    <table value="bighclgm" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&Enter;not exists(select 1 from bighclgm b where @@table.ma_dvcs = b.ma_dvcs and @@table.loai_gh = b.loai_gh and @@table.ma_nt = b.ma_nt and @@table.ngay_hl = b.ngay_hl) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)&Enter;exists(select 1 from bighclgm b where @@table.ma_dvcs = b.ma_dvcs and @@table.loai_gh = b.loai_gh and @@table.ma_nt = b.ma_nt and @@table.ngay_hl = b.ngay_hl) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_edit = 1)" condition="&Enter;if @@admin = 0 begin&Enter;if @@admin = 0 begin if @type = '1' begin" tag="&Enter;end&Enter;end end" errorCode="00001&Enter;00002&Enter;00002"/>
+    <field name="loai_gh" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="loai_gh not in ('1', '2')" errorCode="00001"/>
+    <field name="ma_nt" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_nt not in (select ma_nt from dmnt)" errorCode="00001"/>
+    <field name="sai_can_duoi" column="." type="Decimal"/>
+    <field name="sai_can_tren" column="." type="Decimal"/>
+    <field name="tien_sai_can_duoi" column="." type="Decimal"/>
+    <field name="tien_sai_can_tren" column="." type="Decimal"/>
+    <field name="ngay_hl" type="DateTime" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ghi_chu" column="."/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Khai báo giới hạn chênh lệch giá mua" e="Tolerance Limits for Price Variance"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="loai_gh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại giá mua" e="Tolerance Key"/>
+      </field>
+      <field name="ma_nt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nt" e="Currency"/>
+      </field>
+      <field name="ngay_hl" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày hiệu lực" e="Effective Date"/>
+      </field>
+
+      <field name="sai_can_duoi" width="16">
+        <text v="Tỷ lệ cl cận dưới (%)" e="Underdel.Tol. (%)"/>
+      </field>
+      <field name="sai_can_tren" width="16">
+        <text v="Tỷ lệ cl cận trên (%)" e="Overdel.Tol. (%)"/>
+      </field>
+      <field name="tien_sai_can_duoi" width="16">
+        <text v="Tiền cl cận dưới" e="Underdel.Tol. (amt.)"/>
+      </field>
+      <field name="tien_sai_can_tren" width="16">
+        <text v="Tiền cl cận trên" e="Overdel.Tol. (amt.)"/>
+      </field>
+
+      <field name="ghi_chu" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, ']]>&Controller;<![CDATA[', 'Edit') = 0 select @type = '0'
+end
+
+declare @field varchar(32), @r int
+
+-- Delete
+if @type = '0' delete @@table from @@table a join bighclgm b on a.ma_dvcs = b.ma_dvcs and a.loai_gh = b.loai_gh and a.ma_nt = b.ma_nt and a.ngay_hl = b.ngay_hl
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+-- Gather
+select a.* into #k from @@table a join bighclgm b on a.ma_dvcs = b.ma_dvcs and a.loai_gh = b.loai_gh and a.ma_nt = b.ma_nt and a.ngay_hl = b.ngay_hl
+
+if @type = '1' delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.loai_gh = b.loai_gh and a.ma_nt = b.ma_nt and a.ngay_hl = b.ngay_hl)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+</import>

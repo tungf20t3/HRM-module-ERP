@@ -1,0 +1,8 @@
+﻿<![CDATA[
+if @usedEI = '1' begin
+  set @q = 'delete ' + @$pEI + ' where stt_rec = ''' + replace(@stt_rec, '''', '''''') + ''''
+  set @q = @q + ' delete ' + replace(@$pEI, 'hddt00', 'hddt01') + ' where stt_rec = ''' + replace(@stt_rec, '''', '''''') + ''''
+  set @q = @q + ' delete v05$000000 where stt_rec = ''' + replace(@stt_rec, '''', '''''') + ''''
+  exec sp_executesql @q
+end
+]]>&EINotePostDelete;

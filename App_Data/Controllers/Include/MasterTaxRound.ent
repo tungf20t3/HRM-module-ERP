@@ -1,0 +1,26 @@
+﻿<!ENTITY % Conditional.MasterTaxRound SYSTEM "..\Include\MasterTaxRound.txt">
+
+<![%Conditional.MasterTaxRound;[
+  <!ENTITY InsertMasterTaxField ", round(d.t_tien_nt2 * t.thue_suat/100, case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end) as t_thue_nt, round(d.t_tien2 * t.thue_suat/100, @roundAmount) as t_thue">
+  <!ENTITY InsertMasterJoin " left join dmthue t on a.ma_thue = t.ma_thue">
+  <!ENTITY TaxAllocate "
+-- Allocate Tax
+update #d&Detail; set thue_nt = case when b.t_tien_nt2 = 0 then 0 else round(b.t_thue * a.tien_nt2 / b.t_tien_nt2, case when b.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end) end,
+  thue = case when b.t_tien2 = 0 then 0 else round(b.t_thue * a.tien2 / b.t_tien2, @roundAmount) end
+    from #d&Detail; a join #m&Detail; b on a.stt_rec = b.stt_rec &PromotionMasterWhereNo;
+
+-- Different Tax
+select stt_rec, max(thue_nt) as thue_nt into #t1 from #d&Detail; &PromotionMasterWhereNo; group by stt_rec
+select stt_rec, min(stt_rec0) as stt_rec0 into #t2 from #d&Detail; where exists(select 1 from #t1 where #t1.stt_rec = #d&Detail;.stt_rec and #t1.thue_nt = #d&Detail;.thue_nt) group by stt_rec
+update #d&Detail; set thue_nt = a.thue_nt + c.t_thue_nt - b.thue_nt, thue = a.thue + c.t_thue - b.thue
+  from #d&Detail; a
+    join (select stt_rec, sum(thue_nt) as thue_nt, sum(thue) as thue from #d&Detail; &PromotionMasterWhereNo; group by stt_rec) b on a.stt_rec = b.stt_rec
+    join #m&Detail; c on a.stt_rec = c.stt_rec
+  where exists(select 1 from #t2 where #t2.stt_rec = a.stt_rec and #t2.stt_rec0 = a.stt_rec0)
+drop table #t1, #t2
+">
+]]>
+
+<!ENTITY InsertMasterTaxField ", d.t_thue_nt, d.t_thue">
+<!ENTITY InsertMasterJoin "">
+<!ENTITY TaxAllocate "">

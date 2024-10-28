@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "PKSAMultiForm">
+  <!ENTITY ParentController "PKTran">
+  <!ENTITY GridController "PKSAMultiGrid">
+  <!ENTITY Tag "">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+  <!ENTITY FlowMultiGeneralTable "bic06$000000">
+
+  <!ENTITY % BIMode.PKTran SYSTEM "..\Include\BIMode.PKTran">
+  %BIMode.PKTran;
+
+  <!ENTITY OtherCopyField "nhieu_dvt, he_so, ma_thue_nk, thue_suat_nk, thue_nk_nt, ma_thue_ttdb, thue_suat_ttdb, thue_ttdb_nt, ma_thue, thue_suat, thue_nt&BI.PKTran.Retrieve.Order.Flow.Fields;&FlowMultiUserDefinedFieldsCopy;">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn hợp đồng" e="Select Schedule Agreement"></title>
+  <fields>
+    &FlowMultiFormField;
+  </fields>
+
+  <views>
+    &FlowMultiFormView;
+  </views>
+
+  <commands>
+    &FlowMultiFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function show$]]>&Identity;<![CDATA[$(f) {
+  var z = f.grid, h = z.get_element().parentForm, c = String.fromCharCode(253), c1 = String.fromCharCode(252);
+  ]]>&BI.PKTran.Retrieve.Order.FlowMulti.QueryFilterString;<![CDATA[
+  show$FlowMulti$Form(f, queryFilterString, ']]>&Identity;<![CDATA[DataGridPanel', ']]>&ParentController;<![CDATA[', ']]>&GridController;<![CDATA[', ']]>&OtherCopyField;<![CDATA[');
+}
+
+function active$]]>&Identity;<![CDATA[$(f) {
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  active$FlowMulti$Form(f);
+}
+
+function close$]]>&Identity;<![CDATA[$(f) {
+  close$FlowMulti$Form(f);
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+}
+
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = getGrid$FlowMulti$(f);
+      var c = String.fromCharCode(255), k1 = g._getColumnOrder('stt_rec') - 1, k2 = g._getColumnOrder('stt_rec0') - 1;
+      f._$k = '';
+      for (var i = 0; i < g._$k.length; i++) {
+        f._$k += (f._$k != '' ? ',' : '') + g._$k[i][k1] + c + g._$k[i][k2];
+      }
+      if (f._$k == '') f.grid._formScript = 'show$FlowMulti$RetrieveGrid(this)';
+      else {
+        f._checked = false;
+        f.request('GetOtherField', 'GetOtherField', [['k', 'Infinite', f._$k]]);
+      }
+      break;
+    case 'GetOtherField':
+      var g = getGrid$FlowMulti$(f), a = [];
+      for (var i = 0; i < result.length; i++) {
+        a[i] = g._$k[i].concat(result[i].slice(2));
+      }
+      on$]]>&Identity;<![CDATA[$TransferData(f, g, a);
+      break;
+    default:
+      break;
+  }
+}
+function on$]]>&Identity;<![CDATA[$TransferData(f, g, a) {
+  var z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, stt_rec, stt_rec0, so_ct, line_nbr', f2 = 'so_luong, stt_rec_hd, stt_rec0hd, hd_so, hd_ln';
+  var append = false, first = true, qf = f._$queryFilterString.split(String.fromCharCode(253));
+  var ma_nt = w.getItemValue('ma_nt'), m = qf[]]>&BI.PKTran.Retrieve.Order.Flow.CustID.Index;<![CDATA[], l0 = z._getColumnOrder('ma_vt'), l1 = z._getColumnOrder('dvt'), l2 = getColumnOrderTagRow(g, 'nhieu_dvt'), l3 = getColumnOrderTagRow(g, 'so_luong0'), l4 = getColumnOrderTagRow(g, 'so_luong');
+  var l7 = getColumnOrderTagRow(g, 'ma_nt');
+  var fields = 'ma_vt, ten_vt%l, dvt, ]]>&FlowMultiUserDefinedFieldsCopy;<![CDATA[, he_so, ma_vt0, ma_thue_nk, thue_suat_nk, ma_thue_ttdb, thue_suat_ttdb, ma_thue, thue_suat';
+  ]]>&BI.PKTran.Retrieve.Order.Flow.Fields.EnvironmentTax;<![CDATA[
+
+  for (var r = 0; r < a.length; r++) {
+    var v = (ma_nt == a[r][l7]), f1map = f1, f2map = f2;
+    if (v) {
+      f1map += ', gia_nt0';
+      f2map += ', gia_nt0';
+    }
+
+    if (a[r][l3] != 0) {
+      append = true;
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$RetrieveTagRow$Items(g, a, r, z, row, fields, f1map, f2map);
+      ]]>&BI.PKTran.Retrieve.Order.Flow.Grid.ExecuteExpression;<![CDATA[
+      if (v) z.executeExpression(o, [z.$a.gia0_tg, z.$a.tien_nt0, z.$a.tien0, z.$a.tien_nt, z.$a.tien, z.$a.nk_nt, z.$a.nk, z.$a.ttdb_nt, z.$a.ttdb, z.$a.thue_nt, z.$a.thue]);
+      $func.setObjectWhen(z._getItem(row, l1), a[r][l2]);
+    }
+  }
+
+  if (append) {
+    z.executeAggregate([z.$a.t_so_luong, z.$a.t_tien_nt0, z.$a.t_tien0, z.$a.t_tien_nt, z.$a.t_tien, z.$a.t_nk_nt, z.$a.t_nk, z.$a.t_ttdb_nt, z.$a.t_ttdb]]>&BI.PKTran.Retrieve.Order.Flow.Grid.ExecuteAggregate;<![CDATA[, z.$a.t_thue_nt, z.$a.t_thue]);
+    w.executeExpression([]]>&BI.PKTran.Retrieve.Order.Flow.Form.ExecuteExpression;<![CDATA[z.$a.t_tt_nt, z.$a.t_tt]);
+    if (w.getItemValue('t_cp_nt')) w._is$Allocated = 0;
+  }
+
+  z._focusWhenTabChanged();
+
+  f.cancelDialog();
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetOtherField">
+      <text>
+        &FlowMultiTagRowRequest;<![CDATA[
+declare @p char(6), @r nvarchar(4000), @q nvarchar(4000)
+
+select top 0 tr.id, b.nhieu_dvt, a.he_so, rtrim(b.ma_vi_tri) as ma_vi_tri, 0 as vi_tri_yn,
+    rtrim(c.ma_lo) as ma_lo, b.lo_yn, b.sua_tk_vt, b.gia_ton, a.gia_nt, a.ck_nt,
+    rtrim(a.ma_vt) as ma_vt, rtrim(a.ma_kho) as ma_kho, a.so_luong as ton13, rtrim(a.dvt) as dvt, a.ngay_ct,
+    rtrim(a.ma_thue_nk) as ma_thue_nk, a.thue_suat_nk, cast('' as varchar(32)) as tk_thue_nk, a.thue_nk_nt, rtrim(a.ma_thue_ttdb) as ma_thue_ttdb, a.thue_suat_ttdb, cast('' as varchar(32)) as tk_thue_ttdb, a.thue_ttdb_nt,
+    rtrim(a.ma_thue) as ma_thue, a.thue_suat, cast('' as varchar(32)) as tk_thue, a.thue_nt, rtrim(b.tk_vt) as tk_vt
+    ]]>&BI.PKTran.Retrieve.Order.Flow.Fields;<![CDATA[
+    ]]>&FlowMultiUserDefinedFieldsQuery;<![CDATA[
+  into #d from #tagRow tr cross join bid06$000000 a cross join dmvt b cross join dmlo c
+
+set @r = '
+insert into #d
+select tr.id, b.nhieu_dvt, a.he_so, rtrim(b.ma_vi_tri), case when exists(select top 1 ma_kho from dmvitri z where z.ma_kho = a.ma_kho) then 1 else 0 end,
+    '''', 0, b.sua_tk_vt, b.gia_ton, a.gia_nt, a.ck_nt,
+    rtrim(a.ma_vt), rtrim(a.ma_kho), 0, rtrim(a.dvt), a.ngay_ct,
+    rtrim(a.ma_thue_nk), a.thue_suat_nk, '''', a.thue_nk_nt, rtrim(a.ma_thue_ttdb), a.thue_suat_ttdb, '''', a.thue_ttdb_nt,
+    rtrim(a.ma_thue), a.thue_suat, '''', a.thue_nt, rtrim(b.tk_vt)
+    ]]>&BI.PKTran.Retrieve.Order.Flow.Fields;<![CDATA[
+    ]]>&FlowMultiUserDefinedFieldsQuery;<![CDATA[
+  from (select id, stt_rec, stt_rec0 from #tagRow where p = ''%Partition'') tr
+    join bid06$%Partition a on tr.stt_rec = a.stt_rec and tr.stt_rec0 = a.stt_rec0
+    left join dmvt b on a.ma_vt = b.ma_vt
+'
+
+select distinct p into #p from #tagRow
+select @p = min(p) from #p
+while @p is not null begin
+  set @q = replace(@r, '%Partition', @p)
+  exec sp_executesql @q
+  select @p = min(p) from #p where p > @p
+end
+
+]]>&FlowMultiUpdateCurrentStock;<![CDATA[
+
+update #d set tk_thue_nk = isnull(rtrim(b.tk_thue), '') from #d a left join dmthuenk b on a.ma_thue_nk = b.ma_thue
+update #d set tk_thue_ttdb = isnull(rtrim(b.tk_thue), '') from #d a left join dmthuettdb b on a.ma_thue_ttdb = b.ma_thue
+update #d set tk_thue = isnull(rtrim(b.tk_thue_no3), '') from #d a left join dmthue b on a.ma_thue = b.ma_thue
+update #d set tk_vt = isnull(rtrim(b.tk_vt), '') from #d a left join dmvt b on a.ma_vt = b.ma_vt
+
+select '' as array$, id, ]]>&OtherCopyField;<![CDATA[ from #d ]]>&FlowMultiOrderBy;<![CDATA[
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

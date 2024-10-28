@@ -1,0 +1,54 @@
+﻿<![%Conditional.Tiny.External;[
+
+  <!ENTITY Tiny.External.Form.Tab.CBTran.FieldFocus "">
+  <!ENTITY Tiny.External.Form.View.CBTran SYSTEM "..\Include\XML\Tiny.External.Form.View.CBTran.txt">
+  <!ENTITY Tiny.External.Form.View.CBTran.Payment SYSTEM "..\Include\XML\Tiny.External.Form.View.CBTran.Payment.txt">
+
+  <!ENTITY Tiny.External.Form.Tab.CBTran.Index "9">
+  <!ENTITY Tiny.External.Form.Script.CBTran.ChargeRender "">
+  <!ENTITY Tiny.External.Form.Script.CBTran.ChargeRender.Close "">
+  <!ENTITY Tiny.External.Form.Script.CBTran.ExecuteCommand "">
+  <!ENTITY Tiny.External.Form.Script.CBTran.Gather "">
+  <!ENTITY Tiny.External.Form.Script.CBTran.Currency "">
+  <!ENTITY Tiny.External.Form.Script.CBTran.ChargeColumn "">
+  <!ENTITY Tiny.External.Form.Script.CBTran.ExchangeRateExternal "">
+  <!ENTITY Tiny.External.Form.Script.CBTran.ExchangeRate "">
+
+  <!ENTITY Tiny.External.Import.View.CBTran SYSTEM "..\Templates\Upload\Include\CBTranFieldsTiny.txt">
+  <!ENTITY Tiny.External.Import.View.CBDetail SYSTEM "..\Templates\Upload\Include\CBDetailFieldsTiny.txt">
+
+  <!ENTITY Tiny.External.Form.VoucherType.CBTran.DependOn "if ('239'.indexOf(o.value) > -1) set$Voucher$DependOnVoucherType(o.parentForm);">
+]]>
+
+<!ENTITY Tiny.External.Form.Tab.CBTran.FieldFocus ", 'ma_tt', ['f46', 'hd_yn']">
+<!ENTITY Tiny.External.Form.View.CBTran SYSTEM "..\Include\XML\Tiny.External.Form.View.CBTran.Default.txt">
+<!ENTITY Tiny.External.Form.View.CBTran.Payment SYSTEM "..\Include\XML\Tiny.External.Form.View.CBTran.Payment.Default.txt">
+
+<!ENTITY Tiny.External.Form.Tab.CBTran.Index "5">
+<!ENTITY Tiny.External.Form.Script.CBTran.ChargeRender "f.getItem('f46')._controlBehavior.add_onRender(on$Voucher$ChargeRender);">
+<!ENTITY Tiny.External.Form.Script.CBTran.ChargeRender.Close "try {f.getItem('f46')._controlBehavior.remove_onRender(on$Voucher$ChargeRender);} catch (ex) {}">
+<!ENTITY Tiny.External.Form.Script.CBTran.ExecuteCommand ", y = f.getItem('f46')._controlBehavior">
+<!ENTITY Tiny.External.Form.Script.CBTran.Gather "
+y.setSequenceNumber('line_nbr');
+y.setContinuance('stt_rec0');
+">
+<!ENTITY Tiny.External.Form.Script.CBTran.Currency "v.addGridFields(y, 'tien_cp_nt,t_thue_nt:tien_cp,t_thue');">
+<!ENTITY Tiny.External.Form.Script.CBTran.ChargeColumn "set$Voucher$ChargeColumn(f, 'f46', ['ty_gia']);">
+<!ENTITY Tiny.External.Form.Script.CBTran.ExchangeRateExternal "
+var g = f.getItem('f46')._controlBehavior;
+for (var i = 0; i &lt; g._rowCount; i++) {
+  obj = g._getItem(i + 1, g._getColumnOrder('tien_cp_nt'));
+  obj.row = i + 1;
+  g.executeExpression(obj, [g.$a.tien_cp, g.$a.thue_tg]);
+}
+">
+<!ENTITY Tiny.External.Form.Script.CBTran.ExchangeRate "
+var g = f.getItem('f46')._controlBehavior;
+set$Grid$ExchangeRate(f, g, 'analyze', 'ty_gia');
+">
+
+<!ENTITY Tiny.External.Import.View.CBTran SYSTEM "..\Templates\Upload\Include\CBTranFields.txt">
+<!ENTITY Tiny.External.Import.View.CBDetail SYSTEM "..\Templates\Upload\Include\CBDetailFields.txt">
+
+<!ENTITY Tiny.External.Form.VoucherType.CBTran.DependOn "set$Voucher$DependOnVoucherType(o.parentForm);">
+<!ENTITY Tiny.External.Form.ReleaseLaterStatusValue "1">

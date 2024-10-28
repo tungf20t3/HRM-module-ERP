@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir table="hrca$000000" code="stt_rec_nv" order="stt_rec_nv" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Sao chép theo nhân viên" e="Copy By Employee"></title>
+
+  <fields>
+    <field name="ma_bp2" allowNulls="false">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hreDepartment" reference="ten_bp2%l" key="status = '1'" check="1 = 1"/>
+      <clientScript><![CDATA[onchange=onChange$ShiftScheduleCopyRow$Department(this);]]></clientScript>
+    </field>
+    <field name="ten_bp2%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv2">
+      <header v="Danh sách nhân viên" e="Employee List"></header>
+      <items style="Lookup" controller="hrEmployee" key="bp_ref like case when '{$%c[bp_ref2]}' &lt;&gt; '' then '{$%c[bp_ref2]}%' else '''' end and status = '1'" check="bp_ref like case when '{$%c[bp_ref2]}' &lt;&gt; '' then '{$%c[bp_ref2]}%' else '''' end"/>
+    </field>
+    <field name="type" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Kiểu sao chép" e="Type"></header>
+      <footer v="1 - Chép đè, 0 - Không" e="1 - Overwrite, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="thang" type="Decimal" dataFormatString="#0" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_bp" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vtr" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bac_ql" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="employeeID" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref2" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 10, 60, 100, 230, 0, 0, 0"/>
+      <item value="110010111: [ma_bp2].Label, [ma_bp2], [ten_bp2%l], [thang], [nam], [bp_ref]"/>
+      <item value="110000111: [ma_nv2].Label, [ma_nv2], [ma_bp], [ma_nv], [bp_ref2]"/>
+      <item value="111000111: [type].Label, [type], [type].Description, [ma_vtr], [bac_ql], [employeeID]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$ShiftScheduleCopyRow(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$ShiftScheduleCopyRow(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec dbo.AI_ERP$HRM$ShiftSchedule$CopyRow @thang, @nam, @bp_ref2, @ma_nv2, @employeeID, @type, @@userID, @@admin
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,g=f.grid,m=f.getItem("ma_nv2").value;if(m.indexOf(g._employeeID)!=-1){$message.show(f._language=="v"?"Dữ liệu không hợp lệ.":"Invalid Data.",String.format("$find('{0}').focus('{1}');",f.get_id(),"ma_nv2"));f._checked=false}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$ShiftScheduleCopyRow(a){a.add_onResponseComplete(on$ShiftScheduleCopyRow$ResponseComplete);init$ShiftScheduleCopyRow(a);changeLookupReadonly(a,"ma_nv2",true)}function close$ShiftScheduleCopyRow(a){a.remove_onResponseComplete(on$ShiftScheduleCopyRow$ResponseComplete)}function init$ShiftScheduleCopyRow(a){var b=a.grid;a.getItem("employeeID").value=b._employeeID;a.getItem("thang").value=b._month;a.getItem("nam").value=b._year;a.getItem("ma_bp").value=b._dept;a.getItem("ma_nv").value=b._staff;a.getItem("ma_vtr").value=b._pos;a.getItem("bac_ql").value=b._grade;a.getItem("bp_ref").value=b._deptRef}function onChange$ShiftScheduleCopyRow$Department(a){a.parentForm.request("Reference","Reference",["ma_bp2"])}function on$ShiftScheduleCopyRow$ResponseComplete(a,b){var a=b.object,e=a.grid,c=b.type.Context,d=b.type.Result;switch(c){case"Reference":a.setItemControlBehavior("bp_ref2",d[0].Value,true);a.setReferenceKeyFilter("ma_nv2");a.setItemValue("ma_nv2","")}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Reference">
+      <text>
+        <![CDATA[
+declare @b varchar(128)
+select @b = ''
+if exists(select 1 from hrbp where ma_bp = @ma_bp2) select @b = bp_ref from hrbp where ma_bp = @ma_bp2
+select @b as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

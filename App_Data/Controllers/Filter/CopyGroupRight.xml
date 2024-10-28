@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="userinfo2" code="id" order="id" database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Sao chép quyền" e="Copy User Right"></title>
+
+  <fields>
+    <field name="group" disabled="true">
+      <header v="Nhóm" e="Group"></header>
+      <items style="AutoComplete" controller="UserGroup" key="1=1" check="1=1" reference="group_name%l" information="name$vsysuserinfo.comment%l"/>
+    </field>
+    <field name="group_name%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="target" allowNulls="false">
+      <header v="Sao chép từ" e="Copy From"></header>
+      <items style="AutoComplete" controller="UserGroup" reference="target_name%l" key="(@@admin = 1) and (user_yn = 0 and name &lt;&gt; '{$%c[group]}')" check="(@@admin = 1) and (user_yn = 0 and name &lt;&gt; '{$%c[group]}')" information="name$vsysuserinfo.comment%l"/>
+    </field>
+    <field name="target_name%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 330"/>
+      <item value="111: [group].Label, [group], [group_name%l]"/>
+      <item value="111: [target].Label, [target], [target_name%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$AllowGroupRight$Filter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserted">
+      <text>
+        <![CDATA[
+if @@admin <> 1 return
+
+declare @id int
+select @id = id from @@sysDatabaseName..userinfo2 where name = @group
+select '' as field, '' as message, 'Treeview.Treeview.Update.CopyRight(' + rtrim(@@userID) + ',' + rtrim(@id) + ',' + @group + ',' + @target + ',' + '@@appDatabaseName' + ',' + @@language + ', false' + ')' as invoke, 'on$CopyRight$Completed(this);' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$AllowGroupRight$Filter(f) {
+  var g = f.grid, groupname = g._getItemValue(g._activeRow, g._getColumnOrder('name'));
+  var groupFullName = g._getItemValue(g._activeRow, g._getColumnOrder('comment%l'));
+  f.setItemControlBehavior('group', groupname, groupFullName);
+  f.setReferenceKeyFilter('target');
+  f.focus('target');
+}
+function on$CopyRight$Completed(f) {f.grid._formScript = String.format('$find("{0}").grid._memvars = []', f._id);}
+]]>
+    </text>
+  </script>
+</dir>

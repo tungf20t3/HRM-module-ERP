@@ -1,0 +1,98 @@
+﻿<![%InputInvoice.GRTran;[
+
+  <!ENTITY IIActiveVoucherScript "
+  f._done = 0;
+  f.getItem('d23')._controlBehavior.add_onRender(on$Voucher$GridRender$Detail);
+
+  var myInterval = setInterval(function () {
+    if (f.grid._$external) busy$Page(f, true);
+    if (f._done) {
+      if (f.grid._$external) {
+        insert$Form$Data(f);
+        busy$Page(f, false);
+      }
+      clearInterval(myInterval);
+    }
+  }, 100);
+">
+  <!ENTITY IICloseVoucherScript "
+  f._done = 0;
+  try {f.getItem('d23')._controlBehavior.remove_onRender(on$Voucher$GridRender$Detail);} catch (ex) {}
+">
+  <!ENTITY IIInsertDataScript "
+function on$Voucher$GridRender$Detail(sender, eventArgs) {eventArgs.grid.get_element().parentForm._done = 1;}
+function insert$Form$Data(f) {
+  var g = f.grid, d = f.getItem('d23')._controlBehavior,
+    df = g._$detailImportData, gf = g._$gridDetailImport,
+    result = g._$result, multi = g._$inputInvoiceLength &amp;&amp; g._$inputInvoiceLength &gt; 1,
+    count = gf._rowCount;
+
+  if (!count) return;
+  var currency = result[0][5];
+
+  // Insert Master:
+  f.setItemValues('ma_nt, ty_gia, t_tien_nt2, t_thue_nt, t_tt_nt, dia_chithue, ma_so_thue, ong_ba, ten_khthue', [currency, result[0][6], result[0][7], result[0][9], result[0][10], result[0][30], result[0][31], search(f, df, 'ong_ba'), search(f, df, 'ten_ncc')]);
+  if (!multi) f.setItemValues('so_seri, so_ct0, ngay_ct0, ngay_ct, ngay_lct, dien_giai', [result[0][0], result[0][1], result[0][2], result[0][2], result[0][2], result[0][15]]);
+  f.setItemValues('stt_rec_hddv, ngay_hddv, status_hddv', [g._$sttRec, g._$ngayCt, g._$status]);
+
+  f.setItemControlBehavior('ma_kh', search(f, df, 'ma_kh'), search(f, df, 'ten_kh&#37;l'), true);
+  f.setItemControlBehavior('tk', search(f, df, 'tk'), search(f, df, 'ten_tk&#37;l'), true);
+  f.setItemControlBehavior('tk_thue_no', search(f, df, 'tk'), search(f, df, 'ten_tk&#37;l'), true);
+  f.setItemControlBehavior('ma_nvbh', search(f, df, 'ma_nvbh'), search(f, df, 'ten_nvbh&#37;l'), true);
+
+  // Insert Tab Detail:
+  insert$Form$Data$Detail(f, d, gf, result, count, true);
+  setTimeout(function() {try {f.getItem('ma_kh').focus();} catch (ex) {}}, 10);
+
+  if (f._baseCurrency != currency || (f._baseCurrency == currency &amp;&amp; f._baseCurrency != g._dvCurrency)) {
+    f._currencyBehavior.setFormLayout(1);
+    f._currencyBehavior.setGridLayout();
+  }
+}
+&IIInsertDataScriptDetail;
+&InputInvoiceRefreshGridScript;
+">
+  <!ENTITY IIInsertDataScriptDetail "
+function insert$Form$Data$Detail(f, d, gf, result, count, first) {
+  var c0 = d._getColumnOrder('tk_no'), c1 = d._getColumnOrder('dvt'), line = gf._getColumnOrder('line_nbr'),
+    l1 = gf._getColumnOrder('dien_giai'), l2 = gf._getColumnOrder('dvt'), l3 = gf._getColumnOrder('so_luong'), l4 = gf._getColumnOrder('gia_nt0'), l5 = gf._getColumnOrder('tien_nt0');
+
+  for (var i = d._rowCount - 1; i &gt;= 0; i--) {
+    d._removeRowNumber(d._activeRow);
+    d._activeRow = i;
+  }
+
+  for (var i = 1; i &lt;= count; i++) {
+    var index = i - 1, ins = true, row = d._rowCount;
+    if (first &amp;&amp; row &gt; 0) {ins = false; first = false;}
+    if (ins) d._appendRow(null, true);
+    row = d._rowCount;
+    var o = d._getItem(row, c0);
+    o.row = row;
+    var taxAccount = result[index][47], taxAccountName = result[index][48], taxAccountCheck = (taxAccountName != '' || taxAccount == '');
+
+    d.setItemGridBehavior(o, [
+      ['dien_giai', gf._getItemValue(row, l1), '', true],
+      ['dvt', gf._getItemValue(row, l2), '', true],
+      ['so_luong', gf._getItemValue(row, l3), null, null],
+      ['gia_nt', gf._getItemValue(row, l4), null, null],
+      ['tien_nt2', gf._getItemValue(row, l5), null, null],
+      ['loai', '', '', false],
+      ['tk_thue', result[index][57], '', false],
+      ['tk_cn', result[index][49], '', false],
+      ['ma_thue', $func.trim(result[index][56]), '', false],
+      ['thue_suat', result[index][23], null, null]
+    ]);
+
+    d.executeExpression(o, [d.$a.gia_tg, d.$a.tien2]);
+    d.validExpression(o, [d.$a.thue_nt, d.$a.thue_tg], [d.$a.t_thue_nt, d.$a.t_thue], [d.$a.t_tt_nt, d.$a.t_tt]);
+    on$GridVoucherDetail$RowChange(d, f);
+  }
+}
+">
+]]>
+
+<!ENTITY IIActiveVoucherScript "">
+<!ENTITY IICloseVoucherScript "">
+<!ENTITY IIInsertDataScript "">
+<!ENTITY IIInsertDataScriptDetail "">

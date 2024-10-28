@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIPriceDetailScaleForm">
+  <!ENTITY ScriptQueryData SYSTEM "..\Include\Javascript\QueryData.txt">
+
+  <!ENTITY % PriceDetail SYSTEM "..\Include\BIPriceDetail.ent">
+  %PriceDetail;
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật phạm vi giá" e="Scale Input"></title>
+
+  <fields>
+    <field name="stt_rec" external="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" external="true" disabled="true">
+      <header v="Mã hàng" e="Item"></header>
+    </field>
+    <field name="ten_vt" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="dvt" external="true" disabled="true">
+      <header v="Đơn vị tính" e="UOM"></header>
+    </field>
+
+    <field name="bipd" external="true" clientDefault="0" defaultValue="0" rows="207" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="BIPriceDetailScaleGrid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+
+    <field name="fm_gia" type="Decimal" dataFormatString="@baseCurrencyPriceInputFormat" external="true" clientDefault="0" hidden="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="267" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="11010000001: [ma_vt].Label, [ma_vt], [ten_vt], [stt_rec]"/>
+      <item value="110-------1: [dvt].Label, [dvt], [fm_gia]"/>
+
+      <item value="1: [bipd]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[for(var f=this,id=f.get_id(),g=f.getItem("bipd")._controlBehavior,e=this._language=="v"?"Số lượng từ đã có trong phần thông tin chi tiết, không lưu được.":"Invalid quantity from, it already exists.",a=query$Select(g,"count$1 $groupBy scl_sl_tu"),i=0;i<a.length;i++)if(a[i][1]>1){f._checked=false;$func.hideWait(f.get_id());$message.show(e,String.format("$find('{0}').focus('{1}');",id,"bipd"));break}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptQueryData;
+      &FormTask.HiddenOrChangeCaption;
+      <![CDATA[
+function load$]]>&Identity;<![CDATA[$Form(f) {
+  var z = f.grid;
+  f.add_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);
+  var d = z._detailInfo;
+  f.setItemValues('ma_vt, ten_vt, dvt', [d.ma_vt, d.ten_vt, d.dvt]);
+  if (z._readOnly) {
+    form$Button$SetCaption(f, [['Ok', null], ['Cancel', f._language == 'v' ? 'Đón<u>g</u>' : 'C<u>l</u>ose']]);
+    form$Dialog$SetTitle(f, f._language == 'v' ? 'Xem phạm vi giá' : 'View Scale');
+    f._action = 'View';
+  }
+}
+
+function close$]]>&Identity;<![CDATA[$Form(f) {
+  try {f.remove_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}
+}
+
+function onForm$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.getItem('bipd')._controlBehavior;
+      f.grid._formScript = 'onForm$]]>&Identity;<![CDATA[$RetrieveScript(this)';
+      if (g._readOnly) return;
+
+      var z = f.grid, d = z._detailInfo, jRef = '';
+      if (d.handle) {
+        var jData = priceDetail$TransferData(f, g, f._dataIndex, f._jsonIndex);
+        if (jData && jData != '') {
+          var l1 = g._getColumnOrder('ct_gia_ref');
+          for (var i = 1; i <= g._rowCount; i++) {
+            var ref = g._getItemValue(i, l1);
+            jRef +=  (i != 1 ? ',' : '') + (ref != '' ? ref : '""');
+          }
+        }
+        var res = {data: jData, ref: jRef, type: 'scl'};
+        d.handle.call(this, z, res);
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+function onForm$]]>&Identity;<![CDATA[$RetrieveScript(z) {}
+]]>
+    </text>
+  </script>
+</dir>

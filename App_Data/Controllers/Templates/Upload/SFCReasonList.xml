@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'SFCReasonList' else 'SFCReasonList2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$SFCReasonListImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$SFCReasonListImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="sfdmlydo"/>
+    <table value="sfdmlydo" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_ld" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ten_ld" column="B" allowNulls="false"/>
+    <field name="ten_ld2" column="C"/>
+    <field name="ma_nh" column="D" upperCase="true" allowNulls="false" check="ma_nh not in (select ma_nh from sfdmnlydo)" errorCode="00001"/>
+    <field name="cp_tt" column="F" type="Decimal"/>
+    <field name="tk_cptt" column="G" upperCase="true" check="tk_cptt &lt;&gt; '' and tk_cptt not in (select tk from dmtk)" errorCode="00001"/>
+    <field name="cp_gt" column="H" type="Decimal"/>
+    <field name="tk_cpgt" column="I" upperCase="true" check="tk_cpgt &lt;&gt; '' and tk_cpgt not in (select tk from dmtk)" errorCode="00001"/>
+    <field name="cp_ql" column="J" type="Decimal"/>
+    <field name="tk_cpql" column="K" upperCase="true" check="tk_cpql &lt;&gt; '' and tk_cpql not in (select tk from dmtk)" errorCode="00001"/>
+
+    <field name="cp_dv" column="None" insertValue="cp_tt + cp_gt + cp_ql" type="Decimal"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục lý do" e="Reason List"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_ld" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã lý do" e="Reason Code"/>
+      </field>
+      <field name="ten_ld" width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên lý do" e="Description"/>
+      </field>
+      <field name="ten_ld2" width="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="ma_nh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Nhóm lý do" e="Reason Group"/>
+      </field>
+      <field name="ten_nh" width="32" afterField="ma_nh" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên nhóm lý do" e="Reason Group Name"/>
+      </field>
+      <field name="cp_tt" width="16">
+        <text v="Chi phí trực tiếp" e="Direct Cost"/>
+      </field>
+      <field name="tk_cptt" width="16">
+        <text v="Tk chi phí trực tiếp" e="Direct Cost Account"/>
+      </field>
+      <field name="cp_gt" width="16">
+        <text v="Chi phí gián tiếp" e="Indirect Cost"/>
+      </field>
+      <field name="tk_cpgt" width="16">
+        <text v="Tk chi phí gián tiếp" e="Indirect Cost Account"/>
+      </field>
+      <field name="cp_ql" width="16">
+        <text v="Chi phí quản lý" e="Overhead Rate"/>
+      </field>
+      <field name="tk_cpql" width="16">
+        <text v="Tk chi phí quản lý" e="Overhead Account"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'SFCReasonList', 'Edit') = 0 select @type = '0'
+end
+
+declare @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @r int, @message nvarchar(4000)
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> đã có hoặc lồng nhau.' else 'The value of cell <span class="Highlight">%invalidCell</span> is invalid or already exists.' end
+
+alter table @@table alter column ma_ld char(32)
+create index i on @@table (ma_ld)
+
+-- Delete
+if @type = '0' delete @@table from @@table a join sfdmlydo b on a.ma_ld = b.ma_ld
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_ld', stt, @message from @@table where ma_ld like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_ld', @r = min(stt) from @@table where ma_ld like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+-- Gather
+select a.*, a.cp_tt + a.cp_gt + a.cp_ql as cp_dv into #k from @@table a join sfdmlydo b on a.ma_ld = b.ma_ld
+
+-- Do not delete following line
+-- #OverwriteChecking
+
+if @type = '1' delete @@table from @@table a where exists(select 1 from #k b where a.ma_ld = b.ma_ld)
+
+-- Checking
+select @field = 'ma_ld'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_ld <> b.ma_ld and a.ma_ld like rtrim(b.ma_ld) + ''%''
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a with (index(i)), sfdmlydo b with (index(PK_sfdmlydo)) where a.ma_ld like rtrim(b.ma_ld) + ''%''
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from sfdmlydo a with (index(PK_sfdmlydo)), @@table b with (index(i)) where a.ma_ld like rtrim(b.ma_ld) + ''%''
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_ld <> b.ma_ld and a.ma_ld like rtrim(b.ma_ld) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  select top 1 @r = a.stt from @@table a, sfdmlydo b with (index(PK_sfdmlydo)) where a.ma_ld like rtrim(b.ma_ld) + '%']]>&Duplicate;<![CDATA[
+  select @q = 'select top 1 @r = b.stt from sfdmlydo a, @@table b with (index(i)) where a.ma_ld like rtrim(b.ma_ld) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ end
+]]>
+    </text>
+  </processing>
+</import>

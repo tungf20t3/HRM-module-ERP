@@ -1,0 +1,13 @@
+﻿        <![CDATA[
+#IF @@action = 'New' #THEN
+  if exists(select 1 from dmqddvt a where ma_vt = @ma_vt and xtype = 'U') begin
+    select 'ma_vt' as field, '$NotAuthorized' as message
+    return
+  end
+#ELSE
+  if exists(select 1 from dmqddvt a where ma_vt = @ma_vt and xtype = 'U' and @ma_vt <> $ma_vt.OldValue) begin
+    select 'ma_vt' as field, '$NotAuthorized' as message
+    return
+  end
+#END
+]]>

@@ -1,0 +1,18 @@
+﻿if @loai_ct = '5' begin
+  create table #cl(stt_rec char(13), stt_rec0 char(3), stt_rec_ir char(13), stt_rec0ir char(3), so_luong numeric(19, 4), tien numeric(19, 4), tien_nt numeric(19, 4), tien_cl numeric(19, 4), tien_cl_nt numeric(19, 4), ma_nx varchar(33), tk_vt varchar(33))
+  exec AI_ERP$Voucher$Adjustment$CreateDifference @stt_rec, 'd&Tag;$$partition$current', @ma_nt, @baseCurrency, @r1, @r2, @downPayment
+  select @statement = 'delete #in from #in a join #cl b on a.stt_rec0 = b.stt_rec0 and abs(tien_cl) + abs(tien_cl_nt) + abs(nk) + abs(nk_nt) + abs(ttdb) + abs(ttdb_nt) + abs(cp) + abs(cp_nt) = 0' + 
+    char(13) + 'update #in set ' + case
+      when @ma_nt = @baseCurrency then 'tien_nt0 = 0, tien_nt_n = 0, ' 
+      else 'tien_nt0 = b.tien_cl_nt, tien_nt_n = b.tien_cl_nt + a.nk_nt + a.ttdb_nt + a.cp_nt, '
+    end + 
+    'tien0 = b.tien_cl, tien_nhap = b.tien_cl + a.nk + a.ttdb + a.cp, ' + 
+    'ma_nx = b.ma_nx, tk_vt = b.tk_vt, stt_rec_pn = b.stt_rec_ir, stt_rec0pn = b.stt_rec0ir, ' + 
+    'sl_nhap1 = 0, gia_nt1 = 0, gia1 = 0, gia01 = 0, gia_nt01 = 0, sl_nhap = 0, gia_nt = 0, gia = 0, gia_nt0 = 0, gia0 = 0' + 
+    ' from #in a join #cl b on a.stt_rec0 = b.stt_rec0'
+end
+
+if @loai_ct = '6' begin
+  select @statement = 'delete #in from #in a join d&Tag;$$partition$current b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0'
+    + ' where b.stt_rec = ''' + @stt_rec + ''' and b.stt_rec_ir &lt;&gt; ''''' + char(13) + @statement
+end

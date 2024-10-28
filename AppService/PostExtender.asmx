@@ -1,0 +1,1 @@
+﻿<%@ WebService Class="PostExtender.PostExtender.Post" %>

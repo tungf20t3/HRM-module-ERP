@@ -1,0 +1,294 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrLaborContract' else 'hrLaborContract2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="5"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$LaborContractImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$LaborContractImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrcthd, hrnv"/>
+    <table value="hrcthd" alias="a"/>
+    <listTable value="#r"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="A" isPrimaryKey="true" allowNulls="false" reference="1" updateValue="None" check="ma_nv not in (select ma_nv from hrnv)" errorCode="00001"/>
+    <field name="dia_chi_th_tru" column="C" updateValue="case when b.dia_chi_th_tru &lt;&gt; '' then b.dia_chi_th_tru else a.dia_chi_th_tru end"/>
+    <field name="cmnd_so" column="D" updateValue="case when b.cmnd_so &lt;&gt; '' then b.cmnd_so else a.cmnd_so end"/>
+    <field name="cmnd_ngay_hl" column="E" type="DateTime" updateValue="case when b.cmnd_ngay_hl is not null then b.cmnd_ngay_hl else a.cmnd_ngay_hl end"/>
+    <field name="cmnd_noi_cap" column="F" updateValue="case when b.cmnd_noi_cap &lt;&gt; '' then b.cmnd_noi_cap else a.cmnd_noi_cap end"/>
+    <field name="so_ld" column="G" upperCase="true"/>
+    <field name="so_ngay_cap" column="H" type="DateTime"/>
+    <field name="so_noi_cap" column="I"/>
+    <field name="thanh_nien_yn" column="J" type="Boolean"/>
+    <field name="tan_tat_yn" column="K" type="Boolean"/>
+    <field name="so_hdld" column="L" allowNulls="false" upperCase="true" check="exists (select 1 from vhrcthd b where @@table.so_hdld = b.so_hdld and (not (@@table.ma_nv = b.ma_nv and @@table.ngay_ky_hd = b.ngay_ky_hd)))&And;so_hdld in (select so_hdld from @@table group by so_hdld having count(*) > 1)" errorCode="00002&And;00002"/>
+    <field name="loai_hd" column="M" allowNulls="false" upperCase="true" check="loai_hd not in (select ma_loai from hrdmloaihd)" errorCode="00001"/>
+    <field name="ngay_lv_tu" column="N" type="DateTime"/>
+    <field name="ngay_lv_den" column="O" type="DateTime"/>
+    <field name="ngay_tv_tu" column="P" type="DateTime"/>
+    <field name="ngay_tv_den" column="Q" type="DateTime"/>
+    <field name="ngay_hl_tu" column="R" type="DateTime" allowNulls="false"/>
+    <field name="ngay_hl_den" column="S" type="DateTime" check="ngay_hl_den is null and exists(select 1 from hrdmloaihd z where z.ma_loai = #table.loai_hd and z.tinh_chat = '2')" errorCode="00002"/>
+    <field name="ngay_ky_hd" column="T" isPrimaryKey="true" allowNulls="false" type="DateTime" updateValue="None"/>
+    <field name="dia_diem" column="U"/>
+    <field name="chuc_danh" column="V"/>
+    <field name="chuc_vu" column="W"/>
+    <field name="nghe_nghiep" column="X"/>
+    <field name="cong_viec" column="Y"/>
+    <field name="thoi_gian" column="Z"/>
+    <field name="dung_cu" column="AA"/>
+    <field name="phuong_tien" column="AB"/>
+    <field name="muc_luong" column="AC"/>
+    <field name="tien_thuong" column="AD"/>
+    <field name="phu_cap" column="AE"/>
+    <field name="bao_ho_ld" column="AF"/>
+    <field name="thoa_thuan" column="AG"/>
+
+    <field name="stt_rec" column="None" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Hợp đồng lao động" e="Labor Contract"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_nv" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width ="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="dia_chi_th_tru" width ="32">
+        <text v="Hộ khẩu" e="Permanent Residence"/>
+      </field>
+      <field name="cmnd_so" width ="16">
+        <text v="Số CMND/Hộ chiếu" e="Identity Card/ Passport"/>
+      </field>
+      <field name="cmnd_ngay_hl" width ="16">
+        <text v="Ngày cấp" e="Date of Issue"/>
+      </field>
+      <field name="cmnd_noi_cap" width ="32">
+        <text v="Nơi cấp" e="Place of Issue"/>
+      </field>
+      <field name="so_ld" width ="16">
+        <text v="Số sổ lao động" e="Labor Book No."/>
+      </field>
+      <field name="so_ngay_cap" width ="16">
+        <text v="Ngày cấp sổ" e="Date of Issue"/>
+      </field>
+      <field name="so_noi_cap" width ="32">
+        <text v="Nơi cấp sổ" e="Place of Issue"/>
+      </field>
+      <field name="thanh_nien_yn" width ="12">
+        <text v="Lao động chưa thành niên" e="Minor Labor"/>
+      </field>
+      <field name="tan_tat_yn" width ="12">
+        <text v="Lao động tàn tật" e="Handicap Labor"/>
+      </field>
+      <field name="so_hdld" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã số hợp đồng lao động" e="Labor Contract No."/>
+      </field>
+      <field name="loai_hd" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại hợp đồng" e="Contract Type"/>
+      </field>
+      <field name="ngay_lv_tu" width ="16">
+        <text v="Ngày làm việc từ" e="Working Date from"/>
+      </field>
+      <field name="ngay_lv_den" width ="16">
+        <text v="Ngày làm việc đến" e="Working Date to"/>
+      </field>
+      <field name="ngay_tv_tu" width ="16">
+        <text v="Ngày thử việc từ" e="Probation Date from"/>
+      </field>
+      <field name="ngay_tv_den" width ="16">
+        <text v="Ngày thử việc đến" e="Probation Date to"/>
+      </field>
+      <field name="ngay_hl_tu" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày hiệu lực từ" e="Effective Date from"/>
+      </field>
+      <field name="ngay_hl_den" width ="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hiệu lực đến" e="Effective Date to"/>
+      </field>
+      <field name="ngay_ky_hd" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày ký hợp đồng" e="Date Signed"/>
+      </field>
+      <field name="dia_diem" width ="32">
+        <text v="Địa điểm" e="Workplace"/>
+      </field>
+      <field name="chuc_danh" width ="32">
+        <text v="Chức danh chuyên môn" e="Job Title"/>
+      </field>
+      <field name="chuc_vu" width ="32">
+        <text v="Chức vụ" e="Job Position"/>
+      </field>
+      <field name="nghe_nghiep" width ="32">
+        <text v="Nghề nghiệp" e="Occupation"/>
+      </field>
+      <field name="cong_viec" width ="32">
+        <text v="Công việc phải làm" e="Required Tasks"/>
+      </field>
+      <field name="thoi_gian" width ="32">
+        <text v="Thời gian làm việc" e="Working Time"/>
+      </field>
+      <field name="dung_cu" width ="32">
+        <text v="Dụng cụ làm việc" e="Working Tools"/>
+      </field>
+      <field name="phuong_tien" width ="32">
+        <text v="Phương tiện làm việc" e="Means of commutation"/>
+      </field>
+      <field name="muc_luong" width ="32">
+        <text v="Mức lương" e="Base Salary"/>
+      </field>
+      <field name="tien_thuong" width ="32">
+        <text v="Tiền thưởng" e="Bonus"/>
+      </field>
+      <field name="phu_cap" width ="32">
+        <text v="Phụ cấp" e="Allowances"/>
+      </field>
+      <field name="bao_ho_ld" width ="32">
+        <text v="Bảo hộ lao động" e="Labor protection equipments"/>
+      </field>
+      <field name="thoa_thuan" width ="32">
+        <text v="Thỏa thuận khác" e="Other Agreement"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @message nvarchar(4000), @join nvarchar(1023), @field varchar(32)
+declare @user int, @admin bit, @sys varchar(32), @joinUnit bit, @joinDept bit, @r int
+select @admin = @@admin, @user = @@userID, @sys = '@@sysDatabaseName', @key = '', @joinUnit = 0, @joinDept = 0
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Key
+if @admin = 0 begin
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+  select @key = case when @key = '' then '' else ' and (' + @key + ')' end
+
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'hrLaborContract', 'Edit') = 0 select @type = '0'
+  end
+end
+
+select top 0 stt_rec, dia_chi_th_tru, cmnd_so, cmnd_ngay_hl, cmnd_noi_cap, so_ld, so_ngay_cap, so_noi_cap, thanh_nien_yn, tan_tat_yn, so_hdld, loai_hd, ngay_lv_tu, ngay_lv_den, ngay_tv_tu, ngay_tv_den, ngay_hl_tu, ngay_hl_den, ngay_ky_hd, dia_diem, chuc_danh, chuc_vu, nghe_nghiep, cong_viec, thoi_gian, dung_cu, phuong_tien, muc_luong, tien_thuong, phu_cap, bao_ho_ld, thoa_thuan into #r from hrcthd
+
+select @q = 'insert into #r select e.stt_rec, a.dia_chi_th_tru, a.cmnd_so, a.cmnd_ngay_hl, a.cmnd_noi_cap, a.so_ld, a.so_ngay_cap, a.so_noi_cap,'
+select @q = @q + ' a.thanh_nien_yn, a.tan_tat_yn, a.so_hdld, a.loai_hd, a.ngay_lv_tu, a.ngay_lv_den, a.ngay_tv_tu, a.ngay_tv_den, a.ngay_hl_tu, a.ngay_hl_den, a.ngay_ky_hd,'
+select @q = @q + ' a.dia_diem, a.chuc_danh, a.chuc_vu, a.nghe_nghiep, a.cong_viec, a.thoi_gian, a.dung_cu, a.phuong_tien, a.muc_luong, a.tien_thuong, a.phu_cap, a.bao_ho_ld, a.thoa_thuan'
+select @q = @q + ' from @@table a join hrnv e on a.ma_nv = e.ma_nv where e.status = ''1''' + @key
+exec sp_executesql @q
+
+if @type = '0' delete #r from #r a where exists(select 1 from hrcthd b where a.stt_rec = b.stt_rec and a.ngay_ky_hd = b.ngay_ky_hd)
+select a.* into #k from #r a join hrcthd b on a.stt_rec = b.stt_rec and a.ngay_ky_hd = b.ngay_ky_hd
+delete #r from #r a where exists(select 1 from #k b where a.stt_rec = b.stt_rec and a.ngay_ky_hd = b.ngay_ky_hd)
+
+update #r set dia_chi_th_tru =
+    case
+      when a.dia_chi_th_tru <> '' then a.dia_chi_th_tru
+      else
+        case
+          when b.dia_chi_th_tru <> '' then rtrim(b.dia_chi_th_tru) +
+            case
+              when m.ten_quan <> '' then ' - ' + rtrim(m.ten_quan) +
+                case
+                  when n.ten_tinh <> '' then ' - ' + rtrim(n.ten_tinh)
+                  else ''
+                end
+              else ''
+            end
+          else ''
+        end
+    end,
+    cmnd_so = case when a.cmnd_so <> '' then a.cmnd_so else case when b.cmnd_so <> '' then b.cmnd_so else isnull(b.ho_chieu_so, '') end end,
+    cmnd_ngay_hl =
+      case
+        when a.cmnd_ngay_hl <> '' then a.cmnd_ngay_hl
+        else cast(
+          case
+            when b.cmnd_so <> '' then b.cmnd_ngay_hl
+            else
+              case
+                when b.ho_chieu_so <> '' then b.ho_chieu_ngay_hl
+                else
+                  null
+              end
+          end as smalldatetime)
+      end,
+    cmnd_noi_cap =
+      case
+        when a.cmnd_noi_cap <> '' then a.cmnd_noi_cap
+        else
+          case
+            when b.cmnd_so <> '' then isnull(p.ten_tinh, '')
+            else
+              case
+                when b.ho_chieu_so <> '' then isnull(q.ten_qt, '')
+                else ''
+              end
+          end
+      end
+  from #r a left join hrnv b on a.stt_rec = b.stt_rec
+    left join hrdmtinh p on b.cmnd_noi_cap = p.ma_tinh
+    left join hrdmtinh n on b.dia_chi_th_tru_tinh = n.ma_tinh
+    left join hrdmquan m on b.dia_chi_th_tru_quan = m.ma_quan and b.dia_chi_th_tru_tinh = m.ma_tinh
+    left join dmqt q on b.ho_chieu_noi_cap = q.ma_qt
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin update hrcthd set @@list from hrcthd a join #k b on a.stt_rec = b.stt_rec and a.ngay_ky_hd = b.ngay_ky_hd end
+]]>
+    </text>
+  </processing>
+
+</import>

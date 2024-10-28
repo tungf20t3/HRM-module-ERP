@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'InputInvoiceDeclaration' else 'InputInvoiceDeclaration2' end as file_name">
+
+  <!ENTITY Controller "InputInvoiceDeclaration">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$InputInvoiceDeclarationImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$InputInvoiceDeclarationImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmcthddv"/>
+    <table value="dmcthddv" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_ct" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_ct not in (select ma_ct from dmctkt where status = '1')" errorCode="00001"/>
+    <field name="chi_tieu" column="B" isPrimaryKey="true" allowNulls="false" check="chi_tieu not in ('1', '2')" errorCode="00002"/>
+    <field name="gia_tri" column="C" isPrimaryKey="true" allowNulls="false"/>
+    <field name="ghi_chu" column="D"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Khai báo chứng từ cho hóa đơn đầu vào" e="Voucher Routing for Input Invoice"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã chứng từ" e="Voucher Code"/>
+      </field>
+      <field name="chi_tieu" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Chỉ tiêu" e="Norm"/>
+      </field>
+      <field name="gia_tri" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Giá trị" e="Value"/>
+      </field>
+      <field name="ghi_chu" width="32">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'InputInvoiceDeclaration', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @invalidValue nvarchar(4000), @field varchar(32), @r int, @t_yn bit
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> đã có.' else N'The value of cell <span class="Highlight">%invalidCell</span> is already exists.' end
+create index i on @@table (gia_tri)
+
+-- Delete
+if @type = '0' delete @@table from @@table a join dmcthddv b on a.gia_tri = b.gia_tri
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+-- Check tax code
+select stt, gia_tri into #t2 from @@table where chi_tieu = '1'
+exec AI_ERP$System$CheckTaxCode 'stt, gia_tri', @t_yn output, @r output, '#t2'
+if @t_yn = 0 begin
+  if @$mode = 1 begin
+    select top 0 cast(0 as int) as stt into #taxCodeInvalid
+    insert into #taxCodeInvalid exec AI_ERP$System$CheckTaxCode 'stt, gia_tri', @t_yn output, @r output, '#t2', @$mode, @$errorCount
+    ]]>&StartErrorCount;<![CDATA[
+    insert into #errorTable(@@errorTableField) select 'gia_tri', stt, 'invalidValueMessage' from #taxCodeInvalid order by stt
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @field = 'gia_tri']]>&Error;<![CDATA[
+  end
+end
+
+-- Gather
+select a.* into #k from @@table a join dmcthddv b on a.gia_tri = b.gia_tri
+delete @@table from @@table a where exists(select 1 from #k b where a.gia_tri = b.gia_tri)
+
+-- Checking
+select @field = 'gia_tri'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'gia_tri', stt, 'invalidValueMessage' from @@table where chi_tieu = '2' and dbo.ValidateEmail(gia_tri) = 0
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00004'' from @@table a, @@table b with (index(i)) where a.chi_tieu = ''1'' and b.chi_tieu = ''1'' and rtrim(a.gia_tri) = rtrim(b.gia_tri) and a.stt <> b.stt
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00004'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00004'' from @@table a, @@table b with (index(i)) where a.gia_tri <> b.gia_tri and a.gia_tri = rtrim(b.gia_tri)
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00004'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00004'' from @@table a with (index(i)), dmcthddv b with (index(PK_dmcthddv)) where a.gia_tri = rtrim(b.gia_tri)
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00004'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00004'' from dmcthddv a with (index(PK_dmcthddv)), @@table b with (index(i)) where a.gia_tri = rtrim(b.gia_tri)
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00004'']]>&w4;<![CDATA[ group by b.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'gia_tri', @r = min(stt) from @@table group by chi_tieu, gia_tri having count(stt) > 1]]>&Duplicate;<![CDATA[
+  select @field = 'gia_tri', @r = min(stt) from @@table where chi_tieu = '2' and dbo.ValidateEmail(gia_tri) = 0]]>&Error;<![CDATA[
+  select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.gia_tri <> b.gia_tri and a.gia_tri = rtrim(b.gia_tri)'
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  select @q = 'select top 1 @r = a.stt from @@table a with (index(i)), dmcthddv b with (index(PK_dmcthddv)) where a.gia_tri = rtrim(b.gia_tri)'
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  select @q = 'select top 1 @r = b.stt from dmcthddv a with (index(PK_dmcthddv)), @@table b with (index(i)) where a.gia_tri = rtrim(b.gia_tri)'
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  --]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+
+</import>

@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="thay_doi" allowNulls="false" type="Decimal" dataFormatString="##0" clientDefault="1">
+      <header v="Lần thay đổi" e="Revision"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="id" allowNulls="false">
+      <header v="Chức năng" e="Function"></header>
+      <items style="AutoComplete" controller="DataExtension" reference="description%l" key="1=1" check="1=1"/>
+      <clientScript><![CDATA[onchange="onChange$Filter$Function(this);"]]></clientScript>
+    </field>
+    <field name="description%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="f1" allowNulls="false" dataFormatString="@upperCaseFormat">
+      <header v="Loại hiện thời" e="Current Type"></header>
+      <footer v="&lt;div id=&quot;viewLabelf1&quot; class=&quot;FormContainer&quot;&gt;Loại hiện thời&lt;/div&gt;" e="&lt;div id=&quot;viewLabelf1&quot; class=&quot;FormContainer&quot;&gt;Current Type&lt;/div&gt;"></footer>
+    </field>
+    <field name="f2" dataFormatString="@upperCaseFormat">
+      <header v="Mã hiện thời" e="Current Code"></header>
+      <footer v="&lt;div id=&quot;viewLabelf2&quot; class=&quot;FormContainer&quot;&gt;&lt;/div&gt;" e="&lt;div id=&quot;viewLabelf2&quot; class=&quot;FormContainer&quot;&gt;&lt;/div&gt;"></footer>
+    </field>
+    <field name="f3" dataFormatString="@upperCaseFormat">
+      <header v="Mã hiện thời" e="Current Code"></header>
+      <footer v="&lt;div id=&quot;viewLabelf3&quot; class=&quot;FormContainer&quot;&gt;&lt;/div&gt;" e="&lt;div id=&quot;viewLabelf3&quot; class=&quot;FormContainer&quot;&gt;&lt;/div&gt;"></footer>
+    </field>
+
+    <field name="f4" dataFormatString="@upperCaseFormat">
+      <header v="Mã hiện thời" e="Current Code"></header>
+      <footer v="&lt;div id=&quot;viewLabelf4&quot; class=&quot;FormContainer&quot;&gt;&lt;/div&gt;" e="&lt;div id=&quot;viewLabelf4&quot; class=&quot;FormContainer&quot;&gt;&lt;/div&gt;"></footer>
+    </field>
+    <field name="f5" hidden="true" readOnly="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+      <footer v="&lt;div id=&quot;viewLabelf5&quot; class=&quot;FormContainer&quot;&gt;&lt;/div&gt;" e="&lt;div id=&quot;viewLabelf5&quot; class=&quot;FormContainer&quot;&gt;&lt;/div&gt;"></footer>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="130, 30, 70, 100, 100, 120, 0"/>
+      <item value="11----1: [thay_doi].Label, [thay_doi], [f5].Description"/>
+      <item value="1101001: [id].Label, [id], [description%l], [f5]"/>
+      <item value="110----: [f1].Description, [f1]"/>
+      <item value="110----: [f2].Description, [f2]"/>
+      <item value="110----: [f3].Description, [f3]"/>
+      <item value="110----: [f4].Description, [f4]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+#IF @@admin <> 1 #THEN
+  select '' as field, '$NotAuthorized' as message
+  return
+#END
+select 'active$CheckListEditLogDetail$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$CheckListEditLogDetail$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @q nvarchar(4000), @$none nvarchar(512), @$table$Name varchar(64), @$table$Log varchar(64), @$table$Key varchar(512), @$table$Join varchar(512), @$table$Type char(1), @$k$Join varchar(512), @$chk char(1)
+declare @f$1 varchar(32), @f$2 varchar(32), @f$3 varchar(32), @f$4 varchar(32), @f$5 varchar(32)
+
+select @f$1 = @f1, @f$2 = @f2, @f$3 = @f3, @f$4 = @f4, @f$5 = @f5
+select @$none = case when @@language = 'v' then N'Không có dữ liệu theo điều kiện đang lọc.' else N'No data matching filter condition.' end, @$table$Key = '', @$table$Join = '', @$k$Join = ''
+select top 1 @$table$Name = xtable, @$table$Log = rtrim(xtable) + '$log', @$table$Type = xtype from dmlistlog where id = @id
+
+select @$table$Key = @$table$Key + case when @$table$Key <> '' then ' and ' else '' end +  case when c.name in ('datetime', 'smalldatetime') then 'convert(varchar(32), b.' + b.name + ', 103)' when c.name in ('text', 'ntext') then 'ltrim(rtrim(cast(b.' + rtrim(b.name) + ' as nvarchar(4000))))' else 'ltrim(rtrim(b.' + rtrim(b.name) + '))' end + ' = @f$' + rtrim(a.ordinal_position),
+    @$table$Join = @$table$Join + case when @$table$Join <> '' then ' and ' else '' end + 'a.' + rtrim(a.column_name) + case when @$table$Type = '2' then '' else '_n' end + ' = b.' + rtrim(a.column_name),
+    @$k$Join = @$k$Join + case when @$k$join <> '' then ' + ' else 'a.k_n = ''$'' + ' end + case when c.name in ('datetime', 'smalldatetime') then 'convert(varchar(32), ' + b.name + ', 103) + ''$''' when c.name in ('text', 'ntext') then 'ltrim(rtrim(cast(' + rtrim(b.name) + ' as nvarchar(4000)))) + ''$''' else 'ltrim(rtrim(' + rtrim(b.name) + ')) + ''$''' end
+  from information_schema.key_column_usage a left join syscolumns b on a.table_name = object_name(b.id) and a.column_name = b.name left join systypes c on b.xtype = c.xtype and b.xusertype = c.xusertype
+  where a.table_name = @$table$Name order by a.ordinal_position
+
+if @$table$Type = '2' select @f$1 = stt_rec from hrnv where ma_nv = @f1
+if @$table$Type = '4' select @$table$Join = @$k$Join, @$table$Log = 'm$list$log'
+
+select @q = 'if exists(select 1 from ' + rtrim(@$table$Log) + ' a left join ' + rtrim(@$table$Name) + ' b on ' + @$table$Join + ' where a.idlog = @thay_doi and ' + rtrim(@$table$Key) + ') select @$chk = ''1'''
+exec sp_executesql @q, N'@$chk char(1) output, @thay_doi int, @f$1 varchar(32), @f$2 varchar(32), @f$3 varchar(32), @f$4 varchar(32), @f$5 varchar(32)', @$chk output, @thay_doi, @f$1, @f$2, @f$3, @f$4, @f$5
+
+if isnull(@$chk, '') = '' begin
+  select 'f1' as field, @$none as message
+  return
+end else begin
+  select '' as field, '' as message, 'setTitle$Filter$Function(this);' as script
+end
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_rptCheckListEditLogDetailView @thay_doi, @id, @f1, @f2, @f3, @f4, @f5, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$CheckListEditLogDetail$(a){a.add_onResponseComplete(on$CheckListEditLogDetail$ResponseComplete);a._itemAllowHidden="f1,f2,f3,f4,f5".split(",");setItemAllowHidden(a,a._itemAllowHidden,0,"","f00");var b=a.grid;if(b._f$Show){setItemAllowNulls(a,b._f$Show,true);setItemDisable(a,b._f$Show,false);setItemAllowNulls(a,b._f$Hidden,false);setItemDisable(a,b._f$Hidden,true);setItemLabel(a,b._f$Show,b._f$Name)}else a.getItemValue("id")!=""&&a.request("FunctionType","FunctionType",["id"])}function close$CheckListEditLogDetail$(a){setItemAllowHidden(a,a._itemAllowHidden,9);try{a.remove_onResponseComplete(on$CheckListEditLogDetail$ResponseComplete)}catch(b){}}function on$CheckListEditLogDetail$ResponseComplete(h,f){var b=f.object,g=f.type.Context,e=f.type.Result,a=b.grid;switch(g){case"FunctionType":var d=true,c=e[0].Value;a._f$Hidden=c==1?"f2,f3,f4,f5":c==2?"f3,f4,f5":c==3?"f4,f5":c==4?"f5":"";a._f$Show=e[1].Value;a._f$Name=e[2].Value;setItemAllowNulls(b,a._f$Show,d);setItemDisable(b,a._f$Show,!d);setItemAllowNulls(b,a._f$Hidden,!d);setItemDisable(b,a._f$Hidden,d);setItemLabel(b,a._f$Show,a._f$Name);break;case"Checking":a._t$Change=b.getItemValue("thay_doi");a._t$ID=b.getItemValue("id");a._t$IDName=b.getItemValue("description%l")}}function onChange$Filter$Function(a){a.parentForm.request("FunctionType","FunctionType",["id"],a)}function setTitle$Filter$Function(b){var a=b.grid;a._alterTitle=[null,[["%i",a._t$Change,true],["%c",a._t$ID,true],["%n",a._t$IDName,true]]]}function setItemDisable(f,e,d){for(var c=e.split(","),a=0;a<c.length;a++)if($func.trim(c[a])!=""){var b=f.getItem($func.trim(c[a]));b.a&&$common.setVisible(b.a,!d);b.disabled=d;if(d)b.value=""}}function setItemAllowNulls(e,g,f){for(var d=g.split(","),c,a,b=0;b<d.length;b++)if($func.trim(d[b])!=""){c=e.getItem($func.trim(d[b]));c.field.AllowNulls=!f;a=c.parentNode.parentNode;grandNode0=c.parentNode;if(f){Sys.UI.DomElement.addCssClass(a,"Required");Sys.UI.DomElement.addCssClass(a,e._id)}else{Sys.UI.DomElement.removeCssClass(a,"Required");Sys.UI.DomElement.addCssClass(a,e._id)}}}function setItemLabel(d,h,i){for(var c=h.split(","),g=i.split(","),f,b,e,a=0;a<5;a++){f=$func.trim(c[a])!=""?c[a]:"f"+(a+1);b=$func.trim(c[a])!=""?$func.trim(g[a]):"";e=d.getItem(f);$get("viewLabel"+f).innerHTML=b;e.field.Label=b!=""?b:e.Label}setItemAllowHidden(d,d._itemAllowHidden,1,"","f00")}function setItemAllowHidden(g,d,b,f,e){for(var c=0;c<d.length;c++){var a=g.getItem(d[c]);if(b==0){var h=a._itemAllowHidden=new SetItemAllowHidden;h.create(a,f,e)}b<=1&&a._itemAllowHidden.update();if(b>1)try{a&&a._itemAllowHidden&&a._itemAllowHidden.dispose()}catch(i){}}}SetItemAllowHidden=function(){};SetItemAllowHidden.prototype={create:function(c,a,b){this._e=c,this._c1=a,this._c2=b},dispose:function(){},update:function(){if(this._e.value||!this._e.field.AllowNulls)this.removeCssClass();else this.addCssClass()},addCssClass:function(){this._c1&&Sys.UI.DomElement.addCssClass(this._e.parentNode,this._c1);this._c2&&Sys.UI.DomElement.addCssClass(this._e.parentNode,this._c2)},removeCssClass:function(){this._c1&&Sys.UI.DomElement.removeCssClass(this._e.parentNode,this._c1);this._c2&&Sys.UI.DomElement.removeCssClass(this._e.parentNode,this._c2)}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="FunctionType">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmlistlog where id = @id) begin
+  declare @xtype varchar(32), @xtable varchar(64), @c varchar(128), @f varchar(1024), @fname nvarchar(4000), @n int
+
+  select @f = '', @fname = ''
+  select @xtype = xtype, @xtable = xtable, @c = controller from dmlistlog where id = @id
+  select column_name as col, cast(N'' as nvarchar(1024)) as colname, ordinal_position as id into #t from information_schema.key_column_usage where table_name = @xtable
+  update #t set colname = b.field_name%l from #t a join @@sysDatabaseName.dbo.syscheckfields b on a.col = b.field and b.ma_ct = @c
+  update #t set colname = case @@language when 'V' then colname + '$l' else '$l' + colname end
+
+  select @n = count(1) from #t
+  select @f = @f + case when @f <> '' then ',' else '' end + 'f' + rtrim(id), @fname = @fname + case when @fname <> '' then ',' else '' end + colname from #t order by id
+  if @xtype = '2' select top 1 @f = 'f1', @fname = case @@language when 'V' then field_name%l + '$l' else '$l' + field_name%l end from @@sysDatabaseName.dbo.syscheckfields where ma_ct like N'hr%' and field = 'ma_nv'
+  select @fname = replace(@fname, '$l', case @@language when 'V' then N' hiện thời' else N'Current ' end)
+
+  select @n as n, @f as f, @fname as fname
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+
+  <css>
+    <text>
+      <![CDATA[
+.f00{border-bottom-width: 0px;border-bottom-style: none;}
+]]>
+    </text>
+  </css>
+</dir>

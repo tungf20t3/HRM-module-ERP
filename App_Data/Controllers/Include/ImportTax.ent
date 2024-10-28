@@ -1,0 +1,204 @@
+﻿<!ENTITY % Conditional.ImportTax SYSTEM "..\Include\ImportTax.txt">
+<!ENTITY % Conditional.GenerateImportTemplate SYSTEM "..\Include\GenerateImportTemplate.txt">
+
+<!ENTITY % Conditional.COGS SYSTEM "..\Include\COGS.txt">
+<![%Conditional.COGS;[
+  <!ENTITY ListFieldMasterValues.COGS ", d.t_tien_nt, d.t_tien">
+  <!ENTITY ListFieldDetailValues.COGS ", a.px_gia_dd, a.gia_nt, round(a.gia_nt * a.ty_gia, @roundPrice), a.tien_nt, round(a.tien_nt * a.ty_gia, @roundAmount)">
+  <!ENTITY ListFieldSumValues.COGS ", sum(tien_nt) as t_tien_nt, sum(tien) as t_tien">
+
+  <!ENTITY ImportTaxHiddenColumnsCompact.COGS "">
+  <!ENTITY ImportTaxHiddenColumns.COGS "">
+  <!ENTITY ImportTaxExcludeColumnsCompact.COGS "">
+  <!ENTITY ImportTaxExcludeColumns.COGS "">
+]]>
+
+<!ENTITY % Conditional.DiscountRate SYSTEM "..\Include\DiscountRate.txt">
+<![%Conditional.DiscountRate;[
+  <!ENTITY ListFieldMasterValues.DiscountRate ", d.t_ck_nt, d.t_ck">
+  <!ENTITY ListFieldDetailValues.DiscountRate ", a.tl_ck, a.tk_ck, a.ck_nt, round(a.ck_nt * a.ty_gia, @roundAmount)">
+  <!ENTITY ListFieldSumValues.DiscountRate ", sum(tien_nt2 - ck_nt) as t_tien_nt2, sum(tien2 - ck) as t_tien2, sum(ck_nt) as t_ck_nt, sum(ck) as t_ck">
+  <!ENTITY ARListFieldSumValues.DiscountRate ", sum(ck_nt) as t_ck_nt, sum(ck) as t_ck">
+  <!ENTITY ImportTaxUpdate.DiscountRate "">
+
+  <!ENTITY ImportTaxHiddenColumnsCompact.DiscountRate "">
+  <!ENTITY ImportTaxExcludeColumns.DiscountRate "">
+  <!ENTITY ImportTaxHiddenColumns.DiscountRate "">
+]]>
+
+<![%Conditional.ImportTax;[
+  <!ENTITY SVTranFields.Compact.ext.tax SYSTEM "..\Templates\Upload\Include\SVTranFieldsCompact.tax">
+  <!ENTITY SVTranFields.ext.tax SYSTEM "..\Templates\Upload\Include\SVTranFields.tax">
+  <!ENTITY ARTranFields SYSTEM "..\Templates\Upload\Include\ARTranFields.tax">
+
+  <![IGNORE[
+    <!ENTITY ImportTaxScript SYSTEM "..\Include\Javascript\ImportTaxScript.txt">
+    <!ENTITY ImportTaxTemplate SYSTEM "..\Report\Include\ImportTaxTemplate.xml">
+
+    <!ENTITY ImportTaxFormID "999">
+    <!ENTITY ImportTaxShowing " select @message + @message + 'show$Grid$InitFreeField(this, ''&ImportTaxFormID;'');'">
+  ]]>
+
+  <!ENTITY % Conditional.GenerateImportTemplate SYSTEM "..\Include\GenerateImportTemplate.txt">
+
+  <![%Conditional.GenerateImportTemplate;[
+    <!ENTITY ImportTaxExportQueryStaticFile "">
+  ]]>
+  <!ENTITY ImportTaxExportQueryStaticFile "if @reportFile &lt;&gt; '' set @filename = @reportFile">
+
+  <!ENTITY ImportTaxDownloadQuery.SVTran "
+declare @$hiddenColumns varchar(512), @$excludeColumns varchar(512), @reportFile varchar(128)
+select @$hiddenColumns = '', @$excludeColumns = '', @reportFile = ''
+
+if exists(select 1 from options where name = 'm_compact_mode' and rtrim(val) = '1') begin
+  select @$hiddenColumns = '&ImportTaxHiddenColumnsCompact.COGS;', @$excludeColumns = '&ImportTaxExcludeColumns.COGS;', @reportFile = case when @@language = 'V' then 'SVDetail.Tax.Compact' else 'SVDetail.Tax.Compact2' end
+  if '&ImportTaxHiddenColumnsCompact.DiscountRate;' &lt;&gt; '' select @$hiddenColumns = @$hiddenColumns + case when @$hiddenColumns &lt;&gt; '' then ',' else '' end + '&ImportTaxHiddenColumnsCompact.DiscountRate;'
+  if '&ImportTaxExcludeColumns.DiscountRate;' &lt;&gt; '' select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end + '&ImportTaxExcludeColumns.DiscountRate;'
+end else begin
+  select @$hiddenColumns = '&ImportTaxHiddenColumns.COGS;', @$excludeColumns = '&ImportTaxExcludeColumns.COGS;', @reportFile = case when @@language = 'V' then 'SVDetail.Tax' else 'SVDetail.Tax2' end
+  if '&ImportTaxHiddenColumns.DiscountRate;' &lt;&gt; '' select @$hiddenColumns = @$hiddenColumns +  case when @$hiddenColumns &lt;&gt; '' then ',' else '' end + '&ImportTaxHiddenColumns.DiscountRate;'
+  if '&ImportTaxExcludeColumns.DiscountRate;' &lt;&gt; '' select @$excludeColumns = @$excludeColumns +  case when @$excludeColumns &lt;&gt; '' then ',' else '' end + '&ImportTaxExcludeColumns.DiscountRate;'
+
+  if exists(select 1 from options where name = 'm_instock_split' and val = '1') begin
+    declare @$locationExt bit, @$lotExt bit
+    if '&Code;' &lt;&gt; '' and object_id('dmctvtrlo') is not null begin
+      exec sp_executesql N'select @location = vi_tri_yn, @lot = lo_yn from dmctvtrlo where ma_ct = ''&Code;''', N'@location bit output, @lot bit output', @location = @$locationExt output, @lot = @$lotExt output
+    end
+    if @$locationExt is null select @$locationExt = cast(rtrim(val) as bit) from options where name = 'm_kt_td_vitri_yn'
+    if @$lotExt is null select @$lotExt = cast(rtrim(val) as bit) from options where name = 'm_kt_td_lo_yn'
+
+    if @$locationExt = 0 or @$lotExt = 0 begin
+      select @$hiddenColumns = @$hiddenColumns + case when @$hiddenColumns &lt;&gt; '' then ',' else '' end +
+        case
+          when @$locationExt = 0 and @$lotExt = 0 then 'M,N'
+          when @$locationExt = 1 and @$lotExt = 0 then 'N'
+          when @$locationExt = 0 and @$lotExt = 1 then 'M'
+        end
+      select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end +
+        case
+          when @$locationExt = 0 and @$lotExt = 0 then 'ma_vi_tri, ma_lo'
+          when @$locationExt = 1 and @$lotExt = 0 then 'ma_lo'
+          when @$locationExt = 0 and @$lotExt = 1 then 'ma_vi_tri'
+        end
+        if @$locationExt = 0 and @$lotExt = 0 begin
+        select @$hiddenColumns = '&ImportTaxHiddenColumnsCompact.COGS;', @$excludeColumns = '&ImportTaxExcludeColumns.COGS;', @reportFile = case when @@language = 'V' then 'SVDetail.Tax.Compact' else 'SVDetail.Tax.Compact2' end
+        if '&ImportTaxHiddenColumnsCompact.DiscountRate;' &lt;&gt; '' select @$hiddenColumns = @$hiddenColumns + case when @$hiddenColumns &lt;&gt; '' then ',' else '' end + '&ImportTaxHiddenColumnsCompact.DiscountRate;'
+        if '&ImportTaxExcludeColumns.DiscountRate;' &lt;&gt; '' select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end + '&ImportTaxExcludeColumns.DiscountRate;'
+      end
+    end
+  end
+end
+&ImportTaxExportQueryStaticFile;
+">
+
+  <![%Conditional.GenerateImportTemplate;[
+    <!ENTITY ImportTaxDownloadHiddenColumn "">
+    <!ENTITY ImportTaxDownloadExcludeColumn ", @$excludeColumns as exclude_column">
+  ]]>
+
+  <!ENTITY ImportTaxDownloadHiddenColumn ", @$hiddenColumns as hidden_column">
+  <!ENTITY ImportTaxDownloadExcludeColumn "">
+
+  <!ENTITY ImportTaxDownloadQuery.ARTran "
+declare @$hiddenColumns varchar(512), @$excludeColumns varchar(512), @reportFile varchar(128)
+select @$hiddenColumns = '&ImportTaxHiddenColumnsAR.DiscountRate;', @$excludeColumns = '&ImportTaxExcludeColumns.DiscountRate;', @reportFile = case when @@language = 'V' then 'ARDetail.Tax' else 'ARDetail.Tax2' end
+    ">
+
+  <!ENTITY ImportTaxDefinedDownload "
+var r = $get('requestFormData');
+if (!r) r = $func.requestFormData();
+var query = '?controller=&Controller;&amp;form=&ImportTaxFormID;' + String.format('&amp;r={0}', Math.random());
+r.action = $func.resolveClientUrl('~/AppHandler/ExportHandler.ashx' + query, g._baseUrl);
+if (!$func.isIE) r.target = '_blank';
+r.submit();
+break;
+    ">
+  <!ENTITY ImportTaxUpdateLocationLot "
+  declare @localtionCheck bit, @lotCheck bit
+  select @localtionCheck = 1, @lotCheck = 1
+  &ControlLocationLotLoading;
+    select @lotCheck = @$Lot, @localtionCheck = @$location
+    if @$location = 0 or @$Lot = 0 begin
+      select @q = 'update @@table set ' + (
+        select case
+          when @$location = 0 and @$Lot = 0 then 'ma_lo = '''', ma_vi_tri = '''''
+          when @$location = 1 and @$Lot = 0 then 'ma_lo = '''''
+          when @$location = 0 and @$Lot = 1 then 'ma_vi_tri = '''''
+        end)
+        exec sp_executesql @q
+      end
+  end
+">
+
+  <!ENTITY Tag.ext "12">
+  <!ENTITY Tag.Compact.ext "13">
+  <!ENTITY Tag.Location.ext "&Tag.ext;">
+  <!ENTITY Tag.Lot.ext "&Tag.ext;">
+
+  <!ENTITY ListFieldMaster.ext ", t_ck_nt, t_ck, t_tien_nt, t_tien">
+  <!ENTITY ListFieldMasterValues.ext ", d.t_tien_nt2, d.t_tien2&ListFieldMasterValues.DiscountRate;&ListFieldMasterValues.COGS;">
+  <!ENTITY ListFieldSumValues.ext "&ListFieldSumValues.DiscountRate;&ListFieldSumValues.COGS;">
+
+  <!ENTITY ListFieldDetail.ext ", thue_nt, thue, tl_ck, tk_ck, ck_nt, ck, px_gia_dd, gia_nt, gia, tien_nt, tien">
+  <!ENTITY ListFieldDetailValues.ext ", thue_nt, round(a.thue_nt * a.ty_gia, @roundAmount)&ListFieldDetailValues.DiscountRate;&ListFieldDetailValues.COGS;">
+  <!ENTITY DetailTaxMasterTaxValue ", d.t_thue_nt, d.t_thue">
+
+  <!ENTITY ARListFieldMaster.ext ", t_ck_nt, t_ck">
+  <!ENTITY ARListFieldDetail.ext ", tl_ck, tk_ck, ck_nt, ck">
+  <!ENTITY ARListFieldSumValues.ext "&ARListFieldSumValues.DiscountRate;">
+
+  <!ENTITY ARListFieldMasterValues.ext "&ListFieldMasterValues.DiscountRate;">
+  <!ENTITY ARListFieldDetailValues.ext ", thue_nt, round(a.thue_nt * a.ty_gia, @roundAmount)&ListFieldDetailValues.DiscountRate;">
+
+  <!ENTITY InsertMasterJoin "">
+  <!ENTITY DetailTaxUpdateMasterValue "">
+
+  <!ENTITY ARImportTaxUpdate "&ImportTaxUpdate.DiscountRate;">
+  <!ENTITY SVTranGLCOGS.ext "">
+  <!ENTITY SVImportTaxUpdate "&ImportTaxUpdate.DiscountRate;&ImportTaxUpdateLocationLot;">
+]]>
+
+
+<![IGNORE[
+  <!ENTITY ImportTaxFormID "">
+  <!ENTITY ImportTaxShowing "">
+  <!ENTITY ImportTaxScript "">
+  <!ENTITY ImportTaxTemplate "">
+  <!ENTITY ImportTaxDownloadQuery "">
+]]>
+
+<!ENTITY ImportTaxDownloadQuery.SVTran "">
+<!ENTITY ImportTaxDownloadQuery.ARTran "">
+
+<!ENTITY ImportTaxDownloadHiddenColumn "">
+<!ENTITY ImportTaxDownloadExcludeColumn "">
+
+<!ENTITY ImportTaxDefinedDownload "">
+<!ENTITY ImportTaxExcludeColumns.COGS "px_gia_dd, gia_nt, tien_nt">
+<!ENTITY ImportTaxExcludeColumns.DiscountRate "tl_ck, ck_nt, tk_ck">
+
+<!ENTITY ImportTaxHiddenColumnsCompact.COGS "AC,AD,AE">
+<!ENTITY ImportTaxHiddenColumns.COGS "AE,AF,AG">
+<!ENTITY ImportTaxHiddenColumnsCompact.DiscountRate "P,Q,X">
+<!ENTITY ImportTaxHiddenColumns.DiscountRate "R,S,Z">
+
+<!ENTITY ImportTaxUpdate.DiscountRate "update @@table set tk_ck = ''">
+
+
+<!ENTITY ImportTaxHiddenColumnsAR.DiscountRate "P,Q,V">
+
+<!ENTITY SVTranFields.Compact.ext.tax "">
+<!ENTITY SVTranFields.ext.tax "">
+<!ENTITY ARImportTaxUpdate "">
+<!ENTITY SVImportTaxUpdate "">
+
+<!ENTITY ListFieldDetail.COGS "">
+<!ENTITY ListFieldMasterValues.COGS ", 0, 0">
+<!ENTITY ListFieldDetailValues.COGS ", 0, 0, 0, 0, 0">
+<!ENTITY ListFieldSumValues.COGS ", 0 as t_tien_nt, 0 as t_tien">
+
+<!ENTITY ListFieldDetail.DiscountRate "">
+<!ENTITY ListFieldMasterValues.DiscountRate ", 0, 0">
+<!ENTITY ListFieldDetailValues.DiscountRate ", 0, '', 0, 0">
+<!ENTITY ListFieldSumValues.DiscountRate ", sum(tien_nt2) as t_tien_nt2, sum(tien2) as t_tien2, 0 as t_ck_nt, 0 as t_ck">
+<!ENTITY ARListFieldSumValues.DiscountRate ", 0 as t_ck_nt, 0 as t_ck">

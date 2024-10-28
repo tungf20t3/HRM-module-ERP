@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Controller "BIOptionalPurchasingOrganization">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BIOptionalPurchasingOrganizationImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BIOptionalPurchasingOrganizationImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="bidmbp0g1"/>
+    <table value="bidmbp0g1" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <fields identity="true" name="stt">
+    <field name="ma_bp0" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_bp0 not in (select ma_bp from bidmbp0)" errorCode="00001"/>
+    <field name="ma_vung" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_vung not in (select ma_vung from bidmvung)" errorCode="00001"/>
+    <field name="ghi_chu" column="E"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Khai báo vùng cho đơn vị mua hàng" e="Default Plant for Purchasing Organization"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_bp0" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị mua" e="Purchasing Organization"/>
+      </field>
+      <field name="ten_bp" afterField="ma_bp0" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên đơn vị mua" e="Description"/>
+      </field>
+      <field name="ma_vung" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Vùng" e="Plant"/>
+      </field>
+      <field name="ten_vung" afterField="ma_vung" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên vùng" e="Plant Name"/>
+      </field>
+      <field name="ghi_chu" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, ']]>&Controller;<![CDATA[', 'Edit') = 0 select @type = '0'
+end
+
+declare @field varchar(32), @r int
+
+-- Delete
+if @type = '0' delete @@table from @@table a join bidmbp0g1 b on a.ma_bp0 = b.ma_bp0 and a.ma_vung = b.ma_vung
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+-- Gather
+select a.* into #k from @@table a join bidmbp0g1 b on a.ma_bp0 = b.ma_bp0 and a.ma_vung = b.ma_vung
+
+-- Do not delete following line
+-- #OverwriteChecking
+
+if @type = '1' delete @@table from @@table a where exists(select 1 from #k b where a.ma_bp0 = b.ma_bp0 and a.ma_vung = b.ma_vung)
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+</import>

@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY UploadButtonCss SYSTEM "..\Include\XML\ImageUploadForm.txt">
+  <!ENTITY UploadField SYSTEM "..\Include\XML\TransferField.txt">
+  <!ENTITY TransferID "rptInterpretationFinancialGeneral">
+]>
+
+<dir type="Report" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tải lên" e="Upload"></title>
+
+  <fields>
+    &UploadField;
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 100, 30"/>
+      <item value="1100010: [upload].Label, [upload], [upload].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'init$UploadForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$UploadForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$UploadForm(this);' as message
+return
+]]>
+      </text>
+
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, fileName = getFileName($get('fileupload').value), allowExt = 'xlsx';
+var err = (f._language == 'v' ? 'Định dạng tệp không đúng.' : 'Invalid file type.');
+if (fileName != '') {
+  var ext = fileName.split('.').pop()
+  if (allowExt.indexOf(ext.toLowerCase()) < 0) {
+    f._checked = false;
+    $message.show(err);
+  }
+  else {
+    $get('uploadIFrame').form = f;
+    var query = '?a=0&t=' + ']]>&TransferID;<![CDATA[' + '&k=' + f._key;
+    $get('uploadForm').action = '../AppHandler/Transfer.ashx' + query;
+    $get('uploadForm').submit();
+    f.request('Upload', 'Upload', [['circularType', 'String', ''], ['reportForm', 'String', f.grid._reportForm]]);
+    f._checked = false;
+    window.setTimeout(function() {f._busy = true; $func.showWait(f.get_id());}, 50);
+  }
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$UploadForm(f) {
+  f.add_onResponseComplete(on$UploadForm$ResponseComplete);
+  f.request('Upload', 'Upload', [['circularType', 'String', ''], ['reportForm', 'String', f.grid._reportForm]]);
+}
+function load$UploadForm(f) {
+  var g = f.grid;  
+  document.body._form = f;
+  $get('fileupload').value = '';
+  f.getItem('upload').field.AllowNulls = false;
+  $get(f.get_id() + '_form_upload').style.color = 'grey'; 
+}
+function close$UploadForm(f) {
+  try {f.remove_onResponseComplete(on$UploadForm$ResponseComplete);} catch (ex) {}
+  document.body._form = null;
+}
+function setFileName() {
+  var f = document.body._form;
+  $get(f.get_id() + '_form_upload').value = getFileName($get('fileupload').value);  
+}
+function getFileName(s) {
+  var p = s.lastIndexOf('\\');
+  if (p != -1) {return s.substring(p + 1);}
+  else {return s;}
+}
+function on$UploadForm$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Upload':
+      f._key = result[0].Value;
+      break;      
+    default:
+      break;
+  }
+}
+
+function on$Upload$Fail(z) {window.setTimeout(function() {on$Upload$Response(z)}, 50);}
+function on$Upload$Complete(z) {
+  var f = z.form;
+  f._busy = false;
+  $func.hideWait(f.get_id());
+  f.completion(true);
+  f.grid._focusWhenTabChanged();
+}
+function on$Upload$Response(z) {
+  var f = z.form;
+  f._busy = false;
+  $func.hideWait(f.get_id());
+  var err = (f._language == 'v' ? 'Có lỗi chưa xác định.' : 'There was an unexpected error.');
+  $message.show(err);
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Upload">
+      <text>
+        <![CDATA[
+declare @ticket varchar(32), @filename varchar(128), @description nvarchar(128), @name varchar(33)
+select @ticket = lower(replace(newid(),'-',''))
+select @description = N'Thuyết minh tài chính', @filename = 'rptInterpretationFinancialGeneral_01BC$n.xlsx'
+if @@language <> 'V' select @description = N'Interpretation of Financial', @filename = 'rptInterpretationFinancialGeneral_01FC$n.xlsx'
+select @name = '_A03200' + case @reportForm when '20' then '_02' when '30' then '_03' else '' end
+
+select @filename = replace(@filename, '$n', @name)
+insert into @@sysDatabaseName..ticket values(@ticket, @@userID, ]]>'&TransferID;'<![CDATA[, @filename, @description, '@@appDatabaseName', getdate());
+select @ticket as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &UploadButtonCss;
+</dir>

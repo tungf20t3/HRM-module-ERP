@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "SRInvoiceMultiForm">
+  <!ENTITY ParentController "SRTran">
+  <!ENTITY GridController "SRInvoiceMultiGrid">
+  <!ENTITY Tag "">
+  <!ENTITY EnvironmentTaxType "2">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+  <!ENTITY FlowMultiGeneralTable "c81$000000">
+
+  <!ENTITY % FlowMultiDetailTax SYSTEM "..\Include\FlowMultiDetailTax.ent">
+  %FlowMultiDetailTax;
+
+  <!ENTITY % FlowMultiEnvironmentTax SYSTEM "..\Include\FlowMultiEnvironmentTax.ent">
+  %FlowMultiEnvironmentTax;
+
+  <!ENTITY OtherCopyField "he_so, km_yn, gia_nt, gia, tk_vt, tk_gv, tk_cpbh, tk_tl, kieu_tl, nhieu_dvt, sua_tk_vt, gia_ton, ma_lo, lo_yn, ma_vi_tri, vi_tri_yn, tl_ck, tk_ck, stt_rec_dh, stt_rec0dh &FlowMultiUserDefinedFieldsCopy; &DetailTaxCopyFieldsBase; &EnvironmentTaxCopyFields;">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn hóa đơn bán hàng" e="Select Sales Invoice"></title>
+
+  <fields>
+    &FlowMultiFormField;
+  </fields>
+
+  <views>
+    &FlowMultiFormView;
+  </views>
+
+  <commands>
+    &FlowMultiFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function show$]]>&Identity;<![CDATA[$(f) {
+  var z = f.grid, h = z.get_element().parentForm, queryFilterString = '', c = String.fromCharCode(253);
+  queryFilterString = h.getItemValue('ma_dvcs');
+  queryFilterString += c + h.getItemValue('ma_kh');
+  queryFilterString += c + z._filter$Fields[0];
+  var d = h.getItemValue('ngay_ct').z;
+  queryFilterString += c + d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2);
+
+  show$FlowMulti$Form(f, queryFilterString, ']]>&Identity;<![CDATA[DataGridPanel', ']]>&ParentController;<![CDATA[', ']]>&GridController;<![CDATA[', ']]>&OtherCopyField;<![CDATA[');
+}
+
+function active$]]>&Identity;<![CDATA[$(f) {
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  active$FlowMulti$Form(f);
+}
+
+function close$]]>&Identity;<![CDATA[$(f) {
+  close$FlowMulti$Form(f);
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+}
+
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = getGrid$FlowMulti$(f);
+      var c = String.fromCharCode(255), k1 = g._getColumnOrder('stt_rec') - 1, k2 = g._getColumnOrder('stt_rec0') - 1;
+      f._$k = '';
+      for (var i = 0; i < g._$k.length; i++) {
+        f._$k += (f._$k != '' ? ',' : '') + g._$k[i][k1] + c + g._$k[i][k2];
+      }
+      if (f._$k == '') f.grid._formScript = 'show$FlowMulti$RetrieveGrid(this)';
+      else {
+        f._checked = false;
+        f.request('GetOtherField', 'GetOtherField', [['k', 'Infinite', f._$k]]);
+      }
+      break;
+    case 'GetOtherField':
+      var g = getGrid$FlowMulti$(f), a = [];
+      for (var i = 0; i < result.length; i++) {
+        a[i] = g._$k[i].concat(result[i].slice(2));
+      }
+      on$]]>&Identity;<![CDATA[$TransferData(f, g, a);
+      break;
+    default:
+      break;
+  }
+}
+
+function on$]]>&Identity;<![CDATA[$TransferData(f, g, a) {
+  var z = f.grid, w = z.get_element().parentForm, f1 = 'sl_tl, stt_rec, stt_rec0, so_ct, line_nbr', f2 = 'so_luong, stt_rec_hd, stt_rec0hd, hd_so, hd_ln';
+  var first = true, ma_nt = w.getItemValue('ma_nt'), qf = f._$queryFilterString.split(String.fromCharCode(253));
+  var m = qf[1], l0 = z._getColumnOrder('ma_vt'), l1 = getColumnOrderTagRow(g, 'tk_tl'), l2 = getColumnOrderTagRow(g, 'kieu_tl');
+  var l3 = z._getColumnOrder('dvt'), l4 = getColumnOrderTagRow(g, 'nhieu_dvt'), l5 = z._getColumnOrder('tk_vt'), l6 = getColumnOrderTagRow(g, 'sua_tk_vt');
+  var l7 = getColumnOrderTagRow(g, 'ma_nt'), l8 = getColumnOrderTagRow(g, 'sl_tl');
+
+  var fields = 'ma_vt, ten_vt%l, dvt, km_yn, he_so, gia_ton, ma_kho, ma_vi_tri, ma_lo, vi_tri_yn, lo_yn, tk_vt, tk_gv, tk_cpbh, tl_ck, tk_ck, stt_rec_dh, stt_rec0dh ]]>&FlowMultiUserDefinedFieldsCopy; &DetailTaxCopyFieldsBase; &EnvironmentTaxCopyFields;<![CDATA[';
+
+  for (var r = 0; r < a.length; r++) {
+    var v = (ma_nt == a[r][l7]), map = fields;
+    if (v) map += ', gia_nt2, gia_nt, gia';
+
+    if (a[r][l8] != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+
+      insert$RetrieveTagRow$Items(g, a, r, z, row, map, f1, f2);
+
+      if (v) z.executeExpression(o, [z.$a.gia2, z.$a.tien_nt2, z.$a.tien2, z.$a.tien_nt, z.$a.tien, z.$a.ck_nt, z.$a.ck_tl]]]>&DetailTaxValidDetail;&EnvironmentTaxValidDetail;<![CDATA[);
+
+      z.setItemGridBehavior(o, [['tk_dt', a[r][l1], ['', a[r][l2]], true]]);
+      $func.setObjectWhen(z._getItem(row, l3), a[r][l4]);
+      $func.setObjectWhen(z._getItem(row, l5), a[r][l6]);
+    }
+  }
+
+  z.executeAggregate([z.$a.t_so_luong]]]>&EnvironmentTaxValidTotal;<![CDATA[.concat([z.$a.t_tien_nt, z.$a.t_tien, z.$a.t_ck_nt, z.$a.t_ck]));
+
+  if (v) {
+    on$GridVoucherDetail$AmountChange(null, z, w);
+    on$GridVoucherDetail$TaxChange(null, z, w);
+  }
+  z._focusWhenTabChanged();
+  f.cancelDialog();
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetOtherField">
+      <text>
+        &FlowMultiTagRowRequest;
+        &EnvironmentTaxDeclare;<![CDATA[
+declare @p char(6), @r nvarchar(4000), @q nvarchar(4000)
+
+select top 0 tr.id, a.he_so, a.km_yn, a.gia_nt, a.gia, rtrim(a.tk_vt) as tk_vt, rtrim(a.tk_gv) as tk_gv, rtrim(a.tk_cpbh) as tk_cpbh,
+    rtrim(b.tk_tl) as tk_tl, 0 as kieu_tl, b.nhieu_dvt, b.sua_tk_vt, b.gia_ton,
+    rtrim(a.ma_lo) as ma_lo, b.lo_yn, rtrim(a.ma_vi_tri) as ma_vi_tri, 0 as vi_tri_yn,
+    a.tl_ck, rtrim(a.tk_ck) as tk_ck, rtrim(a.stt_rec_dh) as stt_rec_dh, rtrim(a.stt_rec0dh) as stt_rec0dh,
+    rtrim(a.ma_vt) as ma_vt, rtrim(a.dvt) as dvt, a.ngay_ct
+    ]]>&FlowMultiUserDefinedFieldsQuery; &DetailTaxFieldsBase; &EnvironmentTaxFields;<![CDATA[
+  into #d from #tagRow tr cross join d81$000000 a cross join dmvt b]]>&DetailTaxJoin; &EnvironmentTaxJoin;<![CDATA[
+
+set @r = '
+insert into #d
+select tr.id, a.he_so, a.km_yn, a.gia_nt, a.gia, rtrim(a.tk_vt), rtrim(a.tk_gv), rtrim(a.tk_cpbh),
+    rtrim(case when a.km_yn <> ''0'' then a.tk_dt else b.tk_tl end), case when exists(select 1 from dmtk z where z.tk = case when a.km_yn <> ''0'' then rtrim(a.tk_dt) else rtrim(b.tk_tl) end and z.loai_tk = 1) then 1 else 0 end,
+    b.nhieu_dvt, b.sua_tk_vt, b.gia_ton,
+    rtrim(a.ma_lo), b.lo_yn, rtrim(a.ma_vi_tri), case when exists(select top 1 ma_kho from dmvitri z where z.ma_kho = a.ma_kho) then 1 else 0 end,
+    a.tl_ck, rtrim(a.tk_ck), rtrim(a.stt_rec_dh), rtrim(a.stt_rec0dh),
+    rtrim(a.ma_vt), rtrim(a.dvt), a.ngay_ct
+    ]]>&FlowMultiUserDefinedFieldsQuery; &DetailTaxFieldsBase; &EnvironmentTaxFields;<![CDATA[
+  from (select id, stt_rec, stt_rec0 from #tagRow where p = ''%Partition'') tr
+    join d81$%Partition a on tr.stt_rec = a.stt_rec and tr.stt_rec0 = a.stt_rec0
+    left join dmvt b on a.ma_vt = b.ma_vt ]]>&DetailTaxJoin; &EnvironmentTaxJoin;<![CDATA[
+'
+
+select distinct p into #p from #tagRow
+select @p = min(p) from #p
+while @p is not null begin
+  set @q = replace(@r, '%Partition', @p)
+  exec sp_executesql @q
+  select @p = min(p) from #p where p > @p
+end
+
+]]>&EnvironmentTaxQuery;<![CDATA[
+select '' as array$, id, ]]>&OtherCopyField;<![CDATA[ from #d ]]>&FlowMultiOrderBy;<![CDATA[
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

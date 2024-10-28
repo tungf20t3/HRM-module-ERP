@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "SOBlanket">
+  <!ENTITY DetailTable "d64">
+  <!ENTITY c11 "Mã khách">
+  <!ENTITY c12 "Customer">
+  <!ENTITY c21 "Số hợp đồng">
+  <!ENTITY c22 "Order Number">
+  <!ENTITY c31 "Ngày hợp đồng">
+  <!ENTITY c32 "Order Date">
+
+]>
+
+<dir table="m64$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Đơn hàng bán" e="Blanket Order"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d64')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, stt_rec, stt_rec0', f2 = 'so_luong, stt_rec_hd, stt_rec0hd';
+  var first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]), b = false;
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = g._getColumnOrder('so_luong0'), l2 = g._getColumnOrder('so_luong');
+  var l3 = z._getColumnOrder('dvt'), l4 = g._getColumnOrder('nhieu_dvt');
+
+  var la, lb, lc = g._getColumnOrder('ton13'), ld, lx, ly, lz, lt, lf = z._getColumnOrder('ton13'), status = null, type = null, round;
+  if (w._row.length > 0) {
+    status = w._row[w.getItem('status').field.Index];
+    type = $func.trim(w._row[w.getItem('loai_ct').field.Index]);
+  }
+  var adj = (w._action == 'Edit' && type == '3' && status == '2');
+  if (adj) {
+    var f$ = z._fields;
+    la = g._getColumnOrder('ma_vt'), lb = g._getColumnOrder('ma_kho'), ld = g._getColumnOrder('he_so');
+    lx = $func.findField('ma_vt', f$).Index, ly = $func.findField('ma_kho', f$).Index, lz = $func.findField('so_luong', f$).Index, lt = $func.findField('he_so', f$).Index;
+    round = $func.scaleLength(g._getColumnFormat(l1));
+  }
+
+  var externalFields = 'ck_nt', fields = 'ma_vt, ten_vt%l, dvt, he_so, ma_kho, ngay_giao, ma_thue, thue_suat, stt_rec_bg, stt_rec0bg, line_nbr, ]]>&XMLHiddenFields;<![CDATA[';
+  if (v) fields += ', gia_ban_nt, gia_nt2';
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l1) != 0) {
+      b = true;
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      var u = (g._getItemValue(r, l1) == g._getItemValue(r, l2));
+      insert$Retrieve$Items(g, r, z, z._rowCount, u ? fields + ', ' + externalFields: fields, f1, f2);
+
+      if (v) {
+        z.executeExpression(o, [z.$a.gia_ban, z.$a.gia2, z.$a.tien_nt2, z.$a.tien2_tg, z.$a.thue_nt, z.$a.thue_tg]);
+        if (u) z.executeExpression(o, [z.$a.ck]);
+      }
+      $func.setObjectWhen(z._getItem(row, l3), g._getItemValue(r, l4));
+
+      var currentStock = g._getItemValue(r, lc);
+      if (currentStock == null) currentStock = 0;
+      if (adj) {
+        var currentItem = g._getItemValue(r, la), currentSite = g._getItemValue(r, lb), currentRatio = g._getItemValue(r, ld), total = 0;
+        if (currentRatio != 0) {
+          for (var i = 0; i < z._rows.length; i++) {
+            if ((z._rows[i][lx] == currentItem) && (z._rows[i][ly] == currentSite)) {
+              var quantity = 0;
+              if (z._rows[i][lz] != null) quantity = z._rows[i][lz] * z._rows[i][lt];
+              total += quantity;
+            }
+          }
+          currentStock += Math.round(total / currentRatio, round);
+        }
+      }
+      z._setItemValue(row, lf, currentStock);
+    }
+  }
+  if (b) {
+    w.setItemValue('so_hd1', z._voucher$Retrieve$Number);
+    w.setItemValue('ngay_hd1', z._voucher$Retrieve$Date);
+    w.setItemValue('ngay_hl1', k[2] != 'null' ? $func.formatStringToDate(k[2]) : null);
+    w.setItemValue('status1', k[1]);
+
+    z.executeAggregate([z.$a.t_so_luong]);
+    if (v) {
+      z.executeAggregate([z.$a.t_tien_nt2, z.$a.t_tien2, z.$a.t_ck_nt, z.$a.t_ck, z.$a.t_thue_nt, z.$a.t_thue]);
+      w.executeExpression([z.$a.t_tt_nt, z.$a.t_tt]);
+    }
+  }
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

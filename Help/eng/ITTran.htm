@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="ITTran.doc" />
+<title>Stock Transfer</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+
+</head>
+<body>
+<p id="td1">Stock Transfer</p>
+<p id="td2">Entry Screen</p>
+<p id="pic"><img src="eng/ITTran.png"/></p>
+<p id="td2">Field descriptions</p>
+<p class="node">Source/Destination Site</p>
+<p class="node_d">Issuing site code (source) and receiving site code(destination); only appear sites belonging to the current unit</p>
+
+<p class="node">Transaction Code</p>
+<p class="node_d">Stock Transfer is now designed with 1 transaction code  "Stock Transfer Out" only.</p>
+
+<p class="node">Voucher Number</p>
+<p class="node_d">Voucher number can be system-generated (in number format) or user-defined in Serial Voucher Number List, but can be manually input.</p>
+<p class="node">Voucher Date / Posting Date</p>
+<p class="node_d">The date when the voucher is created / posted to GL. Voucher date and posting date can be different.</p>
+<p class="node">Ex. Rate</p>
+<p class="node_d">Used in case transaction is input in foreign currency, extracted from latest “Exchange Rate” list before creating date.</p>
+
+<p class="node">Item Code / Site / Location / Lot</p>
+<p class="node_d">If stocks are controlled by location or lot, it is required to input source location and lot. In case stocks in destination site are also
+ controlled by location, it is also required to input destination location.</p>
+
+<p class="node">Reason Code / Debit Account / Credit Account</p>
+<p class="node_d">Transferring form and double-entry information<br/>
+Reason code is extracted from “Reason List”. Credit account is extracted from issued item account but editable if this item is declared to allow editing item account. Debit account is extracted from “Account” field in selected Reason code but editable.<br/>
+“Stock Transfer” and “Receipt” entries can be posted to general ledger. According to the entries assignment in your enterprise, these 2 entries will be
+ chosen 1 to post to GL. Otherwise, there will be coincident entries.</p>
+
+<p class="node">Quantity</p>
+<p class="node_d">Quantity of item transferred; if the item is FIFO cost, quantity must not be 0.</p>
+
+<p class="node">Specific Cost</p>
+<p class="node_d">This check-box option is used to choose a specific issuing price to item. This price will not be changed during cost calculating.</p>
+
+<p class="node">Job</p>
+<p class="node_d">Extracted from “Job List” if Stock Transfer relates to any job, event</p>
+
+ <p class="node">	Step (1/2)</p>
+ <p class="node_d">
+The stock transfer can be operated in 1 step or 2 steps. If transfer in 1 step, the system will create “Stock Transfer In” in target site which must not be adjusted. If transfer in 2 steps, the system will create “Stock Transfer In” which voucher number and date are the same as ones in "Stock Transfer" so that user can adjust actual quantity in “Transfer In” at target site. <br/>
+One-step transfer is used in case in-out data are surely the same. Two-step transfer is used in case warehouse-keeper in target site
+ wants to confirm the actual received quantity (for loss or damage during transportation). </p>
+
+ <p class="note">Note:<br/>
+ -	In case of two-step transfer, if there is any adjustment in Stock Transfer In, issued quantity in site card of source site will be different from received quantity in site card of target site. <br/>
+ -	The parameter of 1 or 2 steps is unchangeable.</p>
+
+<p id="td2">Some common tasks in voucher entry</p>
+<p class="node">  Import data from excel file (detail importing)</p>
+<p class="node_d">
+The system is enabled to import data from excel spreadsheet to save hours of manual effort.
+<br/>The data importing process:</p>
+<ul class="lo_2">
+	- Enter Stock Transfer;<br/>
+	- Click the icon <img src="eng/download.png"/>, the system allows user to download template file to put data in;<br/>
+	- After keying data in the spreadsheet, to up data to the system, click the icon <img src="eng/upload.png"/>, 
+	select the file, the system will get data from this file to grid view of the voucher.<br/>
+	- Select copy type 1 - Overwrite if you want to replace the available data; if you select copy type "0 - No", the system will insert the new data only.
+</ul>
+<p class="note">Notes of inputting data in template file:<br/>
+- Specific Cost: accepted with value 1 or 0;<br/>
+- Item Code, UOM, Source Location, Destination Location, Lot, Reason Code, Debit/Credit Account, Job, Department, MO, Product, Contract, Expense, Loan Contract: must be one existing in the corresponding list with the same length in add (edit) screen in list;<br/>
+- UOM: the system will use the standard UOM of the item if you let it blank in template file;<br/>
+- Source / Destination Location: input only when item with location track;<br/>
+- Lot: input only when item with lot control;<br/>
+- Quantity: input in number format, 9 digits maximum and 3 decimal digits (standard format);<br/>
+- Price: input in number format, 12 digits maximum and 4 decimal digits (standard format);<br/>
+- Amount: input in number format, 14 digits maximum and 2 decimal digits (standard format).
+</p>
+<p class="note">The system will give error message in some following cases:<br/>
+	- Data in columns containing codes of related objects do not exist in current lists (Item, Site...). 
+	In this case, the system will indicate the specific invalid cell;<br/>
+	- String data is longer than the available length of field (maximum length can be manually input.</p>
+
+<p class="note">Other notes:<br/>
+- The function is only supported to get data for each voucher, used in case of frequently inputting the similar periodic vouchers.<br/>
+- If you do not have the "New" right, you cannot import new data to voucher detail grid;<br/>
+- It is not required to keying object name in lists, the system will auto update following their codes.</p>
+
+<p class="node"> Import data from excel file (mass importing)</p>
+<p class="node_d">
+The system is enabled to import data from excel spreadsheet to save hours of manual effort.<br/>
+The data importing process:</p>
+<ul class="lo_2">
+	- Enter Stock Transfer;<br/>
+	- Click the icon <img src="eng/download.png"/> to download template file to put data in;<br/>
+	- After keying data in the spreadsheet, to up data to the system, click the icon <img src="eng/upload.png"/>, 
+	select the file, the system will import data from this file.<br/>
+</ul>
+
+<p class="note">Notes of inputting data in template file:<br/>
+- Voucher Number: input in form of string, 12 characters maximum;<br/>
+- Voucher Date: input in date format. Voucher date must be after data closing date, unit and voucher locking date;<br/>
+- Specific Cost: accepted with value 1 or 0;<br/>
+- Customer, Item Code, UOM, Site, Reason Code, Debit/Credit Account, Job, Department, MO, Product, Contract, Expense, Loan Contract: must be one existing in the corresponding list with the same length in add (edit) screen in list. Account must be detailed account;<br/>
+- Item Code: to item with monthly or moving average costing method, if the "Calculate Common Average Cost of all Sites in each Site Group" parameter is "Yes", the source and destination sites must be in the same group;<br/>
+- Step: accepted with value 1 or 2;<br/> 
+- Source/Destination Site: input sites belonging to assigned units;<br/>
+- Location: input only when item with location track;<br/>
+- Lot: input only when item with lot control;<br/>
+- Quantity: input in number format, 9 digits maximum and 3 decimal digits (standard format);<br/>
+- Price: input in number format, 12 digits maximum and 4 decimal digits (standard format);<br/>
+- Amount: input in number format, 14 digits maximum and 2 decimal digits (standard format).
+</p>
+
+<p class="note">The system will give error message in some following cases:<br/>
+
+	- Data in columns containing codes of related objects do not exist in current lists (Item, Site...). Account does not exist in chart of account or is general account. In this case, the system will indicate the specific invalid cell;<br/>
+	- The required fields (Voucher Number, Voucher Date, Unit...) are blank;<br/>
+	- String data is longer than the available length of field (maximum length can be manually input.</p>
+
+<p class="note">Other notes:<br/>
+- Cannot import data after system data closing, unit or voucher locking date (the data closing date after the beginning input date);<br/>
+- Do not input exchange rate if the "Currency" column is blank;<br/>
+- The current user must have the "New" right in "Stock Transfer" menu;<br/>
+- The current user must have the "New" right in "Access Right by Unit";<br/>
+- Check the duplicate vouchers by number only (if available);<br/>
+- In order to import a voucher with many grid rows, you can input many rows in spreadsheet with the same voucher number and date. The system will create one voucher with these grid rows;<br/>
+- Enable to import voucher in "No Action" status only; you can edit the imported voucher to post to ledger;<br/>
+- It is not required to keying object name in lists, the system will auto update following their codes;<br/>
+- To yes/no fields, it is required to input 1/0 or true/false;<br/>
+- Cannot import data from spreadsheet with macro;<br/>
+- Only support for spreadsheet in Excel 2007 or higher. 
+</p><!--
+-->
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>

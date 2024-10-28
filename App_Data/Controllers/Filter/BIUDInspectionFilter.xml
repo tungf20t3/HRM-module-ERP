@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterFields SYSTEM "..\Include\XML\FlowFilterFields.txt">
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "BIUDInspectionFilter">
+  <!ENTITY c11 "Ngày lô kiểm định từ">
+  <!ENTITY c12 "Inspection Lot Date from">
+  <!ENTITY c21 "Số lô kiểm định">
+  <!ENTITY c22 "Inspection Lot Number">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'BIUDInspectionFilter', 'Filter', 'BIUDTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+
+<dir table="bikd" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn lô kiểm định" e="Select Inspection Lot"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="&c11;" e="&c12;"></header>
+    </field>
+    <field name="so_ct" align="right" maxLength="-100" filterSource="voucherNumber" allowNulls="false">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="AutoComplete" controller="BIInspectionLotUsageLookup" reference="stt_rec_ct"/>
+    </field>
+    <field name="stt_rec_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="&c21;" e="&c22;"></header>
+    </field>
+
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec_kd" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11011: [ngay_ct1].Label, [ngay_ct1], [ngay_ct2], [stt_rec_kd]"/>
+      <item value="11011: [so_ct].Label, [so_ct], [stt_rec_ct], [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$inspectionNumber varchar(32), @$inspectionID varchar(128), @$inspectionDate varchar(8), @$none nvarchar(512), @$k nvarchar(4000), @$u nvarchar(4000), @$p nvarchar(4000), @$i nvarchar(4000), @$s nvarchar(4000), @q nvarchar(4000), @i int, @l int
+
+select @$none = case when @@language = 'v' then N'Không có lô kiểm định theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+select @$inspectionNumber = replace(ltrim(rtrim(@so_ct)), '''', ''), @$k = ''
+select @i = len(@$inspectionNumber), @l = character_maximum_length from information_schema.columns where table_name = '@@table' and column_name = 'so_ct'
+select @$inspectionNumber = space(@l - @i) + @$inspectionNumber
+
+]]>&CheckRelativeProcess;<![CDATA[
+if @stt_rec_ct <> '' begin
+  select @$inspectionID = @stt_rec_ct
+  goto Retrieve
+end else begin
+  select @$u = dbo.AI_ERP$Function$System$GetUnitFilter('a.ma_dvcs', @@unit, @@userID, @@admin)
+  if @$u is not null select @$k = @$k + ' and ' + @$u
+
+  exec AI_ERP$System$GetSiteFilter 'a.ma_kho', '', @$u, @@userID, @@admin, @$s output
+  if @$s is not null select @$k = @$k + ' and ' + '(' + @$s + ')'
+
+  exec AI_ERP$BI$PurchasingRightFilter 'a.ma_vung', '', @$u, @@userID, @@admin, @$p output, '1'
+  if @$p is not null set @$k = @$k + ' and ' + '(' + @$p + ')'
+
+  select @$i = dbo.AI_ERP$Function$BI$GetInspectionFilter('a.ma_nguon', '', @@userID, @@admin)
+  if @$i is not null select @$k = @$k + ' and ' + @$i
+
+  select top 0 stt_rec into #t from bikd00$000000
+  select @q = 'insert into #t select a.stt_rec from bikd00$%Partition a where %[a.so_ct = ''' + @$inspectionNumber + ''' and (a.status = ''3'' or (a.qd_tung_phan = ''1'' and a.status = ''2''))' + @$k + ']%'
+  exec AI_ERP$Partition$Execute @q, null, 'ngay_ct', @ngay_ct1, @ngay_ct2, @@userID, @@admin
+
+  if exists(select 1 from #t where (isnull(stt_rec, '') <> '')) begin
+    select top 1 @$inspectionID = stt_rec from #t
+    drop table #t
+    goto Retrieve
+  end
+  drop table #t
+  select 'so_ct' as field, @$none as message
+  return
+end
+
+Retrieve:
+if @stt_rec_kd = '' or @stt_rec_kd <> @$inspectionID
+  select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, ''' + @$inspectionID + ''');' as script
+else
+  select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this);' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {f.getItem('so_ct')._idle = ]]>&IdleLookupFilter;<![CDATA[;}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f._looking.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$LoadingNumber);
+
+  var w = document.body._form, u = w.getItemValue('ma_dvcs'), d2 = w.getItemValue('ngay_ct'), t = w.getItemValue('so_lo_kd'), k = w.getItemValue('stt_rec_kd');
+  f.setItemValues('ngay_ct2, ma_dvcs, stt_rec_kd', [d2, u, k]);
+  if (t != '' && k != '') {
+    f.setItemValues('so_ct, stt_rec_ct', [t, k]);
+  }
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {
+  try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$LoadingNumber);} catch (ex) {}
+
+  var w = document.body._form, g = f.grid;
+  w.focus('dien_giai');
+  g._$deferral = g._activeCell;
+  g._activeCell = null;
+  setTimeout(function() {if (g._$deferral) {g._activeCell = g._$deferral; g._$deferral = null; g._formScript = null;}}, 1);
+}
+function on$]]>&Identity;<![CDATA[Filter$Before$LoadingNumber(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1')) e.type.cancelEvent = true;
+  else {
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: f.getItemValue('ngay_ct1')},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: f.getItemValue('ngay_ct2')}
+    ];
+    sender.set_memvars(a);
+  }
+}
+
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, id) {
+  var g = f.grid, w = document.body._form;
+  if (id) {
+    w.getItem('dien_giai').focus();
+    w.live(w.getItem('dien_giai'));
+    w.request('InspectionLot', 'InspectionLot', [['id', 'String', id], ['ma_loai_qd', 'String', w.getItemValue('ma_loai_qd')]]);
+  }
+
+  if (!g._formScript) g._formScript = ' ';
+}
+]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

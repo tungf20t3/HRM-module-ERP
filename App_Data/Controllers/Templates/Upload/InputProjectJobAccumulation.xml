@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % Tiny.Currency SYSTEM "..\..\Include\Tiny.Currency.ent">
+  %Tiny.Currency;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "
+declare @filename varchar(128)
+if @@language = 'v' select @filename = 'InputProjectJobAccumulation'
+else select @filename = 'InputProjectJobAccumulation2'
+">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$InputProjectJobAccumulationImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$InputProjectJobAccumulationImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="v20vvlkct"/>
+    <table value="v20vvlkct" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+        <![CDATA[if ]]>&Tiny.Currency.ConfigEvent;<![CDATA[ = 1 select '1' as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[ else select '0' as view_index]]>&ExportImportTemplateQueryReturnFileName;
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where year(ngay_ks) >= @year)&And;not exists(select 1 from v20vvlkct b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_vv = b.ma_vv and @@table.ma_so = b.ma_so and b.nam = @year) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from v20vvlkct b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_vv = b.ma_vv and @@table.ma_so = b.ma_so and b.nam = @year) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;&And;if (@admin &lt;&gt; 1) begin&And;if (@admin &lt;&gt; 1 and @type = '1') begin" tag="&And;&And;end&And;end" errorCode="00001&And;00002&And;00002&And;00002"/>
+        <field name="ma_vv" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_vv not in (select ma_vv from dmvv)" errorCode="00001"/>
+        <field name="ma_so" column="D" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_so not in (select ma_so from v20dmvvct)" errorCode="00001"/>
+        <field name="lk_no" column="E" type="Decimal"/>
+        <field name="lk_co" column="F" type="Decimal"/>
+        <field name="lk_no_dk" column="G" type="Decimal"/>
+        <field name="lk_co_dk" column="H" type="Decimal"/>
+        <field name="lk_no_nt" column="" type="Decimal"/>
+        <field name="lk_co_nt" column="" type="Decimal"/>
+        <field name="lk_no_dk_nt" column="" type="Decimal"/>
+        <field name="lk_co_dk_nt" column="" type="Decimal"/>
+
+        <field name="nam" column="None" insertValue="@year" type="Decimal" updateValue="None"/>
+        <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+        <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+        <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+        <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+      </fields>
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where year(ngay_ks) >= @year)&And;not exists(select 1 from v20vvlkct b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_vv = b.ma_vv and @@table.ma_so = b.ma_so and b.nam = @year) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from v20vvlkct b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_vv = b.ma_vv and @@table.ma_so = b.ma_so and b.nam = @year) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;&And;if (@admin &lt;&gt; 1) begin&And;if (@admin &lt;&gt; 1 and @type = '1') begin" tag="&And;&And;end&And;end" errorCode="00001&And;00002&And;00002&And;00002"/>
+    <field name="ma_vv" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_vv not in (select ma_vv from dmvv)" errorCode="00001"/>
+    <field name="ma_so" column="D" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_so not in (select ma_so from v20dmvvct)" errorCode="00001"/>
+    <field name="lk_no" column="E" type="Decimal"/>
+    <field name="lk_co" column="F" type="Decimal"/>
+    <field name="lk_no_dk" column="G" type="Decimal"/>
+    <field name="lk_co_dk" column="H" type="Decimal"/>
+    <field name="lk_no_nt" column="I" type="Decimal"/>
+    <field name="lk_co_nt" column="J" type="Decimal"/>
+    <field name="lk_no_dk_nt" column="K" type="Decimal"/>
+    <field name="lk_co_dk_nt" column="L" type="Decimal"/>
+
+    <field name="nam" column="None" insertValue="@year" type="Decimal" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Vào lũy kế theo chỉ tiêu vụ việc, công trình" e="Input Project/Job Accumulation by Job Norm"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ma_vv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã vụ việc" e="Job"/>
+      </field>
+      <field name="ten_vv" afterField="ma_vv" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên vụ việc" e="Description"/>
+      </field>
+      <field name="ma_so" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Chỉ tiêu" e="Article"/>
+      </field>
+
+      <field name="lk_no" width="16">
+        <text v="Lũy kế nợ từ kc đến đn" e="Period-opening Debit Amount"/>
+      </field>
+      <field name="lk_co" width="16">
+        <text v="Lũy kế có từ kc đến đn" e="Period-opening Credit Amount"/>
+      </field>
+      <field name="lk_no_dk" width="16">
+        <text v="Lũy kế nợ từ đn đến đk" e="Year-opening Debit Amount"/>
+      </field>
+      <field name="lk_co_dk" width="16">
+        <text v="Lũy kế có từ đn đến đk" e="Year-opening Credit Amount"/>
+      </field>
+
+      <field name="lk_no_nt" width="16">
+        <text v="Lũy kế nợ nt từ kc đến đn" e="Period-opening FC Debit Amount"/>
+      </field>
+      <field name="lk_co_nt" width="16">
+        <text v="Lũy kế có nt từ kc đến đn" e="Period-opening FC Credit Amount"/>
+      </field>
+      <field name="lk_no_dk_nt" width="16">
+        <text v="Lũy kế nợ nt từ đn đến đk" e="Year-opening FC Debit Amount"/>
+      </field>
+      <field name="lk_co_dk_nt" width="16">
+        <text v="Lũy kế có nt từ đn đến đk" e="Year-opening FC Credit Amount"/>
+      </field>
+
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @field varchar(32), @user int, @admin bit, @unit varchar(32), @year int, @r int, @inputYearOpening bit
+select @admin = @@admin, @user = @@userID, @unit = @@unit, @year = nam_bd from dmstt
+select @inputYearOpening = case when month(ngay_ky1) = month(ngay_dn2) and day(ngay_ky1) = day(ngay_dn2) then 0 else 1 end from dmstt
+
+if @admin <> 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'InputProjectJobAccumulation', 'Edit') = 0 select @type = '0'
+  end
+end
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+
+if @inputYearOpening = 0 begin
+  update @@table set lk_no_dk = 0, lk_co_dk = 0, lk_no_dk_nt = 0, lk_co_dk_nt = 0
+end
+if @type = '0' delete @@table from @@table a where exists(select 1 from v20vvlkct b where a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and a.ma_so = b.ma_so and b.nam = @year)
+select a.* into #k from @@table a join v20vvlkct b on a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and a.ma_so = b.ma_so where b.nam = @year
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and a.ma_so = b.ma_so)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ where a.nam = @year end
+]]>
+    </text>
+  </processing>
+</import>

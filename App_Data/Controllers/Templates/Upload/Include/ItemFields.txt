@@ -1,0 +1,47 @@
+<field name="ma_vt" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+<field name="ten_vt" column="B" allowNulls="false"/>
+<field name="ten_vt2" column="C"/>
+<field name="dvt" column="D" allowNulls="false" check="dvt not in (select dvt from dmdvt)" updateValue="case when b.ps = 0 then b.dvt else a.dvt end" errorCode="00001"/>
+<field name="nhieu_dvt" column="E" type="Boolean" updateValue="case when b.ps = 0 then b.nhieu_dvt else a.nhieu_dvt end"/>
+<field name="vt_ton_kho" column="F" type="Boolean" defaultValue="true"/>
+<field name="lo_yn" column="G" type="Boolean"/>
+<field name="kk_yn" column="H" type="Boolean" defaultValue="true"/>
+<field name="gia_ton" column="I" type="Decimal" defaultValue="1" check="gia_ton not in (1, 2, 3, 4)" errorCode="00002"/>
+<field name="loai_vt" column="J" allowNulls="false" upperCase="true" check="loai_vt not in (select ma_loai_vt from dmloaivt)" errorCode="00001"/>
+<field name="nh_vt1" column="K" upperCase="true" check="nh_vt1 &lt;&gt; '' and nh_vt1 not in (select ma_nh from dmnhvt where loai_nh = 1)" errorCode="00001"/>
+<field name="nh_vt2" column="L" upperCase="true" check="nh_vt2 &lt;&gt; '' and nh_vt2 not in (select ma_nh from dmnhvt where loai_nh = 2)" errorCode="00001"/>
+<field name="nh_vt3" column="M" upperCase="true" check="nh_vt3 &lt;&gt; '' and nh_vt3 not in (select ma_nh from dmnhvt where loai_nh = 3)" errorCode="00001"/>
+<field name="nh_vt9" column="N" upperCase="true" check="nh_vt9 &lt;&gt; '' and nh_vt9 not in (select ma_nh from dmnhvt2)" errorCode="00001"/>
+<field name="ma_kho" column="O" upperCase="true" check="ma_kho &lt;&gt; '' and ma_kho not in (select ma_kho from dmkho)" errorCode="00001"/>
+<field name="ma_vi_tri" column="P" upperCase="true" check="ma_vi_tri &lt;&gt; '' and ma_vi_tri not in (select a.ma_vi_tri from dmvitri a join @@table b on a.ma_kho = b.ma_kho)" errorCode="00001"/>
+<field name="ma_thue" column="Q" upperCase="true" check="ma_thue &lt;&gt; '' and ma_thue not in (select ma_thue from dmthue)" errorCode="00001"/>
+<field name="ma_thue_nk" column="R" upperCase="true" check="ma_thue_nk &lt;&gt; '' and ma_thue_nk not in (select ma_thue from dmthuenk)" errorCode="00001"/>
+<field name="tk_vt" column="S" allowNulls="false" upperCase="true" check="tk_vt not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+<field name="sua_tk_vt" column="T" type="Boolean" defaultValue="true"/>
+<field name="tk_gv" column="U" upperCase="true" check="tk_gv &lt;&gt; '' and tk_gv not in (select tk from dmtk)" errorCode="00001"/>
+<field name="tk_dt" column="V" upperCase="true" check="tk_dt &lt;&gt; '' and tk_dt not in (select tk from dmtk)" errorCode="00001"/>
+<field name="tk_dtnb" column="W" upperCase="true" check="tk_dtnb &lt;&gt; '' and tk_dtnb not in (select tk from dmtk)" errorCode="00001"/>
+<field name="tk_tl" column="X" upperCase="true" check="tk_tl &lt;&gt; '' and tk_tl not in (select tk from dmtk)" errorCode="00001"/>
+<field name="tk_dl" column="Y" upperCase="true" check="tk_dl &lt;&gt; '' and tk_dl not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+<field name="tk_spdd" column="Z" upperCase="true" check="tk_spdd &lt;&gt; '' and tk_spdd not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+<field name="tk_cl_vt" column="AA" upperCase="true" check="tk_cl_vt &lt;&gt; '' and tk_cl_vt not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+<field name="tk_ck" column="AB" upperCase="true" check="tk_ck &lt;&gt; '' and tk_ck not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+<field name="tk_cpbh" column="AC" upperCase="true" check="tk_cpbh &lt;&gt; '' and tk_cpbh not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+<field name="kieu_lo" column="AD" type="Decimal" defaultValue="1" check="kieu_lo not in (1, 2)" errorCode="00002"/>
+<field name="cach_xuat" column="AE" type="Decimal" defaultValue="1" check="cach_xuat not in (1, 2, 3, 4)" errorCode="00002"/>
+<field name="so_ngay_sp" column="AF" type="Decimal"/>
+<field name="so_ngay_bh" column="AG" type="Decimal"/>
+<field name="tao_lo" column="AH" type="Boolean" check="(lo_yn = 0 and tao_lo = 1)" errorCode="00002"/>
+<field name="abc_code" column="AI" upperCase="true" check="abc_code &lt;&gt; '' and abc_code not in ('A', 'B', 'C')" errorCode="00002"/>
+<field name="sl_min" column="AJ" type="Decimal"/>
+<field name="sl_max" column="AK" type="Decimal"/>
+<field name="volume" column="AL" type="Decimal"/>
+<field name="dvtvolume" column="AM"/>
+<field name="weight" column="AN" type="Decimal"/>
+<field name="dvtweight" column="AO"/>
+
+<field name="status" column="None" insertValue="'1'" updateValue="None"/>
+<field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+<field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+<field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+<field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>

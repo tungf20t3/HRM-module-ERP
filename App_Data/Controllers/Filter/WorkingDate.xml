@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn ngày làm việc" e="Select Working Date"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày làm việc từ" e="Date From"></header>
+      <footer v="Ngày làm việc từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày làm việc đến" e="Date to"></header>
+    </field>
+    <field name="not_vc_search" type="Boolean" defaultValue="cast(0 as bit)" inactivate="true">
+      <header v="Không xử lý khi tìm trên chứng từ" e="Not Applying to Voucher Searching"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 25, 75, 100, 230"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="-110000: [not_vc_search], [not_vc_search].Label"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+if not exists(select 1 from sysdaterules where user_id = @@userID) select @message = 'this._fromDate=null;this._toDate=null;'
+else begin
+  select @message = 'this._fromDate=' + case when ngay_ct1 is null then 'null' else 'new Date(' + replace(convert(varchar(7), ngay_ct1, 21), '-', ',') + '-1' + ',' + ltrim(str(day(ngay_ct1), 2)) + ')' end + ';this._toDate=' + case when ngay_ct2 is null then 'null' else 'new Date(' + replace(convert(varchar(7), ngay_ct2, 21), '-', ',') + '-1' + ',' + ltrim(str(day(ngay_ct2), 2)) + ')' end + ';this._not_vc_search=' + rtrim(not_vc_search) + ';'
+    from sysdaterules where user_id = @@userID
+end
+select @message = @message + 'active$VoucherFilter$(this);'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var d1=this.getItemValue("ngay_ct1"),d2=this.getItemValue("ngay_ct2"),e=null;if(d1!=null&&d2!=null&&d1>d2)e="ngay_ct2";if(e){this._checked=false;$func.hideWait(this.get_id());$message.show(String.format($df.getResources(this._language,"Message.RequiredField"),this.getItem(e).field.Label),String.format("$find('{0}').getItem('{1}').focus()",this.get_id(),e))}]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if not exists(select 1 from sysdaterules where user_id = @@userID) insert into sysdaterules(user_id, ngay_ct1, ngay_ct2, not_vc_search) values (@@userID, @ngay_ct1, @ngay_ct2, @not_vc_search)
+  else update sysdaterules set ngay_ct1 = @ngay_ct1, ngay_ct2 = @ngay_ct2, not_vc_search = @not_vc_search where user_id = @@userID
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$VoucherFilter$(a){a.setItemValue("ngay_ct1",a._fromDate);a.setItemValue("ngay_ct2",a._toDate);a.setItemValue("not_vc_search",a._not_vc_search=="1");a.live(a.getItem("ngay_ct1"))}]]>
+    </text>
+  </script>
+</dir>

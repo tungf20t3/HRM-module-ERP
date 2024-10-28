@@ -1,0 +1,280 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select replace(replace(@message, '&#37;s1', rtrim(day(@date)) + '/' +  rtrim(month(@date))), '&#37;s2', @@delta + @r) as message
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select replace(replace(@duplicate, '&#37;s1', rtrim(day(@date)) + '/' +  rtrim(month(@date))), '&#37;s2', @@delta + @r) as message
+  return
+end
+">
+
+  <!ENTITY InvalidDate "
+begin
+  select @invalidMessage as message
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="5"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$hrEmployeeWorkdayAdditionalByDayImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$hrEmployeeWorkdayAdditionalByDayImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+
+    &UploadModeProcess;
+  </setting>
+
+  <parameters>
+    <parameter name="tu_ngay_ex" cell="B2" type="DateTime"/>
+    <parameter name="den_ngay_ex" cell="B3" type="DateTime"/>
+  </parameters>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="A" isPrimaryKey="true" allowNulls="false" maxLength="16" check="ma_nv not in (select ma_nv from hrnv)" insertValue="None" updateValue="None" errorCode="00001"/>
+    <field name="n01" column="D" maxLength="128"/>
+    <field name="n02" column="E" maxLength="128"/>
+    <field name="n03" column="F" maxLength="128"/>
+    <field name="n04" column="G" maxLength="128"/>
+    <field name="n05" column="H" maxLength="128"/>
+    <field name="n06" column="I" maxLength="128"/>
+    <field name="n07" column="J" maxLength="128"/>
+    <field name="n08" column="K" maxLength="128"/>
+    <field name="n09" column="L" maxLength="128"/>
+    <field name="n10" column="M" maxLength="128"/>
+    <field name="n11" column="N" maxLength="128"/>
+    <field name="n12" column="O" maxLength="128"/>
+    <field name="n13" column="P" maxLength="128"/>
+    <field name="n14" column="Q" maxLength="128"/>
+    <field name="n15" column="R" maxLength="128"/>
+    <field name="n16" column="S" maxLength="128"/>
+    <field name="n17" column="T" maxLength="128"/>
+    <field name="n18" column="U" maxLength="128"/>
+    <field name="n19" column="V" maxLength="128"/>
+    <field name="n20" column="W" maxLength="128"/>
+    <field name="n21" column="X" maxLength="128"/>
+    <field name="n22" column="Y" maxLength="128"/>
+    <field name="n23" column="Z" maxLength="128"/>
+    <field name="n24" column="AA" maxLength="128"/>
+    <field name="n25" column="AB" maxLength="128"/>
+    <field name="n26" column="AC" maxLength="128"/>
+    <field name="n27" column="AD" maxLength="128"/>
+    <field name="n28" column="AE" maxLength="128"/>
+    <field name="n29" column="AF" maxLength="128"/>
+    <field name="n30" column="AG" maxLength="128"/>
+    <field name="n31" column="AH" maxLength="128"/>
+    <field name="n32" column="AI" maxLength="128"/>
+    <field name="n33" column="AJ" maxLength="128"/>
+    <field name="n34" column="AK" maxLength="128"/>
+    <field name="n35" column="AL" maxLength="128"/>
+    <field name="n36" column="AM" maxLength="128"/>
+  </fields>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @q nvarchar(4000), @d nvarchar(4000), @day int, @field varchar(32), @i int, @r int, @invalidMessage nvarchar(512), @duplicate nvarchar(4000), @fail bit, @row int, @detailedShift varchar(32)
+declare @d1 smalldatetime, @lastDateFrom smalldatetime, @currentday int, @countMonth int, @maxDay int, @s nvarchar(4000), @k nvarchar(32), @j int, @date smalldatetime, @id int
+declare @key nvarchar(4000), @user int, @admin bit, @sys varchar(32), @joinUnit bit, @joinDept bit
+select @admin = @@admin, @user = @@userID, @sys = '@@sysDatabaseName', @key = ''
+
+select @detailedShift = left(rtrim(val), 2) from options where name = 'm_hr_ct_ca'
+select @countMonth = datediff(month, @tu_ngay, @den_ngay), @maxDay = 35
+select @message = case when @@language = 'v' then N'Giá trị tại ngày <span class="Highlight">%s1</span> dòng <span class="Highlight">%s2</span> không đúng.' else 'Invalid value in column <span class="Highlight">%s1</span>, row <span class="Highlight">%s2</span>.' end
+select @invalidMessage = case when @@language = 'v' then N'Giá trị tại ô <span class="Highlight">B2</span> hoặc <span class="Highlight">B3</span> không đúng.' else 'Invalid value in cell <span class="Highlight">B2</span> or <span class="Highlight">B3</span>.' end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ngày <span class="Highlight">%s1</span> dòng <span class="Highlight">%s2</span> đã có hoặc lồng nhau.' else 'The value in column <span class="Highlight">%s1</span>, row <span class="Highlight">%s2</span> is invalid or already exists.' end
+
+-- Key
+if @admin = 0 begin
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'hrEmployeeWorkdayAdjusting', 'Edit') = 0 select @type = 0
+  end
+  select @key = @key + case when @key <> '' then ' and ' else '' end + ' e.bo_phan in (select c.ma_bp from hrbp c, @@sysDatabaseName..hrquyenbp d where dbo.ff_Inlist(c.bp_ref, d.r_access2) = 1 and d.user_id = @@userID)'
+
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+  select @key = case when @key = '' then '' else ' where (' + @key + ')' end
+end
+
+-- Check
+if @$mode = 1 begin
+  if @tu_ngay <> @$tu_ngay_ex or @den_ngay <> @$den_ngay_ex or @$tu_ngay_ex is null or @$den_ngay_ex is null begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTableCell;<![CDATA[ select 'B', 2, @invalidMessage
+    ]]>&InsertErrorTableCell;<![CDATA[ select 'B', 3, @invalidMessage
+    ]]>&EndErrorCount;<![CDATA[
+  end
+end else begin
+  if @tu_ngay <> @$tu_ngay_ex or @den_ngay <> @$den_ngay_ex or @$tu_ngay_ex is null or @$den_ngay_ex is null ]]>&InvalidDate;<![CDATA[
+end
+
+if exists(select 1 from dmstt where ngay_ks >= @tu_ngay) begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTableCell;<![CDATA[ select 'E', 1, case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại giá trị Từ ngày.' else N'Data is locked, please check Date from value.' end
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại giá trị <span class="Highlight">Từ ngày</span>.' else N'Data is locked, please check <span class="Highlight">Date from</span> value.' end as message
+    return
+  end
+end
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select top 0 cast(null as varchar(33)) as ma_nv, ngay, cast(null as varchar(33)) as ma_cong, cast(null as varchar(33)) as ma_ca, cast(null as varchar(33)) as ma_ca_ct, cast(null as varchar(33)) as gio_tu, cast(null as varchar(33)) as so_gio, cast(null as int) as stt into #general from hrbscong
+
+if datediff(day, @tu_ngay, @den_ngay) > @maxDay select @den_ngay = dateadd(day, @maxDay, @tu_ngay)
+select @lastDateFrom = dateadd(d, -1, dateadd(mm, datediff(m, 0, @tu_ngay) + 1,0))
+if @lastDateFrom > @den_ngay select @lastDateFrom = @den_ngay
+select @d1 = @tu_ngay, @currentday= day(@tu_ngay), @i = 1, @q = '', @k = '', @j = 1
+
+while @countMonth >= 0 begin
+  if @d1 > @lastDateFrom select @lastDateFrom = @den_ngay
+  select @s = ''
+  while @currentday <= day(@lastDateFrom) begin
+    select @k = 'n' + replace(str(@j, 2), ' ', 0)
+    select @date = ltrim(year(@lastDateFrom)) + replace(str(ltrim(month(@lastDateFrom)), 2), ' ', 0) + replace(str(@currentday, 2), ' ', 0)
+    insert into #general(ma_nv, ngay, ma_cong, ma_ca, ma_ca_ct, gio_tu, so_gio, stt) exec hs_hrEmployeeWorkdayAdditionalTranferData '@@table', @k, @date, @fail output, @row output
+    if @fail = 1 begin
+      if @$mode = 1 begin
+        ]]>&StartErrorCount;<![CDATA[
+        ]]>&InsertErrorTable;<![CDATA[ select @k, @row, '00002' where 1=1]]>&w1;<![CDATA[@k]]>&w2;<![CDATA[@row]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+        ]]>&EndErrorCount;<![CDATA[
+      end else begin
+        select @r = @row ]]>&Error;<![CDATA[
+      end
+    end
+    select @currentday = @currentday + 1, @i = @i + 1, @j = @j + 1
+  end
+  select @d1 = dateadd(month, 1, @d1), @currentday = 1, @countMonth = @countMonth - 1
+end
+
+select column_name as name, isnull(character_maximum_length, numeric_precision) as length into #len from information_schema.columns where table_name = 'hrbscong' and column_name in('ma_ca', 'ma_ca_ct', 'ma_cong')
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(day(a.ngay), 2), ' ', '0'), a.stt, '00002' from #general a, #len b where b.name = 'ma_ca' and a.ma_ca is not null and len(a.ma_ca)> b.length
+  ]]>&w1;<![CDATA['n' + replace(str(day(a.ngay), 2), ' ', '0')]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[ group by a.ngay, a.stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt), @date = ngay from #general a, #len b where b.name = 'ma_ca' and a.ma_ca is not null and len(a.ma_ca)> b.length group by ngay]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(day(a.ngay), 2), ' ', '0'), a.stt, '00002' from #general a, #len b where b.name = 'ma_ca_ct' and a.ma_ca_ct is not null and len(a.ma_ca_ct)> b.length
+  ]]>&w1;<![CDATA['n' + replace(str(day(a.ngay), 2), ' ', '0')]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[ group by a.ngay, a.stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt), @date = ngay from #general a, #len b where b.name = 'ma_ca_ct' and a.ma_ca_ct is not null and len(a.ma_ca_ct)> b.length group by ngay]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(day(a.ngay), 2), ' ', '0'), a.stt, '00002' from #general a, #len b where b.name = 'ma_cong' and a.ma_cong is not null and len(a.ma_cong)> b.length
+  ]]>&w1;<![CDATA['n' + replace(str(day(a.ngay), 2), ' ', '0')]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[ group by a.ngay, a.stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt), @date = ngay from #general a, #len b where b.name = 'ma_cong' and a.ma_cong is not null and len(a.ma_cong)> b.length group by ngay]]>&Error;<![CDATA[
+end
+
+update #general set ma_ca = isnull(a.ma_ca, b.ca), so_gio = isnull(a.so_gio, b.so_gio)
+  from #general a join hrnv e with(nolock) on a.ma_nv = e.ma_nv
+    join hrttchamcong b with(nolock) on e.stt_rec = b.stt_rec
+    where b.ngay_tu = (select max(ngay_tu) from hrttchamcong c where e.stt_rec = c.stt_rec and c.ngay_tu <= a.ngay and (c.ngay_den is null or c.ngay_den >= a.ngay))
+update #general set ma_ca_ct = @detailedShift where ma_ca_ct is null
+
+-- Checking
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(day(a.ngay), 2), ' ', '0'), a.stt, '00002' from #general a where not exists(select 1 from hrdmcong b where a.ma_cong = b.ma_cong)
+  ]]>&w1;<![CDATA['n' + replace(str(day(a.ngay), 2), ' ', '0')]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[ group by a.ngay, a.stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt), @date = ngay from #general a where not exists(select 1 from hrdmcong b where a.ma_cong = b.ma_cong) group by ngay]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(day(a.ngay), 2), ' ', '0'), a.stt, '00002' from #general a where not exists(select 1 from hrdmca b where a.ma_ca = b.ma_ca)
+  ]]>&w1;<![CDATA['n' + replace(str(day(a.ngay), 2), ' ', '0')]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[ group by a.ngay, a.stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt), @date = ngay from #general a where not exists(select 1 from hrdmca b where a.ma_ca = b.ma_ca) group by ngay]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(day(a.ngay), 2), ' ', '0'), a.stt, '00002' from #general a where so_gio is null
+  ]]>&w1;<![CDATA['n' + replace(str(day(a.ngay), 2), ' ', '0')]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[ group by a.ngay, a.stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt), @date = ngay from #general a where so_gio is null group by ngay]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  select ma_nv, ngay, ma_ca, ma_ca_ct, ma_cong, gio_tu into #generalExt from #general group by ma_nv, ngay, ma_ca, ma_ca_ct, ma_cong, gio_tu having count(*) > 1
+  if exists(select 1 from #generalExt) begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(day(a.ngay), 2), ' ', '0'), b.stt, '00003' from #generalExt a left join #general b on a.ma_nv = b.ma_nv and a.ngay = b.ngay and a.ma_ca = b.ma_ca and a.ma_ca_ct = b.ma_ca_ct and a.ma_cong = b.ma_cong and a.gio_tu = b.gio_tu
+    where 1=1]]>&w1;<![CDATA['n' + replace(str(day(a.ngay), 2), ' ', '0')]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA['00003']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end
+end else begin
+  select @r = min(stt), @date = ngay from #general group by ma_nv, ngay, ma_ca, ma_ca_ct, ma_cong, gio_tu having count(*) > 1]]>&Duplicate;<![CDATA[
+end
+]]>&EndErrorMode;<![CDATA[
+
+select top 0 stt_rec, ngay, ma_ca, ma_ca_ct, ma_cong, gio_tu, gio_den, hs_tu, hs_den, so_gio, tg_tu, tg_den, ma_bp, tg_di_muon, tg_ve_som, ma_tang_ca, ma_ly_do, ghi_chu
+  into #r from hrbscong
+
+select @q = 'insert into #r select e.stt_rec, a.ngay, a.ma_ca, isnull(a.ma_ca_ct, ''''), a.ma_cong, isnull(a.gio_tu, ''00:00''), ''00:00'', 0, 0, a.so_gio,'
+select @q = @q + ' cast(convert(varchar(8), a.ngay, 112) + '' '' + a.gio_tu as datetime), null, e.bo_phan, 0, 0, '''', '''', '''''
+select @q = @q + ' from #general a join hrnv e on a.ma_nv = e.ma_nv' + @key
+exec sp_executesql @q
+
+declare @g int, @p int
+update #r set @g = (floor(left(gio_tu, 2)) + floor(so_gio)), @p = (floor(right(gio_tu, 2)) + floor(right(so_gio, 2))),
+  hs_den = case when @g + floor(@p/60) >= 24 then 1 else 0 end,
+  gio_den = replace(str((@g + floor(@p/60)) % 24, 2) + ':' + str(@p % 60, 2), ' ', '0')
+update #r set tg_den = cast(convert(varchar(8), ngay, 112) + ' ' + gio_den as datetime) + case when hs_den = 1 then 1 else 0 end
+
+-- Update
+if @type = '1' begin
+  delete hrbscong from hrbscong a where a.kieu = 1 and exists(select 1 from #r b where a.stt_rec = b.stt_rec and a.ngay = b.ngay)
+  select b.stt_rec, a.ngay, a.ma_ca, a.ma_ca_ct, a.ma_cong, a.gio_tu, a.gio_den, b.hs_tu, a.hs_den, a.so_gio, b.tg_tu, a.tg_den, a.ma_bp, b.tg_di_muon, b.tg_ve_som, b.ma_tang_ca, b.ma_ly_do, b.ghi_chu
+    into #k1 from #r a join hrbscong b on a.stt_rec = b.stt_rec and a.ngay = b.ngay and a.ma_ca = b.ma_ca and a.ma_ca_ct = b.ma_ca_ct and a.ma_cong = b.ma_cong and a.gio_tu = b.gio_tu
+      where b.kieu = 0
+  delete #r from #r a where exists(select 1 from #k1 b where a.stt_rec = b.stt_rec and a.ngay = b.ngay and a.ma_ca = b.ma_ca and a.ma_ca_ct = b.ma_ca_ct and a.ma_cong = b.ma_cong and a.gio_tu = b.gio_tu)
+
+  insert into hrbscong (stt_rec, ngay, ma_ca, ma_ca_ct, ma_cong, gio_tu, gio_den, hs_tu, hs_den, so_gio, tg_tu, tg_den, ma_bp, tg_di_muon, tg_ve_som, ma_tang_ca, ma_ly_do, ghi_chu, kieu, datetime0, datetime2, user_id0, user_id2)
+    select stt_rec, ngay, ma_ca, ma_ca_ct, ma_cong, gio_tu, gio_den, hs_tu, hs_den, so_gio, tg_tu, tg_den, ma_bp, tg_di_muon, tg_ve_som, ma_tang_ca, ma_ly_do, ghi_chu, 1, getdate(), getdate(), @user, @user
+      from #r
+  update hrbscong set so_gio = b.so_gio, gio_den = b.gio_den, hs_den = b.hs_den, tg_den = b.tg_den, datetime2 = getdate(), user_id2 = @@userID
+    from hrbscong a join #k1 b on a.stt_rec = b.stt_rec and a.ngay = b.ngay and a.ma_ca = b.ma_ca and a.ma_ca_ct = b.ma_ca_ct and a.ma_cong = b.ma_cong and a.gio_tu = b.gio_tu
+end else begin
+  delete #r from #r a join hrbscong b on a.stt_rec = b.stt_rec and a.ngay = b.ngay and a.ma_ca = b.ma_ca and a.ma_ca_ct = b.ma_ca_ct and a.ma_cong = b.ma_cong and a.gio_tu = b.gio_tu
+  -- Insert
+  insert into hrbscong (stt_rec, ngay, ma_ca, ma_ca_ct, ma_cong, gio_tu, gio_den, hs_tu, hs_den, so_gio, tg_tu, tg_den, ma_bp, tg_di_muon, tg_ve_som, ma_tang_ca, ma_ly_do, ghi_chu, kieu, datetime0, datetime2, user_id0, user_id2)
+    select stt_rec, ngay, ma_ca, ma_ca_ct, ma_cong, gio_tu, gio_den, hs_tu, hs_den, so_gio, tg_tu, tg_den, ma_bp, tg_di_muon, tg_ve_som, ma_tang_ca, ma_ly_do, ghi_chu, 1, getdate(), getdate(), @user, @user
+      from #r
+end
+]]>
+    </text>
+  </processing>
+
+</import>

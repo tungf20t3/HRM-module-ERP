@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'ApprovalRoles' else 'ApprovalRoles2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$ApprovalRolesImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$ApprovalRolesImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmquyen, dmquyenct"/>
+    <dependence value="dmquyen, dmquyenct" alias="a, a"/>
+    <listTable value="#id1, #d1"/>
+    <temporary value="#k, #d2" alias="b, b"/>
+    <alias value="master, detail"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="loai_duyet" column="A" isPrimaryKey="true" allowNulls="false" resource="master, detail" check="loai_duyet not in (select loai_duyet from dmloaiduyet where status = '1')" errorCode="00001"/>
+    <field name="ma_quyen" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" resource="master, detail"/>
+    <field name="ten_quyen" column="C" allowNulls="false" resource="master"/>
+    <field name="ten_quyen2" column="D" resource="master"/>
+
+    <field name="status1" column="E" isPrimaryKey="true" allowNulls="false" reference="1.status" upperCase="true" relation="status" resource="detail" check="status1 not in (select u_status from dmttcttg where loai_duyet = #table.loai_duyet)" errorCode="00002"/>
+    <field name="kieu_duyet" column="G" isPrimaryKey="true" reference="1" upperCase="true" resource="detail" check="kieu_duyet &lt;&gt; '' and kieu_duyet not in (select ma_kieu from dmkieuduyet where loai_duyet = #table.loai_duyet)" errorCode="00002"/>
+    <field name="status2" column="I" allowNulls="false" reference="1" upperCase="true" resource="detail" check="status2 not in (select u_status from dmttcttg where loai_duyet = #table.loai_duyet)" errorCode="00002"/>
+    <field name="status0" column="K" allowNulls="false" reference="1" upperCase="true" resource="detail" check="status0 not in (select u_status from dmttcttg where loai_duyet = #table.loai_duyet)" errorCode="00002"/>
+    <field name="deny_mail_yn" column="M" reference="1" resource="detail" type="Boolean" defaultValue="false"/>
+    <field name="notify_mail_yn" column="N" reference="1" resource="detail" type="Boolean" defaultValue="false"/>
+    <field name="created_mail_yn" column="O" reference="1" resource="detail" type="Boolean" defaultValue="false"/>
+    <field name="parallel_yn" column="P" reference="1" resource="detail" type="Boolean" defaultValue="false"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None" resource="master"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None" resource="master"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()" resource="master"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None" resource="master"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID" resource="master"/>
+    <field name="line_nbr" column="None" type="Int" updateValue="None" resource="detail"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Khai báo quyền duyệt" e="Approval Roles"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="loai_duyet" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại duyệt" e="Type"/>
+      </field>
+      <field name="ma_quyen" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã quyền" e="Roles"/>
+      </field>
+      <field name="ten_quyen" width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên quyền" e="Description"/>
+      </field>
+      <field name="ten_quyen2" width="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+
+      <field name="status1" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Từ trạng thái" e="From Status"/>
+      </field>
+      <field name="status1_name" width ="32" afterField="status1" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên trạng thái từ" e="From Status Name"/>
+      </field>
+      <field name="kieu_duyet" width="16">
+        <text v="Kiểu duyệt" e="Category Code"/>
+      </field>
+      <field name="ten_kieu_duyet" width ="32" afterField="kieu_duyet" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên kiểu duyệt" e="Category Name"/>
+      </field>
+      <field name="status2" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Trạng thái khi duyệt" e="Status when Approved"/>
+      </field>
+      <field name="status2_name" width ="32" afterField="status2" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên trạng thái duyệt" e="Status Name when Approved"/>
+      </field>
+      <field name="status0" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Trạng thái khi hủy" e="Status when Cancel"/>
+      </field>
+      <field name="status0_name" width ="32" afterField="status0" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên trạng thái hủy" e="Status Name when Cancel"/>
+      </field>
+
+      <field name="deny_mail_yn" width="16">
+        <text v="Không nhận thông tin duyệt" e="Not Required to Send Notification"/>
+      </field>
+      <field name="notify_mail_yn" width="16">
+        <text v="Gửi thông tin cho người duyệt trước" e="Send Notification to Previous Approver"/>
+      </field>
+      <field name="created_mail_yn" width="16">
+        <text v="Gửi thông tin cho người tạo" e="Send Notification to the Owner"/>
+      </field>
+      <field name="parallel_yn" width="16">
+        <text v="Duyệt song song" e="Parallel"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'ApprovalRoles', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @r int, @d datetime
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[, @d = getDate()
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> đã có hoặc lồng nhau.' else 'The value of cell <span class="Highlight">%invalidCell</span> is invalid or already exists.' end
+
+-- Delete
+if @type = '0' delete @@table from @@table a join dmquyen b on a.ma_quyen = b.ma_quyen and a.loai_duyet = b.loai_duyet
+
+-- Checking
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_quyen', stt, @message from @@table where ma_quyen like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_quyen', @r = min(stt) from @@table where ma_quyen like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+]]>&Checking;<![CDATA[
+
+-- Gather
+select a.* into #k from @@table a join dmquyen b on a.ma_quyen = b.ma_quyen and a.loai_duyet = b.loai_duyet
+delete @@table from @@table a join #k b on a.ma_quyen = b.ma_quyen and a.loai_duyet = b.loai_duyet
+
+-- Checking
+select @field = 'ma_quyen'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b where a.loai_duyet = b.loai_duyet and a.ma_quyen <> b.ma_quyen and a.ma_quyen like rtrim(b.ma_quyen) + ''%''
+  ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, dmquyen b where a.loai_duyet = b.loai_duyet and a.ma_quyen like rtrim(b.ma_quyen) + ''%''
+  ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from dmquyen a, @@table b where a.loai_duyet = b.loai_duyet and a.ma_quyen like rtrim(b.ma_quyen) + ''%''
+  ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @q = 'select top 1 @r = a.stt from @@table a, @@table b where a.loai_duyet = b.loai_duyet and a.ma_quyen <> b.ma_quyen and a.ma_quyen like rtrim(b.ma_quyen) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  select top 1 @r = a.stt from @@table a, dmquyen b where a.loai_duyet = b.loai_duyet and a.ma_quyen like rtrim(b.ma_quyen) + '%']]>&Duplicate;<![CDATA[
+  select @q = 'select top 1 @r = b.stt from dmquyen a, @@table b where a.loai_duyet = b.loai_duyet and a.ma_quyen like rtrim(b.ma_quyen) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+select top 0 ma_quyen, ten_quyen, ten_quyen2, loai_duyet, cast(0 as int) as stt into #id1 from @@table
+select top 0 loai_duyet, ma_quyen, status1, kieu_duyet, status2, status0, deny_mail_yn, notify_mail_yn, created_mail_yn, parallel_yn, cast(0 as int) as line_nbr into #d1 from @@table
+
+select ma_quyen, loai_duyet, min(stt) as stt into #o1 from @@table group by ma_quyen, loai_duyet
+insert into #id1 select ma_quyen, max(ten_quyen), max(ten_quyen2), loai_duyet, min(stt) from @@table group by ma_quyen, loai_duyet
+insert into #d1 select a.loai_duyet, a.ma_quyen, a.status1, a.kieu_duyet, a.status2, a.status0, a.deny_mail_yn, a.notify_mail_yn, a.created_mail_yn, a.parallel_yn, a.stt - b.stt + 1 from @@table a join #o1 b on b.ma_quyen = a.ma_quyen and a.loai_duyet = b.loai_duyet
+
+@@inserting(master);
+@@inserting(detail);
+
+-- Update
+if @type = '1' begin
+  select top 0 ma_quyen, ten_quyen, ten_quyen2, loai_duyet, cast(0 as int) as stt into #id2 from @@table
+  insert into #id2 select ma_quyen, max(ten_quyen), max(ten_quyen2), loai_duyet, min(stt) from #k group by ma_quyen, loai_duyet
+
+  update dmquyen set @@list(master); from dmquyen a join #k b on a.loai_duyet = b.loai_duyet and a.ma_quyen = b.ma_quyen join #id2 d on b.stt = d.stt
+
+  truncate table #d1
+  select ma_quyen, loai_duyet, min(stt) as stt into #o2 from #k group by ma_quyen, loai_duyet
+  insert into #d1 select a.loai_duyet, a.ma_quyen, a.status1, a.kieu_duyet, a.status2, a.status0, a.deny_mail_yn, a.notify_mail_yn, a.created_mail_yn, a.parallel_yn, a.stt - b.stt + 1 from #k a join #o2 b on b.ma_quyen = a.ma_quyen and a.loai_duyet = b.loai_duyet
+  delete dmquyenct from dmquyenct a join #d1 b on a.ma_quyen = b.ma_quyen and a.loai_duyet = b.loai_duyet
+
+  @@inserting(detail);
+  if exists (select 1 from options where name = 'd_001' and val = '1') begin
+    declare @id int, @minDate datetime, @maxDate datetime
+    select @minDate = ngay_gh1, @maxDate = ngay_gh2 from dmstt
+    select distinct user_id into #tduyet from dmduyet a join #k b on a.loai_duyet = b.loai_duyet and a.ma_quyen = b.ma_quyen join #id2 d on b.stt = d.stt
+    select @id = min(user_id) from #tduyet
+    while @id is not null begin
+      exec ds_InitVoucherPending @id, @id, @minDate, @maxDate, @@sysDatabaseName
+      select @id = min(user_id) from #tduyet where user_id > @id
+    end
+  end
+end
+
+]]>
+    </text>
+  </processing>
+</import>

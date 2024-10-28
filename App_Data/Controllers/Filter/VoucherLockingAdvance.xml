@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir table="dmctks2" code="user_id, ma_ct" order="user_id, ma_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Khóa số liệu cho nhiều người sử dụng" e="Advanced Locking"></title>
+  <fields>
+    <field name="ma_ct" isPrimaryKey="true" allowNulls="false" clientDefault="Default">
+      <header v="Chứng từ" e="Voucher"></header>
+      <items style="Lookup" controller="Voucher" key="wedition &lt;&gt; '9' and voucher_yn = 1 and status = '1'" check="wedition &lt;&gt; '9' and voucher_yn = 1" information="ma_ct$dmct.ten_ct%l"/>
+    </field>
+    <field name="ngay_ks" allowNulls="false" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="Ngày khóa sổ" e="Locked Date"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 200, 130"/>
+      <item value="110: [ma_ct].Label, [ma_ct]"/>
+      <item value="11: [ngay_ks].Label, [ngay_ks]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'loadFormFilter$Advance(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @q nvarchar(4000)
+select @ma_ct = left(replace(@ma_ct, ' ', ''), 1024)
+
+select top 0 user_id, ma_ct into #ks from dmctks2
+
+set @q = 'insert into #ks select a.id as user_id, b.ma_ct from vsysuserinfo a cross join dmct b'
+set @q = @q + ' where a.admin = 0 and a.user_yn = 1 and a.status = ''1'' and ma_ct in (''' + replace(replace(@ma_ct, '''', ''''''), ',', ''',''') + ''')'
+exec sp_executesql @q
+
+update dmctks2 set ngay_ks = @ngay_ks from dmctks2 a join #ks b on a.user_id = b.user_id and a.ma_ct = b.ma_ct
+update dmctks set ngay_ks = @ngay_ks from dmctks a join #ks b on a.user_id = b.user_id and a.ma_ct = b.ma_ct
+
+insert into dmctks2(user_id, ma_ct, ngay_ks)
+  select a.user_id, a.ma_ct, @ngay_ks from #ks a left join dmctks2 b on a.user_id = b.user_id and a.ma_ct = b.ma_ct 
+    where b.user_id is null and b.ma_ct is null
+insert into dmctks(user_id, ma_ct, ngay_ks)
+  select a.user_id, a.ma_ct, @ngay_ks from #ks a left join dmctks b on a.user_id = b.user_id and a.ma_ct = b.ma_ct 
+    where b.user_id is null and b.ma_ct is null
+
+drop table #ks
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function loadFormFilter$Advance(f) {changeLookupReadonly(f, 'ma_ct', true);}
+]]>
+      &OutlineEntry;
+    </text>
+  </script>
+</dir>

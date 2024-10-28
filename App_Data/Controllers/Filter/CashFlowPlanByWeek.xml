@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="khdttuan" code="nam, ky, ma_dvcs, ma_bp, ma_vv, ma_ct, lan" order="nam, ky, ma_dvcs, ma_bp, ma_vv, stt, ma_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ky_tu" type="Decimal" dataFormatString="#0" aliasName="fromPeriod" defaultValue="(new Date()).getMonth() + 1;">
+      <header v="Kỳ từ" e="Period from"></header>
+      <items style="Numeric"/>
+      <clientScript><![CDATA[onchange="onChange$Period$CashFlowPlanByWeek(this);"]]></clientScript>
+      <footer v="Kỳ từ/đến" e="Period from/to"></footer>
+    </field>
+    <field name="ky_den" type="Decimal" dataFormatString="#0" aliasName="toPeriod" defaultValue="(new Date()).getMonth() + 1;">
+      <header v="Kỳ đến" e="Period to"></header>
+      <items style="Numeric"/>
+      <clientScript><![CDATA[onchange="onChange$Period$CashFlowPlanByWeek(this);"]]></clientScript>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status='1'" check="1=1"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vv">
+      <header v="Vụ việc" e="Job"></header>
+      <items style="AutoComplete" controller="Job" reference="ten_vv%l" key="status='1'" check="1=1">
+      </items>
+    </field>
+    <field name="ten_vv%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="Department" reference="ten_bp%l" key="status='1'" check="1=1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 20, 10, 10, 20, 40, 100, 230"/>
+      <item value="1100----: [nam].Label, [nam]"/>
+      <item value="11010---: [ky_tu].Description, [ky_tu], [ky_den]"/>
+      <item value="11000010: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="11000010: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="11000010: [ma_vv].Label, [ma_vv], [ten_vv%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(sender) {sender.add_onResponseComplete(on$Filter$ResponseComplete);}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array(), dv = $func.trim(f.getItemValue('ma_dvcs')), bp = $func.trim(f.getItemValue('ma_bp')), vv = $func.trim(f.getItemValue('ma_vv')), fromPeriod = f.getItemValue('ky_tu'), toPeriod = f.getItemValue('ky_den');
+      g._year = f.getItemValue('nam');
+      Array.add(k, {Name: 'nam', Opr: '=', Value: g._year, Type: 'String', Ignore: false});
+      if (dv) Array.add(k, {Name: 'ma_dvcs', Opr: 'like', Value: dv + '%', Type: 'String', Ignore: false});
+      if (fromPeriod) Array.add(k, {Name: 'ky', Opr: '>=', Value: fromPeriod, Type: 'String', Ignore: false});
+      if (toPeriod) Array.add(k, {Name: 'ky', Opr: '<=', Value: toPeriod, Type: 'String', Ignore: false});
+      if (bp) Array.add(k, {Name: 'ma_bp', Opr: 'like', Value: bp + '%', Type: 'String', Ignore: false});
+      if (vv) Array.add(k, {Name: 'ma_vv', Opr: 'like', Value: vv + '%', Type: 'String', Ignore: false});
+      g.set_externalKey(k);
+      g._alterTitle = [null, [['%s', g._year, true]]];
+      break;
+    default:
+        break;
+  }
+}
+function onChange$Period$CashFlowPlanByWeek(obj) {
+  var f = obj.parentForm;
+  if (f.getItemValue(obj.field.Name) < 1) f.setItemValue(obj.field.Name, 1)
+  else if (f.getItemValue(obj.field.Name) > 12) f.setItemValue(obj.field.Name, 12);
+}
+]]>
+    </text>
+  </script>
+</dir>

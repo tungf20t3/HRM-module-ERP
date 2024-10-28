@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "WSQualityControl">
+  <!ENTITY DetailTable "d97">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Supplier">
+  <!ENTITY c21 "Số phiếu">
+  <!ENTITY c22 "Voucher Number">
+  <!ENTITY c31 "Ngày chứng từ">
+  <!ENTITY c32 "Voucher Date">
+]>
+
+<dir table="m97$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Phiếu kiểm định chất lượng" e="QA Transaction"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d97')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, stt_rec, stt_rec0, so_ct, line_nbr, stt_rec_ct, stt_rec0ct', f2 = 'so_luong, stt_rec_kt, stt_rec0kt, kt_so, kt_ln, stt_rec_dh, stt_rec0dh';
+  var first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]);
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = z._getColumnOrder('dvt'), l2 = g._getColumnOrder('nhieu_dvt'), l3 = g._getColumnOrder('so_luong0');
+  var fields = 'ma_vt, ten_vt%l, dvt, ma_kho, ma_vi_tri, ma_lo, tk_vt, gia_ton, ]]>&XMLHiddenFields;<![CDATA[, he_so, vi_tri_yn, lo_yn, stt_rec_pn, stt_rec0pn, pn_so, pn_ln';
+  var la, lb, lc = g._getColumnOrder('ton13'), ld, lx, ly, lz, lt, lf = z._getColumnOrder('ton13'), status = null, round;
+
+  if (w._row.length > 0) status = w._row[w.getItem('status').field.Index];
+  var adj = (w._action == 'Edit' && status != '0');
+  if (adj) {
+    var f$ = z._fields;
+    la = g._getColumnOrder('ma_vt'), lb = g._getColumnOrder('ma_kho'), ld = g._getColumnOrder('he_so');
+    lx = $func.findField('ma_vt', f$).Index, ly = $func.findField('ma_kho', f$).Index, lz = $func.findField('so_luong', f$).Index, lt = $func.findField('he_so', f$).Index;
+    round = $func.scaleLength(g._getColumnFormat(l3));
+  }
+
+  if (v) fields += ', gia_nt';
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l3) != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+      z.executeExpression(o, [z.$a.gia, z.$a.tien_nt, z.$a.tien]);
+      $func.setObjectWhen(z._getItem(row, l1), g._getItemValue(r, l2));
+      
+      var currentStock = g._getItemValue(r, lc);
+      if (currentStock == null) currentStock = 0;
+      if (adj) {
+        var currentItem = g._getItemValue(r, la), currentSite = g._getItemValue(r, lb), currentRatio = g._getItemValue(r, ld), total = 0;
+        if (currentRatio != 0) {
+          for (var i = 0; i < z._rows.length; i++) {
+            if ((z._rows[i][lx] == currentItem) && (z._rows[i][ly] == currentSite)) {
+              var quantity = 0;
+              if (z._rows[i][lz] != null) quantity = z._rows[i][lz] * z._rows[i][lt];
+              total += quantity;
+            }
+          }
+          currentStock += Math.round(total / currentRatio, round);
+        }
+      }
+      z._setItemValue(row, lf, currentStock);
+    }
+  }  
+  z.executeAggregate([z.$a.t_so_luong, z.$a.t_tien_nt, z.$a.t_tien]);
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

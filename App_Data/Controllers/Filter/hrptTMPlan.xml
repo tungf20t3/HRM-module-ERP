@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY LineCounter "7">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="date_from" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày học từ" e="Training Date from"></header>
+      <footer v="Ngày học từ/đến" e="Training Date from/to"></footer>
+    </field>
+    <field name="date_to" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày học đến" e="Training Date to"></header>
+    </field>
+
+    <field name="ma_khoa" categoryIndex="1">
+      <header v="Khóa học" e="Course"></header>
+      <items style="AutoComplete" controller="hrTMCourseInformation" reference="ten_khoa%l" key="1=1" check="1=1"/>
+    </field>
+    <field name="ten_khoa%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_mh" categoryIndex="1">
+      <header v="Môn học" e="Subject"></header>
+      <items style="AutoComplete" controller="hrTMSubjectList" reference="ten_mh%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_mh%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvdt" categoryIndex="1">
+      <header v="Đơn vị đào tạo" e="Training Provider"></header>
+      <items style="AutoComplete" controller="hrTMProvider" reference="ten_dvdt%l" key="status='1'" check="1=1"/>
+    </field>
+    <field name="ten_dvdt%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    <field name="loai_hinh_dt" categoryIndex="1">
+      <header v="Loại hình đào tạo" e="Training Type"/>
+      <items style="AutoComplete" controller="hrTMTypeList" reference="ten_loai%l" key="status='1'" check="1=1"/>
+    </field>
+    <field name="ten_loai%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="trang_thai" dataFormatString="1, 2, 3, 4, *" clientDefault="1" align="right" categoryIndex="1">
+      <header v="Trạng thái" e="Status"></header>
+      <footer v="1 - Kế hoạch, 2 - Đang thực hiện, 3 - Hoàn thành, 4 - Hủy, * - Tất cả" e="1 - Planned, 2 - Opening, 3 - Completed, 4 - Cancelled, * - Show all"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1 "/>
+    </field>
+
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="110---: [date_from].Label, [date_from]"/>
+      <item value="110---: [date_to].Label, [date_to]"/>
+      <item value="110100: [ma_khoa].Label, [ma_khoa], [ten_khoa%l]"/>
+      <item value="110100: [ma_mh].Label, [ma_mh], [ten_mh%l]"/>
+      <item value="110100: [ma_dvdt].Label, [ma_dvdt], [ten_dvdt%l]"/>
+      <item value="110100: [loai_hinh_dt].Label, [loai_hinh_dt], [ten_loai%l]"/>
+      <item value="111000: [trang_thai].Label, [trang_thai], [trang_thai].Description"/>
+      <item value="11000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000-: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @date_from as date_from, @date_to as date_to
+exec hs_rptTMPlan @date_from, @date_to, @ma_khoa, @ma_mh, @ma_dvdt, @loai_hinh_dt, @trang_thai, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(h,a){var b=a.object,c=a.type.Context,g=a.type.Result;switch(c){case"Checking":var f=b.grid,d=b.getItem("date_from").value,e=b.getItem("date_to").value;f._alterTitle=[null,[["%d1",d,true],["%d2",e,true]]]}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

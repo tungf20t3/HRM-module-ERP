@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY CheckImportUserDefinedFields SYSTEM "..\..\Include\Command\CheckImportUserDefinedFields.txt">
+  <!ENTITY ControlLocationLotLoading SYSTEM "..\..\Include\Command\ControlLocationLotLoading.txt">
+  <!ENTITY SiteKey SYSTEM "..\..\Include\Command\SiteKey.txt">
+  <!ENTITY Code "SX1">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$MODetailImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$MODetailImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+    <baseTable value="ctsx"/>
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_vt" column="." allowNulls="false" upperCase="true"/>
+    <field name="dvt" column="."/>
+    <field name="ma_kho" column="." upperCase="true"/>
+    <field name="ma_vi_tri" column="." upperCase="true"/>
+    <field name="ma_lo" column="." upperCase="true"/>
+    <field name="so_luong" column="." type="Decimal"/>
+    <field name="ma_vv" column="." upperCase="true"/>
+    <field name="ma_bp" column="." upperCase="true"/>
+    <field name="so_lsx" column="." upperCase="true"/>
+    <field name="ma_sp" column="." upperCase="true"/>
+    <field name="ma_hd" column="." upperCase="true"/>
+    <field name="ma_phi" column="." upperCase="true"/>
+    <field name="ma_ku" column="." upperCase="true"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Lệnh sản xuất" e="Manufacturing Order"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_vt" width="16">
+        <text v="Mã hàng" e="Item Code"/>
+      </field>
+      <field name="ten_vt" afterField="ma_vt" width="32">
+        <text v="Tên mặt hàng" e="Item Description"/>
+      </field>
+      <field name="dvt" width ="10">
+        <text v="Đvt" e="UOM"/>
+      </field>
+      <field name="ma_kho" width ="16">
+        <text v="Mã kho" e="Site"/>
+      </field>
+      <field name="ma_vi_tri" width ="16">
+        <text v="Mã vị trí" e="Location"/>
+      </field>
+      <field name="ma_lo" width ="16">
+        <text v="Mã lô" e="Lot"/>
+      </field>
+      <field name="so_luong" width ="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="ma_vv" width ="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_bp" width ="16">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="so_lsx" width ="16">
+        <text v="Lsx" e="MO"/>
+      </field>
+      <field name="ma_sp" width ="16">
+        <text v="Sản phẩm" e="Product"/>
+      </field>
+      <field name="ma_hd" width ="16">
+        <text v="Hợp đồng" e="Contract"/>
+      </field>
+      <field name="ma_phi" width ="16">
+        <text v="Phí" e="Expense"/>
+      </field>
+      <field name="ma_ku" width ="16">
+        <text v="Khế ước" e="Loan Contract"/>
+      </field>
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @m int
+select @m = character_maximum_length from information_schema.columns where table_name = 'phlsx' and column_name = 'so_lsx'
+
+update @@table set so_lsx = space(@m - len(rtrim(so_lsx))) + rtrim(so_lsx)
+
+create table #r (ma_vt varchar(32), ten_vt nvarchar(512), dvt nvarchar(32), he_so numeric(19, 4), ma_kho varchar(32), ma_vi_tri varchar(32), ma_lo varchar(32), so_luong numeric(19, 4),
+  ma_vv varchar(32), ma_bp varchar(32), so_lsx varchar(32), ma_sp varchar(32), ma_hd varchar(32), ma_phi varchar(32), ma_ku varchar(32), vi_tri_yn bit, lo_yn bit, nhieu_dvt bit, ref varchar(32), stt int)
+
+select @q = '
+  insert into #r(ma_vt, ten_vt, dvt, he_so, ma_kho, ma_vi_tri, ma_lo, so_luong, ma_vv, ma_bp, so_lsx, ma_sp, ma_hd, ma_phi, ma_ku, vi_tri_yn, lo_yn, nhieu_dvt, ref, stt)
+    select a.ma_vt, b.ten_vt%l, case when isnull(a.dvt, '''') <> '''' then a.dvt else b.dvt end, 1, case when isnull(a.ma_kho, '''') <> '''' then a.ma_kho else b.ma_kho end,
+      case when isnull(a.ma_vi_tri, '''') <> '''' then a.ma_vi_tri else b.ma_vi_tri end, a.ma_lo, a.so_luong, a.ma_vv, a.ma_bp, a.so_lsx, a.ma_sp, a.ma_hd, a.ma_phi, a.ma_ku, cast(0 as bit), b.lo_yn, b.nhieu_dvt, '''', a.stt
+    from @@table a left join dmvt b on a.ma_vt = b.ma_vt left join dmkho c on b.ma_kho = c.ma_kho
+'
+exec sp_executesql @q
+
+update #r set he_so = b.he_so from #r a join vdmvtqddvt b on (a.ma_vt = b.ma_vt or b.ma_vt = '*') and a.dvt = b.dvt where a.nhieu_dvt = 1
+update #r set vi_tri_yn = 1 from #r a join dmvitri b on a.ma_kho = b.ma_kho
+
+if not exists(select 1 from #r where dvt <> '') update #r set ref = ref + '1'
+  else update #r set ref = ref + case when a.dvt = '' or b.dvt is not null or c.dvt is not null then '1' else '0' end from #r a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt
+if not exists(select 1 from #r where ma_kho <> '') update #r set ref = ref + '1'
+  else update #r set ref = ref + case when a.ma_kho = '' or b.ma_kho is not null then '1' else '0' end from #r a left join dmkho b on a.ma_kho = b.ma_kho and b.ma_dvcs = @ma_dvcs ]]>&SiteKey;<![CDATA[
+if not exists(select 1 from #r where ma_vi_tri <> '') update #r set ref = ref + '1'
+ else update #r set ref = ref + case when a.ma_vi_tri = '' or b.ma_vi_tri is not null then '1' else '0' end from #r a left join dmvitri b on a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri
+if not exists(select 1 from #r where ma_lo <> '') update #r set ref = ref + '1'
+  else update #r set ref = ref + case when a.ma_lo = '' or b.ma_lo is not null then '1' else '0' end from #r a left join dmlo b on a.ma_vt = b.ma_vt and a.ma_lo = b.ma_lo
+
+]]>&CheckImportUserDefinedFields;<![CDATA[
+
+select '' as message, 'this.frameElement.result = @@result;parent.set$Grid$ImportResult(this.frameElement);' as script
+select rtrim(ma_vt) as ma_vt, rtrim(ten_vt) as ten_vt, rtrim(dvt) as dvt, he_so, rtrim(ma_kho) as ma_kho, rtrim(ma_vi_tri) as ma_vi_tri, rtrim(ma_lo) as ma_lo, so_luong,
+    rtrim(ma_vv) as ma_vv, rtrim(ma_bp) as ma_bp, rtrim(so_lsx) as so_lsx, rtrim(ma_sp) as ma_sp, rtrim(ma_hd) as ma_hd, rtrim(ma_phi) as ma_phi, rtrim(ma_ku) as ma_ku, vi_tri_yn, lo_yn, nhieu_dvt, ref, stt
+  from #r order by stt
+return
+]]>
+    </text>
+  </processing>
+
+</import>

@@ -1,0 +1,45 @@
+﻿<!ENTITY % Conditional.Control.Unit.Access SYSTEM "..\Include\Unit.Access">
+
+<![%Conditional.BIMode;[
+  <!ENTITY BI.Import.Field.Site SYSTEM "..\Templates\Upload\Include\SiteFieldsBIMode.txt">
+  <!ENTITY BI.Import.Template.Site SYSTEM "..\Templates\Upload\Include\SiteTemplateBIMode.txt">
+  <!ENTITY BI.Import.FieldPlant.Site ", ma_vung">
+  <!ENTITY BI.Dir.FieldPlant.Site SYSTEM "..\Include\XML\SiteBIModeDirField.txt">
+  <!ENTITY BI.Dir.ViewPlant.Site SYSTEM "..\Include\XML\SiteBIModeDirView.txt">
+  <!ENTITY BI.Grid.FieldPlant.Site SYSTEM "..\Include\XML\SiteBIModeGridField.txt">
+  <!ENTITY BI.Grid.ViewPlant.Site SYSTEM "..\Include\XML\SiteBIModeGridView.txt">
+  <!ENTITY BI.Script.Site SYSTEM "..\Include\Javascript\BI.Script.Site.txt">
+  <!ENTITY BI.Script.ReferenceKeyFilter.Site "f.setReferenceKeyFilter('ma_vung');">
+  <!ENTITY BI.Script.OnChangeUnit.Site "onChange$Unit(this);">
+
+  <![%Conditional.Control.Unit.Access;[
+    <!ENTITY BI.Grid.Initialize.Unit "exec AI_ERP$System$GetUnitFilter '', @@userID, @@admin, '', '', 'ma_dvcs', '', '', @q output, &Control.Unit.Access.Type;;">
+  ]]>
+  <!ENTITY BI.Grid.Initialize.Unit "">
+
+  <!ENTITY BI.Grid.Filter.Site "@@0">
+
+  <!ENTITY BI.Grid.Initialize.Site "
+declare @q varchar(4000);
+&BI.Grid.Initialize.Unit;
+create table #t (data varchar(4000))
+insert into #t exec AI_ERP$BI$GetGridFilter '', '', '', '', 'ma_vung', '', @@userID, @@admin
+update #t set data = replace(data, '&amp;' + char(255) + ';', '')
+select top 1 @q = isnull(@q, '') + case when isnull(@q, '') = '' then '' else ' and ' end + '(' + data + ')' from #t where data &lt;&gt; ''
+select '&amp;' + char(255) + ';' + isnull(@q, '') as value
+drop table #t
+    ">
+]]>
+
+<!ENTITY BI.Grid.Filter.Site "&Control.Unit.Access.UnitFilter;">
+<!ENTITY BI.Grid.Initialize.Site "&Control.Unit.Access.UnitQuery;">
+<!ENTITY BI.Import.Field.Site "">
+<!ENTITY BI.Import.Template.Site "">
+<!ENTITY BI.Import.FieldPlant.Site "">
+<!ENTITY BI.Dir.FieldPlant.Site "">
+<!ENTITY BI.Dir.ViewPlant.Site "">
+<!ENTITY BI.Grid.FieldPlant.Site "">
+<!ENTITY BI.Grid.ViewPlant.Site "">
+<!ENTITY BI.Script.Site "">
+<!ENTITY BI.Script.ReferenceKeyFilter.Site "">
+<!ENTITY BI.Script.OnChangeUnit.Site "">

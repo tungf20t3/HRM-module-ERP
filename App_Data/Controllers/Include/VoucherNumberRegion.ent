@@ -1,0 +1,44 @@
+﻿<!ENTITY % Conditional.VoucherNumberRegion SYSTEM "..\Include\VoucherNumberRegion.txt">
+
+<![%Conditional.VoucherNumberRegion;[
+
+  <!ENTITY vnrVoucherBookChecking "
+var vnr$ItemField = '&VoucherNumberRegion.CheckField;', vnr$Value = f.getItemValue(vnr$ItemField), vnr$checkLength = false;
+if (f._checked) {
+  var vnr$o = vnr$GetNumber(vnr$Value), i1, i2;
+  if (vnr$o.r) {
+    i1 = vnr$o.s2.indexOf('[');
+    i2 = vnr$o.s2.indexOf(']', i1 + 1);
+    if (i1 >= 0 &amp;&amp; i2 > i1) {
+      f._checked = false;
+      $func.hideWait(f.get_id());
+      $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), f.getItem(vnr$ItemField).field.Label), String.format('$find(\'{0}\').getItem(\'{1}\').focus()', f.get_id(), vnr$ItemField));
+    }
+  } else {
+    vnr$checkLength = true;
+    i1 = vnr$Value.indexOf('[');
+    i2 = vnr$Value.indexOf(']', i1 + 1);
+    if (i1 >= 0 &amp;&amp; i2 > i1) {
+      var t = vnr$Value.substr(i1 + 1, i2 - i1 - 1);
+      if (isNaN(parseFloat(t)) || !isFinite(t)) {
+        f._checked = false;
+        $func.hideWait(f.get_id());
+        $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), f.getItem(vnr$ItemField).field.Label), String.format('$find(\'{0}\').getItem(\'{1}\').focus()', f.get_id(), vnr$ItemField));
+      }
+    }
+  }
+}
+
+if (f._checked &amp;&amp; vnr$checkLength &amp;&amp; vnr$Value.length > (f.getItem(vnr$ItemField).maxLength - 2)) {
+  f._checked = false;
+  $func.hideWait(f.get_id());
+  $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), f.getItem(vnr$ItemField).field.Label), String.format('$find(\'{0}\').getItem(\'{1}\').focus()', f.get_id(), vnr$ItemField));
+}
+">
+  <!ENTITY vnrOptionMaxLength "-111">
+]]>
+
+<!ENTITY vnrVoucherBookChecking "">
+<!ENTITY vnrOptionMaxLength "-100">
+
+<!ENTITY vnrScript SYSTEM "..\Include\Javascript\VoucherNumber.txt">

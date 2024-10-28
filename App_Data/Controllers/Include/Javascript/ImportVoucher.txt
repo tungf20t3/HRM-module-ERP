@@ -1,0 +1,31 @@
+﻿<![CDATA[
+function init$]]>&Identity;<![CDATA[(f) {
+  var g = f.grid;
+  document.body._form = f;
+  $get('fileupload').value = '';
+  f.getItem('upload').field.AllowNulls = false;
+  $get(f.get_id() + '_form_upload').style.color = 'grey';  
+  f.request('GetTicket', 'GetTicket', []);
+}
+function on$]]>&Identity;<![CDATA[$ResponseComplete(f, e) {
+  var f = e.object, g = f.grid, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'GetTicket':
+      f.setItemValue('ticket', result[0].Value);
+      break;
+      default:
+    break;
+  }
+}
+function init$]]>&Identity;<![CDATA[$Status(f, d) {
+  var o = f.getItem('status'), index;
+  for (var i = 0; i < o.options.length; i++) {
+    if (o.options[i].value == d) {
+      index = i;
+      break
+    }
+  }
+  if (!index) index = 0;
+  o.options[index].selected = true;
+}
+]]>

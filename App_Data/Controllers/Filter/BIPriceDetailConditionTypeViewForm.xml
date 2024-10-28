@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIPriceDetailConditionTypeForm">
+  <!ENTITY ScriptQueryData SYSTEM "..\Include\Javascript\QueryData.txt">
+
+  <!ENTITY % PriceDetail SYSTEM "..\Include\BIPriceDetail.ent">
+  %PriceDetail;
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xem loại điều kiện giá" e="View Condition Type"></title>
+
+  <fields>
+    <field name="stt_rec" external="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" external="true" disabled="true">
+      <header v="Mã hàng" e="Item"></header>
+    </field>
+    <field name="ten_vt" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="dvt" external="true" disabled="true">
+      <header v="Đơn vị tính" e="UOM"></header>
+    </field>
+    <field name="gia_chuan_nt" type="Decimal" dataFormatString="@foreignCurrencyPriceInputFormat" clientDefault="0" disabled="true">
+      <header v="Giá chuẩn" e="Gross Price"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="bipd" external="true" clientDefault="0" defaultValue="0" rows="94" categoryIndex="1" readOnly="true">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="BIPriceDetailConditionTypeViewGrid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+
+    <field name="t_gia_cl_nt" type="Decimal" dataFormatString="@foreignCurrencyPriceInputFormat" external="true" clientDefault="0" categoryIndex="-1" disabled="true">
+      <header v="Giá còn lại" e="Remain Price"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="t_ck_dv_nt" type="Decimal" dataFormatString="@foreignCurrencyPriceInputFormat" external="true" clientDefault="0" categoryIndex="-1" disabled="true">
+      <header v="Chiết khấu đơn vị" e="Discount per unit"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="t_cp_dv_nt" type="Decimal" dataFormatString="@foreignCurrencyPriceInputFormat" external="true" clientDefault="0" categoryIndex="-1" disabled="true">
+      <header v="Chi phí đơn vị" e="Surcharge per unit"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="t_tien_ck_nt" type="Decimal" dataFormatString="@foreignCurrencyPriceInputFormat" external="true" clientDefault="0" categoryIndex="-1" disabled="true">
+      <header v="Tiền chiết khấu" e="Discount Amount"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="t_tien_cp_nt" type="Decimal" dataFormatString="@foreignCurrencyPriceInputFormat" external="true" clientDefault="0" categoryIndex="-1" disabled="true">
+      <header v="Tiền chi phí" e="Charge Amount"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="fm_gia" type="Decimal" dataFormatString="@baseCurrencyPriceInputFormat" external="true" clientDefault="0" hidden="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="154" anchor="9" split="10">
+      <item value="100, 30, 70, 35, 65, 37, 100, 100, 0, 8, 58, 50, 100, 0"/>
+      <item value="11010000-----1: [ma_vt].Label, [ma_vt], [ten_vt], [stt_rec]"/>
+      <item value="110----------1: [dvt].Label, [dvt], [fm_gia]"/>
+      <item value="110: [gia_chuan_nt].Label, [gia_chuan_nt]"/>
+
+      <item value="1: [bipd]"/>
+
+      <item value="110----: [t_gia_cl_nt].Label, [t_gia_cl_nt]"/>
+      <item value="110-101: [t_ck_dv_nt].Label, [t_ck_dv_nt], [t_tien_ck_nt].Label, [t_tien_ck_nt]"/>
+      <item value="110-101: [t_cp_dv_nt].Label, [t_cp_dv_nt], [t_tien_cp_nt].Label, [t_tien_cp_nt]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+
+        <category index="-1" columns="100, 30, 70, 35, 65, 37, 100, 100, 0, 8, 58, 50, 100" anchor="9">
+          <header v="" e=""/>
+        </category>
+      </categories>
+    </view>
+
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &PriceDetailScript;
+      <![CDATA[
+function load$]]>&Identity;<![CDATA[$Form(f) {
+  var z = f.grid, d = z._detailInfo;
+  f.add_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);
+
+  if (!d.fc) {
+    var pf = f.getItem('fm_gia').field.DataFormatString;
+    priceDetail$ChangeItemFormat(f, 'gia_chuan_nt', pf);
+    priceDetail$ChangeItemFormat(f, 't_gia_cl_nt', pf);
+    priceDetail$ChangeItemFormat(f, 't_ck_dv_nt', pf);
+    priceDetail$ChangeItemFormat(f, 't_tien_ck_nt', pf);
+    priceDetail$ChangeItemFormat(f, 't_cp_dv_nt', pf);
+    priceDetail$ChangeItemFormat(f, 't_tien_cp_nt', pf);
+  }
+
+  f.setItemValues('ma_vt, ten_vt, dvt, gia_chuan_nt', [d.ma_vt, d.ten_vt, d.dvt, d.gia_chuan_nt]);
+  f._action = 'View';
+}
+
+function close$]]>&Identity;<![CDATA[$Form(f) {try {f.remove_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}}
+
+function onForm$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.getItem('bipd')._controlBehavior;
+      f.grid._formScript = 'onForm$]]>&Identity;<![CDATA[$RetrieveScript(this)';
+      if (g._readOnly) return;
+
+      var z = f.grid, d = z._detailInfo, jRef = '';
+      if (d.handle) {
+        var jData = priceDetail$TransferData(f, g, f._dataIndex);
+        if (jData) jRef = priceDetail$GetJson(f, g, f._refIndex);
+        var res = {data: jData, ref: jRef, type: 'ct'};
+        d.handle.call(this, z, res);
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+function onForm$]]>&Identity;<![CDATA[$RetrieveScript(z) {}
+]]>
+    </text>
+  </script>
+</dir>

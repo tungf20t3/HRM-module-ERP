@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="AllocationTran.doc" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<title>Allocation Entry Definition</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Allocation Entry Definition</p>
+<p id="p1">
+Path: Modules → General Ledger → Definition → Allocation Entry Definition
+<br/>
+
+At the end of period, accountants usually make following allocation entries depending on business activities of enterprise:</p>
+<ul class="lo_2">
+- Allocate production overhead, direct labor cost to product to calculate unit cost.
+<br/>
+- Allocate sales expenses, business administration expenses to business result account and prepaid expenses account...
+</ul>
+<p id="p1">
+In case of management detailed in expense and revenue by business type and department, the quantity of allocation entries may be in the hundreds. Besides, when you need to have data adjusted, it is required to edit allocation entries. So it is waste time if your entries are manually created. 
+<br/>
+Therefore, AI ERP supports auto allocation entries to reduce working time of accountants and avoid mistakes. 
+<br/>
+To process the auto allocation, following these steps:</p>
+<ul class="lo_2">
+- Step 1: Define allocation entries - define allocated accounts, accounts receiving allocated amounts as well as the accounts on which the system will base to generate allocation coefficient. 
+<br/>
+- Step 2: Create allocation entries - define allocation coefficient in some ways: manually input,  system-generate by the coefficient account defined in step 1 or  by BOM (or labor cost…). Finally, process the allocation. 
+</ul>
+<p id="p1">
+In case invoices are allocated to customer, job, manufacturing order…, it is required to declare in allocation entry allocation.</p>
+
+<p id="td2">Allocation Entry List</p>
+
+<p id="pic"><img src="eng/AllocationTran1.png"/></p>
+
+<p id="td2">Entry screen</p>
+
+<p id="pic"><img src="eng/AllocationTran2.png"/></p>
+
+<p id="td3">Field descriptions</p>
+
+<p class="node">Ordinal Number</p>
+<p class="node_d">
+Ordinal number of allocation entries by which the allocation entries will be processed. </p>
+<p class="note">
+Note:
+<br/>
+Allocation entry numbers should be set apart from each other some characters in order to insert arising entries during allocation 
+process if necessary.</p>
+<p class="node">Description</p>
+<p class="node_d">
+Description of allocation entry. This is required field and will be used as description in ledger of accounts defined in the 
+allocation entry.</p>
+
+<p class="node">Allocation Type</p>
+<p class="node_d">
+If allocation type is Debit Account to Credit Account, the double entry of allocation will be Debit on account receiving allocation (Target Account) and Credit on allocated account (Source account).
+<br/>
+If allocation type is Credit Account to Debit Account, the double entry of allocation will be Debit on source account and Credit on 
+target account.</p>
+
+<p class="node">Allocation Account</p>
+<p class="node_d">
+Source account in allocation entry. Although this account is defined as general or subsidiary account, when running allocation, the 
+system will only allocate from subsidiary accounts of a general account.</p>
+
+<p class="node">Receiving Account</p>
+<p class="node_d">
+Debit account in allocation entry; it is extracted from “Chart of Accounts” and must be sub-account.</p>
+
+<p class="node">Debit Account/ Credit Account (Formula Account)</p>
+<p class="node_d">
+Accounts used in formula to calculate allocated coefficient. You can define 1 couple of accounts in a formula. 
+It is possible to define only debit or credit account. 
+Then, the system will auto get debit (credit) arising by allocation object in details and group by account in formula.</p>
+<p class="e">
+1. Defind allocation transaction: 632 to 911 by fomular "credit 642 and debit 911 group by jobs".<br/>
+2. Transaction data:<br/>
+Debit: 911: 100<br/>
+Credit: 642: 10 (for job 1)<br/>
+Credit: 642: 20 (for job 2)<br/>
+3. Arising amount of account 632: 10.000 </p>
+<p class="e2">
+When done, allocation result as follow:<br/>
+Debit: 911: 10.000<br/>
+Credit: 632: 10.000x10/30 (for job 1)<br/>
+Credit: 632: 10.000x20/30 (for job 2)</p>
+
+<p class="node">Job/Department/Contract</p>
+<p class="node_d">
+If the object is checked in allocation account definition screen, the corresponding field will be required. 
+<br/>
+Allocation entry will be detailed by job (or department/ contract) that is declared in this field. These fields are extracted from 
+corresponding lists and considered as detail allocation objects.</p>
+
+<p id="td2">	Detail Allocation Entry Screen</p>
+<p id="pic"><img src="eng/AllocationTran4.png"/></p>
+
+<p id="p2"> This is an optional function to add detail to an allocation entry. However, it’s required to define in allocation 
+entry screen first. It is the same as allocation entry screen.</p>
+
+<p id="td2">Some tasks</p>
+
+<p class="node">   Add detail and allocation formula</p>
+<p class="node_d">
+In Allocation Entry screen, click  <img src="eng/Lotgenerate.png"/> “Detail”</p>
+
+<p class="node_d">Debit/ Credit Account(s):  </p>
+<ul class="lo_3">
+-         The “Interest (1/0)” of each detail row helps to define if the value of this record will be positive or negative 
+(plus/minus). This will be added to other records in entry definition to have the final figure to the receiving allocation account. 
+<br/>
+-	Therefore, some accounts will have negative (minus) value, then allocation value can be decreased or in negative amount if there is no 
+positive (plus) arising amount to balance. The result will be negative value. This is used in case of expense decrease by system-generated 
+formula. 
+</ul>
+
+<p class="e">Example:<br/>
+The account balance by job on 31 01st 2016 as:</p>
+
+<p id="pic"><img src="eng/AllocationTran5.png"/></p>
+
+<p class="e">In case of allocate from Debit to Credit: from account 5111 to account 911A, 911B, 911C <br/>
+Suppose that accounts 911A, 911B, 911C are allocated by formula: <br/>
+- Sales expenses (641) allocated by job: positive (plus);<br/>
+- Management expenses (642) allocated by job: negative (minus).</p>
+
+
+<p class="e">The corresponding amount of revenue account (511) → expense account (911) by job 1 will be: <br/>
+
+500.000.000*(10.000.000 - 1.000.000) /(10.000.000 + 20.000.000 + 30.000.000 - 1.000.000 - 2.000.000 – 0)=78,947368;<br/>
+
+The corresponding amount of revenue account (511) → account 911 by job 3 will be: <br/>
+
+500.000.000*(30.000.000 - 0) /(10.000.000 + 20.000.000 + 30.000.000 - 1.000.000 - 2.000.000 – 0)=263,157895</p>
+
+
+
+
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>

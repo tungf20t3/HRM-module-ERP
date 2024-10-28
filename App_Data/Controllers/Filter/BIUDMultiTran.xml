@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_lo_kd1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày lô từ" e="Ins. Lot Date from"></header>
+      <footer v="Ngày lô từ/đến" e="Ins. Lot Date from/to"></footer>
+    </field>
+    <field name="ngay_lo_kd2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày lô đến" e="Ins. Lot Date to"></header>
+    </field>
+    <field name="so_lo_kd1" dataFormatString="@upperCaseFormat" align="right" maxLength="-109" filterSource="voucherNumber">
+      <header v="Số lô từ/đến" e="Ins. Lot from/to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_lo_kd2" dataFormatString="@upperCaseFormat" align="right" maxLength="-109" filterSource="voucherNumber">
+      <header v="" e=""></header>
+      <items style="Mask"></items>
+    </field>
+
+    <field name="ma_vung">
+      <header v="Vùng" e="Plant"></header>
+      <items style="AutoComplete" controller="BIPlant" reference="ten_vung%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vung%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_nguon">
+      <header v="Nguồn kiểm định" e="Inspection Lot Origin"></header>
+      <items style="AutoComplete" controller="BIInspectionLotOriginFilter" reference="ten_nguon%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_nguon%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_vt">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="kd_dac_tinh" dataFormatString="0, 1, *" clientDefault="*" align="right">
+      <header v="Kđ theo đặc tính" e="Characteristics Ins."></header>
+      <footer v="0 - Không, 1 - Có, * - Tất cả" e="0 - No, 1 - Yes, * - All"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="qd_tung_phan" dataFormatString="0, 1, *" clientDefault="*" align="right">
+      <header v="Kiểu quyết định" e="Decision Type"></header>
+      <footer v="1 - Sử dụng từng phần, 0 - Không, * - Tất cả" e="1 - Partial, 0 - Entire, * - All"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="status">
+      <header v="Trạng thái" e="Status"/>
+      <clientScript>&OnSelectionOutline;</clientScript>
+      <items style="DropDownList" >
+        <item value="*">
+          <text v="Tất cả" e="All"/>
+        </item>
+        <item value="2">
+          <text v="2. Đang kiểm định" e="2. Inspecting"/>
+        </item>
+        <item value="3">
+          <text v="3. Hoàn thành kiểm định" e="3. Finished"/>
+        </item>
+        <item value="4">
+          <text v="4. Quyết định sử dụng" e="4. Usage Decision"/>
+        </item>
+      </items>
+    </field>
+
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="maxLength" type="Int16" readOnly="true" hidden="true" maxLength="-109">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101--: [ngay_lo_kd1].Description, [ngay_lo_kd1], [ngay_lo_kd2]"/>
+      <item value="1101-1: [so_lo_kd1].Label, [so_lo_kd1], [so_lo_kd2], [maxLength]"/>
+
+      <item value="110100: [ma_vung].Label, [ma_vung], [ten_vung%l]"/>
+      <item value="110100: [ma_nguon].Label, [ma_nguon], [ten_nguon%l]"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="111000: [kd_dac_tinh].Label, [kd_dac_tinh], [kd_dac_tinh].Description"/>
+      <item value="111000: [qd_tung_phan].Label, [qd_tung_phan], [qd_tung_phan].Description"/>
+      <item value="11000-: [status].Label, [status]"/>
+      <item value="11000-: [ma_dvcs].Label, [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec bs_BIUDMultiView @ngay_lo_kd1, @ngay_lo_kd2, @so_lo_kd1, @so_lo_kd2, @ma_nguon, @ma_vung, @ma_vt, @kd_dac_tinh, @qd_tung_phan, @status, @maxLength, @ma_dvcs, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);var b=a.getItem("maxLength");b.value=b.maxLength}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(f,c){var a=c.object,d=c.type.Context,e=c.type.Result;switch(d){case"Checking":var b=a.grid;b._dFrom=a.getItemValue("ngay_lo_kd1");b._dTo=a.getItemValue("ngay_lo_kd2");b._size=a.getItemValue("maxLength");b._alterTitle=[null,[["%s1",$func.trim(a.getItem("ngay_lo_kd1").value),true],["%s2",$func.trim(a.getItem("ngay_lo_kd2").value),true]]];if(b._$k!=null)b._$k=[]}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

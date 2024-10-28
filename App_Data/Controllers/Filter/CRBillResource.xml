@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterInit SYSTEM "..\Include\XML\WhenFilterInit.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY TableDetail "ctnl">
+]>
+
+<dir table="phnl" code="stt_rec" order="ma_sp" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="ma_sp" filterSource="master" operation="10">
+      <header v="Mã sản phẩm" e="Product Code"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_sp%l" key="kieu_hd &lt;&gt; '0' and status = '1' and loai_vt in ('41', '51')" check="kieu_hd &lt;&gt; '0' and loai_vt in ('41', '51')"/>
+    </field>
+    <field name="ten_sp%l" readOnly="true" external="true" defaultValue="''" >
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nl" filterSource="detail" operation="10" categoryIndex="1">
+      <header v="Mã nguồn lực" e="Resource ID"></header>
+      <items style="AutoComplete" controller="CRCriticalResourceList" reference="ten_nl%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_nl%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1" information="&TableDetail;" >
+      <header v="" e=""></header>
+    </field>
+    <field name="user_id0" dataFormatString="0, 1" clientDefault="1" align="right" inactivate="true" categoryIndex="-1">
+      <header v="Người sử dụng" e="User"></header>
+      <footer v="1 - Lọc theo người sử dụng, 0 - Không" e="1 - Filter by User, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="40">
+      <item value="120, 30, 70, 330"/>
+      <item value="1101: [ma_sp].Label, [ma_sp], [ten_sp%l]"/>
+
+      <item value="1101: [ma_nl].Label, [ma_nl], [ten_nl%l]"/>
+
+      <item value="1110: [user_id0].Label, [user_id0], [user_id0].Description"/>
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 330">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterInit;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFilterInit;
+    </text>
+  </script>
+
+</dir>

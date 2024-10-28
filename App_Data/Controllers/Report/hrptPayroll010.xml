@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE report [
+  <!ENTITY b SYSTEM ".\Include\BaseCurrency.xml">
+  <!ENTITY f SYSTEM ".\Include\ForeignCurrency.xml">
+  <!ENTITY s SYSTEM ".\Include\Separate.xml">
+
+  <!ENTITY p "../images/pdf.gif">
+  <!ENTITY e "../images/excel.gif">
+]>
+
+<report xmlns="urn:schemas-ai-erp:data-report">
+  <forms>
+    <form id="010" reportFile="hrptPayroll010_01" commandArgument="pdf" urlImage="&p;">
+      <header v="Danh sách thanh toán lương bằng chuyển khoản" e="Bank Transfer List"></header>
+      <download>
+        <header v="Danh sách thanh toán lương bằng chuyển khoản" e="Bank Transfer List"/>
+      </download>&b;
+    </form>
+    <form id="011" reportFile="hrptPayroll010_01" commandArgument="pdf">
+      <header v="Danh sách thanh toán lương bằng chuyển khoản tiền ngoại tệ" e="Bank Transfer List in Foreign Currency"></header>
+      <download>
+        <header v="Danh sách thanh toán lương bằng chuyển khoản tiền ngoại tệ" e="Bank Transfer List in Foreign Currency"/>
+      </download>&f;
+    </form>
+
+    &s;
+
+    <form id="100" templateFile="hrptPayroll010_01" commandArgument="Excel" urlImage="&e;" rowFilter="[2$sysorder = 5]">
+      <header v="Danh sách thanh toán lương bằng chuyển khoản" e="Bank Transfer List"></header>
+      <download>
+        <header v="Danh sách thanh toán lương bằng chuyển khoản" e="Bank Transfer List"/>
+      </download>&b;
+    </form>
+    <form id="101" templateFile="hrptPayroll010_01FC" commandArgument="Excel" rowFilter="[2$sysorder = 5]">
+      <header v="Danh sách thanh toán lương bằng chuyển khoản tiền ngoại tệ" e="Bank Transfer List in Foreign Currency"></header>
+      <download>
+        <header v="Danh sách thanh toán lương bằng chuyển khoản tiền ngoại tệ" e="Bank Transfer List in Foreign Currency"/>
+      </download>&f;
+    </form>
+  </forms>
+
+  <fields>
+    <field name="title" type="String">
+      <header v="DANH SÁCH THANH TOÁN LƯƠNG BẰNG CHUYỂN KHOẢN" e="BANK TRANSFER LIST"/>
+    </field>
+    <field name="h_ky" type="String">
+      <header v="Kỳ" e="Period"/>
+    </field>
+    <field name="h_bo_phan" type="String">
+      <header v="Bộ phận" e="Department"/>
+    </field>
+    <field name="h_stt" type="String">
+      <header v="Stt" e="No."/>
+    </field>
+    <field name="h_ma_nv" type="String">
+      <header v="Mã nhân viên" e="Employee ID"/>
+    </field>
+    <field name="h_ten_nv" type="String">
+      <header v="Họ và tên nhân viên" e="Employee Full Name"/>
+    </field>
+    <field name="h_tk_nh" type="String">
+      <header v="Tài khoản ngân hàng" e="Bank Account"/>
+    </field>
+    <field name="h_ngan_hang" type="String">
+      <header v="Ngân hàng" e="Bank"/>
+    </field>
+    <field name="h_thuc_lanh" type="String">
+      <header v="Thực lĩnh" e="Net Pay"/>
+    </field>
+  </fields>
+</report>

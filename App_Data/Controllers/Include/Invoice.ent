@@ -1,0 +1,297 @@
+﻿<!ENTITY % Conditional.Authentication SYSTEM "..\Include\Authentication.txt">
+<!ENTITY % Conditional.Cancellation SYSTEM "..\Include\Cancellation.txt">
+<!ENTITY % Conditional.PrintHandle SYSTEM "..\Include\PrintHandle.txt">
+<!ENTITY % Conditional.EIEdit SYSTEM "..\Include\EIEdit.txt">
+<!ENTITY % Conditional.EIOptions SYSTEM "..\Include\EIOptions.txt">
+<!ENTITY % Conditional.EINote SYSTEM "..\Include\EINote.txt">
+<!ENTITY % Conditional.VoucherDeleteLog SYSTEM "..\Include\VoucherDeleteLog.txt">
+<!ENTITY % Conditional.VoucherEditLog SYSTEM "..\Include\VoucherEditLog.txt">
+
+<!ENTITY % CheckValidEmail SYSTEM "..\Include\CheckValidEmail.ent">
+%CheckValidEmail;
+<!ENTITY CheckValidEmail.FieldName "e_mail">
+<!ENTITY CheckValidEmail.MultiEmail "true">
+
+<![%Conditional.Authentication;[
+  <![%Conditional.EIOptions;[
+    <!ENTITY EICustomerResponseExists "">
+    <!ENTITY EICustomerResponseValue "">
+    <!ENTITY EICustomerResponseComplete "">
+    <!ENTITY EIAuthenticationDefaultValue "1">
+    <!ENTITY EIStatusDefaultValue "0">
+    <!ENTITY EICustomerConditionalBegin "">
+    <!ENTITY EICustomerConditional "">
+    <!ENTITY EICustomerConditionalEnd "">
+    <!ENTITY EICustomerInitExternalFields "">
+  ]]>
+
+  <![%Conditional.EIEdit;[
+    <!ENTITY EIGridExecuteCommandEdit "ei$Grid$ExecuteCommandEdit(sender, e);">
+    <!ENTITY EIGridScript SYSTEM "..\Include\Javascript\EIGridScript.txt">
+
+    <![%Conditional.VoucherEditLog;[
+      <!ENTITY EIWhenBeforeUpdateLog "">
+    ]]>
+    <!ENTITY EIWhenBeforeUpdateLog "if @eiAllowEdit = '1' exec AI_ERP$App$Voucher$Log @stt_rec, @@id, '$partition$previous', '1'">
+
+    <!ENTITY EIEditUpdateAfterPost "
+if @eiAllowEdit = '1' begin
+  declare @eiPatition char(6), @eiQuery nvarchar(4000)
+
+  set @eiPatition = '$partition$previous'
+  if @eiPatition = '' or @eiPatition = '000000' begin
+    set @eiPatition = convert(char(6), @ngay_ct, 112)
+  end
+
+  set @eiQuery = 'declare @eiNumber char(12)'
+  set @eiQuery = @eiQuery + char(13) + 'select @eiNumber = so_ct_hddt from hddt00$' + @eiPatition + ' where stt_rec = @rec'
+  set @eiQuery = @eiQuery + char(13) + 'update ct00 set so_ct0 = @eiNumber where stt_rec = @rec'
+  set @eiQuery = @eiQuery + char(13) + 'update ct70 set so_ct0 = @eiNumber where stt_rec = @rec'
+  set @eiQuery = @eiQuery + char(13) + 'update ct90 set so_ct0 = @eiNumber where stt_rec = @rec'
+  set @eiQuery = @eiQuery + char(13) + 'update r00$' + @eiPatition + ' set so_ct0 = @eiNumber where stt_rec = @rec'
+  set @eiQuery = @eiQuery + char(13) + 'update r70$' + @eiPatition + ' set so_ct0 = @eiNumber where stt_rec = @rec'
+  set @eiQuery = @eiQuery + char(13) + 'update r90$' + @eiPatition + ' set so_ct0 = @eiNumber where stt_rec = @rec'
+
+  exec sp_executesql @eiQuery, N'@rec char(13)', @stt_rec
+end">
+    <!ENTITY EISetFormButtonEdit "ei$Form$ExecuteCommandEdit(f);">
+    <!ENTITY EIResponseCompleteChecking SYSTEM "..\Include\Javascript\EIResponseCompleteChecking.txt">
+
+    <!ENTITY EIWhenBeforeEdit SYSTEM "..\Include\Command\EIBeforeAllowEdit.txt">
+    <!ENTITY EIWhenBeforeUpdate SYSTEM "..\Include\Command\EIBeforeAllowUpdate.txt">
+
+    <!ENTITY ESWhenBeforeEdit SYSTEM "..\Include\Command\ESBeforeAllowEdit.txt">
+    <!ENTITY ESWhenBeforeUpdate SYSTEM "..\Include\Command\ESBeforeAllowUpdate.txt">
+
+    <!ENTITY EIIssueWhenBeforeEdit SYSTEM "..\Include\Command\EIIssueBeforeAllowEdit.txt">
+    <!ENTITY EIIssueWhenBeforeUpdate SYSTEM "..\Include\Command\EIIssueBeforeAllowUpdate.txt">
+    <!ENTITY ESIssueWhenBeforeEdit SYSTEM "..\Include\Command\ESIssueBeforeAllowEdit.txt">
+    <!ENTITY ESIssueWhenBeforeUpdate SYSTEM "..\Include\Command\ESIssueBeforeAllowUpdate.txt">
+
+    <!ENTITY ETWhenBeforeUpdate SYSTEM "..\Include\Command\ETBeforeAllowUpdate.txt">
+    <!ENTITY ETIssueWhenBeforeUpdate SYSTEM "..\Include\Command\ETIssueBeforeAllowUpdate.txt">
+
+    <!ENTITY EIEditReferenceSiteResponse "if !(f._usedEI &amp;&amp; g._usedEI$Valid &amp;&amp; f._eiStatus != '0') on$GridVoucherDetail$SalesPriceResponse(result, o, g, f);">
+  ]]>
+
+  <![%Conditional.CheckValidEmail;[
+    <!ENTITY EIGridScript "&CheckValidEmailFunction;">
+  ]]>
+
+  <![%Conditional.EINote;[
+    <!ENTITY EINoteFields SYSTEM "..\Include\XML\EINoteFields.txt">
+    <!ENTITY EIViews SYSTEM "..\Include\XML\EINoteViews.xml">
+    <!ENTITY EICategory SYSTEM "..\Include\XML\EINoteCategory.xml">
+
+    <!ENTITY EINoteCheck SYSTEM "..\Include\Javascript\EINoteCheck.txt">
+
+    <!ENTITY EINoteInitExternalFieldsDeclare "declare @$xu_ly tinyint, @$ghi_chuhoadon nvarchar(511)">
+    <!ENTITY EINoteInitExternalFieldsSet "select @$xu_ly = xu_ly, @$ghi_chuhoadon = ghi_chuhoadon from v03$000000 where stt_rec = @stt_rec">
+    <!ENTITY EINoteInitExternalFields ", isnull(@$xu_ly, 0) as xu_ly, isnull(@$ghi_chuhoadon, '') as ghi_chuhoadon">
+
+    <!ENTITY EINotePostInsert "if @$xu_ly &lt;&gt; '0' or @$ghi_chuhoadon &lt;&gt; '' insert into v03$000000 (stt_rec, ma_ct, xu_ly, ghi_chuhoadon) select @stt_rec, @@id, @$xu_ly, @$ghi_chuhoadon">
+    <!ENTITY EINotePostUpdate "
+&EINotePostDelete;
+&EINotePostInsert;
+">
+    <!ENTITY EINotePostDelete "delete v03$000000 where stt_rec = @stt_rec">
+
+    <!ENTITY EINoteEditFields ", @$xu_ly as xu_ly, @$ghi_chuhoadon as ghi_chuhoadon">
+    <!ENTITY EINoteEditFieldsCheck "set @ei$CheckFieldAppend = @ei$CheckFieldAppend + case when @ei$CheckFieldAppend &lt;&gt; '' then ',' else '' end + 'ds_kt_ext0'">
+
+    <!ENTITY EINoteIDStatusName "&lt;div id='id_ten_tt_hddt'&gt;&lt;/div&gt;">
+    <!ENTITY EINoteSetStatusName "$get('id_ten_tt_hddt').innerHTML = f._$states[f._$stateIndex > 4 ? f._$stateIndex - 3 : f._$stateIndex][(f._language == 'v') ? 0 : 1]">
+  ]]>
+
+  <!ENTITY EIFields SYSTEM "..\Include\XML\EIFields.txt">
+  <!ENTITY EIFieldsIssue SYSTEM "..\Include\XML\EIFieldsIssue.txt">
+  <!ENTITY EIViews SYSTEM "..\Include\XML\EIViews.xml">
+  <!ENTITY EICategory SYSTEM "..\Include\XML\EICategory.xml">
+
+  <!ENTITY EIDefault ", default">
+
+  <!ENTITY EIGridFields SYSTEM "..\Include\XML\EIGridFields.txt">
+  <!ENTITY EIGridViews SYSTEM "..\Include\XML\EIGridViews.xml">
+  <!ENTITY EIGridQuery ", 'stt_rec, so_seri_hddt, so_ct_hddt, tinh_trang_hddt', 'hddt00$', ' left join hddt00$ e1 on a.stt_rec = e1.stt_rec left join dmtthddt e2 on e1.tinh_trang_hddt = e2.status'">
+
+  <!ENTITY EIWhenBeforeEdit SYSTEM "..\Include\Command\EIWhenBeforeEdit.txt">
+  <!ENTITY EIWhenBeforeInsert SYSTEM "..\Include\Command\EIWhenBeforeInsert.txt">
+  <!ENTITY EIWhenBeforeUpdate SYSTEM "..\Include\Command\EIWhenBeforeUpdate.txt">
+  <!ENTITY EIWhenBeforeDelete SYSTEM "..\Include\Command\EIWhenBeforeDelete.txt">
+
+  <!ENTITY ESWhenBeforeEdit SYSTEM "..\Include\Command\ESWhenBeforeEdit.txt">
+  <!ENTITY ESWhenBeforeUpdate SYSTEM "..\Include\Command\ESWhenBeforeUpdate.txt">
+  <!ENTITY ESWhenBeforeDelete SYSTEM "..\Include\Command\ESWhenBeforeDelete.txt">
+
+  <!ENTITY ETWhenBeforeInsert SYSTEM "..\Include\Command\ETWhenBeforeInsert.txt">
+  <!ENTITY ETWhenBeforeUpdate SYSTEM "..\Include\Command\ETWhenBeforeUpdate.txt">
+
+  <!ENTITY EIIssueWhenBeforeEdit SYSTEM "..\Include\Command\EIIssueWhenBeforeEdit.txt">
+  <!ENTITY EIIssueWhenBeforeUpdate SYSTEM "..\Include\Command\EIIssueWhenBeforeUpdate.txt">
+  <!ENTITY EIIssueWhenBeforeDelete SYSTEM "..\Include\Command\EIIssueWhenBeforeDelete.txt">
+
+  <!ENTITY ESIssueWhenBeforeEdit SYSTEM "..\Include\Command\ESIssueWhenBeforeEdit.txt">
+  <!ENTITY ESIssueWhenBeforeUpdate SYSTEM "..\Include\Command\ESIssueWhenBeforeUpdate.txt">
+  <!ENTITY ESIssueWhenBeforeDelete SYSTEM "..\Include\Command\ESIssueWhenBeforeDelete.txt">
+
+  <!ENTITY ETIssueWhenBeforeUpdate SYSTEM "..\Include\Command\ETIssueWhenBeforeUpdate.txt">
+
+  <!ENTITY EIInitExternalFieldsSet SYSTEM "..\Include\Command\EIInitExternalFieldsSet.txt">
+  <!ENTITY ESInitExternalFieldsSet SYSTEM "..\Include\Command\ESInitExternalFieldsSet.txt">
+  <!ENTITY ETInitExternalFieldsSet SYSTEM "..\Include\Command\ETInitExternalFieldsSet.txt">
+
+  <!ENTITY EIInitExternalFields SYSTEM "..\Include\Command\EIInitExternalFields.txt">
+
+  <!ENTITY EIPostInsert SYSTEM "..\Include\Command\EIPostInsert.txt">
+  <!ENTITY EIPostUpdate SYSTEM "..\Include\Command\EIPostUpdate.txt">
+  <!ENTITY EIPostDelete SYSTEM "..\Include\Command\EIPostDelete.txt">
+
+  <!ENTITY ESPostInsert SYSTEM "..\Include\Command\ESPostInsert.txt">
+  <!ENTITY ESPostUpdate SYSTEM "..\Include\Command\ESPostUpdate.txt">
+  <!ENTITY ESPostDelete SYSTEM "..\Include\Command\ESPostDelete.txt">
+
+  <!ENTITY EISetFieldsReadOnly SYSTEM "..\Include\Javascript\EISetFieldsReadOnly.txt">
+  <!ENTITY EISetAuthentication SYSTEM "..\Include\Javascript\EISetAuthentication.txt">
+
+  <!ENTITY CancelStatusItem SYSTEM "..\Include\XML\CancelStatusItem.txt">
+  <!ENTITY CancelStatusDefault SYSTEM "..\Include\Javascript\CancelStatusDefault.txt">
+  <!ENTITY CancelStatusExplore SYSTEM "..\Include\Javascript\CancelStatusExplore.txt">
+
+  <!ENTITY QueryDefault "">
+
+  <!ENTITY ETInitExternalFieldsSet SYSTEM "..\Include\Command\ETInitExternalFieldsSet.txt">
+
+  <!ENTITY EIImport "1">
+]]>
+
+<![%Conditional.Cancellation;[
+  <!ENTITY CancelStatusItem SYSTEM "..\Include\XML\CancelStatusItem.txt">
+  <!ENTITY CancelStatusDefault SYSTEM "..\Include\Javascript\CancelStatusDefault.txt">
+  <!ENTITY CancelStatusExplore SYSTEM "..\Include\Javascript\CancelStatusExplore.txt">
+]]>
+
+<![%Conditional.PrintHandle;[
+  <![%Conditional.VoucherDeleteLog;[
+    <!ENTITY PrintPostDelete "">
+    <!ENTITY PrintAdjustDelete "">
+  ]]>
+
+  <!ENTITY PrintPostUpdate SYSTEM "..\Include\Command\PrintPostUpdate.txt">
+  <!ENTITY PrintPostDelete SYSTEM "..\Include\Command\PrintPostDelete.txt">
+
+  <!ENTITY PrintAdjustUpdate SYSTEM "..\Include\Command\PrintAdjustUpdate.txt">
+  <!ENTITY PrintAdjustDelete SYSTEM "..\Include\Command\PrintAdjustDelete.txt">
+]]>
+
+
+<!ENTITY EIFields "">
+<!ENTITY EIFieldsIssue "">
+<!ENTITY EIViews "">
+<!ENTITY EICategory "">
+
+<!ENTITY EINoteFields "">
+<!ENTITY EINoteInitExternalFieldsDeclare "">
+<!ENTITY EINoteInitExternalFieldsSet "">
+<!ENTITY EINoteInitExternalFields "">
+<!ENTITY EINotePostInsert "">
+<!ENTITY EINotePostUpdate "">
+<!ENTITY EINotePostDelete "">
+<!ENTITY EINoteEditFields "">
+<!ENTITY EINoteEditFieldsCheck "">
+<!ENTITY EINoteCheck "">
+<!ENTITY EINoteIDStatusName "&lt;div id='id_ten_tt_hddt'&gt;&lt;/div&gt;">
+<!ENTITY EINoteSetStatusName "$get('id_ten_tt_hddt').innerHTML = f._$states[f._$stateIndex > 4 ? f._$stateIndex - 3 : f._$stateIndex][(f._language == 'v') ? 0 : 1]">
+
+
+<!ENTITY EIDefault "">
+
+<!ENTITY EIGridFields "">
+<!ENTITY EIGridViews "">
+<!ENTITY EIGridQuery "">
+
+<!ENTITY EIWhenBeforeEdit "">
+<!ENTITY EIWhenBeforeInsert "">
+<!ENTITY EIWhenBeforeUpdate "">
+<!ENTITY EIWhenBeforeDelete "">
+
+<!ENTITY ESWhenBeforeEdit "">
+<!ENTITY ESWhenBeforeUpdate "">
+<!ENTITY ESWhenBeforeDelete "">
+
+<!ENTITY ETWhenBeforeInsert "">
+<!ENTITY ETWhenBeforeUpdate "">
+
+<!ENTITY EIIssueWhenBeforeEdit "">
+<!ENTITY EIIssueWhenBeforeUpdate "">
+<!ENTITY EIIssueWhenBeforeDelete "">
+
+<!ENTITY ESIssueWhenBeforeEdit "">
+<!ENTITY ESIssueWhenBeforeUpdate "">
+<!ENTITY ESIssueWhenBeforeDelete "">
+
+<!ENTITY ETIssueWhenBeforeUpdate "">
+
+<!ENTITY EIInitExternalFieldsSet "">
+<!ENTITY ESInitExternalFieldsSet "">
+<!ENTITY ETInitExternalFieldsSet "">
+
+<!ENTITY EIInitExternalFields "">
+
+<!ENTITY EIPostInsert "">
+<!ENTITY EIPostUpdate "">
+<!ENTITY EIPostDelete "">
+
+<!ENTITY ESPostInsert "">
+<!ENTITY ESPostUpdate "">
+<!ENTITY ESPostDelete "">
+
+
+<!ENTITY EISetFieldsReadOnly "">
+<!ENTITY EISetAuthentication "">
+
+<!ENTITY CancelStatusItem "">
+<!ENTITY CancelStatusDefault "">
+<!ENTITY CancelStatusExplore "">
+
+
+<!ENTITY PrintPostUpdate "">
+<!ENTITY PrintPostDelete "">
+
+<!ENTITY PrintAdjustUpdate "">
+<!ENTITY PrintAdjustDelete "">
+
+<!ENTITY QueryDefault ", default">
+
+<!ENTITY ETInitExternalFieldsSet "">
+
+<!ENTITY EIGridExecuteCommandEdit "">
+<!ENTITY EIGridScript "">
+<!ENTITY EIWhenBeforeUpdateLog "">
+<!ENTITY EIEditUpdateAfterPost "">
+<!ENTITY EISetFormButtonEdit "">
+<!ENTITY EIResponseCompleteChecking "">
+
+<!ENTITY EICustomerResponseExists "
+declare @einvoice tinyint
+if exists(select 1 from options where name = 'm_sd_hddt' and val = '1') begin
+  if exists(select 1 from khhddt where ma_kh = @ma_kh) select @einvoice = 1
+end
+">
+<!ENTITY EICustomerResponseValue ", isnull(@einvoice, 0) as sd_hddt">
+<!ENTITY EICustomerResponseComplete "if (f._usedEI) f.setItemValue('sd_hddt_yn', result[result.length - 1].Value);">
+<!ENTITY EIAuthenticationDefaultValue "0">
+<!ENTITY EIStatusDefaultValue "0">
+<!ENTITY EICustomerConditionalBegin "if @usedEI = '1' begin">
+<!ENTITY EICustomerConditional "
+if @$sd_hddt_yn = 1 and not exists(select 1 from khhddt where ma_kh = @ma_kh) and @ma_kh &lt;&gt; '' begin
+  select 'sd_hddt_yn' as field, case when @@language = 'v' then N'Khai báo thông tin xác thực cho khách hàng không đúng.' else N'Pre-authentication information for the customer was invalid.' end as message
+  return
+end
+">
+<!ENTITY EICustomerConditionalEnd "end">
+
+<!ENTITY EICustomerInitExternalFields "if exists(select 1 from khhddt where ma_kh = @customerID)">
+
+<!ENTITY EIEditReferenceSiteResponse "on$GridVoucherDetail$SalesPriceResponse(result, o, g, f);">
+
+<!ENTITY EIImport "0">

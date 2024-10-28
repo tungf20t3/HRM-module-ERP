@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="kktt$0000" code="stt_rec" order="ngay_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu từ" e="Request Date from"></header>
+      <footer v="Ngày yêu cầu từ/đến" e="Request Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu đến" e="Request Date to"></header>
+    </field>
+    <field name="so_ct" align="right" allowNulls="false">
+      <header v="Số yêu cầu" e="Voucher No."></header>
+      <items style="AutoComplete" controller="StocktakingRequisition" key="(ngay_ct between @d1 and @d2)" check="(ngay_ct between @d1 and @d2)"/>
+    </field>
+    <field name="ma_kho">
+      <header v="Mã kho" e="Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="status = '1'" check="1=1" information="ma_kho$dmkho.ten_kho%l"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 230, 0"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="110: [so_ct].Label, [so_ct]"/>
+      <item value="11010: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$PhysicalCountQtyUpdate$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$PhysicalCountQtyUpdate$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$PhysicalCountQtyUpdate$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$none nvarchar(512), @vcID varchar(33), @vcDate smalldatetime, @isLocked tinyint
+select @vcID = stt_rec, @vcDate = ngay_ct from kkyc with(index(so_ct)) where so_ct = @so_ct and ngay_ct between @ngay_ct1 and @ngay_ct2
+if @vcID is null begin
+  select @$none = case when @@language = 'v' then N'Không có yêu cầu kiểm kê theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+  select 'so_ct' as field, isnull(@$none, '') as message
+end else begin
+  select @isLocked = case when @vcDate <= ngay_ks_kk then 1 else 0 end from dmstt
+  select '' as field, '' as message, 'on$Filter$Retrieve$QueryComplete(this, ''' + @vcID + ''', ''' + isnull(convert(varchar(10), @vcDate, 111), '') + ''', ' + str(@isLocked) + ');' as script
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function init$PhysicalCountQtyUpdate$(a){a.getItem("so_ct")._idle=9}function active$PhysicalCountQtyUpdate$(a){a.add_onResponseComplete(on$PhysicalCountQtyUpdate$ResponseComplete);a._looking=a.getItem("so_ct")._controlBehavior;a._looking.add_loading(on$InventoryLookupFilter$Before$Loading);var b=a.getItem("ngay_ct1");b.focus();a.live(b)}function close$PhysicalCountQtyUpdate$(a){try{a._looking.remove_loading(on$InventoryLookupFilter$Before$Loading)}catch(b){}try{a.remove_onResponseComplete(on$PhysicalCountQtyUpdate$ResponseComplete)}catch(b){}}function on$PhysicalCountQtyUpdate$ResponseComplete(c,a){var c=a.object,d=a.type.Context,e=a.type.Result;switch(d){case"Checking":var b=c.grid;b._voucherNum=c.getItemValue("so_ct").toUpperCase();b._alterTitle=[null,[["%s",b._voucherNum,true]]]}}function on$InventoryLookupFilter$Before$Loading(c,f){var b=c._element.parentForm;if(!b.validFields("ngay_ct1")||!b.validFields("ngay_ct2"))f.type.cancelEvent=true;else{var g=b.grid,h=g.get_element().parentForm,d=b.getItemValue("ngay_ct1"),e=b.getItemValue("ngay_ct2");a=[{Name:"d1",Type:"DateTime",Value:d},{Name:"d2",Type:"DateTime",Value:e}];c.set_memvars(a)}}function on$Filter$Retrieve$QueryComplete(b,d,e,c){var a=b.grid;a._denyNew=a._denyEdit=a._denyDelete=c;a._voucherID=d;a._voucherDate=e;if(c==1)a._denyMessage=b._language=="v"?"Đã khóa số liệu, kiểm tra lại ngày khóa sổ.":"Data is locked, you must modify system locked date."}]]>
+    </text>
+  </script>
+</dir>

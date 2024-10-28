@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE dir [
+  <!ENTITY ScriptIrregular SYSTEM "..\Include\Javascript\Irregular.txt">
+]>
+
+<dir table="hrrmqdtd" code="ma_hs, stt_rec_nv" order="ma_hs" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Thông tin nhân viên" e="Employee Information"></title>
+  <fields>
+    <field name="ma_dot">
+      <header v="Đợt tuyển dụng" e="Period Code"/>
+    </field>
+    <field name="ten_dot%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""/>
+    </field>
+    <field name="ma_hs" isPrimaryKey="true" allowNulls="false">
+      <header v="Mã ứng viên" e="Candidate ID"></header>
+    </field>
+    <field name="ten_hs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" allowNulls="false" dataFormatString="@upperCaseFormat">
+      <header v="Mã nhân viên mới" e="New Employee ID"></header>
+      <items style="Mask"></items>
+    </field>
+
+    <field name="ma_bp" allowNulls="false">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hreDepartment" reference="ten_bp%l" key="status = '1'" check="1 = 1" information="hrrmqdtd"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vtr" allowNulls="false">
+      <header v="Vị trí" e="Position"></header>
+      <items style="AutoComplete" controller="hrPosition" reference="ten_vtr%l" key="status = '1'" check="1 = 1" information="ma_vtr$hrvt.ten_vtr%l"/>
+    </field>
+    <field name="ten_vtr%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_vao" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Ngày vào công ty" e="Date Hired"></header>
+    </field>
+    <field name="bac_quan_ly" onDemand="true">
+      <header v="Bậc quản lý" e="Job Grade"></header>
+      <items style="AutoComplete" controller="hrManagerLevel" reference="ten_bac_ql%l" information="ma_bac$hrdmbql.ten_bac%l"/>
+    </field>
+    <field name="ten_bac_ql%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_ql" external="true" defaultValue="''" onDemand="true">
+      <header v="Người quản lý trực tiếp" e="Direct Supervisor"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_ql%l" key="status = '1'" check="1 = 1" information="ma_nv$vhrnv.ten"/>
+      <clientScript><![CDATA[onchange="onchange$hrRMDecisionFilter$EmployeeManager(this);"]]></clientScript>
+    </field>
+    <field name="ten_ql%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_ttnv" allowNulls="false" onDemand="true">
+      <header v="Tình trạng nhân viên" e="Employee Status"></header>
+      <items style="AutoComplete" controller="hrEmployeeStatus" reference="ten_ttnv%l" key="status = '1' and ma_ttnv not in (select val from options where name = 'm_tt_nghi_viec')" check="ma_ttnv not in (select val from options where name = 'm_tt_nghi_viec')"/>
+    </field>
+    <field name="ten_ttnv%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_tn" external="true" defaultValue="''" onDemand="true">
+      <header v="Người ký tiếp nhận" e="Recruited by"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_tn%l" key="status = '1'" check="1 = 1" information="ma_nv$vhrnv.ten"/>
+      <clientScript><![CDATA[onchange="onchange$hrRMDecisionFilter$EmployeeReceiver(this);"]]></clientScript>
+    </field>
+    <field name="ten_tn%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt" type="Decimal" dataFormatString="####0" defaultValue="0">
+      <header v="Stt sắp xếp" e="Ordinal Number"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="stt_rec_ql" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec_tn" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="110100-: [ma_dot].Label, [ma_dot], [ten_dot%l]"/>
+      <item value="110100-: [ma_hs].Label, [ma_hs], [ten_hs%l]"/>
+      <item value="110----: [ma_nv].Label, [ma_nv]"/>
+      <item value="110100-: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="110100-: [ma_vtr].Label, [ma_vtr], [ten_vtr%l]"/>
+      <item value="110----: [ngay_vao].Label, [ngay_vao]"/>
+
+      <item value="110100-: [bac_quan_ly].Label, [bac_quan_ly], [ten_bac_ql%l]"/>
+      <item value="110100-: [ma_ql].Label, [ma_ql], [ten_ql%l]"/>
+      <item value="1101001: [ma_ttnv].Label, [ma_ttnv], [ten_ttnv%l], [stt_rec_ql]"/>
+      <item value="1101001: [ma_tn].Label, [ma_tn], [ten_tn%l], [stt_rec_tn]"/>
+      <item value="110: [stt].Label, [stt]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @maxLength int
+select @maxLength = length from syscolumns where name = 'ma_nv' and id = object_id('hrnv')
+select 'this._maxLength = ' + ltrim(@maxLength) + ';active$hrRMDecisionFilter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$hrRMDecisionFilter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Declare">
+      <text>
+        <![CDATA[
+declare @$exists nvarchar(512), @wsID varchar(8), @outWork varchar(32), @stt_rec_nv varchar(33)
+select @$exists = case when @@language = 'v' then N'Mã nhân viên <span class="Highlight">%s</span> đã được khai báo trong phần cập nhật thông tin nhân viên.' else N'The Employee ID <span class="Highlight">%s</span> is invalid or already exists.' end
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if exists(select * from hrnv where ((ma_nv like rtrim(@ma_nv) + '%') or rtrim(@ma_nv) like rtrim(ma_nv) + '%')) begin
+  select 'ma_nv' as field, replace(@$exists, '%s', rtrim(@ma_nv)) as message
+  return
+end
+select @wsID = rtrim(val) from options where upper(name) = 'M_WS_ID'
+select @outWork = rtrim(val) from options where name = 'm_tt_nghi_viec'
+select @stt_rec_nv = max(stt_rec) from hrnv
+select @stt_rec_nv = @wsID + case when @stt_rec_nv is null then '000000001' else replace(str(cast(substring(@stt_rec_nv, 2, 9) as bigint) + 1, 9), ' ', '0') end + 'HRM'
+
+insert into @@table select @ma_hs, @stt_rec_nv, @ma_nv, @ma_bp, @ma_vtr, @ma_ttnv, @ngay_vao, @bac_quan_ly, @stt_rec_ql, @stt_rec_tn, @stt, getDate(), getDate(), @@userID, @@userID
+]]>
+      </text>
+    </command>
+
+    <command event="Inserted">
+      <text>
+        <![CDATA[
+if exists(select 1 from @@table where ma_hs = rtrim(@ma_hs) and stt_rec_nv = rtrim(@stt_rec_nv)) begin
+  declare @ma_nv_ql varchar(33), @ten_nv_tn nvarchar(256), @ma_tt varchar(33), @status varchar(33), @statusName nvarchar(511)
+  select @ma_tt = val from options where name = 'm_tt_hs_td'
+  select @ma_nv_ql = ma_nv from vhrnv where stt_rec = @stt_rec_ql
+  select @ten_nv_tn = ten from vhrnv where stt_rec = @stt_rec_tn
+  select @status = case when @ma_ttnv = @outWork then 0 else 1 end
+  select @statusName = case when @@language = 'V' then name else name2 end from hrdirinfo where type = 'RMStatus' and code = @status
+
+  -- Employee
+  insert into hrnv (stt_rec, ma_nv, stt, ho_nv, ten_nv, gioi_tinh, ngay_sinh, noi_sinh, cmnd_so, cmnd_noi_cap, cmnd_ngay_hl, cmnd_ngay_hh, 
+      quoc_tich, dan_toc, ton_giao, hon_nhan, dien_thoai_dd, email_ca_nhan, dia_chi_ht, ngay_kham, chieu_cao, can_nang, mat_phai, 
+      mat_trai, nhom_mau, loai_sk, ghi_chu_sk, ngay_vao, nguoi_tiep_nhan, nguon_tuyen_dung, nguoi_gioi_thieu, tinh_trang_nv, 
+      ma_dvcs, bo_phan, bp_ref, vi_tri, bac_quan_ly, nv_ql, ma_nn, bang_cap, diem, ngay_cap_bang, 
+      status, datetime0, datetime2, user_id, user_id0, user_id2)
+    select a.stt_rec_nv, a.ma_nv, a.stt, b.ho_uv, b.ten_uv, b.gioi_tinh, b.ngay_sinh, b.noi_sinh, b.cmnd_so, b.cmnd_noi_cap, b.cmnd_ngay_hl, b.cmnd_ngay_hh, 
+        b.quoc_tich, b.dan_toc, b.ton_giao, b.ma_tthn, b.dien_thoai, b.email, b.dia_chi, b.ngay_kham, b.chieu_cao, b.can_nang, b.mat_phai, 
+        b.mat_trai, b.nhom_mau, b.loai_sk, b.ghi_chu_sk, a.ngay_vao, @ten_nv_tn, c.ten_nguon, b.nguoi_gt, a.ma_ttnv, 
+        b.ma_dvcs, a.ma_bp, d.bp_ref, a.ma_vtr, a.bac_quan_ly, @ma_nv_ql, b.ma_nn, b.bang_cap_nn, b.diem_nn, b.ngay_cap_nn, 
+        @status, a.datetime0, a.datetime2, 0, a.user_id0, a.user_id2
+      from @@table a with(nolock) left join hrrmhs b with(nolock) on a.ma_hs = b.ma_hs
+        left join hrdmnguontd c with(nolock) on b.ma_nguon = c.ma_nguon
+        left join hrbp d with(nolock) on a.ma_bp = d.ma_bp
+      where a.ma_hs = rtrim(@ma_hs) and a.stt_rec_nv = rtrim(@stt_rec_nv)
+
+  -- Working
+  insert into hreqtlvtd (stt_rec, stt_rec0, cong_ty, vi_tri, luong, thoi_gian_lv, ngay_tu, ngay_den, ly_do_den, ly_do_di, ghi_chu, line_nbr, datetime0, datetime2,user_id0, user_id2)
+    select a.stt_rec_nv, b.stt_rec0, b.cong_ty, b.vi_tri, b.luong, b.thoi_gian_lv, b.ngay_tu, b.ngay_den, b.ly_do_den, b.ly_do_di, b.ghi_chu, b.line_nbr, a.datetime0, a.datetime2, a.user_id0, a.user_id2
+      from @@table a with(nolock) join hrrmqtlvtd b with(nolock) on a.ma_hs = b.ma_hs where a.ma_hs = rtrim(@ma_hs) and a.stt_rec_nv = rtrim(@stt_rec_nv)
+
+  -- Test & Interview
+  select top 0 cast('' as char(13)) as stt_rec, cast('' as char(3)) as stt_rec0, ma_ktr, ngay_ktr, diem, ma_kq, trong_so, ghi_chu, tag, line_nbr, datetime0, datetime2, user_id0, user_id2, identity(int, 1, 1) as id
+    into #hrektr from hrektr
+  select top 0 cast('' as char(13)) as stt_rec, cast('' as char(3)) as stt_rec0, ma_pv, ngay_pv, diem, ma_kq, trong_so, ghi_chu, tag, line_nbr, datetime0, datetime2, user_id0, user_id2, identity(int, 1, 1) as id
+    into #hrepv from hrepv
+
+  insert into #hrektr (stt_rec, stt_rec0, ma_ktr, ngay_ktr, diem, ma_kq, trong_so, ghi_chu, tag, line_nbr, datetime0, datetime2, user_id0, user_id2)
+    select rtrim(@stt_rec_nv), '', b.ma_ktr, a.ngay_ktr, b.diem, b.ma_kq, b.trong_so, b.ghi_chu, 1, b.line_nbr, getDate(), getDate(), @@userID, @@userID
+      from hrrmkqktr a with(nolock) join hrrmkqktrct b with(nolock) on a.stt_rec = b.stt_rec
+      where a.ma_hs = rtrim(@ma_hs) and a.ma_dot = rtrim(@ma_dot)
+      order by a.ma_dot, a.ma_hs, a.ma_vong
+
+  insert into #hrepv (stt_rec, stt_rec0, ma_pv, ngay_pv, diem, ma_kq, trong_so, ghi_chu, tag, line_nbr, datetime0, datetime2, user_id0, user_id2)
+    select rtrim(@stt_rec_nv), '', b.ma_pv, a.ngay_pv, b.diem, b.ma_kq, b.trong_so, b.ghi_chu, 1, b.line_nbr, getDate(), getDate(), @@userID, @@userID
+      from hrrmkqpv a with(nolock) join hrrmkqpvct b with(nolock) on a.stt_rec = b.stt_rec
+      where a.ma_hs = rtrim(@ma_hs) and a.ma_dot = rtrim(@ma_dot)
+      order by a.ma_dot, a.ma_hs, a.ma_vong
+
+  insert into hrektr (stt_rec, stt_rec0, ma_ktr, ngay_ktr, diem, ma_kq, trong_so, ghi_chu, tag, line_nbr, datetime0, datetime2, user_id0, user_id2)
+    select stt_rec, replace(str(id, 3), ' ', '0'), ma_ktr, ngay_ktr, diem, ma_kq, trong_so, ghi_chu, tag, id, datetime0, datetime2, user_id0, user_id2
+      from #hrektr
+  insert into hrepv (stt_rec, stt_rec0, ma_pv, ngay_pv, diem, ma_kq, trong_so, ghi_chu, tag, line_nbr, datetime0, datetime2, user_id0, user_id2)
+    select stt_rec, replace(str(id, 3), ' ', '0'), ma_pv, ngay_pv, diem, ma_kq, trong_so, ghi_chu, tag, id, datetime0, datetime2, user_id0, user_id2
+      from #hrepv
+
+  drop table #hrektr
+  drop table #hrepv
+  update hrrmhs set ma_tt = @ma_tt, status = '1' where ma_hs = rtrim(@ma_hs)
+end
+
+declare @invoke nvarchar(1024), @stt_rec_hsuv char(13)
+select @stt_rec_hsuv = stt_rec from hrrmhs where ma_hs = rtrim(@ma_hs)
+delete hreanh where stt_rec = @stt_rec_nv
+insert into hreanh (stt_rec, rkey, imagedata) select @stt_rec_nv, convert(varchar(12), lower(replace(newid(), '-', ''))), imagedata from hreanh where stt_rec = @stt_rec_hsuv
+select @invoke = 'FileUploadExtender.UploadExtender.Process.TranferFiles(hrRMApplicantProfileInput,hrPIGeneralInformation,' + @stt_rec_hsuv + ',' + @stt_rec_nv + ',List,@@appDatabaseName,' + rtrim(@@userID) + ')'
+select '' as field, '' as message, @invoke as invoke, 'on$hrRMDecisionFilter$Retrieve$QueryComplete(this, ' + @status + N', ''' + replace(replace(isnull(@statusName, ''), '\', '\\'), '''', '\''') + ''');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$hrRMDecisionFilter(a){a.add_onResponseComplete(on$hrRMDecisionFilter$ResponseComplete);setDefault$hrRMDecisionFilter(a);a.setReadOnlyFields("ma_dot, ma_hs");var b=a.getItem("ma_nv");b.maxLength=a._maxLength;b.focus()}function close$hrRMDecisionFilter(a){try{a.remove_onResponseComplete(on$hrRMDecisionFilter$ResponseComplete)}catch(b){}}function on$hrRMDecisionFilter$ResponseComplete(e,a){var b=a.object,d=a.type.Context,c=a.type.Result;switch(d){case"Checking":objectBehavior$Dir$Irregular.checkCode(b,"ma_nv");break;case"EmployeeM":b.setItemControlBehavior("stt_rec_ql",c[0].Value,true);break;case"EmployeeR":b.setItemControlBehavior("stt_rec_tn",c[0].Value,true)}}function setDefault$hrRMDecisionFilter(a){g=a.grid;a.setItemValues("ma_dot, ten_dot%l, ma_hs, ten_hs%l, ma_bp, ten_bp%l, ma_vtr, ten_vtr%l, ngay_vao, ma_ttnv, ten_ttnv%l",[g._periodCode,g._periodName,g._applicantCode,g._applicantName,g._departmentCode,g._departmentName,g._positionCode,g._positionName,g._dateIn,g._status,g._statusName])}function onchange$hrRMDecisionFilter$EmployeeManager(b){var a=b.parentForm;a.request("Employee","EmployeeM",[["ma_nv","String",a.getItemValue("ma_ql")]],b)}function onchange$hrRMDecisionFilter$EmployeeReceiver(b){var a=b.parentForm;a.request("Employee","EmployeeR",[["ma_nv","String",a.getItemValue("ma_tn")]],b)}function on$hrRMDecisionFilter$Retrieve$QueryComplete(c,b,a){var d=c.grid;d._formScript="show$hrRMDecisionFilter$Retrieve$QueryComplete(this, "+b+", '"+a+"')"}function show$hrRMDecisionFilter$Retrieve$QueryComplete(a,c,b){a._setItemValue(a._activeRow,a._getColumnOrder("status"),c);a._setItemValue(a._activeRow,a._getColumnOrder("ten_status%l"),b);a._focusWhenTabChanged()}]]>
+      &ScriptIrregular;
+    </text>
+  </script>
+
+  <response>
+    <action id="Employee">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrnv where ma_nv = @ma_nv) begin
+  select stt_rec from hrnv where ma_nv = @ma_nv
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

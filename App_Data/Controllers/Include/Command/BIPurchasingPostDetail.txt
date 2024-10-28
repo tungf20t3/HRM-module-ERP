@@ -1,0 +1,14 @@
+﻿      <![CDATA[
+delete ]]>&BIPurchasingTableDetail;<![CDATA[ where ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[
+declare @ma_vung varchar(32), @ct_ts nvarchar(4000)
+select @ma_vung = min(ma_vung) from #]]>&BIPurchasingTable;<![CDATA[
+create table #data(id int, name varchar(32), val nvarchar(512))
+while @ma_vung is not null begin
+  select @ct_ts = ct_ts from #]]>&BIPurchasingTable;<![CDATA[ where ma_vung = @ma_vung
+  exec dbo.[AI_ERP$App$ConvertStringArray] @ct_ts, '#data', 'id, name, val'
+  insert ]]>&BIPurchasingTableDetail;<![CDATA[ select @]]>&BIFieldKey;<![CDATA[, @ma_vung, name, val from #data
+  truncate table #data
+  select @ma_vung = min(ma_vung) from #]]>&BIPurchasingTable;<![CDATA[ where @ma_vung < ma_vung
+end
+]]>
+

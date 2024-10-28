@@ -1,0 +1,18 @@
+﻿  <response>
+    <action id="GetResponse">
+      <text>
+        <![CDATA[
+declare @costDept bit, @costMO bit, @costProduct bit, @optDept bit, @optMO bit
+select @optDept = val from options where name = 'x_dt_bp'
+select @optMO = val from options where name = 'x_dt_lsx'
+
+select @costDept = x_dt_bp, @costMO = x_dt_lsx, @costProduct = x_dt_sp from dmdvcskb where ma_dvcs = @ma_dvcs and status = '1'
+select @costDept = isnull(@costDept, 0), @costMO = isnull(@costMO, 0), @costProduct = isnull(@costProduct, 0)
+if @costDept = 0 and @costMO = 0 and @costProduct = 0 select @optDept, @optMO
+  else select @costDept, @costMO
+
+return
+]]>
+      </text>
+    </action>
+  </response>

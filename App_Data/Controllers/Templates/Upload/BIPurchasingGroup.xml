@@ -1,0 +1,211 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Controller "BIPurchasingGroup">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % CheckValidEmail SYSTEM "..\..\Include\CheckImportValidEmail.ent">
+  %CheckValidEmail;
+  <!ENTITY CheckValidEmail.FieldName "e_mail">
+  <!ENTITY CheckValidEmail.MultiEmail "1=0">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+
+  <!ENTITY % Nested SYSTEM "..\..\Include\Nested.ent">
+  %Nested;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BIPurchasingGroupImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BIPurchasingGroupImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="bidmnhom0"/>
+    <table value="bidmnhom0" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    <listTable value="#k1"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="00003">
+      <header v="Giá trị &BIPurchasingGroup.Nested.Message.v;." e="The value is &BIPurchasingGroup.Nested.Message.e;." />
+    </var>
+    &MailImportVariable;
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nh" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ten_nh" column="B" allowNulls="false"/>
+    <field name="ten_nh2" column="C"/>
+    <field name="dia_chi" column="D"/>
+    <field name="dien_thoai" column="E"/>
+    <field name="fax" column="F"/>
+    <field name="e_mail" column="G"/>
+    <field name="ghi_chu" column="H"/>
+
+    <field name="id" column="None" insertValue="(cast(stt as int) + rtrim(@max))" updateValue="None"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục nhóm mua hàng" e="Purchasing Group"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_nh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhóm mua hàng" e="Code"/>
+      </field>
+      <field name="ten_nh" width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên nhóm mua hàng" e="Description"/>
+      </field>
+      <field name="ten_nh2" width="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+
+      <field name="dia_chi" width="50">
+        <text v="Địa chỉ" e="Address"/>
+      </field>
+      <field name="dien_thoai" width="16">
+        <text v="Điện thoại" e="Phone Number"/>
+      </field>
+      <field name="fax" width="16">
+        <text v="Số gửi bản sao (Fax)" e="Fax Number"/>
+      </field>
+      <field name="e_mail" width="32">
+        <text v="Thư (Email)" e="Email"/>
+      </field>
+
+      <field name="ghi_chu" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, ']]>&Controller;<![CDATA[', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @r int
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> ]]>&BIPurchasingGroup.Nested.Message.v;<![CDATA[.' else 'The value of cell <span class="Highlight">%invalidCell</span> is ]]>&BIPurchasingGroup.Nested.Message.e;<![CDATA[.' end
+
+create index i on @@table (ma_nh)
+
+-- Delete
+if @type = '0' delete @@table from @@table a join bidmnhom0 b on a.ma_nh = b.ma_nh
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&CheckValidEmailCommandCheckingImport;<![CDATA[
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_nh', stt, @message from @@table where ma_nh like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_nh', @r = min(stt) from @@table where ma_nh like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+-- Gather
+select a.* into #k from @@table a join bidmnhom0 b on a.ma_nh = b.ma_nh
+
+-- Do not delete following line
+-- #OverwriteChecking
+
+if @type = '1' delete @@table from @@table a where exists(select 1 from #k b where a.ma_nh = b.ma_nh)
+select identity(int, 1, 1) as stt, ma_nh, ten_nh, ten_nh2, dia_chi, dien_thoai, fax, e_mail, ghi_chu into #k1 from @@table
+
+-- Checking
+select @field = 'ma_nh'
+]]>&BIPurchasingGroup.Nested.Key.b;<![CDATA[
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_nh <> b.ma_nh and a.ma_nh like rtrim(b.ma_nh) + ''%''
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a with (index(i)), bidmnhom0 b with (index(PK_bidmnhom0)) where a.ma_nh like rtrim(b.ma_nh) + ''%''
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from bidmnhom0 a with (index(PK_bidmnhom0)), @@table b with (index(i)) where a.ma_nh like rtrim(b.ma_nh) + ''%''
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_nh <> b.ma_nh and a.ma_nh like rtrim(b.ma_nh) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = a.stt from @@table a with (index(i)), bidmnhom0 b with (index(PK_bidmnhom0)) where a.ma_nh like rtrim(b.ma_nh) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = b.stt from bidmnhom0 a with (index(PK_bidmnhom0)), @@table b with (index(i)) where a.ma_nh like rtrim(b.ma_nh) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+declare @max int
+select @max = isnull(max(id), 0) from bidmnhom0
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+</import>

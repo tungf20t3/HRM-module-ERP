@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Báo cáo phép năm</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+.style1 {
+	color: #FF0000;
+}
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Báo cáo phép năm</p>
+<p id="td2">Màn hình điều kiện lọc</p>
+<p id="pic"><img src="Vie\hrptEmployeeAnnualLeaveSummary.png"/></p>
+<p id="td2">Giải thích cách thực hiện báo cáo</p>
+<p id="p2" >Báo cáo phép năm thể hiện số phép của nhân viên dựa theo ngày trên điều kiện lọc.</p>
+<p class="node">Thâm niên</p>
+<p class="node_d">
+Thâm niên của nhân viên được tính dựa theo ngày vào công ty của nhân viên đó. Nếu thâm niên đúng như khai báo trong tham số
+ thì được cộng thêm một ngày phép năm.
+ </p>
+<p class="e">Ví dụ:<br/>
+  Nhân viên có Ngày vào công ty là 01/01/2008, Số năm thâm niên được cộng thêm ngày phép là 5.<br/>
+  Xem báo cáo ngày 01/01/2013, nhân viên này có thâm niên là 5 năm và được cộng 1 ngày phép vào cột Số phép trong năm.<br/>
+ Xem báo cáo ngày 31/12/2012, nhân viên này có thâm niên là 4.997 năm và không được cộng 1 ngày phép vào Số phép trong năm.</p>
+<p class="node">
+Dư đầu
+</p>
+<p class="node_d">
+- Trường hợp không nhập “Ngày/tháng giới hạn” trong chức năng "Khai báo chuyển phép sang năm sau", số dư phép đầu năm bằng số ngày phép 
+trong chức năng “Cập nhật số dư phép”.<br/>
+
+- Trường hợp có nhập “Ngày/tháng giới hạn” trong chức năng "Khai báo chuyển phép sang năm sau":</p>
+<ul class="lo_2">
+
++ Nếu “Ngày báo cáo” &le; “Ngày/tháng giới hạn”, số dư phép đầu năm bằng số ngày phép trong chức năng “Cập nhật số dư phép”;<br/>
++ Nếu “Ngày báo cáo” &gt; “Ngày/tháng giới hạn”, số dư phép đầu năm bằng 0.</ul>
+
+<p class="node">
+Trong năm</p>
+<p class="node_d">
+Số ngày phép trong năm bằng tổng ngày phép khai báo trong tham số “Số ngày phép được nghỉ trong năm” cộng với số ngày phép được cập nhật 
+trong các chức năng “Cập nhật số phép phát sinh cho nhân viên”, “Khai báo số phép cộng thêm cho bộ phận”, “Khai báo số phép cộng thêm cho 
+nhân viên”.</p>
+<p class="node">
+Đã nghỉ </p>
+<p class="node_d">
+Số ngày đã nghỉ phép (phép thực hiện) của nhân viên được tính theo các trường hợp sau:<br/>
+- Trường hợp không nhập “Ngày/tháng giới hạn” trong chức năng "Khai báo chuyển phép sang năm sau", phép thực hiện = số ngày phép đã thực 
+hiện trong kết quả tính công (nguồn thông tin nghỉ, vắng mặt với mã công khai báo trong tham số "Mã công nghỉ phép", nguồn này cũng đồng 
+thời thể hiện trên "Bảng theo dõi số ngày nghỉ phép trong năm") + số ngày “Đã nghỉ” trong chức năng “Cập nhật số dư phép”.<br/>
+
+- Trường hợp có nhập “Ngày/tháng giới hạn” trong chức năng "Khai báo chuyển phép sang năm sau":</p>
+<ul class="lo_2">
++ Nếu “Ngày báo cáo” &le; “Ngày/tháng giới hạn”, phép thực hiện = số ngày phép đã thực hiện trong kết quả tính công + số ngày “Đã nghỉ” 
+trong chức năng “Cập nhật số dư phép”;<br/>
++ Nếu “Ngày báo cáo” &gt; “Ngày/tháng giới hạn”, phép thực hiện = A + B + C:<br/>
+A = số ngày phép thực hiện từ “Ngày/tháng giới hạn” trở về trước – “Số ngày” trong chức năng “Cập nhật số dư phép”. Nếu tính ra số phép 
+nhỏ hơn 0 thì cho bằng 0;<br/>
+B = số ngày phép thực hiện sau “Ngày/tháng giới hạn”;<br/>
+C = “Đã nghỉ” trong chức năng “Cập nhật số dư phép đầu năm”</ul>
+
+<p class="node">Còn lại</p>
+<p class="node_d">Số phép còn lại = số dư phép đầu năm + số phép trong năm – số phép đã nghỉ (phép thực hiện).</p>
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

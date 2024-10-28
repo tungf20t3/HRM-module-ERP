@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE report [
+  <!ENTITY b SYSTEM ".\Include\BaseCurrency.xml">
+  <!ENTITY f SYSTEM ".\Include\ForeignCurrency.xml">
+  <!ENTITY s SYSTEM ".\Include\Separate.xml">
+
+  <!ENTITY p "../images/pdf.gif">
+  <!ENTITY e "../images/excel.gif">
+  <!ENTITY bi "../images/bilingual.png">
+  <!ENTITY be "../images/combine.png">
+
+  <!ENTITY Controller "hrTaxDeduction">
+  <!ENTITY % Profile SYSTEM ".\Config\Profile.ent">
+  %Profile;
+]>
+
+<report xmlns="urn:schemas-ai-erp:data-report">
+  <query>
+    <text>
+      <![CDATA[
+select @stt_rec = replace(@stt_rec, '''', '''''')
+
+--
+declare @q nvarchar(4000)
+select @q = '
+select a.mau_so, a.ky_hieu, case when a.so_hd = '''' then ''CXT'' else ltrim(a.so_hd) end as so_hd, a.ngay_ph, a.ngay_ct, a.ten_kh, a.mst_kh, a.quoc_tich, a.doi_tuong, a.dia_chi_kh, a.dien_thoai_kh, a.so_giay_to, a.noi_cap_giay_to, a.ngay_cap_giay_to, a.ghi_chuhoadon, b.ten_vt, a.t_bh_bb, b.thang_kt, rtrim(b.thang_kt1) as thang_kt1, rtrim(b.thang_kt2) as thang_kt2, left(b.nam_kt, 4) as nam_kt, a.t_tnc_thue, a.t_tnt_thue, a.t_thue,
+    replace(str(day(a.ngay_ct), 2), '' '', ''0'') as ngay, replace(str(month(a.ngay_ct), 2), '' '', ''0'') as thang, cast(year(a.ngay_ct) as char(4)) as nam
+  from hrm01$$partition$current a with(nolock)
+    join hrd01$$partition$current b with(nolock) on a.stt_rec = b.stt_rec
+    where a.stt_rec = @stt_rec
+'
+exec sp_executesql @q, N'@stt_rec char(13)', @stt_rec
+  ]]>
+      &Conditional.Unit.Profile.Query.Declare;
+      &Conditional.Unit.Profile.Query.Select;
+      &Conditional.Unit.Profile.Query.Result;
+    </text>
+  </query>
+
+  <forms>
+    <form id="0" reportFile="hrTaxDeduction_01" commandArgument="Pdf" urlImage="&p;" languageType="1">
+      <header v="Chứng từ khấu trừ thuế TNCN" e="Certificate of Personal Income Tax Withholding"/>
+      <download>
+        <header v="Chứng từ khấu trừ thuế TNCN" e="Certificate of Personal Income Tax Withholding"/>
+      </download>
+      <fields>
+        <field name="isFC" type="Boolean">
+          <header v="False" e="False"/>
+        </field>
+      </fields>
+    </form>
+  </forms>
+
+  <fields>
+    <field name="title" type="String">
+      <header v="CHỨNG TỪ KHẤU TRỪ THUẾ THU NHẬP CÁ NHÂN " e="CERTIFICATE OF PERSONAL INCOME TAX WITHHOLDING"/>
+    </field>
+    <field name="h_mau_so" type="String">
+      <header v="Mẫu số" e="(Form No)"/>
+    </field>
+    <field name="h_ky_hieu" type="String">
+      <header v="Ký hiệu" e="(Serial No)"/>
+    </field>
+    <field name="h_so" type="String">
+      <header v="Số" e="(No)"/>
+    </field>
+    <field name="h_mau_so_03" type="String">
+      <header v="Mẫu số 03/TNCN" e="Mẫu số 03/TNCN"/>
+    </field>
+    <field name="h_colon" type="String">
+      <header v=":" e=":"/>
+    </field>
+
+    <field name="h_chxhcnvn" type="String">
+      <header v="CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM" e="SOCIALIST REPUBLIC OF VIETNAM"/>
+    </field>
+    <field name="h_dltdhp" type="String">
+      <header v="Độc lập - Tự do - Hạnh phúc" e="Independence - Freedom - Happiness"/>
+    </field>
+
+    <field name="h_1_lon" type="String">
+      <header v="I. THÔNG TIN TỔ CHỨC TRẢ THU NHẬP" e="(Information of the income paying organization)"/>
+    </field>
+    <field name="h_2_lon" type="String">
+      <header v="II. THÔNG TIN NGƯỜI NỘP THUẾ" e="(Information of taxpayer)"/>
+    </field>
+    <field name="h_3_lon" type="String">
+      <header v="III. THÔNG TIN THUẾ THU NHẬP CÁ NHÂN KHẤU TRỪ" e="(Information of personal income tax withholding)"/>
+    </field>
+    <field name="h_01" type="String">
+      <header v="[01] Tên tổ chức trả thu nhập" e="(Name of the income paying organization)"/>
+    </field>
+    <field name="h_02" type="String">
+      <header v="[02] Mã số thuế" e="(Tax identification number)"/>
+    </field>
+    <field name="h_03" type="String">
+      <header v="[03] Địa chỉ" e="(Address)"/>
+    </field>
+    <field name="h_04" type="String">
+      <header v="[04] Điện thoại" e="(Telephone number)"/>
+    </field>
+    <field name="h_05" type="String">
+      <header v="[05] Họ và tên" e="(Full name)"/>
+    </field>
+    <field name="h_06" type="String">
+      <header v="[06] Mã số thuế" e="(Tax identification number)"/>
+    </field>
+    <field name="h_07" type="String">
+      <header v="[07] Quốc tịch" e="(Nationality)"/>
+    </field>
+    <field name="h_08" type="String">
+      <header v="[08] Cá nhân cư trú" e="(Resident individual)"/>
+    </field>
+    <field name="h_09" type="String">
+      <header v="[09] Cá nhân không cư trú" e="(Non-resident individual)"/>
+    </field>
+    <field name="h_10" type="String">
+      <header v="[10] Địa chỉ hoặc điện thoại liên hệ" e=" (Contact Address or Telephone Number)"/>
+    </field>
+    <field name="h_10a" type="String">
+      <header v="Trường hợp không có mã số thuế thì ghi thông tin cá nhân theo 2 chỉ tiêu [11] &amp; [12] dưới đây:" e="If Taxpayer does not have Tax identification number, please fill in 2 following items [11] &amp; [12]:"/>
+    </field>
+    <field name="h_11" type="String">
+      <header v="[11] Số CMND/CCCD hoặc số hộ chiếu" e="(ID/Passport Number)"/>
+    </field>
+    <field name="h_12" type="String">
+      <header v="[12] Nơi cấp" e="(Place of issue)"/>
+    </field>
+    <field name="h_13" type="String">
+      <header v="[13] Ngày cấp" e="(Date of issue)"/>
+    </field>
+    <field name="h_14" type="String">
+      <header v="[14] Khoản thu nhập" e="(Type of income)"/>
+    </field>
+    <field name="h_14a" type="String">
+      <header v="[14a] Khoản đóng bảo hiểm bắt buộc" e="(the aforesaid deductible insurance premiums)"/>
+    </field>
+    <field name="h_15" type="String">
+      <header v="[15] Thời điểm trả thu nhập" e="(Time of income payment)"/>
+    </field>
+    <field name="h_16" type="String">
+      <header v="[16] Tổng thu nhập chịu thuế phải khấu trừ" e="(Total taxable income to be withheld)"/>
+    </field>
+    <field name="h_17" type="String">
+      <header v="[17] Tổng thu nhập tính thuế" e="(Total tax calculation income)"/>
+    </field>
+    <field name="h_18" type="String">
+      <header v="[18] Số thuế thu nhập cá nhân đã khấu trừ" e="(Amount of personal income tax withheld)"/>
+    </field>
+    <field name="h_dai_dien" type="String">
+      <header v="ĐẠI DIỆN TỔ CHỨC TRẢ THU NHẬP" e="(Income paying organization)"/>
+    </field>
+    <field name="h_ngay" type="String">
+      <header v="Ngày" e="(Day)"/>
+    </field>
+    <field name="h_thang" type="String">
+      <header v="tháng" e="(month)"/>
+    </field>
+    <field name="h_nam" type="String">
+      <header v="năm" e="(year)"/>
+    </field>
+    <field name="h_tu_thang" type="String">
+      <header v="từ tháng" e="(from month)"/>
+    </field>
+    <field name="h_den_thang" type="String">
+      <header v="đến tháng" e="(to month)"/>
+    </field>
+  </fields>
+</report>

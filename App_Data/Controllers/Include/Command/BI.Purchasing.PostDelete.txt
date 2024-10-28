@@ -1,0 +1,8 @@
+﻿<![CDATA[
+if @@admin = 0 begin
+  if exists(select 1 from ]]>&BI.Purchasing.SourceTable;<![CDATA[ a where ]]>&k;<![CDATA[ = @]]>&k;<![CDATA[ and ]]>&BI.Purchasing.KeyExtension;<![CDATA[ not exists(select 1 from ]]>&BI.Purchasing.TableRight;<![CDATA[ b where b.]]>&BI.Purchasing.Field;<![CDATA[ = a.]]>&BI.Purchasing.Field;<![CDATA[ and b.user_id = @@userID and b.r_access = 1)) begin
+    select ']]>&BI.Purchasing.SourceTable;<![CDATA[' as field, case when @@language = 'v' then N'Tồn tại ]]>&BI.Purchasing.Message.v;<![CDATA[ trong các ]]>&BI.Purchasing.Message.v;<![CDATA[ của bản ghi không hợp lệ, không thể xóa được.' else N'Some ]]>&BI.Purchasing.Message.e;<![CDATA[ codes might not be removed or you are not authorized to execute this function.' end as message
+    return
+  end
+end
+]]>

@@ -1,0 +1,290 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "rptSalesInvoiceListByDepartment">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY XMLWhenFilterQuerying SYSTEM "..\Include\XML\WhenFilterQuerying.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY Identity "&Controller;">
+  <!ENTITY % ReferenceNumber SYSTEM "..\Include\ReferenceNumber.ent">
+  %ReferenceNumber;
+
+  <!ENTITY % Tiny.Currency SYSTEM "..\Include\Tiny.Currency.ent">
+  %Tiny.Currency;
+
+  <!ENTITY LineCounter "9">
+  <!ENTITY Delta14 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày chứng từ từ" e="Voucher Date from"></header>
+      <footer v="Ngày chứng từ từ/đến" e="Voucher Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày chứng từ đến" e="Voucher Date to"></header>
+    </field>
+    <field name="so_ct1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Chứng từ từ số" e="Voucher No. from"></header>
+      <footer v="Chứng từ từ/đến số" e="Voucher No. from/to"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ct2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Chứng từ đến số" e="Voucher No. to"></header>
+      <items style="Mask"></items>
+    </field>
+
+    <field name="tk" allowNulls="false" categoryIndex="1">
+      <header v="Tk doanh thu" e="Revenue Account"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="tk_du" categoryIndex="1">
+      <header v="Tk đối ứng tk dt" e="Ref. Acc. of Rev. Acc."></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="tk_thue" allowNulls="false" categoryIndex="1">
+      <header v="Tk thuế" e="Tax Account"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="tk_du_thue" categoryIndex="1">
+      <header v="Tk đối ứng tk thuế" e="Ref. Acc. of Tax Acc."></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="tk_ck" allowNulls="false" categoryIndex="1">
+      <header v="Tk chiết khấu" e="Discount Account"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="tk_du_ck" categoryIndex="1">
+      <header v="Tk đối ứng tk ck" e="Ref. Acc. of Dis. Acc."></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ma_bp" categoryIndex="1">
+      <header v="Mã bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="Department" reference="ten_bp%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="maxLength" readOnly="true" hidden="true" maxLength="-100" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_nvbh" categoryIndex="2">
+      <header v="Nhân viên bán hàng" e="Sales Employee"></header>
+      <items style="AutoComplete" controller="SalesEmployee" reference="ten_nvbh%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_nvbh%l" readOnly="true" external="true" categoryIndex="2">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh" categoryIndex="2">
+      <header v="Khách hàng" e="Customer"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1' and (kh_yn = 1 or nv_yn = 1)" check="kh_yn=1 or nv_yn=1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''" categoryIndex="2">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vv" categoryIndex="2">
+      <header v="Mã vụ việc" e="Job"></header>
+      <items style="AutoComplete" controller="Job" reference="ten_vv%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vv%l" readOnly="true" external="true" categoryIndex="2">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_hd" categoryIndex="2">
+      <header v="Mã hợp đồng" e="Contract"></header>
+      <items style="AutoComplete" controller="Contract" reference="ten_hd%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_hd%l" readOnly="true" external="true" categoryIndex="2">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_kh1" categoryIndex="2">
+      <header v="Nhóm khách" e="Customer Group"></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=1" check="loai_nh=1"/>
+    </field>
+    <field name="nh_kh2" categoryIndex="2">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=2" check="loai_nh=2"/>
+    </field>
+    <field name="nh_kh3" categoryIndex="2">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="CustomerGroup" key="status = '1' and loai_nh=3" check="loai_nh=3"/>
+    </field>
+    <field name="nh_vv1" categoryIndex="2">
+      <header v="Nhóm vụ việc" e="Job Group"></header>
+      <items style="AutoComplete" controller="JobGroup" reference="ten_nhbp1%l" key="status='1' and loai_nh=1" check="loai_nh=1"/>
+    </field>
+    <field name="nh_vv2" categoryIndex="2">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="JobGroup" reference="ten_nhbp2%l" key="status='1' and loai_nh=2" check="loai_nh=2"/>
+    </field>
+    <field name="nh_vv3" categoryIndex="2">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="JobGroup" reference="ten_nhbp3%l" key="status='1' and loai_nh=3" check="loai_nh=3"/>
+    </field>
+    <field name="nh_hd1" categoryIndex="2">
+      <header v="Nhóm hợp đồng" e="Contract Group"></header>
+      <items style="AutoComplete" controller="ContractGroup" reference="ten_nhbp1%l" key="status='1' and loai_nh=1" check="loai_nh=1"/>
+    </field>
+    <field name="nh_hd2" categoryIndex="2">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="ContractGroup" reference="ten_nhbp2%l" key="status='1' and loai_nh=2" check="loai_nh=2"/>
+    </field>
+    <field name="nh_hd3" categoryIndex="2">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="ContractGroup" reference="ten_nhbp3%l" key="status='1' and loai_nh=3" check="loai_nh=3"/>
+    </field>
+
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="11011: [so_ct1].Description, [so_ct1], [so_ct2], [maxLength]"/>
+
+      <item value="11000: [tk].Label, [tk]"/>
+      <item value="11000: [tk_du].Label, [tk_du]"/>
+      <item value="11000: [tk_thue].Label, [tk_thue]"/>
+      <item value="11000: [tk_du_thue].Label, [tk_du_thue]"/>
+      <item value="11000: [tk_ck].Label, [tk_ck]"/>
+      <item value="11000: [tk_du_ck].Label, [tk_du_ck]"/>
+      <item value="110100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+
+      <item value="110100: [ma_nvbh].Label, [ma_nvbh], [ten_nvbh%l]"/>
+      <item value="110100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="110100: [ma_vv].Label, [ma_vv], [ten_vv%l]"/>
+      <item value="110100: [ma_hd].Label, [ma_hd], [ten_hd%l]"/>
+      <item value="11011: [nh_kh1].Label, [nh_kh1], [nh_kh2], [nh_kh3]"/>
+      <item value="11011: [nh_vv1].Label, [nh_vv1], [nh_vv2], [nh_vv3]"/>
+      <item value="11011: [nh_hd1].Label, [nh_hd1], [nh_hd2], [nh_hd3]"/>
+
+      &ReportSign.Filter.Views;
+      &ReportMarginViewExtend;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        <category index="2" columns="120, 30, 70, 100, 100, 130">
+          <header v="Khác" e="Other"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = ''
+if exists(select 1 from options where name = 'm_compact_mode' and rtrim(val) = '1') select @message = @message + 'this._compactMode=1;setObjectFormHidden(this, ''ma_nvbh'');'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @revenueAccount varchar(33), @taxAccount varchar(33), @discountAccount varchar(33)
+select @revenueAccount = val from dmthamso where controller = 'rptSalesInvoiceListByDepartment' and name = 'tk_dt'
+select @taxAccount = val from dmthamso where controller = 'rptSalesInvoiceListByDepartment' and name = 'tk_thue'
+select @discountAccount = val from dmthamso where controller = 'rptSalesInvoiceListByDepartment' and name = 'tk_ck'
+select 'active$VoucherFilter$(this);default$Filter$Account(this, ''' + @revenueAccount + ''',''' + @taxAccount + ''',''' + @discountAccount + ''');' as message
+return
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterClosing;
+    &XMLWhenFilterQuerying;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @voucherList varchar(512), @salesEmployeeColumn varchar(33)
+select @voucherList = rtrim(parameter) from @@sysDatabaseName..wcommand where sysid = ']]>&Identity;<![CDATA['
+select @salesEmployeeColumn = rtrim(field) from syspostfields where id = '01'
+
+select @ngay_ct1 as tu_ngay, @ngay_ct2 as den_ngay
+exec rs_rptSalesInvoiceListByObject @ngay_ct1, @ngay_ct2, @so_ct1, @so_ct2, @tk, @tk_du, @tk_thue, @tk_du_thue, @tk_ck, @tk_du_ck
+  , @ma_nvbh, @salesEmployeeColumn, @ma_kh, @nh_kh1, @nh_kh2, @nh_kh3, @ma_vv, @ma_bp, @ma_hd, @nh_vv1, @nh_vv2, @nh_vv3, @nh_hd1, @nh_hd2, @nh_hd3
+  , @voucherList, @maxLength, '3', @ma_dvcs, @@language, @@userID, @@admin, ']]>&Controller;<![CDATA[', '@@sysDatabaseName', '#$query'
+]]>
+        &ReferenceParameters;
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  f._tabContainer.add_activeTabChanged(onChange$VoucherFilter$Tab);
+  f._tabContainer._loaded = true;
+  var lookup = ['ma_dvcs', 'tk', 'tk_du', 'tk_thue', 'tk_du_thue', 'tk_ck', 'tk_du_ck'];
+  for (var i = 0; i < lookup.length; i++) changeLookupReadonly(f, lookup[i]);
+  var o = f.getItem('maxLength');
+  o.value = o.maxLength;
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}try{a._tabContainer.remove_activeTabChanged(onChange$VoucherFilter$Tab)}catch(b){}}function onChange$VoucherFilter$Tab(b){var a=b.parentForm;a.focusWhenTabChanged(["tk",a._compactMode?"ma_kh":"ma_nvbh"])}function on$Filter$ResponseComplete(h,b){var a=b.object,d=b.type.Context,g=b.type.Result;switch(d){case"Checking":var c=a.grid,e=a.getItem("ngay_ct1").value,f=a.getItem("ngay_ct2").value;c._hiddenFields=[{Fields:"dt_nt, thue_nt, ck_nt, pt_nt, ma_nt, ty_gia",Value:a.getItemValue("mau_bc")=="10"}];c._alterTitle=[null,[["%d1",e,true],["%d2",f,true]]];remove$GridReport$Filter(c)}}function default$Filter$Account(a,c,d,b){!a.getItemValue("tk")&&a.setItemValues("tk, tk_thue, tk_ck",[c,d,b])}function setObjectFormHidden(b,a){var d=b.getItem(a),c=$func.findField(a,b._fields);$common.setVisible(d.parentNode.parentNode.parentNode,false);c.Hidden=true}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

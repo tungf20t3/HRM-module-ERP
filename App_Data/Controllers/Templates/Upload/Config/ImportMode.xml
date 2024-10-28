@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @updateNull varchar(8000)
+select @updateNull = ''
+select @updateNull = @updateNull + 'update @@table set ' + cast(a.name as varchar(8000)) + ' = ' + case when cast(b.name as varchar(8000)) in ('int', 'tinyint', 'numeric', 'bit', 'decimal') then '0' when charindex('char', b.name) > 0 then '''''' else 'null' end + ' where ' + cast(a.name as varchar(8000)) + ' is null ' + char(13)
+  from tempdb.dbo.syscolumns a join systypes b on a.xtype = b.xtype where a.name <> 'stt' and id = object_id('tempdb..@@table')
+exec(@updateNull)
+]]>
+    </text>
+  </processing>
+
+  <checking>
+    <text>
+      <![CDATA[
+declare @duplicateKey nvarchar(1000)
+select @duplicateKey = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> trùng hoặc lồng nhau.' else 'The value of cell <span class="Highlight">%invalidCell</span> is nested with an existing one in the same level.' end
+
+if '@@primaryKeyList' <> '' begin
+  select @@primaryKeyList, max(stt) as stt into #duplicateTable from @@table group by @@primaryKeyList having count(1) > 1
+  if exists(select 1 from #duplicateTable) begin
+    if @$mode = 1 begin
+      declare @$fieldKey nvarchar(128), @$qDuplicate nvarchar(4000)
+      select @$fieldKey = '@@primaryKeyList', @$qDuplicate = ''
+
+      select top 0 cast('' as varchar(128)) as data, 0 as default_value into #tmpFieldKey
+      if charindex(',', @$fieldKey) > 0  begin
+        select * into #t from dbo.AI_ERP$Function$System$Split(@$fieldKey, ',')
+        insert into #tmpFieldKey select data, 0 from #t
+      end else begin
+        insert into #tmpFieldKey select @$fieldKey, 0
+      end
+
+      update #tmpFieldKey set default_value = case when b.date_type in ('text', 'ntext', 'varchar', 'char', 'nvarchar', 'nchar') then 1 when b.date_type in ('tinyint', 'smallint', 'int', 'real', 'money', 'float', 'bit', 'decimal', 'numeric', 'smallmoney', 'bigint', 'varbinary', 'binary') then 2 else 0 end
+        from #tmpFieldKey a join (select a.name, b.name as date_type from tempdb..syscolumns a left join systypes b on a.xtype = b.xtype and a.xusertype = b.xusertype where a.id = object_id('tempdb..#table')) b on a.data = b.name
+      select @$qDuplicate = @$qDuplicate + case when @$qDuplicate <> '' then ' and ' else '' end + case when default_value = 1 then 'isnull(a.' + data + ', '''') = isnull(b.' + data + ', '''')' when default_value = 2 then 'isnull(a.' + data + ', 0) = isnull(b.' + data + ', 0)' else '((a.' + data + ' = b.' + data + ') or (a.' + data + ' is null and b.' + data + ' is null))' end
+        from #tmpFieldKey
+      set @$qDuplicate = 'insert into #errorTable(field, row, message) select @fieldKey, a.stt, ''00003'' from #table a join #duplicateTable b on ' + @$qDuplicate
+        + ' where not exists(select 1 from #errorTable e where e.field = @fieldKey and e.row = a.stt and e.message = ''00003'')'
+
+      set rowcount @$errorCount;
+      exec sp_executesql @$qDuplicate, N'@fieldKey nvarchar(128)', @$fieldKey
+      set @$errorCount = @$errorCount - @@rowcount; set rowcount 0; if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+    end else begin
+        select top 1 @duplicateKey as message, '@@primaryKeyList' as field, stt as record from #duplicateTable
+        return
+    end
+  end
+end
+if charindex(',', '@@primaryKeyList') <= 0 begin
+  exec('update @@table set @@primaryKeyList = ltrim(rtrim(@@primaryKeyList))')
+  exec('update @@table set @@primaryKeyList = replace(replace(@@primaryKeyList, char(9), ''''), char(160), '''')')
+end
+]]>
+    </text>
+  </checking>
+
+</import>

@@ -1,0 +1,27 @@
+﻿    <action id="PODefaultValue">
+      <text>
+        <![CDATA[
+declare @purOrg char(16), @purGroup char(16), @plant char(16), @purOrgName nvarchar(128), @purGroupName nvarchar(128), @plantName nvarchar(128)
+if @ma_bp0 = '' and @ma_nh0 = '' and @ma_vung = '' begin
+  select @purOrg = rtrim(val) from bioptionsnsd where name = 'ma_bp0' and user_id = @@userID and status = '1'
+  select @purGroup = rtrim(val) from bioptionsnsd where name = 'ma_nh0' and user_id = @@userID and status = '1'
+  select @plant = rtrim(val) from bioptionsnsd where name = 'ma_vung' and user_id = @@userID and status = '1'
+end else begin
+  select @purOrg = @ma_bp0, @purGroup = @ma_nh0, @plant = @ma_vung
+end
+if @@admin <> 1 begin
+  if @purOrg <> '' and not exists(select 1 from bisyspurorgrights where user_id = @@userID and ma_bp0 = @purOrg and r_access = 1) set @purOrg = ''
+  if @purGroup <> '' and exists(select 1 from bisyspurgrouprights where user_id = @@userID) and not exists(select 1 from bisyspurgrouprights where user_id = @@userID and ma_nh0 = @purGroup) set @purGroup = ''
+  if @plant <> '' and exists(select 1 from bisysplantrights where user_id = @@userID) and not exists(select 1 from bisysplantrights where user_id = @@userID and ma_vung = @plant) set @plant = ''
+end
+if @plant <> '' and not exists(select 1 from bidmvung where ma_vung = @plant and ma_dvcs = @@unit) set @plant = ''
+
+if @purOrg <> '' select @purOrgName = case when @@language = 'V' then ten_bp else ten_bp2 end from bidmbp0 where ma_bp = @purOrg
+if @purGroup <> '' select @purGroupName = case when @@language = 'V' then ten_nh else ten_nh2 end from bidmnhom0 where ma_nh = @purGroup
+if @plant <> '' select @plantName = case when @@language = 'V' then ten_vung else ten_vung2 end from bidmvung where ma_vung = @plant
+
+select rtrim(@purOrg) as ma_bp0, isnull(@purOrgName, '') as ten_bp0, rtrim(@purGroup) as ma_nh0, isnull(@purGroupName, '') as ten_nh0, rtrim(@plant) as ma_vung, isnull(@plantName, '') as ten_vung
+return
+]]>
+      </text>
+    </action>

@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY Table "cddtqt2">
+  <!ENTITY TransferID "ManagementObjectOpeningBalance2">
+
+  <!ENTITY % ManagementObjectName SYSTEM "..\..\Include\ManagementObjectName.ent">
+  %ManagementObjectName;
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'ManagementObjectOpeningBalance2' else 'ManagementObjectOpeningBalance22' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$&TransferID;ImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$&TransferID;ImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="&Table;"/>
+    <table value="&Table;" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="tk" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="tk not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+    <field name="ma_dtqt" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dtqt not in (select ma_dtqt from dmdtqt2 where dtqt_sd_pslk = 1)" errorCode="00001"/>
+    <field name="du_no00" column="E" type="Decimal"/>
+    <field name="du_co00" column="F" type="Decimal"/>
+    <field name="du_no_nt00" column="G" type="Decimal"/>
+    <field name="du_co_nt00" column="H" type="Decimal"/>
+    <field name="dien_giai" column="I"/>
+
+    <field name="nam" column="None" insertValue="@year" updateValue="None"/>
+    <field name="status" column="None" insertValue="''" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Vào số dư đầu kỳ &Name.Title2.v;" e="&Name.Title2.e; Opening Balance"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="tk" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tài khoản" e="Account"/>
+      </field>
+      <field name="ma_dtqt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã đối tượng" e="Object Code"/>
+      </field>
+      <field name="ten_dtqt" afterField="ma_dtqt" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên đối tượng" e="Object Name"/>
+      </field>
+      <field name="du_no00" width="16">
+        <text v="Dư nợ" e="Debit Balance"/>
+      </field>
+      <field name="du_co00" width="16">
+        <text v="Dư có" e="Credit Balance"/>
+      </field>
+      <field name="du_no_nt00" width="16">
+        <text v="Dư nợ ngoại tệ" e="FC Debit Balance"/>
+      </field>
+      <field name="du_co_nt00" width="16">
+        <text v="Dư có ngoại tệ" e="FC Credit Balance"/>
+      </field>
+      <field name="dien_giai" width="32">
+        <text v="Diễn giải" e="Description"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @field varchar(32), @r int, @d datetime, @user int, @admin bit, @unit varchar(32), @year int
+select @admin = @@admin, @user = @@userID, @unit = @@unit, @year = nam_bd from dmstt
+
+-- Checking
+select @field = 'ma_dvcs'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table where ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from @@table where ma_dvcs in (select distinct ma_dvcs from dmdvcsks where year(ngay_ks) >= @year)
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')]]>&Error;<![CDATA[
+  select @r = min(stt) from @@table where ma_dvcs in (select distinct ma_dvcs from dmdvcsks where year(ngay_ks) >= @year)]]>&Error;<![CDATA[
+end
+
+if @@admin <> 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, ']]>&TransferID;<![CDATA[', 'Edit') = 0 select @type = '0'
+  end
+
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from @@table a where not exists(select 1 from ]]>&Table;<![CDATA[ b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_dtqt = b.ma_dtqt and b.nam = @year)
+      and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+    if @type = '1' begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from @@table a where exists(select 1 from ]]>&Table;<![CDATA[ b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_dtqt = b.ma_dtqt and b.nam = @year)
+        and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end
+  end else begin
+    select @r = min(a.stt) from @@table a where not exists(select 1 from ]]>&Table;<![CDATA[ b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_dtqt = b.ma_dtqt and b.nam = @year)
+      and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)]]>&Error;<![CDATA[
+    if @type = '1' begin
+      select @r = min(stt) from @@table a where exists(select 1 from ]]>&Table;<![CDATA[ b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_dtqt = b.ma_dtqt and b.nam = @year)
+        and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)]]>&Error;<![CDATA[
+    end
+  end
+end
+
+-- Check
+]]>&Checking;<![CDATA[
+
+]]>&EndErrorMode;<![CDATA[
+
+update @@table set du_co00 = 0 where du_no00 <> 0
+update @@table set du_co_nt00 = 0 where du_no_nt00 <> 0
+
+-- Delete
+if @type = '0' delete @@table from @@table a where exists(select 1 from ]]>&Table;<![CDATA[ b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_dtqt = b.ma_dtqt and b.nam = @year)
+
+-- Gather
+select a.* into #k from @@table a join ]]>&Table;<![CDATA[ b on a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_dtqt = b.ma_dtqt where b.nam = @year
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_dtqt = b.ma_dtqt)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin
+  update ]]>&Table;<![CDATA[ set @@list from ]]>&Table;<![CDATA[ a, #k b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and a.ma_dtqt = b.ma_dtqt and a.nam = @year
+end
+]]>
+    </text>
+  </processing>
+</import>

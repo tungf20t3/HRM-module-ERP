@@ -1,0 +1,233 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY UploadButtonCss SYSTEM "..\Include\XML\ImageUploadForm.txt">
+  <!ENTITY UploadField SYSTEM "..\Include\XML\TransferField.txt">
+  <!ENTITY TransferID "DataCopy">
+  <!ENTITY Key "declare @rk varchar(16)
+select @rk = rkey from @@sysDatabaseName..userinfo2 where id = @@userID">
+]>
+
+<dir type="Report" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tải lên" e="Upload"></title>
+
+  <fields>
+    &UploadField;
+    <field name="ma_so" allowNulls="false" maxLength="32" dataFormatString="@upperCaseFormat">
+      <header v="Mã số" e="Authentication Code"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="cpass" external="true" defaultValue="''">
+      <header v="Xác nhận mật khẩu" e="Confirm Password"></header>
+      <clientScript><![CDATA[type="password" onchange="upload$genHash(this);"]]></clientScript>
+    </field>
+    <field name="chkpass" type="Int32" external="true" defaultValue="0" allowContain="true" inactivate="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 100, 30"/>
+      <item value="1100010: [upload].Label, [upload], [upload].Description"/>
+      <item value="11000: [ma_so].Label, [ma_so]"/>
+      <item value="1100---1: [cpass].Label, [cpass], [chkpass]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'init$UploadForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        &Key;<![CDATA[
+select 'this._rkey = ''' + @rk + ''';load$UploadForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$UploadForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, filename = getFileName($get('fileupload').value), allowExt = 'zip';
+var err = (this._language == 'v' ? 'Định dạng tệp không đúng.' : 'Invalid file type.');
+if (filename != '') {
+  var ext = filename.split('.').pop()
+  if (allowExt.indexOf(ext.toLowerCase()) < 0) {
+    this._checked = false;
+    $message.show(err);
+  }
+  else {
+    var o = f.getItem('cpass');
+    o.oldValue = o.value;
+    o.value = '';
+    checkFieldEntry(f, o);
+    if (f._checked) {
+      f._checked = false;
+      f.request('CheckKey', 'CheckKey', ['chkpass']);
+    }
+  }
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$UploadForm(f) {
+  var g = f.grid;
+  f.add_onResponseComplete(on$UploadForm$ResponseComplete);
+  f.request('Upload', 'Upload', []);
+  if (f._$init) f.request('Key', 'Key', []);
+  f._$init = true;
+}
+function load$UploadForm(f) {
+  var g = f.grid;
+  document.body._form = f;
+  $get('fileupload').value = '';
+  f.getItem('upload').field.AllowNulls = false;
+  $get(f.get_id() + '_form_upload').style.color = 'grey';
+}
+function close$UploadForm(f) {
+  try {f.remove_onResponseComplete(on$UploadForm$ResponseComplete);} catch (ex) {}
+  document.body._form = null;
+}
+function setFileName() {
+  var f = document.body._form;
+  $get(f.get_id() + '_form_upload').value = getFileName($get('fileupload').value);
+}
+function getFileName(s) {
+  var p = s.lastIndexOf('\\');
+  if (p != -1) {return s.substring(p + 1);}
+  else {return s;}
+}
+function on$UploadForm$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Upload':
+      f._key = result[0].Value;      
+      break;
+    case 'Key':
+      f._rkey = result[0].Value;
+      break;
+    case 'CheckKey':
+      if (result[0].Value) upload$request(f);
+        else $message.show(f._language == 'v' ? 'Mật khẩu xác nhận không đúng.' : 'Confirmation password is invalid.', String.format('upload$revertPassword(\'{0}\', \'\', true); $find(\'{0}\').focus(\'{1}\');', f.get_id(), 'cpass'));
+      break;
+    default:
+      break;
+  }
+}
+function on$DataCopyUpload$Fail(z) {window.setTimeout(function() {on$DataCopyUpload$Response(z)}, 50);}
+function on$DataCopyUpload$Complete(z) {
+  var f = z.form, g = f.grid;
+  f._busy = false;
+  $func.hideWait(f.get_id());
+  f.completion(true);  
+  var m0 = (g._language == 'v') ? 'Chương trình đã thực hiện xong.' : 'The process was completed successfully.';
+  $message.show(m0);
+  g.goToPage(-1);
+}
+function on$DataCopyUpload$Response(z) {
+  var f = z.form;
+  f._busy = false;
+  $func.hideWait(f.get_id());
+  var err = (f._language == 'v' ? 'Có lỗi chưa xác định.' : 'There was an unexpected error.');
+  $message.show(err);
+}
+
+function upload$genHash(o) {
+  var f = o.parentForm, p = $func.trim(MD5(o.value));
+  f.getItem('chkpass').value = CRC32($func.trim(f._rkey).substr(0, 8) + p.substr(1, p.length - 2));
+}
+function checkFieldEntry(f, o, force) {
+  if (force) o = f.getItem(o);
+  var v = force ? o.value : o.oldValue;
+  if (f._checked && !v) {
+    f._checked = false;
+    $func.hideWait(f.get_id());
+    $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), o.field.Label), String.format('upload$revertPassword(\'{0}\', \'\', true); $find(\'{0}\').focus(\'{1}\');', f.get_id(), o.field.Name));
+  }
+}
+function upload$revertPassword(f, name, force) {
+  if (force) f = $find(f);
+  var o = f.getItem('cpass');
+  if (o.oldValue) o.value = o.oldValue;
+}
+function upload$request(f) {
+  var g = f.grid, form = $get('uploadForm'), c = f.getItemValue('ma_so').toUpperCase();
+  $get('uploadIFrame').form = f;
+  var salt = $func.left(MD5(localStorage.getItem('k' + String.fromCharCode(0)) + f._rkey), 16);
+  var query = {Action: 0, Controller: ']]>&TransferID;<![CDATA[', Key: f._key, Code: AES(salt, salt, c), Time: new Date().getTime().toString()}
+  form.action = $func.resolveClientUrl('~/AppHandler/TransferData.ashx', g._baseUrl);
+  $get('query', form).value = Sys.Serialization.JavaScriptSerializer.serialize(query);
+  form.submit();
+  f.request('Upload', 'Upload', []);
+  f._checked = false;
+  window.setTimeout(function() {f._busy = true; $func.showWait(f.get_id());}, 50);
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Upload">
+      <text>
+        <![CDATA[
+declare @ticket varchar(32), @filename varchar(128), @description nvarchar(128), @name varchar(33), @d datetime
+select @ticket = lower(replace(newid(),'-',''))
+select @d = getdate()
+
+select @description = N'Sao chép dữ liệu', @filename = replace(convert(varchar(8), @d, 112) + convert(varchar(12), @d, 114), ':','') 
+if @@language <> 'V' select @description = N'Data Copy'
+insert into @@sysDatabaseName..ticket values(@ticket, @@userID, ]]>'&TransferID;'<![CDATA[, @filename + '.zip', @description, '@@appDatabaseName', getdate());
+
+select @ticket as value, @filename as file_name
+return
+]]>
+      </text>
+    </action>
+
+    <action id="Key">
+      <text>
+        &Key;<![CDATA[
+select @rk as value
+return
+]]>
+      </text>
+    </action>
+
+    <action id="CheckKey">
+      <text>
+        <![CDATA[
+declare @c bit, @d bit, @k varchar(6)
+exec @@sysDatabaseName..AI_ERP$System$CheckSum @@userID, @chkpass, 0, @c output
+select @c as val
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &UploadButtonCss;
+</dir>

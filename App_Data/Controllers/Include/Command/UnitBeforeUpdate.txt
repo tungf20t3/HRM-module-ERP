@@ -1,0 +1,23 @@
+﻿      <![CDATA[
+if @@admin = 0 begin
+  if $]]>&Tag;<![CDATA[dv.NewValue <> $]]>&Tag;<![CDATA[dv.OldValue begin
+    if exists(select 1 from ]]>&Tag;<![CDATA[dv a where ]]>&k;<![CDATA[ = $]]>&k;<![CDATA[.OldValue and not exists(select 1 from @]]>&Tag;<![CDATA[dv b where b.ma_dvcs = a.ma_dvcs) and not exists(select 1 from sysunitrights c where c.ma_dvcs = a.ma_dvcs and c.user_id = @@userID and c.r_access = 1)) begin
+      select ']]>&Tag;<![CDATA[dv' as field, case when @@language = 'v' then N'Tồn tại đơn vị trong các đơn vị bị xóa không hợp lệ, không thể lưu được.' else N'Some unit codes might not be removed or you are not authorized to execute this function.' end as message
+      return
+    end
+    if exists(select 1 from @]]>&Tag;<![CDATA[dv a where not exists(select 1 from @]]>&Tag;<![CDATA[dv b where b.]]>&k;<![CDATA[ = $]]>&k;<![CDATA[.OldValue and b.ma_dvcs = a.ma_dvcs) and not exists(select 1 from sysunitrights c where c.ma_dvcs = a.ma_dvcs and c.user_id = @@userID and c.r_access = 1)) begin
+      select ']]>&Tag;<![CDATA[dv' as field, case when @@language = 'v' then N'Tồn tại đơn vị trong các đơn vị vừa cập nhật không hợp lệ, không thể lưu được.' else N'Some unit codes are invalid or you are not authorized to execute this function.' end as message
+      return
+    end
+  end
+end
+]]>&ListWhenBeforeUpdateLog;<![CDATA[
+if @]]>&k;<![CDATA[ <> $]]>&k;<![CDATA[.OldValue begin
+  if $]]>&Tag;<![CDATA[dv.NewValue = $]]>&Tag;<![CDATA[dv.OldValue
+    update ]]>&Tag;<![CDATA[dv set ]]>&k;<![CDATA[ = @]]>&k;<![CDATA[ where ]]>&k;<![CDATA[ = $]]>&k;<![CDATA[.OldValue
+end
+
+update @]]>&Tag;<![CDATA[dv set ]]>&k;<![CDATA[ = @]]>&k;<![CDATA[
+if $]]>&Tag;<![CDATA[dv.NewValue <> $]]>&Tag;<![CDATA[dv.OldValue
+  delete ]]>&Tag;<![CDATA[dv where ]]>&k;<![CDATA[ = $]]>&k;<![CDATA[.OldValue
+]]>

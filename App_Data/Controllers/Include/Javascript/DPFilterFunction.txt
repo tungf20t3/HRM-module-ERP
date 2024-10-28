@@ -1,0 +1,55 @@
+
+<![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {f.getItem('so_ct')._idle = ]]>&IdleLookupFilter;<![CDATA[;}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f._looking.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);
+
+  var g = f.grid, w = g.get_element().parentForm, d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs');
+  g._custID = w.getItemValue('ma_kh');
+  g._custName = w.getItemValue('ten_kh%l');
+  f.setItemValues('ngay_ct2, ma_kh, ma_dvcs', [d2, g._custID, u]);
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Filter$Before$Loading(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1')) e.type.cancelEvent = true;
+  else {
+    var g = f.grid, w = g.get_element().parentForm;
+    var d1 = f.getItemValue('ngay_ct1'), d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs');
+
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: d1}, 
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: d2},
+      {Name: 'ma_kh', Type: 'String', Value: g._custID},
+      {Name: 'ma_dvcs', Type: 'String', Value: u}
+    ];
+    sender.set_memvars(a);
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, c, d, k, e) {
+  var g = f.grid;
+  g._voucher$Retrieve$ID = d;
+  g._voucher$Retrieve$Number = c;
+  g._voucher$Retrieve$Fields = k;
+  g._voucher$Retrieve$Date = $func.formatStringToDate(e);
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g);
+}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g) {  
+  var f = g.get_element().parentForm, l0 = g._getColumnOrder('stt_rec_phieu'), l1 = g._getColumnOrder('so_phieu'), l2 = g._getColumnOrder('ngay_phieu'), l3 = g._getColumnOrder('ty_gia'), l4 = g._getColumnOrder('tien_nt'), l5= g._getColumnOrder('tien');
+  var m = f.getItemValue('ma_kh');
+  g._appendRow();
+  var r = g._rowCount, c = g._voucher$Retrieve$Fields.split(String.fromCharCode(255));
+  var o = g._getItem(g._activeRow, l4);
+  g._setItemValue(r, l0, g._voucher$Retrieve$ID);
+  g._setItemValue(r, l1, g._voucher$Retrieve$Number);
+  g._setItemValue(r, l2, g._voucher$Retrieve$Date);  
+  g._setItemValue(r, l3, c[0]);
+  g._setItemValue(r, l4, c[1]);
+  g._setItemValue(r, l5, c[2]);
+  for (var i = 1; i <= r; i++) {g._getItem(r, 1)._customerIdentity = m;}
+  o._lastValue = g._getItemValue(g._activeRow, l4);
+  g._memvars = [];
+}
+]]>

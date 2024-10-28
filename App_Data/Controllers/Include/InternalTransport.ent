@@ -1,0 +1,134 @@
+﻿<!ENTITY % Conditional.InternalTransport SYSTEM "..\Include\InternalTransport.txt">
+<!ENTITY % Conditional.VoucherDeleteLog SYSTEM "..\Include\VoucherDeleteLog.txt">
+
+<![%Conditional.InternalTransport;[
+  <!ENTITY % Conditional.Cancellation SYSTEM "..\Include\Cancellation.txt">
+  <!ENTITY % Conditional.PrintHandle SYSTEM "..\Include\PrintHandle.txt">
+
+  <![%Conditional.VoucherDeleteLog;[
+    <!ENTITY PrintPostDelete "">
+    <!ENTITY PrintAdjustDelete "">
+    <!ENTITY VoucherLogKey " and 1 = 0">
+  ]]>
+  <!ENTITY VoucherLogKey "">
+
+  <![%Conditional.Cancellation;[
+    <!ENTITY CancelStatusItem SYSTEM "..\Include\XML\CancelStatusItem.txt">
+    <!ENTITY CancelStatusDefault SYSTEM "..\Include\Javascript\CancelStatusDefault.txt">
+    <!ENTITY CancelStatusExplore SYSTEM "..\Include\Javascript\CancelStatusExplore.txt">
+    <!ENTITY CancelStatusItemFilter ", 9">
+  ]]>
+
+  <![%Conditional.PrintHandle;[
+    <!ENTITY PrintPostUpdate SYSTEM "..\Include\Command\PrintPostUpdate.txt">
+    <!ENTITY PrintPostDelete SYSTEM "..\Include\Command\PrintPostDelete.txt">
+
+    <!ENTITY PrintAdjustUpdate SYSTEM "..\Include\Command\PrintAdjustUpdate.txt">
+    <!ENTITY PrintAdjustDelete SYSTEM "..\Include\Command\PrintAdjustDelete.txt">
+  ]]>
+
+
+  <!ENTITY InternalTransportFields SYSTEM "..\Include\XML\InternalTransportFields.txt">
+  <!ENTITY InternalTransportViews SYSTEM "..\Include\XML\InternalTransportViews.xml">
+  <!ENTITY InternalTransportCategory SYSTEM "..\Include\XML\InternalTransportCategory.xml">
+
+  <!ENTITY InternalTransportInitExternal SYSTEM "..\Include\Command\InternalTransportInitExternal.txt">
+  <!ENTITY InternalTransportExternalFieldQuery SYSTEM "..\Include\Command\InternalTransportExternalFieldQuery.txt">
+  <!ENTITY InternalTransportInsert SYSTEM "..\Include\Command\InternalTransportInsert.txt">
+  <!ENTITY InternalTransportUpdate SYSTEM "..\Include\Command\InternalTransportUpdate.txt">
+  <!ENTITY InternalTransportDelete SYSTEM "..\Include\Command\InternalTransportDelete.txt">
+
+  <!ENTITY InternalTransportChangeTab ", 'hd_so'">
+
+  <!ENTITY InternalTransportReportForm SYSTEM "..\Include\XML\InternalTransportReportForm.txt">
+  <!ENTITY InternalTransportReportFields SYSTEM "..\Include\XML\InternalTransportReportFields.txt">
+  <!ENTITY InternalTransportReportSelect "
+, isnull(k.ky_hieu, '') as ky_hieu, isnull(k.so_seri, '') as so_seri
+, isnull(v.hd_so, '') as hd_so, isnull(replace(str(day(v.hd_ngay),2),' ', '0'), '') v_ngay, isnull(replace(str(month(v.hd_ngay),2),' ', '0'), '') v_thang, isnull(cast(year(v.hd_ngay) as char(4)), '') v_nam, rtrim(u.name) as nguoi_lp
+, isnull(v.hd_cua, '') as hd_cua, isnull(v.hd_ve_viec, '') as hd_ve_viec, isnull(v.ma_so_thue, '') as ma_so_thue, isnull(v.ten_van_chuyen, '') as ten_van_chuyen, isnull(v.hd_van_chuyen, '') as hd_van_chuyen, isnull(v.pt_van_chuyen, '') as pt_van_chuyen, isnull(v.xuat_tai_kho, '') as xuat_tai_kho, isnull(v.nhap_tai_kho, '') as nhap_tai_kho, isnull(v.nguoi_nhan, '') as nguoi_nhan
+, case when @@language = 'V' then N'1: Lưu' else '1: Backup' end as so_lien
+">
+  <!ENTITY InternalTransportReportEISelect "
+, isnull(@so_ct_hddt, a.so_ct) as so_ct, rtrim(isnull(@mau_hddt, isnull(k.ky_hieu, ''))) as ky_hieu, isnull(@so_seri_hddt, k.so_seri) as so_seri
+, isnull(v.hd_so, '') as hd_so, isnull(replace(str(day(v.hd_ngay),2),' ', '0'), '') v_ngay, isnull(replace(str(month(v.hd_ngay),2),' ', '0'), '') v_thang, isnull(cast(year(v.hd_ngay) as char(4)), '') v_nam, rtrim(u.name) as nguoi_lp
+, isnull(v.hd_cua, '') as hd_cua, isnull(v.hd_ve_viec, '') as hd_ve_viec, isnull(v.ma_so_thue, '') as ma_so_thue, isnull(v.ten_van_chuyen, '') as ten_van_chuyen, isnull(v.hd_van_chuyen, '') as hd_van_chuyen, isnull(v.pt_van_chuyen, '') as pt_van_chuyen, isnull(v.xuat_tai_kho, '') as xuat_tai_kho, isnull(v.nhap_tai_kho, '') as nhap_tai_kho, isnull(v.nguoi_nhan, '') as nguoi_nhan
+, case when @@language = 'V' then N'1: Lưu' else '1: Backup' end as so_lien
+">
+  <!ENTITY InternalTransportReportEIDeclare "
+declare @mau_hddt varchar(33), @so_seri_hddt varchar(33), @so_ct_hddt varchar(33)
+if exists(select 1 from options where name = 'm_sd_hddt' and val = '1') begin
+  select @mau_hddt = mau_hddt, @so_seri_hddt = so_seri_hddt, @so_ct_hddt = so_ct_hddt from hddt00$$partition$current where stt_rec = @stt_rec
+  if @so_ct_hddt = '' begin
+    select @mau_hddt = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'EI001'
+    select @so_seri_hddt = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'EI002'
+    select @so_ct_hddt = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'EI003'
+  end
+end
+">
+  <!ENTITY InternalTransportReportFrom "left join v20dmnk k with(nolock) on a.ma_nk = k.ma_nk left join v&InternalTransportTag;$000000 v with(nolock) on a.stt_rec = v.stt_rec left join (select id, name from vsysuserinfo) u on a.user_id0 = u.id">
+  <!ENTITY InternalTransportreportUpdate "
+if exists(select 1 from options where name = 'm_sl_in' and val = '1')  begin
+  if object_id('@@sysDatabaseName..reportimage') is not null begin
+    declare @$q nvarchar(4000)
+
+    select top 0 cast('' as varchar(32)) as stt_rec, cast(0 as tinyint) as sd_hddt_yn into #m$
+    select top 0 cast('' as varchar(32)) as stt_rec, cast(0 as tinyint) as in_yn into #hdin$
+    --
+    select @$q = 'insert into #m$ select stt_rec, case when exists(select 1 from hddt00$$partition$current where stt_rec = @stt_rec) then 1 else 0 end from m&InternalTransportTag;$$partition$current where stt_rec = @stt_rec'
+    select @$q = @$q + char(13) + 'insert into #hdin$ select stt_rec, in_yn from hdin$$partition$current where stt_rec = @stt_rec'
+    exec sp_executesql @$q, N'@stt_rec varchar(32)', @stt_rec
+    --
+    if not exists(select 1 from #hdin$) insert into #hdin$ select @stt_rec, 0
+
+    select @$q = 'select case when b.in_yn = 1 or a.sd_hddt_yn = 1 then c.img_data else null end as ban_sao, 1 as xGroup'
+    select @$q = @$q + ' from #m$ a cross join #hdin$ b, @@sysDatabaseName..reportimage c'
+    select @$q = @$q + ' where c.id = ''' + case when @@language = 'v' then 'copy' else 'copy2' end + ''''
+    exec sp_executesql @$q
+  end else select null as ban_sao, 1 as xGroup
+  if exists(select 1 from hdin$$partition$current where stt_rec = @stt_rec)
+    update hdin$$partition$current set sl_in = sl_in + 1, in_yn = 1, datetime2 = getdate(), user_id2 = @@userID where stt_rec = @stt_rec
+  else
+    insert into hdin$$partition$current (stt_rec, ngay_ct, ma_ct, sl_in, in_yn, datetime0, datetime2, user_id0, user_id2)
+      select stt_rec, ngay_ct, ma_ct, 1, 1, getdate(), getdate(), @@userID, @@userID from @@prime$partition$current where stt_rec = @stt_rec
+end else select null as ban_sao, 1 as xGroup
+">
+  <!ENTITY InternalTransportCategoryIndexIS "18">
+  <!ENTITY InternalTransportCategoryIndexIT "11">
+  <!ENTITY InternalTransportInvoiceVoucherID ", 'PXA', 'PXB'">
+]]>
+
+
+<!ENTITY CancelStatusItem "">
+<!ENTITY CancelStatusDefault "">
+<!ENTITY CancelStatusExplore "">
+<!ENTITY CancelStatusItemFilter "">
+
+<!ENTITY PrintPostUpdate "">
+<!ENTITY PrintPostDelete "">
+
+<!ENTITY PrintAdjustUpdate "">
+<!ENTITY PrintAdjustDelete "">
+
+<!ENTITY InternalTransportFields "">
+<!ENTITY InternalTransportViews "">
+<!ENTITY InternalTransportCategory "">
+
+<!ENTITY InternalTransportInitExternal "">
+<!ENTITY InternalTransportExternalFieldQuery "">
+<!ENTITY InternalTransportInsert "">
+<!ENTITY InternalTransportUpdate "">
+<!ENTITY InternalTransportDelete "">
+
+<!ENTITY InternalTransportChangeTab "">
+
+<!ENTITY InternalTransportReportForm "">
+<!ENTITY InternalTransportReportFields "">
+<!ENTITY InternalTransportReportSelect "">
+<!ENTITY InternalTransportReportEISelect ", ltrim(a.so_ct) so_ct">
+<!ENTITY InternalTransportReportEIDeclare "">
+<!ENTITY InternalTransportReportFrom "">
+<!ENTITY InternalTransportreportUpdate "">
+<!ENTITY InternalTransportCategoryIndexIS "12">
+<!ENTITY InternalTransportCategoryIndexIT "5">
+
+<!ENTITY InternalTransportInvoiceVoucherID "">

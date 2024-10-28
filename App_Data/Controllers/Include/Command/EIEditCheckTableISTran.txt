@@ -1,0 +1,13 @@
+﻿<![CDATA[
+select @stt_rec as stt_rec, @ma_kh as ma_kh, @ong_ba as ong_ba, @ngay_lct as ngay_lct, @ngay_ct as ngay_ct, @ma_nt as ma_nt, @ty_gia as ty_gia, @status as status,
+    @t_tien_nt as t_tien_nt, @t_tien as t_tien, ]]>&InternalTransportFormMasterSelect;<![CDATA[ as t_tien_nt2,
+    @$hd_so as hd_so, @$hd_ngay as hd_ngay, @$hd_cua as hd_cua, @$hd_ve_viec as hd_ve_viec, @$ma_so_thue as ma_so_thue, @$ten_van_chuyen as ten_van_chuyen,
+    @$hd_van_chuyen as hd_van_chuyen, @$pt_van_chuyen as pt_van_chuyen, @$xuat_tai_kho as xuat_tai_kho, @$nhap_tai_kho as nhap_tai_kho,
+    @$sd_hddt_yn as sd_hddt_yn]]>&EINoteEditFields;<![CDATA[
+  into #editmaster ]]>&InternalTransportFormMasterFrom;<![CDATA[
+
+if $]]>&EICheckDetailFieldName;<![CDATA[.NewValue <> $]]>&EICheckDetailFieldName;<![CDATA[.OldValue begin
+  select * into #editdetail from @]]>&EICheckDetailFieldName;<![CDATA[
+  if ]]>&InternalTransportFormFlag;<![CDATA[ = 0 set @ei$CheckFieldAppend = @ei$CheckFieldAppend + case when @ei$CheckFieldAppend <> '' then ',' else '' end + 'ds_kt_thue_ct'
+end
+]]>&EINoteEditFieldsCheck;

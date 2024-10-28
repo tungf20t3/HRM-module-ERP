@@ -1,0 +1,18 @@
+﻿<![CDATA[
+declare @$insID int
+select @$insID = min(line_nbr) from @bidmvtkd a join bikddmloai b on a.ma_loai_kd = b.ma_loai group by b.ma_nguon, a.ngay_hl_tu having count(*) > 1
+if @$insID is not null begin
+  select 'bidmvtkd' as field, case when @@language = 'v' then N'Tồn tại loại kiểm định có nguồn kiểm định trùng ngày hiệu lực trong phần thông tin kiểm định, không thể lưu được.' else N'Inspection type with effective date already exists. It can not be saved.' end as message, 'onFocusGrid$]]>&Identification;<![CDATA[$Inspection(this, ' + rtrim(@$insID) + ', "bidmvtkd", "ma_loai_kd")' as script
+  return
+end
+]]>
+<![CDATA[
+if @]]>&BIFieldKey;<![CDATA[ <> $]]>&BIFieldKey;<![CDATA[.OldValue begin
+  if $bidmvtkd.NewValue = $bidmvtkd.OldValue
+  update bidmvtkd set ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[ where ]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue
+end
+
+update @bidmvtkd set ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[
+if $bidmvtkd.NewValue <> $bidmvtkd.OldValue
+  delete bidmvtkd where ]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue
+]]>

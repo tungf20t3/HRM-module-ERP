@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE dir [
+  <!ENTITY Identity "MPSRelease">
+]>
+
+<dir table="mpctyc" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn đơn hàng" e="Select Planned Order"></title>
+  <fields>
+    <field name="ma_vt">
+      <header v="Mã vật tư" e="Item Code"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" external="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu từ" e="Request Date From"></header>
+      <footer v="Ngày yêu cầu từ/đến" e="Request Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu đến" e="Request Date to"></header>
+    </field>
+
+    <field name="kh_sx" dataFormatString="0,1" clientDefault="1" align="right">
+      <header v="Kế hoạch sản xuất" e="Planned Order"></header>
+      <footer v="1 - Chỉ lọc đơn hàng xác nhận, 0 - Tất cả" e="Planned Order: 1 - Firmed Planned Order, 0 - All"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="11100: [kh_sx].Label, [kh_sx], [kh_sx].Description"/>
+    </view>
+  </views>
+  <commands>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @itemName nvarchar(128)
+select @itemName = case when @@language = 'V' then ten_vt else ten_vt2 end from dmvt where ma_vt = @ma_vt
+select @itemName = isnull(@itemName, '')
+select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, ''' + @ma_vt + ''', ''' + @kh_sx + ''',''' + convert(char(8), @ngay_ct1, 112) +  ''','''   +  convert(char(8), @ngay_ct2, 112) + ''',''' + replace(replace(@itemName, '\', '\\'), '''', '\''') + ''');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, a, b, c, d, e) {
+  var g = f.grid, w = g.get_element().parentForm;
+  g._item = a;
+  g._itemName = e;
+  g._site = w.getItemValue('ma_kho');
+  g._siteName = w.getItemValue('ten_kho%l');
+  g._firm = b;
+  g._dateFrom = $func.formatStringToDate(c);
+  g._dateTo = $func.formatStringToDate(d);
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g);
+}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g) {  
+  g.showForm(']]>&Identity;<![CDATA[Form');
+  g._memvars = [];
+}
+]]>
+    </text>
+  </script>
+</dir>

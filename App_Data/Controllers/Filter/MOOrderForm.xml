@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "MOOrder">
+  <!ENTITY DetailTable "d64">
+  <!ENTITY c11 "Mã khách">
+  <!ENTITY c12 "Customer">
+  <!ENTITY c21 "Số đơn hàng">
+  <!ENTITY c22 "Order Number">
+  <!ENTITY c31 "Ngày đơn hàng">
+  <!ENTITY c32 "Order Date">
+
+]>
+
+<dir table="m64$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Đơn hàng bán" e="Sales Order"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d64')._controlBehavior, z = f.grid, w = z.get_element().parentForm;
+  var first = true, f1 = 'so_luong0, stt_rec, stt_rec0, so_ct, line_nbr', f2 = 'so_luong, stt_rec_dh, stt_rec0dh, dh_so, dh_ln';;
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = g._getColumnOrder('so_luong0'), l2 = g._getColumnOrder('so_luong');
+  var l3 = z._getColumnOrder('dvt'), l4 = g._getColumnOrder('nhieu_dvt');
+  
+  var fields = 'ma_vt, ten_vt%l, dvt, he_so, ma_kho, ma_vi_tri, ma_lo, vi_tri_yn, lo_yn, ]]>&XMLHiddenFields;<![CDATA[';
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l1) != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields , f1, f2);
+
+      $func.setObjectWhen(z._getItem(row, l3), g._getItemValue(r, l4));
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong]);
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

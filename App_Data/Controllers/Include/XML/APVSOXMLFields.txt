@@ -1,0 +1,25 @@
+﻿<field name="u_status" categoryIndex="&APVCategoryIndex;">
+  <header v="Tình trạng duyệt" e="User’s VC Status"></header>
+  <items style="AutoComplete" controller="SOIndicatorUser" reference="u_status_name%l" key="loai_duyet = '&APVApprovalType;' and status = '1'" check="loai_duyet = '&APVApprovalType;'" information="u_status$sodmttcttg.u_status_name%l"/>
+</field>
+<field name="u_status_name%l" readOnly="true" external="true" defaultValue="''" categoryIndex="&APVCategoryIndex;">
+  <header v="" e=""></header>
+</field>
+<field name="nguoi_duyet" external="true" defaultValue="''" allowContain="true" categoryIndex="&APVCategoryIndex;">
+  <header v="Người duyệt" e="Approving Officer"></header>
+  <items style="AutoComplete" controller="UserGroup" reference="comment" key="id in (select distinct user_id from @@appDatabaseName..sodmduyet where loai_duyet = '&APVApprovalType;' and status = '1') and status = '1'" check="id in (select distinct user_id from @@appDatabaseName..sodmduyet where loai_duyet = '&APVApprovalType;' and status = '1')" information="name$vsysuserinfo.comment" row="1"/>
+  <clientScript><![CDATA[onchange="APV$onChange$Voucher$ApprovingOfficers(this);"]]></clientScript>
+</field>
+<field name="comment" readOnly="true" external="true" defaultValue="''" categoryIndex="&APVCategoryIndex;">
+  <header v="" e=""></header>
+</field>
+<field name="user_id3" type="Int16" hidden="true" allowContain="true" categoryIndex="&APVCategoryIndex;">
+  <header v="" e=""></header>
+</field>
+<field name="kieu_duyet" categoryIndex="&APVCategoryIndex;">
+  <header v="Kiểu duyệt" e="Approval Category"></header>
+  <items style="AutoComplete" controller="SOApprovalCategory" reference="ten_kieu%l" key="loai_duyet = '&APVApprovalType;' and status = '1'" check="loai_duyet = '&APVApprovalType;'" information="ma_kieu$sodmkieuduyet.ten_kieu%l"/>  
+</field>
+<field name="ten_kieu%l" readOnly="true" external="true" defaultValue="''">
+  <header v="" e=""></header>
+</field>

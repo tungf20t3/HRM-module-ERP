@@ -1,0 +1,96 @@
+﻿<!ENTITY % Conditional.Promotion SYSTEM "..\Include\Promotion.txt">
+<!ENTITY % Conditional.DiscountRate SYSTEM "..\Include\DiscountRate.txt">
+<!ENTITY % Conditional.DetailTax SYSTEM "..\Include\DetailTax.txt">
+
+<![%Conditional.DiscountRate;[
+  <!ENTITY PromotionMasterUpdateDiscountRate ", t_ck_nt = isnull(t_ck_nt, 0), t_ck = isnull(t_ck, 0)">
+  <!ENTITY PromotionPostGLAcctFieldDiscountRate ", tk_ck">
+  <!ENTITY PromotionPostGLAcctFieldRefDiscountRate ", tk_cpbh">
+  <!ENTITY PromotionFieldGLKeyDiscountRate ", tk_ck &lt;&gt; '''' and km_yn = 1 and ck + ck_nt &lt;&gt; 0">
+  <!ENTITY PromotionFieldGLNoAccListDiscountRate ",0">
+  <!ENTITY PromotionFieldGLNoAccListRefDiscountRate ",0">
+]]>
+<!ENTITY PromotionMasterUpdateDiscountRate "">
+<!ENTITY PromotionPostGLAcctFieldDiscountRate "">
+<!ENTITY PromotionPostGLAcctFieldRefDiscountRate "">
+<!ENTITY PromotionFieldGLKeyDiscountRate "">
+<!ENTITY PromotionFieldGLNoAccListDiscountRate "">
+<!ENTITY PromotionFieldGLNoAccListRefDiscountRate "">
+
+<![%Conditional.DetailTax;[
+  <!ENTITY PromotionDetailUpdateTaxDetail ", ma_thue = '', thue_suat = 0, tk_thue = ''">
+  <!ENTITY PromotionTaxPostGLAcctFieldRef "&PromotionPostGLAcctFieldRefDiscountRate;, tk_thue">
+]]>
+<!ENTITY PromotionDetailUpdateTaxDetail "">
+<!ENTITY PromotionTaxPostGLAcctFieldRef "&PromotionPostGLAcctFieldRefDiscountRate;, tk_thue_co">
+
+<![%Conditional.Promotion;[
+  <!ENTITY PromotionFields SYSTEM "..\Templates\Upload\Include\SVTranPromotionFields.txt">
+  <!ENTITY PromotionTotalFields SYSTEM "..\Templates\Upload\Include\SVTranPromotionFieldsTotal.txt">
+  <!ENTITY PromotionAccountFields SYSTEM "..\Templates\Upload\Include\SVTranPromotionFieldsAccount.txt">
+
+  <!ENTITY PromotionUpdateAccount ", tk_cpbh = case when km_yn = 0 then '' else case when a.tk_cpbh &lt;&gt; '' then a.tk_cpbh else case when km_yn = 1 then '' else b.tk_cpbh end end end">
+  <!ENTITY PromotionUpdateSalesAccount "case when km_yn in('1', '2', '3') then case when a.tk_cpbh &lt;&gt; '' then a.tk_cpbh else b.tk_cpbh end else b.tk_dt end ">
+  <!ENTITY PromotionUpdateCOGSAccount "case when km_yn in('1', '2', '3') then case when a.tk_cpbh &lt;&gt; '' then a.tk_cpbh else b.tk_cpbh end else b.tk_gv end ">
+  <!ENTITY PromotionFieldDetail ", km_yn, tk_cpbh">
+  <!ENTITY PromotionFieldDetailInsert ", a.km_yn, a.tk_cpbh">
+  <!ENTITY PromotionFieldMaster ", t_tien_km, t_tien_km_nt, t_thue_km, t_thue_km_nt, t_km, t_km_nt">
+  <!ENTITY PromotionFieldMasterInsert ", 0 as t_tien_km, 0 as t_tien_km_nt, 0 as t_thue_km, 0 as t_thue_km_nt, 0 as t_km, 0 as t_km_nt">
+  <!ENTITY PromotionMasterJoin "left ">
+  <!ENTITY PromotionMasterWhereNo " where km_yn = 0">
+  <!ENTITY PromotionDetailUpdate "update #d&Detail; set thue_nt = 0, thue = 0&PromotionDetailUpdateTaxDetail; where km_yn = 1">
+
+  <!ENTITY PromotionMasterUpdate "
+update #m&Detail; set t_so_luong = 0, t_thue_nt = isnull(t_thue_nt, 0), t_thue = isnull(t_thue, 0), t_tien_nt2 = isnull(t_tien_nt2, 0), t_tien2 = isnull(t_tien2, 0)&PromotionMasterUpdateDiscountRate;
+  where t_so_luong is null
+
+update #m&Detail; set t_so_luong = a.t_so_luong + isnull(km.t_so_luong, 0), t_km = isnull(km.t_tien2, 0), t_km_nt = isnull(km.t_tien_nt2, 0), t_thue_km_nt = isnull(km.t_thue_nt, 0), t_thue_km = isnull(km.t_thue, 0)
+  from #m&Detail; a join (select stt_rec, sum(so_luong) as t_so_luong, sum(thue_nt) as t_thue_nt, sum(thue) as t_thue&ListFieldSumValues.ext; from #d&Detail; where km_yn &lt;&gt; 0 group by stt_rec) km on a.stt_rec = km.stt_rec
+">
+
+  <!ENTITY PromotionPostGLAcctField "&PromotionPostGLAcctFieldDiscountRate;, tk_cpbh">
+  <!ENTITY PromotionPostGLAcctFieldRef "&PromotionTaxPostGLAcctFieldRef;">
+  <!ENTITY PromotionFieldGLAmountField "&FieldGLAmountField.ext;,thue">
+  <!ENTITY PromotionFieldGLFCAmountField "&FieldGLFCAmountField.ext;,thue_nt">
+
+  <!ENTITY PromotionFieldGLKey "&PromotionFieldGLKeyDiscountRate;, km_yn &gt; 1 and thue_nt + thue &lt;&gt; 0">
+  <!ENTITY PromotionFieldGLKeySalesAccount ", km_yn = 0">
+  <!ENTITY PromotionFieldGLKeyAnd " and km_yn = 0">
+  <!ENTITY PromotionFieldGLNoAccList "&PromotionFieldGLNoAccListDiscountRate;,0">
+  <!ENTITY PromotionFieldGLNoAccListRef "&PromotionFieldGLNoAccListRefDiscountRate;,0">
+
+  <!ENTITY PromotionPostInventoryExternal "gia2 = case b.km_yn when 0 then b.gia2 else 0 end, gia_nt2 = case b.km_yn when 0 then b.gia_nt2 else 0 end, tien2 = case b.km_yn when 0 then b.tien2 else 0 end, tien_nt2 = case b.km_yn when 0 then b.tien_nt2 else 0 end, gia21 = case b.km_yn when 0 then b.gia2 else 0 end, gia_nt21 = case b.km_yn when 0 then b.gia_nt2 else 0 end">
+  <!ENTITY PromotionFieldMasterInsertTotal.BaseCurrency " + t_km">
+  <!ENTITY PromotionFieldMasterInsertTotal.ForeignCurrency " + t_km_nt">
+]]>
+<!ENTITY PromotionFields "">
+<!ENTITY PromotionTotalFields "">
+<!ENTITY PromotionAccountFields "">
+
+<!ENTITY PromotionUpdateAccount "">
+<!ENTITY PromotionUpdateSalesAccount " b.tk_dt ">
+<!ENTITY PromotionUpdateCOGSAccount " b.tk_gv ">
+<!ENTITY PromotionFieldDetail "">
+<!ENTITY PromotionFieldDetailInsert "">
+<!ENTITY PromotionFieldMaster "">
+<!ENTITY PromotionFieldMasterInsert "">
+<!ENTITY PromotionMasterJoin "">
+<!ENTITY PromotionMasterWhereNo "">
+
+<!ENTITY PromotionDetailUpdate "">
+<!ENTITY PromotionMasterUpdate "">
+
+<!ENTITY PromotionPostGLAcctField "">
+<!ENTITY PromotionPostGLAcctFieldRef "">
+<!ENTITY PromotionFieldGLAmountField "">
+<!ENTITY PromotionFieldGLFCAmountField "">
+
+<!ENTITY PromotionFieldGLKey "">
+<!ENTITY PromotionFieldGLKeySalesAccount ", 1=1">
+<!ENTITY PromotionFieldGLKeyAnd "">
+<!ENTITY PromotionFieldGLNoAccList "">
+<!ENTITY PromotionFieldGLNoAccListRef "">
+
+<!ENTITY PromotionPostInventoryExternal "gia_nt21 = b.gia_nt2, gia21 = b.gia2">
+<!ENTITY PromotionFieldMasterInsertTotal.BaseCurrency "">
+<!ENTITY PromotionFieldMasterInsertTotal.ForeignCurrency "">

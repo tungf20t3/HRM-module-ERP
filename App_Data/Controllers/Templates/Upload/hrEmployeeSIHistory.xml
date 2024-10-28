@@ -1,0 +1,303 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrEmployeeSIHistory' else 'hrEmployeeSIHistory2' end as file_name">
+
+  <!ENTITY Controller "hrPIGeneralInformation">
+  <!ENTITY PrimeFieldImport "stt_rec">
+  <!ENTITY TypeImport "2">
+  <!ENTITY ImportDateEdit "getdate()">
+  <!ENTITY TableDestinationImport "hreqtlbhht">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$EmployeeSIHistoryImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$EmployeeSIHistoryImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hreqtlbhht, hrnv"/>
+    <table value="hreqtlbhht" alias="a"/>
+    <listTable value="#r"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" isPrimaryKey="true" column="A" allowNulls="false" reference="1" updateValue="None" check="ma_nv not in (select ma_nv from hrnv)" errorCode="00001"/>
+    <field name="ngay_thay_doi" isPrimaryKey="true" column="C" allowNulls="false" updateValue="None" type="DateTime"/>
+    <field name="ngay_thay_doi2" column="D" type="DateTime"/>
+    <field name="loai_thay_doi" column="E" allowNulls="false" upperCase="true" check="loai_thay_doi not in (select ma_loai from hrdmltdbh)" errorCode="00001"/>
+    <field name="cap_bac" column="F"/>
+    <field name="chuc_danh" column="G"/>
+    <field name="don_vi" column="H"/>
+    <field name="dia_chi" column="I"/>
+    <field name="hs_luong" column="J" type="Decimal" check="hs_luong &lt;&gt; 0" condition="if @stateSalary = '2'" errorCode="00002"/>
+    <field name="hs_pc_chuc_vu" column="K" type="Decimal" check="hs_pc_chuc_vu &lt;&gt; 0" condition="if @stateSalary = '2'" errorCode="00002"/>
+    <field name="hs_pc_vuot_khung" column="L" type="Decimal" check="hs_pc_vuot_khung &lt;&gt; 0" condition="if @stateSalary = '2'" errorCode="00002"/>
+    <field name="hs_pc_khu_vuc" column="M" type="Decimal" check="hs_pc_khu_vuc &lt;&gt; 0" condition="if @stateSalary = '2'" errorCode="00002"/>
+    <field name="hs_pc_tham_nien" column="N" type="Decimal" check="hs_pc_tham_nien &lt;&gt; 0" condition="if @stateSalary = '2'" errorCode="00002"/>
+    <field name="t_he_so" column="O" type="Decimal" check="t_he_so &lt;&gt; 0" condition="if @stateSalary = '2'" errorCode="00002"/>
+    <field name="luong_toi_thieu" column="P" type="Decimal"/>
+    <field name="luong_co_ban" column="Q" type="Decimal"/>
+    <field name="ty_le_bhxh" column="R" type="Decimal"/>
+    <field name="tien_bhxh" column="S" type="Decimal"/>
+    <field name="ty_le_bhyt" column="T" type="Decimal"/>
+    <field name="tien_bhyt" column="U" type="Decimal"/>
+    <field name="ty_le_bhtn" column="V" type="Decimal"/>
+    <field name="tien_bhtn" column="W" type="Decimal"/>
+    <field name="can_cu" column="X"/>
+    <field name="ty_le_kpcd" column="None" type="Decimal"/>
+    <field name="tien_kpcd" column="None" type="Decimal"/>
+
+    <field name="stt_rec" column="None" updateValue="None"/>
+    <field name="stt_rec0" column="None" insertValue="right('00' + dbo.ff_Dec2Seq(stt), 3)" updateValue="None"/>
+    <field name="line_nbr" column="None" type="Decimal" insertValue="stt" updateValue="None"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật quá trình tham gia BHXH" e="Employee SI History"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_nv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="ngay_thay_doi" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày hiệu lực từ" e="Effective Date from"/>
+      </field>
+      <field name="ngay_thay_doi2" width="16">
+        <text v="Ngày hiệu lực đến" e="Effective Date to"/>
+      </field>
+      <field name="loai_thay_doi" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại thay đổi" e="SI Change Type"/>
+      </field>
+      <field name="cap_bac" width="32">
+        <text v="Cấp bậc" e="Level"/>
+      </field>
+      <field name="chuc_danh" width="32">
+        <text v="Chức danh nghề" e="Job Title"/>
+      </field>
+      <field name="don_vi" width="32">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="dia_chi" width="32">
+        <text v="Địa chỉ" e="Address"/>
+      </field>
+      <field name="hs_luong" width="16">
+        <text v="Hệ số lương" e="Salary Coeff."/>
+      </field>
+      <field name="hs_pc_chuc_vu" width="16">
+        <text v="Hệ số pc chức vụ" e="Position Coeff."/>
+      </field>
+      <field name="hs_pc_vuot_khung" width="16">
+        <text v="Hệ số pc vượt khung(%)" e="Off-scale Coeff. (%)"/>
+      </field>
+      <field name="hs_pc_khu_vuc" width="16">
+        <text v="Hệ số pc khu vực" e="Region Coeff. (%)"/>
+      </field>
+      <field name="hs_pc_tham_nien" width="16">
+        <text v="Hệ số phụ cấp thâm niên" e="Seniority Coeff."/>
+      </field>
+      <field name="t_he_so" width="16">
+        <text v="Tổng hệ số" e="Total Coefficient"/>
+      </field>
+      <field name="luong_toi_thieu" width="16">
+        <text v="Lương tối thiểu" e="Minimum Salary"/>
+      </field>
+      <field name="luong_co_ban" width="16">
+        <text v="Lương cơ bản" e="Basic Salary"/>
+      </field>
+      <field name="ty_le_bhxh" width="16">
+        <text v="Tỷ lệ đóng BHXH(%)" e="SI Contri. Rate (%)"/>
+      </field>
+      <field name="tien_bhxh" width="16">
+        <text v="Tiền BHXH" e="SI Premium"/>
+      </field>
+      <field name="ty_le_bhyt" width="16">
+        <text v="Tỷ lệ đóng BHYT(%)" e="HI Contri. Rate (%)"/>
+      </field>
+      <field name="tien_bhyt" width="16">
+        <text v="Tiền BHYT" e="HI Premium"/>
+      </field>
+      <field name="ty_le_bhtn" width="16">
+        <text v="Tỷ lệ đóng BHTN(%)" e="UI Contri. Rate (%)"/>
+      </field>
+      <field name="tien_bhtn" width="16">
+        <text v="Tiền BHTN" e="UI Premium"/>
+      </field>
+      <field name="can_cu" width="32">
+        <text v="Căn cứ đóng" e="Payment Basis"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @field varchar(32), @stateSalary varchar(32)
+declare @user int, @admin bit, @sys varchar(32), @joinUnit bit, @joinDept bit, @r int, @count int
+
+select @admin = @@admin, @user = @@userID, @sys = '@@sysDatabaseName', @key = '', @joinUnit = 0, @joinDept = 0
+select @stateSalary = rtrim(val) from options where ma_phan_he = 'HR' and name = 'm_si_loai_nn'
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select @field = 'ngay_thay_doi'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from @@table where ngay_thay_doi2 is not null and ngay_thay_doi2 < ngay_thay_doi
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ngay_thay_doi2 is not null and ngay_thay_doi2 < ngay_thay_doi]]>&Error;<![CDATA[
+end
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00002' from @@table a join @@table b on a.ma_nv = b.ma_nv and a.stt <> b.stt where ((a.ngay_thay_doi = b.ngay_thay_doi) or (b.ngay_thay_doi <= a.ngay_thay_doi2 and b.ngay_thay_doi2 >= a.ngay_thay_doi) or (b.ngay_thay_doi2 is null and b.ngay_thay_doi between a.ngay_thay_doi and a.ngay_thay_doi2) or (a.ngay_thay_doi2 is null and a.ngay_thay_doi between b.ngay_thay_doi and b.ngay_thay_doi2))
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(a.stt) from @@table a join @@table b on a.ma_nv = b.ma_nv and a.stt <> b.stt where ((a.ngay_thay_doi = b.ngay_thay_doi) or (b.ngay_thay_doi <= a.ngay_thay_doi2 and b.ngay_thay_doi2 >= a.ngay_thay_doi) or (b.ngay_thay_doi2 is null and b.ngay_thay_doi between a.ngay_thay_doi and a.ngay_thay_doi2) or (a.ngay_thay_doi2 is null and a.ngay_thay_doi between b.ngay_thay_doi and b.ngay_thay_doi2))]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00002' from @@table a join hrnv c on a.ma_nv = c.ma_nv join hreqtlbhht b on c.stt_rec = b.stt_rec and a.ngay_thay_doi <> b.ngay_thay_doi where ((b.ngay_thay_doi <= a.ngay_thay_doi2 and b.ngay_thay_doi2 >= a.ngay_thay_doi) or (b.ngay_thay_doi2 is null and b.ngay_thay_doi between a.ngay_thay_doi and a.ngay_thay_doi2) or (a.ngay_thay_doi2 is null and a.ngay_thay_doi between b.ngay_thay_doi and b.ngay_thay_doi2))
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(a.stt) from @@table a join hrnv c on a.ma_nv = c.ma_nv join hreqtlbhht b on c.stt_rec = b.stt_rec and a.ngay_thay_doi <> b.ngay_thay_doi where ((b.ngay_thay_doi <= a.ngay_thay_doi2 and b.ngay_thay_doi2 >= a.ngay_thay_doi) or (b.ngay_thay_doi2 is null and b.ngay_thay_doi between a.ngay_thay_doi and a.ngay_thay_doi2) or (a.ngay_thay_doi2 is null and a.ngay_thay_doi between b.ngay_thay_doi and b.ngay_thay_doi2))]]>&Error;<![CDATA[
+end
+
+if @stateSalary = '2' begin
+  select top 0 stt, cast('' as varchar(32)) as ma_nv, cast(null as smalldatetime) as ngay_thay_doi, ngay_hl, luong_tt into #baseSalary from hrdmlttc
+  insert into #baseSalary select max(a.stt), a.ma_nv, a.ngay_thay_doi, max(b.ngay_hl), max(a.luong_toi_thieu) from @@table a join hrdmlttc b on b.ngay_hl <= a.ngay_thay_doi group by a.ma_nv, a.ngay_thay_doi
+  select @field = 'luong_toi_thieu'
+  if exists(select top 1 1 from #baseSalary) begin
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00002' from @@table a left join #baseSalary b on a.ma_nv = b.ma_nv and a.ngay_thay_doi = b.ngay_thay_doi join hrdmlttc c on b.ngay_hl = c.ngay_hl where b.luong_tt <> c.luong_tt
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(a.stt) from #baseSalary a join hrdmlttc b on a.ngay_hl = b.ngay_hl where a.luong_tt <> b.luong_tt]]>&Error;<![CDATA[
+    end
+  end else begin
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from @@table where luong_toi_thieu <> 0]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(stt) from @@table where luong_toi_thieu <> 0]]>&Error;<![CDATA[
+    end
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Key
+if @admin = 0 begin
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'hrEmployeeSIHistory', 'Edit') = 0 select @type = 0
+  end
+
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+  select @key = case when @key = '' then '' else ' where (' + @key + ')' end
+end
+
+-- Gather
+select top 0 stt_rec, stt_rec0, ngay_thay_doi, ngay_thay_doi2, loai_thay_doi, cap_bac, chuc_danh, don_vi, dia_chi, hs_luong, hs_pc_chuc_vu, hs_pc_vuot_khung, hs_pc_khu_vuc, hs_pc_tham_nien, t_he_so, luong_toi_thieu, luong_co_ban, ty_le_bhxh, tien_bhxh, ty_le_bhyt, tien_bhyt, ty_le_bhtn, tien_bhtn, ty_le_kpcd, tien_kpcd, can_cu, cast(0 as int) as stt into #r from hreqtlbhht
+
+select @q = 'insert into #r select e.stt_rec, '''', a.ngay_thay_doi, a.ngay_thay_doi2, a.loai_thay_doi, a.cap_bac, a.chuc_danh, a.don_vi, a.dia_chi,'
+select @q = @q + 'a.hs_luong, a.hs_pc_chuc_vu, a.hs_pc_vuot_khung, a.hs_pc_khu_vuc, a.hs_pc_tham_nien, a.t_he_so, a.luong_toi_thieu, a.luong_co_ban,'
+select @q = @q + 'a.ty_le_bhxh, a.tien_bhxh, a.ty_le_bhyt, a.tien_bhyt, a.ty_le_bhtn, a.tien_bhtn, 0, 0, a.can_cu, 0'
+select @q = @q + ' from @@table a join hrnv e on a.ma_nv = e.ma_nv' + @key
+exec sp_executesql @q
+
+-- Delete
+if @type = '0' delete #r from #r a where exists(select 1 from hreqtlbhht b where a.stt_rec = b.stt_rec and a.ngay_thay_doi = b.ngay_thay_doi)
+select b.stt_rec, b.stt_rec0, a.ngay_thay_doi, a.ngay_thay_doi2, a.loai_thay_doi, a.cap_bac, a.chuc_danh, a.don_vi, a.dia_chi, a.hs_luong, a.hs_pc_chuc_vu, a.hs_pc_vuot_khung, a.hs_pc_khu_vuc, a.hs_pc_tham_nien,
+    a.t_he_so, a.luong_toi_thieu, a.luong_co_ban, a.ty_le_bhxh, a.tien_bhxh, a.ty_le_bhyt, a.tien_bhyt, a.ty_le_bhtn, a.tien_bhtn, a.ty_le_kpcd, a.tien_kpcd, a.can_cu into #k
+  from #r a join hreqtlbhht b on a.stt_rec = b.stt_rec and a.ngay_thay_doi = b.ngay_thay_doi
+delete #r from #r a where exists(select 1 from #k b where a.stt_rec = b.stt_rec and a.ngay_thay_doi = b.ngay_thay_doi)
+
+-- Insert
+select @count = count(*) from #r
+if @count > 0 begin
+  create table #stt(stt_rec char(13), stt_rec0 char(3))
+  create table #o1(stt_rec char(13), ngay_thay_doi smalldatetime, stt int not null identity (1, 1))
+
+  insert into #stt select b.stt_rec, max(b.stt_rec0)
+    from #r a join hreqtlbhht b on a.stt_rec = b.stt_rec group by b.stt_rec
+
+  insert into #o1(stt_rec, ngay_thay_doi)
+    select stt_rec, ngay_thay_doi
+      from (select stt_rec, ngay_thay_doi as ngay_thay_doi from #r
+         union select distinct stt_rec, null from #r) a order by stt_rec, ngay_thay_doi
+
+  select stt, stt_rec into #o2 from #o1 where ngay_thay_doi is null
+  update #r set stt = b.stt + cast(isnull(dbo.ff_Seq2Dec(c.stt_rec0), 0) as int) from #r a
+    left join (select c.stt - d.stt as stt, c.stt_rec, c.ngay_thay_doi from #o1 c join #o2 d on c.stt_rec = d.stt_rec) b
+      on a.stt_rec = b.stt_rec and a.ngay_thay_doi = b.ngay_thay_doi
+    left join #stt c
+      on a.stt_rec = c.stt_rec
+
+-- Insert
+]]>&Inserting;<![CDATA[ end
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&ListWhenBeforeImportUpdateLogEmployeeSetDateEdit;<![CDATA[
+  update hreqtlbhht set @@list from hreqtlbhht a join #k b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0
+end
+]]>
+    </text>
+  </processing>
+
+</import>

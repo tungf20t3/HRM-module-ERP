@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+]>
+
+<dir table="bidmngm" code="ma_cn" order="ma_cn" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_cn" categoryIndex="1" allowNulls="false">
+      <header v="Chức năng" e="Function"></header>
+      <items style="AutoComplete" controller="Voucher" reference="ten_ct%l" key="status = '1' and ma_ct in (select ma_cn from bidmngm)" check="ma_ct in (select ma_cn from bidmngm)"/>
+    </field>
+    <field name="ten_ct%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11010: [ma_cn].Label, [ma_cn], [ten_ct%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(h,a){var c=a.object,e=a.type.Context,g=a.type.Result;switch(e){case"Checking":var f=c.grid,d=[],b=c.getItemValue("ma_cn");b!=""&&Array.add(d,{Name:"ma_cn",Opr:"=",Value:b,Type:"String",Ignore:false});f.set_externalKey(d)}}]]>
+    </text>
+  </script>
+</dir>

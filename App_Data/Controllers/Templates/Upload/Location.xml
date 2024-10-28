@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'Location' else 'Location2' end as file_name
+    ">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$LocationImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$LocationImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmvitri"/>
+    <table value="dmvitri" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_kho" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_kho not in (select ma_kho from dmkho)" errorCode="00001"/>
+    <field name="ma_vi_tri" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ten_vi_tri" column="C" allowNulls="false"/>
+    <field name="ten_vi_tri2" column="D"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục vị trí kho hàng" e="Location List"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_kho" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã kho" e="Site"/>
+      </field>
+      <field name="ma_vi_tri" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã vị trí" e="Location"/>
+      </field>
+      <field name="ten_vi_tri" width ="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên vị trí" e="Description"/>
+      </field>
+      <field name="ten_vi_tri2" width ="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'Location', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @r int, @d datetime
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[, @d = getDate()
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> đã có hoặc lồng nhau.' else 'The value of cell <span class="Highlight">%invalidCell</span> is invalid or already exists.' end
+
+create index i on @@table (ma_kho, ma_vi_tri)
+
+-- Delete
+if @type = '0' delete @@table from @@table a join dmvitri b on a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select @field = 'ma_vi_tri'
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, @message from @@table where ma_vi_tri like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ma_vi_tri like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+-- Gather
+select a.* into #k from @@table a join dmvitri b on a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri
+delete @@table from @@table a join #k b on a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri
+
+-- Checking
+select @field = 'ma_vi_tri'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_kho = b.ma_kho and a.ma_vi_tri <> b.ma_vi_tri and a.ma_vi_tri like rtrim(b.ma_vi_tri) + ''%''
+  ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, dmvitri b with (index(PK_dmvitri)) where a.ma_kho = b.ma_kho and a.ma_vi_tri like rtrim(b.ma_vi_tri) + ''%''
+  ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from dmvitri a, @@table b with (index(i)) where a.ma_kho = b.ma_kho and a.ma_vi_tri like rtrim(b.ma_vi_tri) + ''%''
+  ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_kho = b.ma_kho and a.ma_vi_tri <> b.ma_vi_tri and a.ma_vi_tri like rtrim(b.ma_vi_tri) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  select top 1 @r = a.stt from @@table a, dmvitri b with (index(PK_dmvitri)) where a.ma_kho = b.ma_kho and a.ma_vi_tri like rtrim(b.ma_vi_tri) + '%']]>&Duplicate;<![CDATA[
+  select @q = 'select top 1 @r = b.stt from dmvitri a, @@table b with (index(i)) where a.ma_kho = b.ma_kho and a.ma_vi_tri like rtrim(b.ma_vi_tri) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ end
+]]>
+    </text>
+  </processing>
+</import>

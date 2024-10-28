@@ -1,0 +1,156 @@
+﻿<!ENTITY % Conditional.DetailTax SYSTEM "..\Include\DetailTax.txt">
+
+<![%Conditional.DetailTax;[
+  <!ENTITY DetailTaxFlag "1">
+  <!ENTITY DetailTaxScript SYSTEM "..\Include\Javascript\DetailTaxScript.txt">
+
+  <!ENTITY InitFormDetailTax "init$DetailTax$Form(f);">
+  <!ENTITY LoadFormDetailTax "load$DetailTax$Form(f);">
+
+  <!ENTITY DetailTaxFields SYSTEM "..\Include\XML\DetailTaxFields.txt">
+  <!ENTITY DetailTaxViewFC SYSTEM "..\Include\XML\DetailTaxViewFC.txt">
+  <!ENTITY DetailTaxViewBC SYSTEM "..\Include\XML\DetailTaxViewBC.txt">
+
+  <!ENTITY VoucherGoodsTypeDetailTaxPromotion "">
+  <!ENTITY DetailTaxPromotionFields SYSTEM "..\Include\XML\DetailTaxPromotionFields.txt">
+  <!ENTITY DetailTaxPromotionViewFC SYSTEM "..\Include\XML\DetailTaxPromotionViewFC.txt">
+  <!ENTITY DetailTaxPromotionValidResponse "item._taxCode = (result[6].Value == '' ? null : result[6].Value);">
+  <!ENTITY DetailTaxPromotionValidConditional "(!item._taxCode) || ">
+  <!ENTITY DetailTaxPromotionValid "
+    if (v != '1') {
+      if (g._getItemValue(o.row, g._getColumnOrder('ma_thue')) == '') {
+        if (item._taxCode) {
+            g.setItemGridBehavior(o, [['ma_thue', item._taxCode, '', false]]);
+            g.request(o, 'GetTaxRate', 'GetTaxRate', ['ma_thue']);
+        }
+      }
+    }
+    else g.setItemGridBehavior(o, [['ma_thue', '', '', null],['thue_suat', 0, 0, null],['thue_nt', 0, 0, null],['thue', 0, 0, null],['tk_thue', '', '', null],['ma_kh2', '', '', null]]);
+
+    &DetailTaxResponseCompleteTaxRate;
+">
+
+  <!ENTITY DetailTaxVoucherCopying "f._detailTax$VoucherCopy = true;">
+  <!ENTITY DetailTaxGridScattering "
+    select @message = 'var $defaultTax;'
+    &DetailTaxDefaultValueInMessage;
+    select @message = @message + 'if (f._action == ''New'' &amp;&amp; !f._detailTax$VoucherCopy) setDefaultValue$DetailTax$Detail(this, $defaultTax);'">
+
+  <!ENTITY DetailTaxGridAfterInsertRow "
+    var $defaultTax;
+    &DetailTaxDefaultValue;
+    setDefaultValue$DetailTax$Detail(g, $defaultTax);">
+
+  <!ENTITY DetailTaxGetTaxRate SYSTEM "..\Include\XML\GetCreditTaxRate.xml">
+  <!ENTITY DetailTaxGetTaxAccount SYSTEM "..\Include\XML\GetTaxAccount.xml">
+  <!ENTITY DetailTaxResponseComplete "
+    case 'GetTaxRate':
+      var r = result[0].Value;
+      if (g._getItemValue(o.row, g._getColumnOrder('thue_suat')) != r) {
+        g.setItemGridBehavior(o, [['thue_suat', result[0].Value, '', null]]);
+        &DetailTaxResponseCompleteTaxRate;
+      }
+      g.setItemGridBehavior(o, [['tk_thue', result[1].Value, '', null], ['tk_cn', result[2].Value, '', null]]);
+      g.live(o, 'tk_thue');
+      break;
+    case 'TaxAccount':
+      g.setItemGridBehavior(o, [['tk_cn', result[0].Value, '', null]]);
+      break;
+">
+  <!ENTITY DetailTaxResponseCompleteItem "
+      var promotionColumn = g._getColumnOrder('km_yn'), taxIndex = &DetailTaxReponseItemIndex;;
+      if ((promotionColumn &lt; 0 ) || g._getItemValue(o.row, promotionColumn) != '1') {
+        if ($func.trim(result[taxIndex.ma_thue].Value) != '') {
+          o._taxCode = result[taxIndex.ma_thue].Value;
+          g.setItemGridBehavior(o, [
+            ['ma_thue', result[taxIndex.ma_thue].Value, '', false],
+            ['thue_suat', result[taxIndex.thue_suat].Value, '', false],
+            ['tk_thue', result[taxIndex.tk_thue].Value, '', false],
+            ['tk_cn', result[taxIndex.tk_cn].Value, '', false]
+          ]);
+        } else {
+          var $defaultTax;
+          &DetailTaxDefaultValue;
+          o._taxCode = ($defaultTax[0] = '' ? null : $defaultTax[0]);
+          setDefaultValue$DetailTax$Detail(g, $defaultTax, o.row, true);
+        }
+      } else g.setItemGridBehavior(o, [['ma_thue', '', '', null],['thue_suat', 0, 0, null], ['tk_thue', '', '', null],['tk_cn', '', '', null]]);
+      &DetailTaxResponseCompleteTaxRate;
+">
+
+  <!ENTITY DetailTaxExecuteCommandCheckAuthority "
+    if (!(g.validRowExpression('ma_kh2', '([ma_thue] == &quot;&quot;) || (![tk_cn]) || ([ma_kh2] != &quot;&quot;)'))) break;
+">
+
+  <!ENTITY GridDetailQueryLoadingJoin " left join dmtk f on a.tk_thue = f.tk">
+  <!ENTITY GridDetailQueryLoadingWhere "">
+  <!ENTITY DetailTaxGridDetailQueryLoading SYSTEM "..\Include\XML\GridStockLoadingExtension.txt">
+
+  <!ENTITY DetailTaxFollowFields SYSTEM "..\Include\XML\DetailTaxFollowFields.txt">
+  <!ENTITY DetailTaxFollowFieldsBase SYSTEM "..\Include\XML\DetailTaxFollowFieldsBase.txt">
+  <!ENTITY DetailTaxFollowFieldCode SYSTEM "..\Include\XML\DetailTaxFollowFieldCode.txt">
+  <!ENTITY DetailTaxFollowFieldsBaseRef SYSTEM "..\Include\XML\DetailTaxFollowFieldsBaseRef.txt">
+  <!ENTITY DetailTaxFollowView SYSTEM "..\Include\XML\DetailTaxFollowView.txt">
+  <!ENTITY DetailTaxFollowViewBase SYSTEM "..\Include\XML\DetailTaxFollowViewBase.txt">
+  <!ENTITY DetailTaxFollowViewCode SYSTEM "..\Include\XML\DetailTaxFollowViewCode.txt">
+
+  <!ENTITY DetailTaxFollowCopyFields ", ma_thue, thue_suat, tk_thue, ma_kh2, tk_cn">
+  <!ENTITY DetailTaxFollowCopyFieldsBase ", ma_thue, thue_suat, tk_thue, tk_cn">
+  <!ENTITY DetailTaxFollowCopyFieldCode ", ma_thue">
+  <!ENTITY DetailTaxFollowValidDetail ", z.$a.dtf_thue_nt, z.$a.dtf_thue_tl">
+
+  <!ENTITY GridStockQueryLoadingJoinDetail " left join dmthue t on a.ma_thue = t.ma_thue left join dmtk f on t.tk_thue_co = f.tk">
+
+  <!ENTITY DetailTaxReductionReport "'1'">
+]]>
+
+<!ENTITY GridStockQueryLoadingJoinDetail "">
+
+<!ENTITY DetailTaxFlag "0">
+<!ENTITY DetailTaxScript "">
+
+<!ENTITY InitFormDetailTax "">
+<!ENTITY LoadFormDetailTax "">
+
+<!ENTITY DetailTaxFields "">
+<!ENTITY DetailTaxViewFC "">
+<!ENTITY DetailTaxViewBC "">
+
+<!ENTITY DetailTaxPromotionFields "">
+<!ENTITY DetailTaxPromotionViewFC "">
+<!ENTITY DetailTaxPromotionValidResponse "">
+<!ENTITY DetailTaxPromotionValid "">
+<!ENTITY DetailTaxPromotionValidConditional "">
+
+<!ENTITY DetailTaxVoucherCopying "">
+<!ENTITY DetailTaxGridScattering "">
+<!ENTITY DetailTaxGridAfterInsertRow "">
+
+<!ENTITY DetailTaxGetTaxRate "">
+<!ENTITY DetailTaxGetTaxAccount "">
+<!ENTITY DetailTaxResponseComplete "">
+<!ENTITY DetailTaxResponseCompleteItem "">
+
+<!ENTITY DetailTaxExecuteCommandCheckAuthority "">
+
+<!ENTITY GridDetailQueryLoadingJoin "">
+<!ENTITY GridDetailQueryLoadingWhere "">
+<!ENTITY DetailTaxGridDetailQueryLoading SYSTEM "..\Include\XML\GridStockLoading.txt">
+
+<!ENTITY DetailTaxFollowFields "">
+<!ENTITY DetailTaxFollowFieldsBase "">
+<!ENTITY DetailTaxFollowFieldCode "">
+<!ENTITY DetailTaxFollowFieldsBaseRef "">
+<!ENTITY DetailTaxFollowView "">
+<!ENTITY DetailTaxFollowViewBase "">
+<!ENTITY DetailTaxFollowViewCode "">
+
+<!ENTITY DetailTaxFollowCopyFields "">
+<!ENTITY DetailTaxFollowCopyFieldsBase "">
+<!ENTITY DetailTaxFollowCopyFieldCode "">
+<!ENTITY DetailTaxFollowValidDetail "">
+
+<!ENTITY GridStockQueryLoadingJoin "&GridStockQueryLoadingJoinDetail; &EnvironmentTaxInheritanceLoadingJoin;">
+<!ENTITY GridStockQueryLoadingWhere "">
+<!ENTITY DetailTaxFollowStockQueryLoading SYSTEM "..\Include\XML\ExternalStockLoadingExtension.txt">
+<!ENTITY DetailTaxReductionReport "'0'">

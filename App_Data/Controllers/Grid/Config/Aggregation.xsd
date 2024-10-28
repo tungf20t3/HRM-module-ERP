@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="Aggregation" targetNamespace="urn:schemas-ai-erp:data-aggregation" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-aggregation" xmlns:a="urn:schemas-ai-erp:data-aggregation" xmlns:mstns="urn:schemas-ai-erp:data-aggregation" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="aggregation" type ="aggregationType">
+    <xs:key name="controller">
+      <xs:selector xpath="a:controllers/a:controller" />
+      <xs:field xpath="@name"/>
+    </xs:key>
+  </xs:element>
+  
+  <xs:complexType name="aggregationType">
+    <xs:all maxOccurs="1" minOccurs="0">
+      <xs:element name="controllers" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="controller" type="controllerType" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="controllerType">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="description" type="xs:string" use="optional"/>
+  </xs:complexType>
+</xs:schema>

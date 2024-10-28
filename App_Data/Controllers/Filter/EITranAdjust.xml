@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY Identity "Adjust">
+  <!ENTITY % DetailTax SYSTEM "..\Include\DetailTax.ent">
+  %DetailTax;
+  <!ENTITY % EIOptions SYSTEM "..\Include\EIOptions.ent">
+  %EIOptions;
+  <!ENTITY % Discount SYSTEM "..\Include\Discount.ent">
+  %Discount;
+  <!ENTITY % EINote SYSTEM "..\Include\EINote.ent">
+  %EINote;
+
+  <!ENTITY r "'HD1', 'HDA', 'PXC', 'PXD'">
+
+  <!ENTITY Key "declare @rk varchar(16)
+select @rk = lower(left(replace(newid(),'-',''), 16))
+update userinfo2 set rkey = @rk where id = @@userID">
+]>
+
+<dir table="userinfo2" code="name" order="name" database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều chỉnh thông tin hóa đơn" e="Adjustment Invoice"></title>
+  <fields>
+
+    <field name="ckey" dataFormatString="@upperCaseFormat" external="true" defaultValue="''" allowNulls="false">
+      <header v="Mã số" e="Authentication Code"></header>
+      <items style="Mask"></items>
+    </field>
+
+    <field name="cpass" external="true" defaultValue="''">
+      <header v="Xác nhận mật khẩu" e="Confirm Password"></header>
+      <clientScript><![CDATA[type="password" onchange="genHash(this);"]]></clientScript>
+    </field>
+    <field name="chkpass" external="true" hidden="true" readOnly="true" defaultValue="''" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 100, 230, 0"/>
+      <item value="110: [ckey].Label, [ckey]"/>
+      <item value="110-1: [cpass].Label, [cpass], [chkpass]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        &Key;<![CDATA[
+select 'this._key = ''' + @rk + ''';loadForm]]>&Identity;<![CDATA[(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'closeForm]]>&Identity;<![CDATA[(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, o = f.getItem('cpass');
+o.oldValue = o.value;
+o.value = '';
+checkFieldEntry(f, o);
+if (f._checked) {
+  f._checked = false;
+  f.request('CheckKey', 'CheckKey', ['chkpass']);
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function loadForm]]>&Identity;<![CDATA[(f) {
+  var g = f.grid;
+  f.add_onResponseComplete(on$Form]]>&Identity;<![CDATA[$ResponseComplete);
+  if (f._$init) f.request('Key', 'Key', []);
+  f._$init = true;
+}
+function closeForm]]>&Identity;<![CDATA[(f) {try {f.remove_onResponseComplete(on$Form]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}}
+function on$Form]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Key':
+      f._key = result[0].Value;
+      break;
+    case 'CheckKey':
+      var g = f.grid;
+      if (result[0].Value) request$GetSupplier$Process (f, g._$k.toString(), g._$voucherCode, g._getItemValue(g._activeRow, g._getColumnOrder('ngay_ct')));
+        else $message.show(f._language == 'v' ? 'Mật khẩu xác nhận không đúng.' : 'Confirmation password is invalid.', String.format('revertPassword(\'{0}\', \'\', true); $find(\'{0}\').focus(\'{1}\');', f.get_id(), 'cpass'));
+      break;
+    case 'GetVoucherType':
+      request$EIResign(f, result[0].Value);
+    default:
+      break;
+  }
+}
+function request$GetSupplier$Process(f, c, v, e) {
+  f.request('GetVoucherType', 'GetVoucherType', [['stt_rec', 'String', c],['ma_ct', 'String', v], ['ngay_ct', 'DateTime', e]]);
+}
+function request$EIResign(f, c, force) {
+  var g = f.grid, id = f._id;
+  if (!force) {
+    busy$Page(f, true);
+    window.setTimeout(function() {request$EIResign(f, c, true);}, 2);
+    return;
+  }
+   var query = Sys.Serialization.JavaScriptSerializer.serialize({
+    'dFrom': $func.formatDateOrder(g._$dFrom),
+    'dTo': $func.formatDateOrder(g._$dTo),
+    'unit': g._$unit,
+    'voucherCode': g._$voucherCode,
+    'idNumber': g._$k.toString(),
+    'listDays': g._$ld.toString(),
+    'voucherDate': g._$lvd.toString(),
+    'customerList': g._$c.toString(),
+    'voucherBook': g._$voucherBook.toString(),
+    'voucherKey': f.getItemValue('ckey'),
+    'debugMode': g._$debugMode,
+    'external': ']]>&DetailTaxFlag;&EICustomerAuthentication;&DiscountFlag;&EINoteFlag;<![CDATA['
+  });
+  g._$resign = c;
+  var m = (c == 1 ? '315' : (c == 2 ? '325' : '355')), a = ((g._use$Token) ? '300' : null);
+  Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl(g._url$EInvoice, g._baseUrl), g._service$Method, false, {
+    method: m,
+    action: a,
+    query: query
+  }, onProcess$AdjustCompleted, onProcess$AdjustFailed, id);
+}
+function onProcess$AdjustCompleted(c,h){var f=$find(h),b=f.grid,a,d=b._language=="v",g=true;if(b._$debugMode==1&&c.Success=="2"){$func.hideWait(h);b._busy(false);busy$Page(f,false);f.cancelDialog();b._debug$Data=c;b.showForm("EITranForm");return}if(c.Success=="1"){if(b._use$Token&&b._unitProvider==8){b._$certificate.onRequestTokenCompleted(c,b,b.get_id(),f);return}a=d?"Chương trình đã thực hiện xong.":"The process was completed successfully."}else{var e=c.Field,i=c.Code;g=false;switch(i){case"0":a=String.format(d?'Đơn vị <span class="Highlight">{0}</span> chưa khai báo tài khoản kết nối, chương trình không thể tiếp tục thực hiện được.':'An error occurred while processing, the unit <span class="Highlight">{0}</span> has not been declared in account information.',e);break;case"1":a=d?"Đã khóa số liệu, kiểm tra lại ngày khóa sổ.":"Data is locked, you must modify system locked date.";break;case"2":a=String.format(d?'Hóa đơn số <span class="Highlight">{0}</span> đã được sửa hoặc xóa bởi người sử dụng khác.':'The invoice number <span class="Highlight">{0}</span> has been modified or deleted by another user.',e);break;case"3":a=String.format(d?'Đã có chứng từ thanh toán cho hóa đơn số <span class="Highlight">{0}</span>, không thể hủy được.':'Can not cancel voucher number <span class="Highlight">{0}</span>, It was received or paid.',e);break;case"4":a=String.format(d?'Khách hàng <span class="Highlight">{0}</span> chưa khai trong danh sách khách hàng sử dụng hóa đơn điện tử, Chương trình không thể tiếp tục thực hiện được.':'An error occurred while processing, the customer <span class="Highlight">{0}</span> has not been registered.',e);break;case"5":a=String.format(d?'Hóa đơn thay thế số <span class="Highlight">{0}</span> đã xác thực hoặc không đúng, Chương trình không thể tiếp tục thực hiện được.':'An error occurred while processing, the replacement invoice <span class="Highlight">{0}</span> has been registered or invalid.',e);break;case"6":a=String.format(d?'Hóa đơn bị thay thế số <span class="Highlight">{0}</span> chưa xác thực hoặc bị điều chỉnh hoặc bị hủy, Chương trình không thể tiếp tục thực hiện được.':'An error occurred while processing, the replacement invoice <span class="Highlight">{0}</span> has not been registered or adjusted or canceled.',e);break;default:a=d?"Phát sinh lỗi trong quá trình thực hiện.":"The process was failed."}if(c.Reference)a+=String.format(' <span class="Highlight">{0}</span>',String.format(c.Message,c.Reference))}busy$Page(f,false);$message.show(a,String.format(g?"refresh$Page($find('{0}'));":"$find('{0}')._focusWhenTabChanged();",b._id));f.cancelDialog()}function onProcess$AdjustFailed(b,a){busy$Page($find(a),false);$message.showError(b)}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Key">
+      <text>
+        &Key;<![CDATA[
+select @rk as value
+return
+]]>
+      </text>
+    </action>
+
+    <action id="CheckKey">
+      <text>
+        <![CDATA[
+declare @hash varchar(32), @c bit, @d bit, @k varchar(6)
+exec AI_ERP$System$CheckSum @@userID, @chkpass, 0, @c output
+select @c as val
+return
+]]>
+      </text>
+    </action>
+
+    <action id="GetVoucherType">
+      <text>
+        <![CDATA[
+declare @c as int, @d smalldatetime, @q nvarchar(4000)
+select @d = @ngay_ct
+if (exists(select 1 from @@appDatabaseName..hddt01 where stt_rec1 = @stt_rec) or (@ma_ct = 'HD7')) select @c = 3
+  else select @c = case when @ma_ct in (]]>&r;<![CDATA[) then 1 else 2 end
+
+if (@ma_ct = 'HD2' and @c <> 3) begin
+  select @q = 'if exists (select 1 from @@appDatabaseName..m22$' + convert(varchar(6), @d, 112) + ' where stt_rec = ''' + replace(@stt_rec, '''', '''''')  + ''' and stt_rec_hd = '''') select @c = 1 else select @c = 2'
+  exec sp_executesql @q, N'@c int output', @c output
+end
+
+select @c as r
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

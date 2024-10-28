@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY ControlLocationLotLoading SYSTEM "..\..\Include\Command\ControlLocationLotLoading.txt">
+  <!ENTITY Code "PNE">
+
+  <!ENTITY % Control.Unit SYSTEM "..\..\Include\Unit.ent">
+  %Control.Unit;
+  %Control.Unit.Include.Customer;
+  %Control.Unit.Ignore;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Voucher"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XML)$"/>
+    <onProcessFail value="parent.on$PATranImportXml$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$PATranImportXml$Complete(this.frameElement)"/>
+    <baseTable value=""/>
+  </setting>
+
+  <fields identity="true" name="stt">
+    <field name="ma_mau_ct" maxLength="128"/>
+    <field name="ten_kh" maxLength="128"/>
+    <field name="dia_chi" maxLength="256"/>
+    <field name="ma_so_thue" maxLength="128"/>
+    <field name="ky_hieu" maxLength="32"/>
+    <field name="so_hd" maxLength="32"/>
+    <field name="ngay_hd" type="DateTime"/>
+    <field name="ngay_ph" type="DateTime"/>
+    <field name="hinh_thuc_tt" maxLength="128"/>
+
+    <field name="ma_nt" maxLength="8"/>
+    <field name="ty_gia" type="Decimal"/>
+    <field name="t_tien" type="Decimal"/>
+    <field name="thue_suat" type="Decimal"/>
+    <field name="t_thue" type="Decimal"/>
+    <field name="t_thanh_toan" type="Decimal"/>
+
+    <field name="t_thue1" type="Decimal"/>
+    <field name="t_thue0" type="Decimal"/>
+    <field name="t_thue5" type="Decimal"/>
+    <field name="t_thue10" type="Decimal"/>
+
+    <field name="ghi_chu" maxLength="128"/>
+
+    <field name="ky_hieu_d" reference="1" maxLength="32"/>
+    <field name="ten_vt" reference="1" maxLength="400"/>
+    <field name="dvt" reference="1" maxLength="32"/>
+    <field name="so_luong" reference="1" type="Decimal"/>
+    <field name="gia" reference="1" type="Decimal"/>
+    <field name="tien" reference="1" type="Decimal"/>
+    <field name="thue_suat_d" reference="1" type="Decimal"/>
+    <field name="thue" reference="1" type="Decimal"/>
+
+    <field name="tien_ext" reference="1" type="Decimal"/>
+    <field name="thue_suat_ext" reference="1" maxLength="32"/>
+    <field name="thue_ext" reference="1" type="Decimal"/>
+
+    <field name="tk_nh" reference="1" maxLength="32"/>
+    <field name="ten_nh" reference="1" maxLength="128"/>
+
+    <field name="tinh_chat" reference="1" maxLength="1"/>
+    <field name="ma_thue" reference="1" maxLength="32"/>
+  </fields>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @user int, @admin bit, @unit varchar(32), @language char(1), @sys varchar(32), @trackedLocation bit, @trackedLot bit, @code varchar(32), @name nvarchar(512), @taxCode varchar(32), @taxRate decimal(38, 12)
+declare @baseCurrency varchar(32), @voucherTemplate varchar(32)
+select @baseCurrency = rtrim(val) from options where name = 'm_ma_nt0'
+select @voucherTemplate = rtrim(val) from options where name = 'm_mau_ct_dv'
+
+]]>&ControlLocationLotLoading;<![CDATA[
+  select @trackedLocation = @$location, @trackedLot = @$lot
+end else select @trackedLocation = 0, @trackedLot = 0
+
+select @admin = @@admin, @user = @@userID, @language = @@language, @sys = '@@sysDatabaseName', @unit = isnull(@ma_dvcs, @@unit)
+
+create table #r (ky_hieu varchar(32), so_hd varchar(32), ngay_hd datetime, ngay_ph datetime, ma_tt varchar(32), hinh_thuc_tt nvarchar(512),
+  ma_nt varchar(8), ty_gia decimal(38, 12), t_tien decimal(38, 12), thue_suat decimal(38, 12), t_thue decimal(38, 12), t_thanh_toan decimal(38, 12),
+  t_thue1 decimal(38, 12), t_thue0 decimal(38, 12), t_thue5 decimal(38, 12), t_thue10 decimal(38, 12), ghi_chu nvarchar(512),
+  ky_hieu_d varchar(32), ma_vt varchar(32), ten_vt nvarchar(512), dvt nvarchar(32), he_so decimal(38, 12), ma_kho varchar(32), ma_vi_tri varchar(32),
+  ma_lo varchar(32), so_luong decimal(38, 12), gia decimal(38, 12), tien decimal(38, 12), thue_suat_d decimal(38, 12), thue decimal(38, 12), tk_vt varchar(32),
+  gia_ton int, vi_tri_yn bit, lo_yn bit, tao_lo bit, nhieu_dvt bit, sua_tk_vt bit, stt int,
+  ma_kh varchar(32), ten_kh nvarchar(512), dia_chi nvarchar(512), ma_so_thue nvarchar(512), ong_ba nvarchar(512), tk varchar(32), ten_tk nvarchar(512),
+  ref varchar(32), ten_vt_goc nvarchar(512), dvt_goc nvarchar(32), ma_mau_ct nvarchar(128), tien_ext decimal(38, 12), ma_thue_ext varchar(32), thue_suat_ext decimal(38, 12), thue_ext decimal(38, 12), type char(1)
+)
+
+select a.ma_thue as ma_thue_mvcn, a.nhom_thue as nhom_thue_mvcn, b.thue_suat as thue_suat_mvcn into #dmthuemvcn from dmthuemvcn a with(nolock) left join dmthue b with(nolock) on a.ma_thue = b.ma_thue where a.status = 1
+
+insert into #r(
+  ky_hieu, so_hd, ngay_hd, ngay_ph, ma_tt, hinh_thuc_tt, ma_nt, ty_gia, t_tien, thue_suat, t_thue, t_thanh_toan,
+  t_thue1, t_thue0, t_thue5, t_thue10, ghi_chu, ky_hieu_d, ma_vt, ten_vt, dvt, he_so, ma_kho, ma_vi_tri, ma_lo,
+  so_luong, gia, tien, thue_suat_d, thue, tk_vt, gia_ton, vi_tri_yn, lo_yn, tao_lo, nhieu_dvt, sua_tk_vt, stt, ma_kh, ten_kh, dia_chi, ma_so_thue, ong_ba, tk, ten_tk, ref, ten_vt_goc, dvt_goc, ma_mau_ct,
+  tien_ext, ma_thue_ext, thue_suat_ext, thue_ext, type)
+select a.ky_hieu, a.so_hd, a.ngay_hd, a.ngay_ph, '' as ma_tt, a.hinh_thuc_tt, a.ma_nt, a.ty_gia, a.t_tien, a.thue_suat, a.t_thue, a.t_thanh_toan,
+    a.t_thue1, a.t_thue0, a.t_thue5, a.t_thue10, a.ghi_chu, a.ky_hieu_d, '' as ma_vt, a.ten_vt, a.dvt as dvt, 1 as he_so, '' as ma_kho,'' as ma_vi_tri, '' as ma_lo,
+    a.so_luong, a.gia, a.tien, a.thue_suat_d, a.thue, '', cast(0 as tinyint) as gia_ton, cast(0 as bit) as vi_tri_yn, cast(0 as bit) as lo_yn, cast(0 as bit) as tao_lo,
+    cast(0 as bit) as nhieu_dvt, cast(0 as bit) as sua_tk_vt, stt, '' as ma_kh,
+    a.ten_kh, a.dia_chi, a.ma_so_thue, '' as ong_ba, '' as tk, '' as ten_tk, '', a.ten_vt, a.dvt,
+    case when isnull(a.ma_mau_ct, '') = '' then @voucherTemplate else a.ma_mau_ct end,
+    case when isnull(a.thue_suat_ext, '') = '' then null else a.tien_ext end,
+    isnull(b.ma_thue_mvcn, ''), b.thue_suat_mvcn,
+    case when isnull(a.thue_suat_ext, '') = '' then null else a.thue_ext end,
+    case when a.thue_suat_ext in (select dbo.ff_GetTaxCodeExt(nhom_thue_mvcn, thue_suat_mvcn) from #dmthuemvcn) then '1' else '0' end
+  from @@table a left join #dmthuemvcn b on a.thue_suat_ext = dbo.ff_GetTaxCodeExt(b.nhom_thue_mvcn, b.thue_suat_mvcn) and a.thue_suat_ext <> 'KHAC'
+
+-- Customer Code
+declare @w nvarchar(4000), @useUnit tinyint
+select @useUnit = 0, @w = '', @code = '', @name = ten_kh, @taxCode = ma_so_thue from #r where stt = 1
+if ']]>&Customer.Code;<![CDATA[' <> '' begin
+  select @useUnit = 1
+  exec AI_ERP$System$GetUnitFilter @unit, @user, @admin, 'dmkh', 'ma_kh', 'ma_dvcs', 'ds_dvcs', 'dmkhdv', @w output
+end
+select @q = 'select top 1 @code = ma_kh from dmkh where ma_so_thue = ''' + replace(@taxCode, '''', '''''') + ''' and status = 1 and cc_yn = 1' + case when @w = '' then '' else ' and ' + @w end
+exec sp_executesql @q, N'@code varchar(32) output', @code output
+
+if @code = '' begin
+  create table #k(code varchar(32))
+  insert into #k exec AI_ERP$App$GetCodeByName 'dmkh', 'ma_kh', 'ten_kh', @name, @unit, @user, @admin, 'cc_yn = 1', 1, @useUnit
+  select @code = code from #k
+  delete #k
+end
+update #r set ma_kh = @code
+update #r set ong_ba = rtrim(b.doi_tac), tk = b.tk, ma_tt = rtrim(b.ma_tt), hinh_thuc_tt = c.ten_tt
+  from #r a left join dmkh b on a.ma_kh = b.ma_kh left join dmtt c on b.ma_tt = c.ma_tt
+--
+update #r set ten_tk = case when @language = 'V' then b.ten_tk else b.ten_tk2 end from #r a left join dmtk b on a.tk = b.tk
+update #r set ma_nt = @baseCurrency where ma_nt = '' or (ma_nt = @baseCurrency and ty_gia = 1)
+update #r set ty_gia = 1 where ma_nt = @baseCurrency
+
+--
+select a.ky_hieu, a.so_hd, a.ngay_hd, a.ngay_ph, a.hinh_thuc_tt, a.ma_nt, a.ty_gia, a.t_tien, a.thue_suat,
+    a.t_thue, a.t_thanh_toan, a.t_thue1, a.t_thue0, a.t_thue5, a.t_thue10, a.ghi_chu,
+    a.ky_hieu_d, rtrim(a.ma_vt) as ma_vt, a.ten_vt, a.dvt, a.he_so, a.ma_kho, a.ma_vi_tri, a.ma_lo, a.so_luong, a.gia, a.tien, a.thue_suat_d, a.thue,
+    a.tk_vt, a.gia_ton, a.vi_tri_yn, a.lo_yn, a.tao_lo, a.nhieu_dvt, a.sua_tk_vt, a.stt,
+    a.ma_tt as ma_tt, rtrim(a.ma_kh) as ma_kh, rtrim(a.ten_kh) as ten_kh, rtrim(a.dia_chi) as dia_chi, rtrim(a.ma_so_thue) as ma_so_thue,
+    rtrim(a.ong_ba) as ong_ba, rtrim(a.tk) as tk, rtrim(a.ten_tk) as ten_tk,
+    a.ten_vt as ten_vt_tax, cast('' as varchar(32)) as ma_thue_tax, cast(0 as numeric(19, 2)) as thue_suat_tax,
+    cast(0 as numeric(19, 2)) as tien_tax, cast(0 as numeric(19, 2)) as thue_tax, a.ref, a.ten_vt_goc, a.dvt_goc,
+    case when @language = 'V' then c.ten_kh else c.ten_kh2 end as ten_kh_n, a.ma_mau_ct, case when @language = 'V' then isnull(d.ten_mau_ct, '') else isnull(d.ten_mau_ct2, '') end as ten_mau_ct,
+    cast('' as varchar(32)) as tk_thue_no, cast('' as nvarchar(512)) as ten_tk_thue_no, cast(0 as tinyint) as tk_cn, tien_ext, ma_thue_ext, thue_suat_ext, thue_ext, type
+  into #k1 from #r a left join dmkh c on a.ma_kh = c.ma_kh left join dmmauct d on a.ma_mau_ct = d.ma_mau_ct order by a.stt
+
+--
+update #k1 set ma_thue_tax = '' where type = '0'
+update #k1 set thue_suat_tax = thue_suat_d, tien_tax = tien, thue_tax = thue
+update #k1 set thue_suat_tax = 0, tien_tax = 0 where ma_thue_tax = ''
+update #k1 set ma_thue_ext = rtrim(b.ma_thue) from #k1 a left join dmthue b on replace(str(a.ma_thue_ext, 2), ' ', '0') = b.ma_thue where len(a.ma_thue_ext) = 1 and type = '1'
+update #k1 set ma_thue_ext = rtrim(isnull(b.ma_thue, '')) from #k1 a left join dmthue b on a.ma_thue_ext = b.ma_thue where len(a.ma_thue_ext) > 1 and type = '1'
+update #k1 set tk_thue_no = rtrim(a.tk_thue_no3), ten_tk_thue_no = case when @language = 'V' then b.ten_tk else b.ten_tk2 end, tk_cn = b.tk_cn
+  from #k1 k join dmthue a on k.ma_thue_ext = a.ma_thue left join dmtk b on a.tk_thue_no3 = b.tk
+  where k.type = '1'
+update #k1 set thue_suat_ext = 0 where ma_thue_ext = '' or thue_suat_ext < 0
+update #k1 set ma_thue_tax = '', type = '1' from #k1 where isnull(thue_ext, -1) <> -1 and type = '0'
+
+--
+select '' as message, 'this.frameElement.result = @@result;parent.set$Grid$ImportXmlResult(this.frameElement);' as script
+select * from #k1 order by stt
+return
+]]>
+    </text>
+  </processing>
+
+</import>

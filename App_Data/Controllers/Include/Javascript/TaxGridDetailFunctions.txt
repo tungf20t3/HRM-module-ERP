@@ -1,0 +1,63 @@
+﻿<![CDATA[
+function on$GridVoucherDetail$RowChange(g, f) {
+  g.executeAggregate([g.$a.t_thue1_nt, g.$a.t_thue1, g.$a.t_tien_nt2, g.$a.t_tien2]);
+  f.executeExpression([g.$a.t_thue_nt, g.$a.t_thue, g.$a.t_tt_nt, g.$a.t_tt]);
+}
+function onChange$GridDetailTax$InvoiceType(o) {
+  var g = o.grid, f = g.get_element().parentForm, z = f.getItem("r30")._controlBehavior;
+  if(o.value != 0) {
+    switch (o.value) {
+      case '1':
+      case '2':
+      case '3':
+        var form = (o.value == '3' ? '5' : '3');
+        setDefaultTaxItems(g, g._activeRow, ['mau_bc', 'ma_tc', 'ma_thue', 'thue_suat', 'tk_thue', 'tk_cn_tax', 'ma_mau_ct'], [form, z._taxProperty, z._taxCode, z._taxRate, z._taxAccount, z._taxType, z._voucherTemplate]);
+        ]]>&TaxGridDetailInvoiceTypeTaxSupplier;<![CDATA[
+        g.validExpression(o, [g.$a.thue_nt, g.$a.thue2], null, null);
+        break;
+      default:
+        break;
+    }
+  }
+  else {
+    setDefaultTaxItems(g, g._activeRow, ['ten_loai%l', 'thue_suat', 'thue_nt', 'thue', 'so_ct0', 'so_seri0', 'ngay_ct0', 'dia_chi', 'ma_so_thue', 'ten_vt', 'ghi_chu', 'tk_cn_tax'], ['', 0, 0, 0, '', '', '', '', '', '', '', '']);
+    setDefaultGridDetailTax(g, g._activeRow, ['ma_thue', 'tk_thue', 'mau_bc', 'ma_tc', 'ma_mau_ct', 'ma_kh', 'ma_kh2']);
+  }
+  
+  g.validExpression(o, [g.$a.tien_tt_nt, g.$a.tien_tt], null, null);
+  on$GridVoucherDetail$RowChange(g, f);
+}
+function onChange$GridVoucherTax$TaxCode(o) {o.grid.request(o, 'GetTaxRate', 'TaxCode', ['ma_thue'], o);}
+function onChange$GridVoucherDetail$TaxAccount(o) {o.grid.request(o, ']]>&ScriptTaxGridDetailAccountTypeRequest;<![CDATA[', ']]>&ScriptTaxGridDetailAccountTypeRequest;<![CDATA[', ['tk_thue'], o);}
+function onChange$GridVoucherTax$Customer(o) {o.grid.request(o, 'Supplier', 'Supplier', ['ma_kh'], o);}
+function validRowExpressionDate(g) {
+  var r = g._getColumnOrder('ngay_ct0'), h = g._getColumnOrder('loai_hd');
+  for (var i = 1; i <= g._rowCount; i++) {
+    if (g._getItemValue(i, r) == null && g._getItemValue(i, h) != '0') {
+      return g._error = true, g._errorLabel = g._fields[r - 1].Label,g._errorObject = g._getItem(i, r), false;
+    }
+  }
+  return true;
+}
+function check$GridDetailTax$VoucherType(f, e, g, a) {
+  var i = g._getColumnOrder('loai_hd'), id = f.get_id();
+  if (!Array.contains(a, $func.trim(f.getItemValue('loai_ct')))) {
+    for (var r = 1; r <= g._rowCount; r++) {
+      if ($func.trim(g._getItemValue(r, i)) != '0') {
+        e.type.cancelEvent = true;
+        $func.hideWait(id);
+        $message.show(f._language == 'v' ? 'Loại phiếu chi không hợp lệ do phát sinh thông tin thuế trong chi tiết.' : 'Voucher type is invalid, tax data information already entered in the grid.', String.format('$find(\'{0}\').focus(\'loai_ct\');', id));
+        return false;
+      }
+    }
+  }
+  return true;
+}
+function setDefaultGridDetailTax(g, r, a) {
+  var o = g._getItem(r, 1);
+  o.row = r;
+  for (var i = 0; i < a.length; i++) {
+    g.setItemGridBehavior(o, [[$func.trim(a[i]), '', '', false]]);
+  }
+}
+]]>

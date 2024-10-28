@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "hrInsInfChangesInput">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_dl" dataFormatString="1, 2, 3" clientDefault="Default" defaultValue="1" align="right">
+      <header v="Nguồn dữ liệu" e="Data Source"></header>
+      <footer v="1 - Tăng mới, 2 - Nghỉ việc, 3 - Nghỉ, vắng mặt" e="1 - Increasing, 2 - Job Leaving, 3 - Annual Leave or Abbsent"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange="onchange$]]>&Identity;<![CDATA[$DataSource(this);"]]></clientScript>
+    </field>
+    <field name="bo_phan" allowNulls="false">
+      <header v="Bộ phận" e="Department"></header>
+      <footer v="&lt;div class=&quot;Break&quot;/&gt;" e="&lt;div class=&quot;Break&quot;/&gt;"></footer>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+      <clientScript><![CDATA[onchange="onchange$]]>&Identity;<![CDATA[$Deparment(this);"]]></clientScript>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="dot" type="Int16" dataFormatString="#0" clientDefault="1" defaultValue="1" allowNulls="false">
+      <header v="Đợt" e="Time"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="date_from" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Ngày từ" e="Date from"></header>
+      <footer v="Ngày từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="date_to" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Ngày đến" e="Date to"></header>
+    </field>
+
+    <field name="ma_loai">
+      <header v="Loại nghỉ, vắng mặt" e="Leave Type(s)"></header>
+      <items style="Lookup" controller="hrLeaveType" key="bh_yn = 1 and status = '1'" check="bh_yn = 1"/>
+    </field>
+
+    <field name="loai_thay_doi" allowNulls="false">
+      <header v="Loại thay đổi" e="SI Change Type"></header>
+      <items style="AutoComplete" controller ="hrSIChangeType" key="(('{$%c[ma_dl]}' = '1' and exists(select 1 from hrdmktdbh b where hrdmltdbh.loai_td = b.ma_kieu and b.tinh_chat = '1')) or ('{$%c[ma_dl]}' &lt;&gt; '1' and exists(select 1 from hrdmktdbh b where hrdmltdbh.loai_td = b.ma_kieu and b.tinh_chat in ('2', '3')))) and status = 1" check="(('{$%c[ma_dl]}' = '1' and exists(select 1 from hrdmktdbh b where hrdmltdbh.loai_td = b.ma_kieu and b.tinh_chat = '1')) or ('{$%c[ma_dl]}' &lt;&gt; '1' and exists(select 1 from hrdmktdbh b where hrdmltdbh.loai_td = b.ma_kieu and b.tinh_chat in ('2', '3'))))" reference="ten_loai%l"></items>
+    </field>
+    <field name="ten_loai%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_thay_doi" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Ngày thay đổi" e="Change Date"></header>
+    </field>
+    <field name="loai_ngay_xet" dataFormatString="1, 2" clientDefault="Default" defaultValue="1" align="right">
+      <header v="Loại ngày xét" e="Type of Filtering Date"></header>
+      <footer v="1 - Ngày vào công ty, 2 - Ngày vào chính thức" e="1 - Join Date, 2 - Official Hire Date"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false" hidden="true">
+      <header v="Tháng" e="Month"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" hidden="true">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="111000: [ma_dl].Label, [ma_dl], [ma_dl].Description"/>
+      <item value="1101001: [bo_phan].Label, [bo_phan], [ten_bp%l], [bp_ref]"/>
+      <item value="110---1: [dot].Label, [dot], [nam]"/>
+      <item value="1101--1: [date_from].Description, [date_from], [date_to], [ky]"/>
+      <item value="11000: [ma_loai].Label, [ma_loai]"/>
+      <item value="110100: [loai_thay_doi].Label, [loai_thay_doi], [ten_loai%l]"/>
+      <item value="110: [ngay_thay_doi].Label, [ngay_thay_doi]"/>
+      <item value="111000: [loai_ngay_xet].Label, [loai_ngay_xet], [loai_ngay_xet].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[exec hs_GetDataInsuranceInformationChanges @ma_dl, @date_from, @date_to, @dot, @ky, @nam, @loai_thay_doi, @ngay_thay_doi, @bp_ref, @ma_loai, @loai_ngay_xet, @@language, @@userID, @@admin, '@@sysDatabaseName']]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[(f) {
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);
+  var g = f.grid;
+  f.setItemValues('ky, nam, bo_phan, bp_ref', [g._period, g._year, g._department, g._departmentRef, g._changeType]);
+  if (g._department) f.setReferenceKeyFilter('bo_phan');
+  onchange$]]>&Identity;<![CDATA[$DataSource(f.getItem('ma_dl'));
+}
+function close$]]>&Identity;<![CDATA[(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}}
+function onchange$]]>&Identity;<![CDATA[$Deparment(o){o.parentForm.request('Reference', 'Reference', ['bo_phan']);}
+function onchange$]]>&Identity;<![CDATA[$DataSource(o){
+  var f = o.parentForm, v = (o.value == '3');
+  setItemDisable(f, 'ma_loai', !v);
+  setItemEmpty(f, 'ma_loai', v);
+  setItemRequired(f, 'ma_loai', v);
+  f.setReferenceKeyFilter('loai_thay_doi');
+  setItemDisable(f, 'loai_ngay_xet', (o.value != '1'));
+}
+function on$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Reference':
+      f.setItemControlBehavior('bp_ref', result[0].Value, true);
+      break;
+    default:
+      break;
+  }
+}
+function setItemDisable(f,e,d){for(var c=e.split(","),a=0;a<c.length;a++){var b=f.getItem($func.trim(c[a]));b.a&&$common.setVisible(b.a,!d);b.disabled=d}}function setItemEmpty(d,c,f){for(var b=c.split(","),a=0;a<b.length;a++){var e=d.getItem($func.trim(b[a]));if(!f)e.value=""}}function setItemRequired(b,f,g){for(var e=f.split(","),c=0;c<e.length;c++){var d=b.getItem($func.trim(e[c])),a=d.parentNode.parentNode;if(!g){d.field.AllowNulls=true;Sys.UI.DomElement.removeCssClass(a,"Required");Sys.UI.DomElement.removeCssClass(a,b._id)}else{d.field.AllowNulls=false;Sys.UI.DomElement.addCssClass(a,"Required");Sys.UI.DomElement.addCssClass(a,b._id)}}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Reference">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrbp where ma_bp = @bo_phan) begin
+  select bp_ref from hrbp where ma_bp = @bo_phan
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

@@ -1,0 +1,20 @@
+﻿<![CDATA[
+function report$PrintRight$FilterInit(f, r) {
+  if (!r) return;
+  var form = f.getItem('mau_bc');
+  if (form) {
+    for (var i = form.length - 1; i >= 0; i--) { 
+      if (Array.contains(r, form.options[i].value)) form.remove(i);
+    }
+    if (form.length <= 1) {
+      form.tabStop = false;
+      form.tabIndex = -1;
+      form.field.Inactivate = true;
+    };
+
+    if (Array.contains(r, form.field.ClientDefault) && form.options.length > 0) {
+      form.value = form.field.ClientDefault = form.options[0].value;
+    }
+  }
+}
+]]>

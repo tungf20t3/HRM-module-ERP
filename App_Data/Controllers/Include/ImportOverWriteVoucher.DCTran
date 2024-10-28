@@ -1,0 +1,36 @@
+﻿<!ENTITY % Conditional.ImportOverwrite SYSTEM "..\Include\ImportOverwriteVoucher.txt">
+
+<!ENTITY ImportOverwriteApprovalCheckMode "
+&StartErrorCount;
+select @q = '&InsertErrorTable; select @field, o.stt, ''OW01'' from #owdata o where status &lt;&gt; ''0''
+&w1;@field&w2;o.stt&w3;''OW01''&w4; group by o.stt'
+exec sp_executesql @q, N'@field varchar(32)', @field
+&EndErrorCount;
+">
+<!ENTITY ImportOverwriteApprovalCheck "
+set @q = 'select top 1 @r = min(o.stt) from #owdata o where status &lt;&gt; ''0'''
+exec sp_executesql @q, N'@r int out', @r out
+&ImportOverwriteError;
+">
+
+<![%Conditional.ImportOverwrite;[
+  <!ENTITY ImportOverwriteMatchData "
++ ' join &ImportOverwriteMainTable; b with(nolock) on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct' + case when @check$Unit = '1' then ' and a.ma_dvcs = b.ma_dvcs' else '' end    
+">
+  
+  <!ENTITY ImportOverwriteDeleting "
+set @field = 'so_ct'
+if @$mode = 1 begin
+  &ImportOverwriteApprovalCheckMode;
+end else begin
+  &ImportOverwriteApprovalCheck;
+end
+">
+
+  <!ENTITY ImportOverwriteDeleted "&ImportOverwriteDeleteMultiVoucher;">
+  <!ENTITY ImportOverwriteInsertingByPart "&ImportOverwriteUpdateByPart;">
+]]>
+
+<!ENTITY ImportOverwriteDeleting "">
+<!ENTITY ImportOverwriteDeleted "">
+<!ENTITY ImportOverwriteInsertingByPart "">

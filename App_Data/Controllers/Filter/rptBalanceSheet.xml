@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY defaultTable "V20GLTC1">
+  <!ENTITY defaultForm "V20GLTC1">
+
+  <!ENTITY LineCounter "4">
+  <!ENTITY ExtensionCounter "2">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.Tiny SYSTEM "..\Include\ReportMargin.Tiny">
+  %ReportMargin.Tiny;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+      <clientScript><![CDATA[onchange=onChange$Filter$DateTo(this);]]></clientScript>
+    </field>
+    <field name="ky" dataFormatString="1, 2, 3, 4" clientDefault="Default" defaultValue="1" inactivate="true" align="right" maxLength="1" aliasName="Quarter">
+      <header v="Quý/năm" e="Quarter/Year"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" maxLength="4" inactivate="true" align="right" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear();">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="kieu_in" dataFormatString="1, 0" clientDefault="Default" defaultValue="1" maxLength="1" align="right" categoryIndex="1">
+      <header v="Kiểu in" e="Print Type"></header>
+      <footer v="1 - Tách biệt tài sản và nguồn vốn, 0 - Không" e="1 - Separately from Asset and Capital, 0 - No"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    <field name="form" allowNulls="false" categoryIndex="1">
+      <header v="Chọn báo cáo" e="Select Report"></header>
+      <items style="DropDownList">
+        <item value="">
+          <text v="" e=""/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList" >
+        <item value="10">
+          <text v="Mẫu chuẩn - năm" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu chuẩn - giữa niên độ" e="Standard Form - Mid-Year"/>
+        </item>
+        <item value="30">
+          <text v="Mẫu chuẩn - bán niên" e="Standard Form - Half-Year"/>
+        </item>
+        <item value="40">
+          <text v="Mẫu ngoại tệ - năm" e="FC Form"/>
+        </item>
+        <item value="50">
+          <text v="Mẫu ngoại tệ - giữa niên độ" e="FC Form - Mid-Year"/>
+        </item>
+        <item value="60">
+          <text v="Mẫu ngoại tệ - bán niên" e="FC Form - Half-Year"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="1100---: [den_ngay].Label, [den_ngay]"/>
+      <item value="111----: [ky].Label, [ky], [nam]"/>
+      <item value="1110000: [kieu_in].Label, [kieu_in], [kieu_in].Description"/>
+      <item value="11000--: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000--: [form].Label, [form]"/>
+      <item value="11000--: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 20, 80, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @form nvarchar(4000), @name nvarchar(4000), @defaultForm varchar(33), @reportType char(1)
+select @form = '', @name = ''
+select @reportType = rtrim(val) from options where name = 'm_kieu_bc'
+select top 1 @defaultForm = rtrim(upper(form)) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA[' and (kieu_bc = 0 or kieu_bc = @reportType) and nd_yn = 1
+if @defaultForm is null select top 1 @defaultForm = rtrim(upper(form)) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA[' and (kieu_bc = 0 or kieu_bc = @reportType)
+
+select @form = @form + rtrim(upper(form)) + char(255), @name = @name + case when lower(@@language) = 'v' then rtrim(ten_maubc) else rtrim(ten_maubc2) end + char(255) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA[' and (kieu_bc = 0 or kieu_bc = @reportType)
+select @form = left(@form, len(@form) - 1), @name = left(@name, len(@name) - 1)
+select 'this._itemValue=''' + rtrim(@form) + ''';this._itemText=''' + dbo.AI_ERP$Function$EncodeScript(@name) + '''; this._defaultForm = ''' + @defaultForm + ''';initForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @breakRow int, @beginDate smalldatetime, @reportType tinyint, @baseCurrency varchar(32)
+select @baseCurrency = isnull(rtrim(val), '') from options where name = 'm_ma_nt0'
+select @reportType = case when @mau_bc = '10' or @mau_bc = '30' then 0 else 1 end
+select @beginDate = ngay_dn2 from dmstt
+select @breakRow = count(1) + 1 from ]]>&defaultTable;<![CDATA[ where form = @form and ts_nv = 1 and in_ck = 1 and ngoai_bang = 0
+select dateadd(month, datediff(month, 0, dateadd(month, -2, @den_ngay)), 0) as d_from, dateadd(month, datediff(month, 0, dateadd(month, -11, @den_ngay)), 0) as date_from, @den_ngay as date_to,  @ky as quarter, cast(@nam as char(4)) as nam, cast(@kieu_in as int) as PrintType, @breakRow as BreakRow,
+  replace(str(day(@den_ngay),2),' ','0') day, replace(str(month(@den_ngay),2),' ','0') month, cast(year(@den_ngay) as char(4)) year,
+  case when month(@den_ngay) >= month(@beginDate) then year(@den_ngay) else year(@den_ngay) - 1 end as nam_bd, @baseCurrency as ma_nt, case when @mau_bc in('10', '40') then 1 else 2 end as mau_bc,
+  h_line1, h_line12, h_line2, h_line22, h_line3, h_line32, h_line4, h_line42, h_line5, h_line52 from v20dmmaubc where ma_maubc = ']]>&defaultTable;<![CDATA[' and form = @form
+exec rs_rptBalanceSheet @den_ngay, @ma_dvcs, @form, @reportType, @@language, @@userID, @@admin, 1
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  if (!f.getItemValue('ky')) onChange$Filter$DateTo(f.getItem('den_ngay'));
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,d){var c=d.object,f=d.type.Context,h=d.type.Result,a=c.grid;switch(f){case"Checking":var b=c.getItemValue("mau_bc"),g=c.getItem("den_ngay").value;a._hiddenForms=[{Form:[1,2,4,5,7,8,10,11,14,15,17,18,20,21,23,24],Value:b=="10"||b=="40"},{Form:[0,1,3,4,6,7,9,10,13,14,16,17,19,20,22,23],Value:b=="20"||b=="50"},{Form:[0,2,3,5,6,8,9,11,13,15,16,18,19,21,22,24],Value:b=="30"||b=="60"}];a._ValueFormType=b;a._hiddenFields=[{Fields:"tien_nt, tien_nt0",Value:b=="10"||b=="20"||b=="30"}];b=c.getItem("form").selectedIndex,y=c.getItem("form").options;var e=y[b].text;a._alterTitle=[null,[["%f1",e,true],["%d2",g,true]]];if(a._fields.length>0)try{init$GridReport$(a)}catch(j){}if(!a._v)a._v=a._ValueFormType;if(a._v!=a._ValueFormType){remove$GridReport$Filter(a);a._v=a._ValueFormType}}}function onChange$Filter$DateTo(c){var a=c.parentForm,b=a.getItemValue("den_ngay",null,null,true);a.setItemValue("ky",Math.ceil((b.getMonth()+1)/3).toString());a.setItemValue("nam",b.getFullYear())}function initForm(c){for(var e=c.getItem("form"),d=c._itemValue.split(String.fromCharCode(255)),f=c._itemText.split(String.fromCharCode(255)),b,a=0;a<d.length;a++){e.options[a]=new Option(f[a],d[a]);if(!b&&c._defaultForm==d[a])b=a}if(!b)b=0;e.options[b].selected=true}function remove$GridReport$Filter(a){var e="tien, tien_nt".split(","),d,c;for(i=0;i<e.length;i++)for(var b=0;b<a._filter.length;b++){d=$func.trim(e[i]);c=$func.findField(d,a._fields);if(c)c.FilterPanelValue="";if(a._filter[b].match(/^(\w+):/)[1]==d){Array.removeAt(a._filter,b);break}}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

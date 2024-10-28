@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir id="KD6" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Quyết định sử dụng" e="Usage Decision"></title>
+  <fields>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" inactivate="true">
+      <header v="Ngày quyết định" e="Decision Date"></header>
+      <clientScript><![CDATA[onchange="onChange$Form$Date(this);"]]></clientScript>
+    </field>
+    <field name="ma_quyen" onDemand="true">
+      <header v="Mã quyển" e="Book Code"/>
+      <items style="AutoComplete" controller="VoucherBook" reference="ten_quyen%l" key="status = '1' and ((ma_dvcs = '') or (ma_dvcs = @@unit)) and ((convert(smalldatetime, '{$%c[ngay_ct]}', 103) &gt;= ngay_hl_tu or ngay_hl_tu is null) and (convert(smalldatetime, '{$%c[ngay_ct]}', 103) &lt;= ngay_hl_den or ngay_hl_den is null)) and ma_nk in (select ma_nk from v20dmctnk where ma_ct = 'KD6' and (lstuser = '' or charindex(',' + rtrim(@@userName) + ',', ',' + replace(lstuser, ' ', '') + ',') &gt; 0))" check="((ma_dvcs = '') or (ma_dvcs = @@unit)) and ((convert(smalldatetime, '{$%c[ngay_ct]}', 103) &gt;= ngay_hl_tu or ngay_hl_tu is null) and (convert(smalldatetime, '{$%c[ngay_ct]}', 103) &lt;= ngay_hl_den or ngay_hl_den is null)) and ma_nk in (select ma_nk from v20dmctnk where ma_ct = 'KD6' and (lstuser = '' or charindex(',' + rtrim(@@userName) + ',', ',' + replace(lstuser, ' ', '') + ',') &gt; 0))" information="ma_nk$v20dmnk.ten_nk%l"/>
+    </field>
+    <field name="ten_quyen%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+
+    <field name="ma_loai_qd" allowNulls="false">
+      <header v="Loại quyết định" e="Usage Decision Code"></header>
+      <items style="AutoComplete" controller="BIUsageDecisionType" reference="ten_loai_qd%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_loai_qd%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kq" allowNulls="false">
+      <header v="Kết quả" e="Result Code"></header>
+      <items style="AutoComplete" controller="BIResultCode" reference="ten_kq%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kq%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_ly_do" allowNulls="false">
+      <header v="Lý do" e="Reason"></header>
+      <items style="AutoComplete" controller="Reason" reference="ten_ly_do%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_ly_do%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="dien_giai" maxLength="100">
+      <header v="Diễn giải" e="Description"/>
+    </field>
+
+    <field name="status" inactivate="true" clientDefault="2">
+      <header v="Trạng thái" e="Status"></header>
+      <items style="DropDownList">
+        <item value="0">
+          <text v="0. Lập chứng từ" e="0. No Action"/>
+        </item>
+        <item value="1">
+          <text v="1. Hoàn thành" e="1. Completed"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="keys" readOnly="true" filterSource="Infinite">
+      <header v="" e=""></header>
+    </field>
+    <field name="size" hidden ="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_lo_kd1" type="DateTime" hidden ="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_lo_kd2" type="DateTime" hidden ="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 100, 230, 0"/>
+      <item value="11--1: [ngay_ct].Label, [ngay_ct], [keys]"/>
+      <item value="1110-: [ma_quyen].Label, [ma_quyen], [ten_quyen%l]"/>
+      <item value="1110-: [ma_loai_qd].Label, [ma_loai_qd], [ten_loai_qd%l]"/>
+      <item value="1110-: [ma_kq].Label, [ma_kq], [ten_kq%l]"/>
+      <item value="1110-: [ma_ly_do].Label, [ma_ly_do], [ten_ly_do%l]"/>
+      <item value="1100-: [dien_giai].Label, [dien_giai]"/>
+      <item value="110--: [status].Label, [status]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000), @t0 varchar(32), @t1 nvarchar(512), @k0 varchar(32), @k1 nvarchar(512), @l0 varchar(32), @l1 nvarchar(512), @s char(1)
+select @s = m_status from dmct where ma_ct = 'KD6'
+select @t0 = rtrim(val) from options where name = 'm_bi_qdsd_loai'
+select @k0 = rtrim(val) from options where name = 'm_bi_qdsd_kq'
+select @l0 = rtrim(val) from options where name = 'm_bi_qdsd_ld'
+
+select @t1 = case when @@language = 'V' then ten_loai_qd else ten_loai_qd2 end from bikddmlqd where ma_loai_qd = @t0
+select @k1 = case when @@language = 'V' then ten_kq else ten_kq2 end from bikddmkq where ma_kq = @k0
+select @l1 = case when @@language = 'V' then ten_nx else ten_nx2 end from dmnx where ma_nx = @l0
+
+select 'this._$status = ''' + rtrim(@s) + ''';this._$t0 = ''' + rtrim(@t0) + ''';this._$t1=''' + replace(replace(isnull(@t1, ''), '\', '\\'), '''', '\''') + ''';this._$k0 = ''' + rtrim(@k0) + ''';this._$k1=''' + replace(replace(isnull(@k1, ''), '\', '\\'), '''', '\''') + ''';this._$l0 = ''' + rtrim(@l0) + ''';this._$l1=''' + replace(replace(isnull(@l1, ''), '\', '\\'), '''', '\''') + ''';active$Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$Form$(this)' as  message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @q nvarchar(4000), @$lockedDate nvarchar(512), @$limitedDate nvarchar(512), @field varchar(64), @message nvarchar(512)
+select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+select @$limitedDate = case when @@language = 'v' then N'Trường <span class="Highlight">' + N'Ngày lập' + N' </span> chưa nhập hoặc giá trị nhập không hợp lệ.' else N'Field <span class="Highlight">' + 'Create Date' + ' </span> must not be blank or has invalid value.' end
+
+select top 0 ma_dvcs, ma_ct, ngay_ct into #check from bikd00$000000
+select * into #$keys from @keys
+
+select @q = 'insert into #check select ma_dvcs, ''KD6'', ngay_ct from bikd00$%Partition where %[exists(select 1 from #$keys where patindex(''%''+ stt_rec + ''%'', text) > 0)]%'
+exec AI_ERP$Partition$Execute @q, null, 'ngay_ct', @ngay_lo_kd1, @ngay_lo_kd2, @@userID, @@admin
+
+if exists(select 1 from #check where ngay_ct > @ngay_ct) begin
+  select 'ngay_ct' as field, @$limitedDate as message
+  return
+end
+if exists(select 1 from dmstt where ngay_ks >= @ngay_ct) begin
+  select 'ngay_ct' as field, @$lockedDate as message
+  return
+end
+if exists(select 1 from dmctks where user_id = @@userID and ma_ct = 'KD6' and ngay_ks >= @ngay_ct) begin
+  select 'ngay_ct' as field, @$lockedDate as message
+  return
+end
+if exists(select 1 from dmdvcsks a join #check b on a.ma_dvcs = b.ma_dvcs where ngay_ks >= @ngay_ct) begin
+  select 'ngay_ct' as field, @$lockedDate as message
+  return
+end
+
+#IF @@admin = 0 #THEN
+  if exists(select 1 from dmttct where ma_ct = 'KD6' and status = @status and right_yn = 1) begin
+    if not exists(select 1 from @@sysDatabaseName..sysactionrights where user_id = @@userID and ma_ct = 'KD6' and action_id = @status and right_yn = 1) begin
+      select 'status' as field, '$NotAuthorized' as message
+      return
+    end
+  end
+#END
+
+exec bs_BIUDMultiCreate @ngay_lo_kd1, @ngay_lo_kd2, @ngay_ct, @ma_quyen, @ma_loai_qd, @ma_kq, @ma_ly_do, @dien_giai, @status, '', @field out, @message out, @@language, @@userID, @@admin, '@@sysDatabaseName'
+if @message is not null begin
+  select @field as field, @message as message
+  return
+end
+
+select '' as field, '' as message, 'refresh$Form$(this);' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$Form$(a){var b=a.grid;a.setItemValues("keys, status, ma_loai_qd, ten_loai_qd%l, ma_kq, ten_kq%l, ma_ly_do, ten_ly_do%l",[b._$k,a._$status,a._$t0,a._$t1,a._$k0,a._$k1,a._$l0,a._$l1]);a.setItemValue("ngay_lo_kd1",b._dFrom);a.setItemValue("ngay_lo_kd2",b._dTo);a.setItemValue("ngay_ct",new Date);a.setReferenceKeyFilter("ma_quyen")}function close$Form$(a){try{a.remove_onResponseComplete(on$Form$ResponseComplete)}catch(b){}}function onChange$Form$Date(b){var a=b.parentForm;a.setReferenceKeyFilter("ma_quyen")}function refresh$Form$(b){var a=b.grid;a._$k=[];a.goToPage(-1)}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

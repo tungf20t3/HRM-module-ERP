@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+
+  <!ENTITY ControlFocus "ngay_sc">
+  <!ENTITY LockedDateKey "ngay_ks >= @ngay_sc">
+  <!ENTITY CheckLockedBeforeInsert SYSTEM "..\Include\Command\HRMCheckLockedBeforeInsert.txt">
+]>
+
+<dir table="hrdcvaora" code="stt_rec" order="stt_rec" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Sao chép theo nhân viên" e="Copy by Employee"></title>
+  <fields>
+    <field name="ma_nv" allowNulls="false">
+      <header v="Sao chép từ nhân viên" e="Source Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_nv" key="(@@admin = 1 or (bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID))) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_nv" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_sc" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Sao chép ngày" e="Date Copy"></header>
+    </field>
+
+    <field name="ma_bp2" allowNulls="false">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hreDepartment" reference="ten_bp2%l" key="status = '1'" check="1 = 1"/>
+      <clientScript><![CDATA[onchange=onChange$hrEmployeeTimeInOutAdjusting$Department(this);]]></clientScript>
+    </field>
+    <field name="ten_bp2%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv2">
+      <header v="Danh sách nhân viên" e="Employee List"></header>
+      <items style="Lookup" controller="hrEmployee" key="bp_ref like case when '{$%c[bp_ref]}' &lt;&gt; '' then '{$%c[bp_ref]}%' else '''' end and status = '1'" check="bp_ref like case when '{$%c[bp_ref]}' &lt;&gt; '' then '{$%c[bp_ref]}%' else '''' end"/>
+    </field>
+    <field name="type" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Kiểu sao chép" e="Type"></header>
+      <footer v="1 - Chép đè, 0 - Không" e="1 - Overwrite, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="employeeID" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 10, 60, 100, 230, 0"/>
+      <item value="1100101: [ma_nv].Label, [ma_nv], [ten_nv], [employeeID]"/>
+      <item value="1100---: [ngay_sc].Label, [ngay_sc]"/>
+      <item value="1100101: [ma_bp2].Label, [ma_bp2], [ten_bp2%l], [bp_ref]"/>
+      <item value="1100000: [ma_nv2].Label, [ma_nv2]"/>
+      <item value="1110000: [type].Label, [type], [type].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$hrEmployeeTimeInOutAdjusting(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$hrEmployeeTimeInOutAdjusting(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        &CheckLockedBeforeInsert;
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec hs_EmployeeTimeInOutAdjustingCopy @ngay_sc, @employeeID, @bp_ref, @ma_nv2, @type, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$hrEmployeeTimeInOutAdjusting(b){b.add_onResponseComplete(on$hrEmployeeTimeInOutAdjusting$ResponseComplete);var a=b.grid,c=a._activeRow;b.setItemValues("ngay_sc, employeeID, ma_nv, ten_nv",[a._getItemValue(c,a._getColumnOrder("ngay")),a._getItemValue(c,a._getColumnOrder("stt_rec")),a._getItemValue(c,a._getColumnOrder("ma_nv")),a._getItemValue(c,a._getColumnOrder("ho_ten"))]);b.setReadOnlyFields("ngay_sc, ma_nv");changeLookupReadonly(b,"ma_nv2",true);b.getItem("ma_bp2").focus()}function close$hrEmployeeTimeInOutAdjusting(a){a.remove_onResponseComplete(on$hrEmployeeTimeInOutAdjusting$ResponseComplete)}function onChange$hrEmployeeTimeInOutAdjusting$Department(a){a.parentForm.request("Reference","Reference",["ma_bp2"])}function on$hrEmployeeTimeInOutAdjusting$ResponseComplete(a,b){var a=b.object,e=a.grid,c=b.type.Context,d=b.type.Result;switch(c){case"Reference":a.setItemControlBehavior("bp_ref",d[0].Value,true);a.setReferenceKeyFilter("ma_nv2");a.setItemValue("ma_nv2","")}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Reference">
+      <text>
+        <![CDATA[
+declare @b varchar(128)
+select @b = ''
+if exists(select 1 from hrbp where ma_bp = @ma_bp2) select @b = bp_ref from hrbp where ma_bp = @ma_bp2
+select @b as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

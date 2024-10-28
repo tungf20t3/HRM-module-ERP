@@ -1,0 +1,6 @@
+﻿<![CDATA[
+if exists(select 1 from knnh00$$partition$current where stt_rec = @stt_rec) select @enh_dt_yn = nh_dt_yn, @echu_tk = chu_tk, @etk_nh = tk_nh, @ema_nh_dt = ma_nh_dt, @eten_nh = ten_nh, @echi_nhanh = chi_nhanh, @etinh_thanh = tinh_thanh, @equoc_gia = quoc_gia, @eloai_gd = loai_gd, @edien_giai = dien_giai, @ephi_nhan_yn = phi_nhan_yn, @etinh_trang = tinh_trang, @ema_citad = rtrim(ma_citad) from knnh00$$partition$current where stt_rec = @stt_rec
+  else select @enh_dt_yn = 0, @echu_tk = rtrim(ten_kh), @etk_nh = rtrim(tk_nh), @ema_nh_dt = ma_nh_dt, @eten_nh = rtrim(ngan_hang), @echi_nhanh = chi_nhanh, @etinh_thanh = rtrim(tinh_thanh), @equoc_gia = quoc_gia, @eloai_gd = '0', @edien_giai = '', @ephi_nhan_yn = 0, @etinh_trang = 0 from dmkh where ma_kh = @customerID
+select top 1 @eten_tinh_trang = ten_tt%l from dmknnhtt where ma_tt = @etinh_trang and ma_nh_dt = ''
+if @ema_citad <> '' select @eten_cn = rtrim(ten_cn%l) from dmmsnh3 where ma_nh_dt = @ema_nh_dt and ma_citad = @ema_citad
+]]>

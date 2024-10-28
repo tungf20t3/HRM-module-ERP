@@ -1,0 +1,36 @@
+﻿  <command event="Showing">
+    <text>
+      <![CDATA[
+declare @$message nvarchar(4000), @$costUnit char(1), @$inputDept nvarchar(256), @$inputMO nvarchar(256), @$lockedDate nvarchar(512), @$islockedDate bit
+
+select @$costUnit = case when exists(select 1 from options where name = 'm_gt_dvcs' and val = '1') then '1' else '0' end
+select @$inputDept = case when exists(select 1 from options where name = 'x_dt_bp' and val = '1') then '1' else '0' end
+select @$inputMO = case when exists(select 1 from options where name = 'x_dt_lsx' and val = '1') then '1' else '0' end
+
+select @$message = 'var f = this;f._inputDept=' + case when @$inputDept = '1' then 'true' else 'false' end  + ';f._inputMO=' + case when @$inputMO = '1' then 'true' else 'false' end + ';f._costUnit=' + case when @$costUnit = '1' then 'true' else 'false' end  + ';'
+select @$islockedDate = 0, @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+
+if exists(select 1 from dmstt where year(ngay_ks) >= nam_bd)
+  select @$islockedDate = 1, @$message = @$message + 'f._denyNew = true;f._denyEdit = true;f._denyDelete = true;f._denyMessage=''' + @$lockedDate + ''';'
+
+if @$costUnit = '1' begin
+  if @$islockedDate = 0 begin
+    if exists(select 1 from dmdvcsks where ma_dvcs = @@unit and year(ngay_ks) >= (select nam_bd from dmstt))
+      select @$message = @$message + 'f._denyNew = true;f._denyMessage=''' + @$lockedDate + ''';'
+    else if @@admin <> 1 and not exists(select 1 from sysunitrights where user_id = @@userID and ma_dvcs = @@unit and r_new = 1) begin
+      select @$message = @$message + 'f._denyNew = true;'
+    end
+  end
+
+  if exists(select 1 from options where name = 'm_dtgt_dvcs' and rtrim(val) = '1')
+    select @$inputDept = isnull(x_dt_bp, 0), @$inputMO = isnull(x_dt_lsx, 0) from dmdvcskb where status = '1' and ma_dvcs = @@unit and (x_dt_bp <> 0 or x_dt_lsx <> 0 or x_dt_sp <> 0)
+end else select @$message = @$message + 'f._fields[f._getColumnOrder(''ma_dvcs'') - 1].Visible = false;'
+]]>&SubTitleBalanceShowingSelectCost;<![CDATA[
+if @$inputDept <> '1' select @$message = @$message + 'f._fields[f._getColumnOrder(''ma_bp'') - 1].Visible = false;'
+if @$inputMO <> '1' select @$message = @$message + 'f._fields[f._getColumnOrder(''so_lsx'') - 1].Visible = false;'
+
+select @$message as message
+return
+]]>
+    </text>
+  </command>

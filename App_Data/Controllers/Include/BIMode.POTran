@@ -1,0 +1,60 @@
+﻿<!ENTITY % Conditional.POApproval SYSTEM "..\Include\CompactModeOrder.txt">
+
+<![%Conditional.POApproval;[
+  <!ENTITY BI.POTran.Dir.Views.Other SYSTEM "..\Include\XML\BI.POTran.Dir.Views.Compact.txt">
+  <!ENTITY BI.POTran.Dir.Height "-46">
+]]>
+
+<!ENTITY BI.Post.History.PO "
+  exec AI_ERP$BI$Voucher$Posting$HistoryPO 'm94$$partition$current', 'd94$$partition$current', @stt_rec, @@id, 'a.stt_rec_hd &lt;&gt; ''''',
+    'tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_xuat = 0, tien_nt_x = 0, tien_nhap = b.tien, tien_nt_n = b.tien_nt, stt_rec_dh = b.stt_rec_hd, stt_rec0dh = b.stt_rec0hd', '', 1
+">
+<!ENTITY BI.Delete.History.PO "delete bih94$000000 where stt_rec = @stt_rec">
+
+<!ENTITY BI.POTran.Dir.Views.Other SYSTEM "..\Include\XML\BI.POTran.Dir.Views.Other.txt">
+<!ENTITY BI.POTran.Dir.Height "-22">
+
+<!ENTITY BI.POTran.Dir.DependOnCurrency "biVoucher$DependOnCurrency(f);">
+<!ENTITY BI.POTran.Dir.ExecuteCommand "biVoucher$ExecuteCommand(sender, e);">
+<!ENTITY BI.POTran.Dir.CurrencyField1 ", t_cp_nt">
+<!ENTITY BI.POTran.Dir.CurrencyField2 ", t_cp">
+<!ENTITY BI.POTran.Dir.CurrencyCreate "biVoucher$CurrencyCreate(f, v);">
+<!ENTITY BI.POTran.Dir.Checking SYSTEM "..\Include\Javascript\BI.POTran.Dir.Checking.txt">
+
+<!ENTITY BI.POTran.Detail.Render "bi$GridVoucherDetail$Render(sender, eventArgs);">
+<!ENTITY BI.POTran.Detail.ResponsePrice "
+declare @unitCode varchar(32), @chkPlant char(1)
+select @unitCode = case when @$ma_dvcs = '' then @@unit else @$ma_dvcs end
+if exists(select 1 from bidmvung where ma_vung = @ma_vung and ma_dvcs = @unitCode)
+    and (@@admin = 1 or not exists(select 1 from bisysplantrights where user_id = @@userID) or exists(select 1 from bisysplantrights where ma_vung = @ma_vung and user_id = @@userID))
+    and (not exists(select 1 from bidmbp0g1 where ma_vung = @ma_vung) or exists(select 1 from bidmbp0g1 where ma_vung = @ma_vung and ma_bp0 = @$ma_bp0))
+begin
+  select @chkPlant = '1'
+end else begin
+  select @chkPlant = '0', @getPrice = '0'
+end
+
+select top 0 a.gia_chuan_nt, a.gia_nt, cast('' as varchar(16)) as so_ct, b.ma_rb, b.sl_dat_tt, b.sl_dat_td, cast(0 as numeric(5, 2)) as sai_can_duoi, cast(0 as numeric(5, 2)) as sai_can_tren, b.so_ngay_giao,
+  a.ct_gia_dk, a.ck_dv_nt, a.cp_dv_nt, a.ck_nt, a.cp_nt, cast('' as char(1)) as exist_price, b.stt_rec, b.stt_rec0 into #ir from bigia01 a, bigia02 b
+if @getPrice = '1' begin
+  insert into #ir(gia_chuan_nt, gia_nt, so_ct, ma_rb, sl_dat_tt, sl_dat_td, so_ngay_giao, ct_gia_dk, ck_dv_nt, cp_dv_nt, ck_nt, cp_nt, stt_rec, stt_rec0)
+    exec AI_ERP$BI$GetInfoRecord @unitCode, @$ma_bp0, @$ma_nh0, @ma_vung, @$ma_kh, @$ngay_lct, @$ma_nt, @ma_vt, @defaultUOM, @dvt, @so_luong,
+      'gia_chuan_nt, gia_nt, so_ct, ma_rb, sl_dat_tt, sl_dat_td, so_ngay_giao, ct_gia_dk, ck_dv_nt, cp_dv_nt, ck_nt, cp_nt, stt_rec, stt_rec0', @voucherCode, @@userID, @@admin
+  if exists(select 1 from #ir) update #ir set exist_price = 1
+    else insert into #ir select null, null, '', '', 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, '', ''
+end else insert into #ir select null, null, '', '', 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, '', ''
+
+if exists(select 1 from #ir where isnull(ma_rb, '') = '') begin
+  declare @rule varchar(16), @k1 nvarchar(128), @k2 nvarchar(128), @k3 nvarchar(128)
+  select @k1 = 'ma_vt = ''' + replace(@ma_vt, '''', '''''') + ''' and ma_vung = ''' + replace(@ma_vung, '''', '''''') + '''', @k2 = 'ma_vt = ''' + replace(@ma_vt, '''', '''''') + '''', @k3 = 'controller = ''Item'''
+  exec dbo.AI_ERP$BI$Options$GetValue 'ma_rb', @rule out, 'bidmvttsvung', @k1, 'bidmvtts', @k2, 'bidmts', @k3
+  update #ir set ma_rb = isnull(@rule, '')
+end
+
+update #ir set sai_can_duoi = b.sai_can_duoi, sai_can_tren = b.sai_can_tren
+  from #ir a join bidmrbmh b on a.ma_rb = b.ma_rb
+">
+
+<!ENTITY BI.POTran.Script SYSTEM "..\Include\Javascript\BI.POTran.Script.txt">

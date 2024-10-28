@@ -1,0 +1,19 @@
+<command event="Initialize">
+  <text>
+    <![CDATA[
+select 'this._break = true;' as message
+return
+]]>
+  </text>
+</command>
+
+<command event="Loading">
+  <text>
+    <![CDATA[
+declare @rShowTime char(1)
+select @rShowTime = rtrim(isnull(val, '0')) from options where name = 'r_show_time'
+select 'chart$]]>&Identification;<![CDATA[InitObject(this);load$]]>&Identification;<![CDATA[$(this);this._rShowTime=' + @rShowTime as message
+return
+]]>
+  </text>
+</command>

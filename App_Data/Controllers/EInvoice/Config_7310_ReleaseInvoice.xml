@@ -1,0 +1,51 @@
+<commands method="7310" descript="Phát hành hóa đơn">
+  <params>
+    <parameter name="unit" type="varchar(32)"/>
+  </params>
+
+  <command event="Loading" descript="Loading kiểm tra số liệu">
+    <text>
+      <![CDATA[
+select 1 as result, 0 as code, '' as message
+
+--- exec AI_ERP$EInvice$BeforeReleaseCashInvoice @$dFrom, @$dTo, @$idNumber, @$voucherDate, @$listDays, @$unit, '@@language', @@userID, @@admin
+]]>
+    </text>
+  </command>
+
+  <command event="Profile" descript="Lấy thông tin mã tài khoản kết nối sẽ sử dụng">
+    <text>
+      <![CDATA[select top 1 ma_kn from tkhddtdv where ma_dvcs = @$unit and status = '1']]>
+    </text>
+  </command>
+
+  <!-- Kết quả trả về để truyền lên proxy -->
+  <command event="Processing" descript="Lấy dữ liệu truyền lên proxy">
+    <text>
+      <![CDATA[
+
+--- exec AI_ERP$EInvice$ReleaseCashInvoice @$dFrom, @$dTo, @$idNumber, @$voucherDate, @$listDays, @$unit, '@@language', @@userID, @@admin
+]]>
+      
+    </text>
+  </command>
+
+  <command event="Updating" descript="Xử lý dữ liệu kết quả nhận được từ proxy trả về: Kết quả cần trả về bảng có cột result, code, refence, message">
+    <table>
+      <parameter name="key" type="varchar(32)"/>
+    </table>
+
+    <text>
+      <![CDATA[
+if @$_status = 0 or @$_count = 0 begin
+  select case when @$debugMode = 1 then 2 else 0 end as result, @$_code as code, @$_reference as reference, @$_message as message
+  return
+end
+
+select 1 as result, '' as code, '' as reference, '' as message
+
+-- exec AI_ERP$EInvice$AfterReleaseCashInvoice @$dFrom, @$dTo, @$idNumber, @$voucherDate, @$listDays, @$unit, '#proxyResult', @$_status, @$_code, @$_message, '@@language', @@userID, @@admin
+        ]]>
+    </text>
+  </command>
+</commands>

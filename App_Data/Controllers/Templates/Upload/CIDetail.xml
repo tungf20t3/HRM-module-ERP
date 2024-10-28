@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY CheckImportUserDefinedFields SYSTEM "..\..\Include\Command\CheckImportUserDefinedFields.txt">
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.CITran;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'CIDetail' else 'CIDetail2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$CIDetailImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$CIDetailImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+    <baseTable value="d48$000000"/>
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    &Tiny.External.Import.View.CIDetail;
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Bút toán điều chỉnh giảm công nợ" e="Credit or Debit Memo"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="tk_co" width="16">
+        <text v="Tk có" e="Credit Account"/>
+      </field>
+      <field name="ten_tk" afterField="tk_co" width="32">
+        <text v="Tên tài khoản" e="Account Description"/>
+      </field>
+      <field name="ma_kh_i" width="16">
+        <text v="Mã khách" e="Customer ID"/>
+      </field>
+      <field name="ten_kh_i" afterField="ma_kh_i" width="32">
+        <text v="Tên khách hàng" e="Customer Name"/>
+      </field>
+      <field name="tien_nt" width="16">
+        <text v="Tiền" e="Amount"/>
+      </field>
+      <field name="dien_giai" width="32">
+        <text v="Diễn giải" e="Description"/>
+      </field>
+      <field name="ma_vv" width="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_bp" width="16">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="so_lsx" width="16">
+        <text v="Lsx" e="MO"/>
+      </field>
+      <field name="ma_sp" width="16">
+        <text v="Sản phẩm" e="Product"/>
+      </field>
+      <field name="ma_hd" width ="16">
+        <text v="Hợp đồng" e="Contract"/>
+      </field>
+      <field name="ma_phi" width ="16">
+        <text v="Phí" e="Expense"/>
+      </field>
+      <field name="ma_ku" width ="16">
+        <text v="Khế ước" e="Loan Contract"/>
+      </field>
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @user int, @admin bit, @language char(1), @sys varchar(32), @m int
+select @m = character_maximum_length from information_schema.columns where table_name = 'phlsx' and column_name = 'so_lsx'
+select @admin = @@admin, @user = @@userID, @language = @@language, @sys = '@@sysDatabaseName'
+
+update @@table set so_lsx = space(@m - len(rtrim(so_lsx))) + rtrim(so_lsx)
+
+create table #r(tk_co varchar(32), ten_tk nvarchar(512), ma_kh_i varchar(32), ten_kh_i nvarchar(512), tien_nt numeric(19, 4), dien_giai nvarchar(512),
+  ma_vv varchar(32), ma_bp varchar(32), so_lsx varchar(32), ma_sp varchar(32), ma_hd varchar(32), ma_phi varchar(32), ma_ku varchar(32), ref varchar(32), stt int)
+
+select @q = 'insert into #r(tk_co, ten_tk, ma_kh_i, ten_kh_i, tien_nt, dien_giai, ma_vv, ma_bp, so_lsx, ma_sp, ma_hd, ma_phi, ma_ku, ref, stt)'
+select @q = @q + ' select a.tk_co, case when b.loai_tk = 1 then b.ten_tk%l else null end, a.ma_kh_i, c.ten_kh%l, '
+select @q = @q + ' tien_nt, dien_giai, ma_vv, ma_bp, so_lsx, ma_sp, ma_hd, ma_phi, ma_ku, '''', a.stt'
+select @q = @q + ' from @@table a left join dmtk b on a.tk_co = b.tk left join dmkh c on a.ma_kh_i = c.ma_kh'
+exec sp_executesql @q
+
+]]>&CheckImportUserDefinedFields;<![CDATA[
+
+select '' as message, 'this.frameElement.result = @@result;parent.set$Grid$ImportResult(this.frameElement);' as script
+select tk_co, ten_tk, ma_kh_i, ten_kh_i, tien_nt, dien_giai, ma_vv, ma_bp, so_lsx, ma_sp, ma_hd, ma_phi, ma_ku, ref from #r order by stt
+return
+]]>
+    </text>
+  </processing>
+
+</import>

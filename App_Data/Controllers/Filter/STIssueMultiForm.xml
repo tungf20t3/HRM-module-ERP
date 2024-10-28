@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "STIssueMultiForm">
+  <!ENTITY ParentController "STTran">
+  <!ENTITY GridController "STIssueMultiGrid">
+  <!ENTITY Tag "2">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+  <!ENTITY FlowMultiGeneralTable "c66$000000">
+  <!ENTITY FlowMultiDetailTable "d66$000000">
+
+  <!ENTITY OtherCopyField "he_so, nhieu_dvt, lo_yn, vi_tri_yn, stt_rec_dh, stt_rec0dh, stt_rec_hd, stt_rec0hd &FlowMultiUserDefinedFieldsCopy;">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn phiếu xuất bán" e="Select Sales Issue"></title>
+  <fields>
+    &FlowMultiFormField;
+  </fields>
+
+  <views>
+    &FlowMultiFormView;
+  </views>
+
+  <commands>
+    &FlowMultiFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function show$]]>&Identity;<![CDATA[$(f) {
+  var z = f.grid, h = z.get_element().parentForm, queryFilterString = '', c = String.fromCharCode(253);
+  queryFilterString = h.getItemValue('ma_dvcs');
+  queryFilterString += c + h.getItemValue('ma_kh');
+  queryFilterString += c + z._filter$Fields[0];
+  var d = h.getItemValue('ngay_ct').z;
+  queryFilterString += c + d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2);
+
+  show$FlowMulti$Form(f, queryFilterString, ']]>&Identity;<![CDATA[DataGridPanel', ']]>&ParentController;<![CDATA[', ']]>&GridController;<![CDATA[', ']]>&OtherCopyField;<![CDATA[');
+}
+
+function active$]]>&Identity;<![CDATA[$(f) {
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  active$FlowMulti$Form(f);
+}
+
+function close$]]>&Identity;<![CDATA[$(f) {
+  close$FlowMulti$Form(f);
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+}
+
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = getGrid$FlowMulti$(f);
+      g.validate();
+      if (g._error) {
+        f._checked = false;
+        f._busy = false;
+        $func.hideWait(f.get_id());
+        var errorMessage = String.format($df.getResources(f._language, 'Message.RequiredField'), g._errorLabel);
+        if (g._errorObject) $message.show(errorMessage, String.format('$find(\'{0}\')._errorObject.focus();$find(\'{0}\')._adjustPosition();', g.get_id()));
+        else $message.show(errorMessage);
+
+        return
+      }
+
+      var c = String.fromCharCode(255), k1 = g._getColumnOrder('stt_rec') - 1, k2 = g._getColumnOrder('stt_rec0') - 1, k3 = g._getColumnOrder('loai_vc') - 1;
+      f._$k = '', f._$t = '';
+      for (var i = 0; i < g._$k.length; i++) {
+        f._$k += (f._$k != '' ? ',' : '') + g._$k[i][k1] + c + g._$k[i][k2];
+        f._$t += (f._$t != '' ? c : '') + g._$k[i][k3];
+      }
+      if (f._$k == '') f.grid._formScript = 'show$FlowMulti$RetrieveGrid(this)';
+      else {
+        f._checked = false;
+        f.request('GetOtherField', 'GetOtherField', [['k', 'Infinite', f._$k], ['t', 'Infinite', f._$t]]);
+      }
+      break;
+    case 'GetOtherField':
+      var g = getGrid$FlowMulti$(f), a = [];
+      for (var i = 0; i < result.length; i++) {
+        a[i] = g._$k[i].concat(result[i].slice(3));
+      }
+      f._$r = (result[0][2]).split(',');
+      on$]]>&Identity;<![CDATA[$TransferData(f, g, a);
+      break;
+    default:
+      break;
+  }
+}
+function on$]]>&Identity;<![CDATA[$TransferData(f, g, a) {
+  var z = f.grid, w = z.get_element().parentForm, f1 = 'stt_rec, stt_rec0, so_ct, line_nbr', f2 = 'stt_rec_px, stt_rec0px, px_so, px_ln';
+  var first = true, qf = f._$queryFilterString.split(String.fromCharCode(253));
+  var m = qf[1], l0 = z._getColumnOrder('ma_vt'), l1 = z._getColumnOrder('dvt'), l2 = getColumnOrderTagRow(g, 'nhieu_dvt'), l3 = getColumnOrderTagRow(g, 'so_chuyen'), l4 = getColumnOrderTagRow(g, 'so_luong'), l5 = z._getColumnOrder('so_luong'), l6 = z._getColumnOrder('xaction'),
+    l7 = getColumnOrderTagRow(g, 'loai_vc'), l8 = z._getColumnOrder('loai_vc'), l9 = z._getColumnOrder('ten_loai%l');
+  var fields = 'ma_vt, ten_vt%l, dvt, ma_kho, ma_vi_tri, ma_lo, loai_vc, he_so, vi_tri_yn, lo_yn, stt_rec_dh, stt_rec0dh, stt_rec_hd, stt_rec0hd]]>&FlowMultiUserDefinedFieldsCopy;<![CDATA[';
+  var v = $func.scaleLength(z._getColumnFormat(l5));
+
+  for (var r = 0; r < a.length; r++) {
+    var n = a[r][l3], q = a[r][l4], p = $func.round(q/n, v);
+    if (n > 0) {
+      for (var i = 1; i <= n; i++) {
+        var ins = true, row = z._rowCount;
+        if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+        if (ins) z._appendRow(null, true);
+        row = z._rowCount;
+        z._getItem(row, 1)._customerIdentity = m;
+        var o = z._getItem(row, l0);
+        o.row = row;
+        insert$RetrieveTagRow$Items(g, a, r, z, row, fields, f1, f2);
+
+        var isvalid = (f._$r.indexOf(a[r][l7]) == -1);
+        var transportTypeName = z._getItemValue(row, l9);
+        z.setItemGridBehavior(o, [['loai_vc', z._getItemValue(row, l8), [transportTypeName, isvalid], true]]);
+
+        $func.setObjectWhen(z._getItem(row, l1), a[r, l2]);
+        z._setItemValue(row, l5, p + (i == 1 ? q - p*n : 0));
+        z._setItemValue(row, l6, '1');
+      }
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong]);
+  z._focusWhenTabChanged();
+  f.cancelDialog();
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetOtherField">
+      <text>
+        &FlowMultiTagRowRequest;<![CDATA[
+declare @p char(6), @r nvarchar(4000), @q nvarchar(4000)
+select top 0 tr.id, he_so,b.nhieu_dvt,b.lo_yn, 0 as vi_tri_yn,
+  rtrim(stt_rec_dh) as stt_rec_dh,rtrim(stt_rec0dh) as stt_rec0dh,rtrim(stt_rec_hd) as stt_rec_hd, rtrim(stt_rec0hd) as stt_rec0hd
+]]>&FlowMultiUserDefinedFieldsQuery;<![CDATA[
+into #d from #tagRow tr cross join d66$000000 a cross join dmvt b
+
+declare @$s nvarchar(128), @$t nvarchar(128), @$l int, @$size int, @$i int, @$result varchar(8000)
+select @$size = 0, @$result = ''
+select @$i = 1, @$l = datalength(text) from @t
+select @$size = charindex(char(255), text, @$size) from @t
+select top 0 identity(int, 1, 1) as id, cast('' as varchar(128)) as ma_loai into #dmloaivc
+while @$size > 0 and @$size < @$l begin
+  select @$s = replace(substring(text, @$i, @$size - @$i), '''', '') from @t
+  insert into #dmloaivc(ma_loai) select @$s
+  select @$i = @$size + 1, @delta = charindex(char(255), substring(text, @$size + 1, @$l - @$size)) from @t
+  if @delta = 0 break
+
+  select @$size = @$size + @delta
+end
+if @$i < @$l begin
+ select @$s = replace(substring(text, @$i, @$l - @$i), '''', '') from @t
+  insert into #dmloaivc(ma_loai) select @$s
+end
+delete #dmloaivc from #dmloaivc a join dmloaivc b on a.ma_loai = b.ma_loai
+delete #dmloaivc from #dmloaivc a where id >(select min(id) from #dmloaivc b where a.ma_loai = b.ma_loai) or ma_loai = ''
+select @$result = @$result + ma_loai + ',' from #dmloaivc
+select @$result = substring(@$result, 0, len(@$result))
+
+set @r = '
+insert into #d
+select tr.id, he_so,b.nhieu_dvt,b.lo_yn, case when exists(select top 1 ma_kho from dmvitri where dmvitri.ma_kho = a.ma_kho) then 1 else 0 end as vi_tri_yn,
+  rtrim(stt_rec_dh) as stt_rec_dh,rtrim(stt_rec0dh) as stt_rec0dh,rtrim(stt_rec_hd) as stt_rec_hd, rtrim(stt_rec0hd) as stt_rec0hd
+]]>&FlowMultiUserDefinedFieldsQuery;<![CDATA[
+  from (select id, stt_rec, stt_rec0 from #tagRow where p = ''%Partition'') tr
+    join d66$%Partition a on tr.stt_rec = a.stt_rec and tr.stt_rec0 = a.stt_rec0
+    left join dmvt b on a.ma_vt = b.ma_vt
+'
+
+select distinct p into #p from #tagRow
+select @p = min(p) from #p
+while @p is not null begin
+  set @q = replace(@r, '%Partition', @p)
+  exec sp_executesql @q
+  select @p = min(p) from #p where p > @p
+end
+
+select '' as array$, id, @$result as r, ]]>&OtherCopyField;<![CDATA[ from #d ]]>&FlowMultiOrderBy;<![CDATA[
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

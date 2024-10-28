@@ -1,0 +1,69 @@
+﻿<!ENTITY % Conditional.ImportOverwrite SYSTEM "..\Include\ImportOverwriteVoucher.txt">
+
+<![%Conditional.ImportOverwrite;[
+
+  <!ENTITY ImportOverwriteMatchData "
++ case when @check$Unit = '1' then ' left join dmvt v with(nolock) on v.ma_vt = a.ma_vt join dmkho k with(nolock) on k.ma_kho = case when a.ma_kho &lt;&gt; '''' then a.ma_kho else isnull(v.ma_kho, '''') end' else '' end
++ ' join &ImportOverwriteMainTable; b with(nolock) on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct' + case when @check$Unit = '1' then ' and k.ma_dvcs = b.ma_dvcs' else '' end
+">
+
+  <!ENTITY ImportOverwriteDeleting "
+
+select stt_rec, ma_kho, cast(1 as int) as stt into #owdetail from d&Detail;$000000
+
+declare @modeKey nvarchar(1024)
+set @modeKey = ''
+if exists(select 1 from syscolumns where name = 'stt_rec_ir' and id = object_id('d&Detail;$000000')) set @modeKey = ' or b.stt_rec_ir &lt;&gt; '''''
+
+set @field = 'so_ct'
+if @$mode = 1 begin
+  &StartErrorCount;
+  &InsertErrorTable; select @field, o.stt, 'OW01' from #owdata o join cttt30 c on c.stt_rec_tt like (left(o.stt_rec, 10) + '&#37;')
+  &w1;@field&w2;o.stt&w3;'OW01'&w4;
+  &EndErrorCount;
+
+  select @$owp = min(p) from #owpartition
+  while @$owp is not null begin
+    &StartErrorCount;
+    select @q = '&InsertErrorTable; select @field, o.stt, ''OW01'' from #owdata o join d&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where (b.stt_rec_pn &lt;&gt; '''' or b.stt_rec_dh &lt;&gt; ''''' + @modeKey + ') and o.p = ''' + @$owp + '''
+    &w1;@field&w2;o.stt&w3;''OW01''&w4; group by o.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    &EndErrorCount;
+
+    set @q = 'insert into #owdetail select distinct o.stt_rec, b.ma_kho, o.stt from #owdata o join d&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where o.p = ''' + @$owp + ''''
+    exec sp_executesql @q
+
+    select @$owp = min(p) from #owpartition where p > @$owp
+  end
+end else begin
+  select top 1 @r = min(o.stt) from #owdata o join cttt30 b on b.stt_rec_tt like (left(o.stt_rec, 10) + '&#37;') &ImportOverwriteError;
+
+  select @$owp = min(p) from #owpartition
+  while @$owp is not null begin
+    set @q = 'select top 1 @r = min(o.stt) from #owdata o join d&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where (b.stt_rec_pn &lt;&gt; '''' or b.stt_rec_dh &lt;&gt; ''''' + @modeKey + ') and o.p = ''' + @$owp + ''''
+    exec sp_executesql @q, N'@r int out', @r out &ImportOverwriteError;
+
+    set @q = 'insert into #owdetail select distinct o.stt_rec, b.ma_kho, o.stt from #owdata o join d&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where o.p = ''' + @$owp + ''''
+    exec sp_executesql @q
+
+    select @$owp = min(p) from #owpartition where p > @$owp
+  end
+end
+
+set @field = 'ma_kho'
+exec AI_ERP$System$CheckImportSiteRights '#owdetail', 'ma_kho', 'stt', @@userID, @@admin, @r output, default, @$mode, @$errorCount output
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  &Error;
+end
+
+">
+
+  <!ENTITY ImportOverwriteDeleted "&ImportOverwriteDeleteMultiVoucher;">
+  <!ENTITY ImportOverwriteInsertingByPart "&ImportOverwriteUpdateByPart;">
+]]>
+
+<!ENTITY ImportOverwriteDeleting "">
+<!ENTITY ImportOverwriteDeleted "">
+<!ENTITY ImportOverwriteInsertingByPart "">

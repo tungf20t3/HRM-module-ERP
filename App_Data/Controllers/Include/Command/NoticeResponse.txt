@@ -1,0 +1,35 @@
+﻿    <action id="Notice">
+      <text>
+        <![CDATA[
+declare @d$Current smalldatetime, @m char(1), @n tinyint, @id int, @message$Text nvarchar(4000)
+select @d$Current = convert(varchar(8), getdate(), 112)
+select top 1 @id = id from @@sysDatabaseName..sysnotice where controller = @c and action = @action and status = '1' and (ngay_hl_tu <= @d$Current) and (ngay_hl_den is null or ngay_hl_den >= @d$Current) order by ngay_hl_tu desc
+if @id is not null begin
+  delete @@sysDatabaseName..sysnoticeuser where id in (select id from @@sysDatabaseName..sysnotice where controller = @c and [action] = @action and @id is not null and id <> @id)
+  select @message$Text = case @@language when 'V' then a.mess_text else a.mess_text2 end
+    from @@sysDatabaseName..sysnotice a
+    where a.id = @id and not exists(
+      select 1 from @@sysDatabaseName..sysnoticeuser b
+        where b.id = a.id and b.user_id = @@userID and (b.check_yn = 1 or b.mess_count >= a.max_num)
+    )
+end
+select replace(replace(isnull(rtrim(isnull(@message$Text, '')), ''), '\', '\\'), '''', '\''') as mess_text, @action as action
+return
+]]>
+      </text>
+    </action>
+
+    <action id="NoticeUpdate">
+      <text>
+        <![CDATA[
+declare @id int
+select top 1 @id = id from @@sysDatabaseName..sysnotice where controller = @c and [action] = @action order by id desc
+if exists(select 1 from @@sysDatabaseName..sysnoticeuser where id = @id and user_id = @@userID)
+  update @@sysDatabaseName..sysnoticeuser set check_yn = @chk, mess_count = mess_count + 1 where id = @id and user_id = @@userID
+else
+  insert into @@sysDatabaseName..sysnoticeuser (id, user_id, controller, action, check_yn, mess_count) select @id, @@userID, @c, @action, @chk, 1
+select '1' as value
+return
+]]>
+      </text>
+    </action>

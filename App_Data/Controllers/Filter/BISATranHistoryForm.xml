@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "BISATranHistory">
+  <!ENTITY DetailTable "bid06">
+]>
+
+<dir table="bih06$000000" code="stt_rec, stt_rec0" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xem lịch sử hợp đồng" e="Schedule Agreement Line History"></title>
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec0" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt">
+      <header v="Mã hàng" e="Item Code"></header>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="dvt" external="true">
+      <header v="Đơn vị tính" e="UOM"></header>
+    </field>
+
+    <field name="so_luong" type="Decimal" dataFormatString="@quantityViewFormat" clientDefault="0">
+      <header v="Số lượng" e="Quantity"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="sl_nhap" type="Decimal" dataFormatString="@quantityViewFormat" clientDefault="0">
+      <header v="Số lượng nhập" e="Receipt Quantity"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="sl_hd" type="Decimal" dataFormatString="@quantityViewFormat" clientDefault="0">
+      <header v="Số lượng hóa đơn" e="Invoice Quantity"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="&DetailTable;" external="true" clientDefault="0" defaultValue="0" rows="184" categoryIndex="1" readOnly="true">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="&Identity;Grid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec_hd" e="String: stt_rec, stt_rec_hd"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v ="String: stt_rec0, stt_rec0hd" e="String: stt_rec0, stt_rec0hd"></text>
+        </item>
+      </items>
+    </field>
+
+  </fields>
+
+  <views>
+    <view id="Dir" height="244" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="11010000001101: [ma_vt].Label, [ma_vt], [ten_vt%l], [stt_rec], [sl_nhap].Label, [sl_nhap]"/>
+      <item value="110-------1101: [dvt].Label, [dvt], [stt_rec0], [sl_hd].Label, [sl_hd]"/>
+      <item value="110--------: [so_luong].Label, [so_luong]"/>
+
+      <item value="1: [&DetailTable;]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+      select 'this._break = true' as message
+      return;
+]]>
+      </text>
+    </command>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  f.setReadOnlyFields('ma_vt, dvt, so_luong, sl_nhap, sl_hd');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  f.getItem(']]>&DetailTable;<![CDATA[')._controlBehavior.add_onRender(on$]]>&Identity;<![CDATA[$GridRender);
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid, r = g._activeRow, w = g.get_element().parentForm;
+  f._denyFocus = true;
+  f.setItemValues('stt_rec, stt_rec0, ma_vt, ten_vt%l, dvt, so_luong, sl_nhap, sl_hd',
+    [
+      w.getItemValue('stt_rec'),
+      g._getItemValue(r, g._getColumnOrder('stt_rec0')),
+      g._getItemValue(r, g._getColumnOrder('ma_vt')),
+      g._getItemValue(r, g._getColumnOrder('ten_vt%l')),
+      g._getItemValue(r, g._getColumnOrder('dvt')),
+      g._getItemValue(r, g._getColumnOrder('so_luong')),
+      g._getItemValue(r, g._getColumnOrder('sl_nhap')),
+      g._getItemValue(r, g._getColumnOrder('sl_hd'))
+    ]
+  );
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {
+  try {f.getItem(']]>&DetailTable;<![CDATA[')._controlBehavior.remove_onRender(on$]]>&Identity;<![CDATA[$GridRender);} catch (ex) {}
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      set$]]>&Identity;<![CDATA[Form$FlowScript(f);
+      break;
+    default:
+      break;
+  }
+}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var z = f.grid;
+  z._focusWhenTabChanged();
+}
+function on$]]>&Identity;<![CDATA[$GridRender(sender, eventArgs) {sender.get_element().parentForm._findButton('Close').focus();}
+]]>
+    </text>
+  </script>
+</dir>

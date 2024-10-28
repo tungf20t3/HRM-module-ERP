@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "CRWorkCenterLoadInquiry">
+  <!ENTITY c1 "&lt;div id=&quot;&Identity;&quot; class=&quot;&Identity;&quot; align=&quot;center&quot; onclick=&quot;refresh$&Identity;Form(this);&quot;&gt;">
+  <!ENTITY c2 "&lt;/div&gt;">
+
+  <!ENTITY IndexChartTab "1">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir type="Report" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Truy vấn nhu cầu công suất của trung tâm công việc" e="Work Center Load Inquiry"></title>
+  <fields>
+    <field name="ma_ccv" allowNulls="false">
+      <header v="Mã trung tâm cv" e="Work Center"></header>
+      <items style="AutoComplete" controller="CRWorkCenterList" reference="ten_ccv%l" key="status = '1'" check="1 = 1"/>
+      <footer v="&c1;Làm tươi...&c2;" e="&c1;Refresh...&c2;"/>
+    </field>
+    <field name="ten_ccv%l">
+      <header v="Tên trung tâm cv" e="Work Center Name"></header>
+    </field>
+    <field name="dvt" allowNulls="false">
+      <header v="Đvt" e="UOM"/>
+      <items style="AutoComplete" controller="CRUnitCapacity" reference="ten_dvt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_dvt%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+    <field name="ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày" e="Date"></header>
+    </field>
+    <field name="ma_ky" readOnly ="true">
+      <header v="Kỳ" e="Time Bucket"></header>
+    </field>
+    <field name="ten_ky%l" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="Chart" external="true" allowContain="true" defaultValue="''"  rows="283" readOnly="true" hidden="true" filterSource="Plugin" categoryIndex="1">
+      <header v="&lt;div id='ChartContainer' style='overflow:auto;' &gt; &lt;div id='canvasParent' style='height:100%' &gt;&lt;canvas id='ViewChartID'&gt;&lt;/canvas&gt; &lt;/div&gt; &lt;/div&gt;" e="&lt;div id='ChartContainer' style='overflow:auto;' &gt; &lt;div id='canvasParent' style='height:100%' &gt;&lt;canvas id='ViewChartID'&gt;&lt;/canvas&gt; &lt;/div&gt; &lt;/div&gt;"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="367" anchor="5" split="5">
+      <item value="100, 100, 143, 94, 100, 8, 58, 50, 100"/>
+      <item value="1110--101: [ma_ccv].Label, [ma_ccv], [ma_ccv].Description, [ngay].Label, [ngay]"/>
+      <item value="11000-101: [ten_ccv%l].Label, [ten_ccv%l], [ma_ky].Label, [ten_ky%l]"/>
+      <item value="1110: [dvt].Label, [dvt], [ten_dvt%l]"/>
+
+      <item value="1: [Chart].Label"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @periodCode char(2), @periodName nvarchar(128), @d smalldatetime, @capacityRound varchar(32), @UOM nvarchar(32), @UOMName nvarchar(128)
+
+select @capacityRound = val from options where name = 'm_ip_cs'
+select @periodCode = rtrim(val) from options where name = 'm_ky_hd_nd_crp'
+select @periodName = case when @@language = 'v' then ten_ky else ten_ky2 end from mdmky where ma_ky = @periodCode
+select @d = isnull(@d, getdate())
+select top 1 @UOM = rtrim(dvt), @UOMName = case when @@language = 'V' then ten_dvt else ten_dvt2 end from crdmdvt where xtype = 'S' order by dvt
+
+select 'this._UOM=''' + @UOM + ''';this._UOMName=''' + @UOMName + ''';this._capacityRound=''' + @capacityRound + ''';this._date=''' + convert(varchar(8), @d, 112) + ''';this._periodCode=''' + @periodCode + ''';this._periodName=''' + isnull(rtrim(replace(replace(@periodName, '\', '\\'), '''', '\''')), '') + '''; set$Form$DefaultValue(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$]]>&Identity;<![CDATA[$(f) {
+  $get(']]>&Identity;<![CDATA[').parentForm = f;
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);
+  if (f._UOM) f.setItemValues('dvt, ten_dvt%l', [f._UOM, f._UOMName])
+  var l = (f._language == 'v' ? '' : '2');
+  f.setReadOnlyFields('ngay, ten_ccv' + l + ', ten_ky' + l + '');
+  chart$Init(f);
+}
+function close$]]>&Identity;<![CDATA[$(f) {
+  chart$Close(f);
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}
+}
+
+function set$Form$DefaultValue(f) {
+  f.setItemValues('ma_ky, ngay', [f._periodCode, $func.formatStringToDate(f._date)]);
+  f.setItemControlBehavior('ten_ky%l', f._periodName, null, null);
+}
+
+function on$]]>&Identity;<![CDATA[$ResponseComplete(f, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Resource':
+      f.setItemControlBehavior('dvt', result[0].Value, '', true);
+      f.setItemControlBehavior('ten_dvt%l', result[1].Value, null, false);
+      break;
+    case 'GetDataChart':
+      chart$Render(f, result);
+      break;
+    default:
+      break;
+  }
+}
+
+function refresh$]]>&Identity;<![CDATA[Form(o) {
+  var f = o.parentForm;
+  f.request('GetDataChart', 'GetDataChart', [['ma_ccv', 'String', f.getItemValue('ma_ccv')], ['dvt', 'String', f.getItemValue('dvt')]]);
+}
+function chart$Render(a,c){var e=[],f=[],b=[];b[0]=[],b[1]=[],b[2]=[];for(var d=0;d<c.length;d++){f.push(c[d][1]);b[0].push(c[d][2]);b[1].push(c[d][3]);b[2].push(c[d][4])}a._dataLength=c.length;if(a._dataLength>12){var l=$func.measurementToNumber($get(a.get_id()+"1_formTable").style.width)+(a._dataLength-12)*70;a._chart.canvas.parentNode.style.width=l+"px"}var k=a._language=="v"?"Công suất":"Capacity",h=a._language=="v"?"Công suất đáp ứng":"Capacity for Period",i=a._language=="v"?"Công suất giới hạn":"Capacity Limited",j=a._language=="v"?"Công suất sử dụng":"Capacity Used";e=[h,i,j];var g=chart$GenerateDataset(e,b);a._chart.options.title.text=k;a._chart.data.labels=f;a._chart.data.datasets=g;a._chart.data.datasets[0].type="line";a._chart.options.scales.yAxes[0].ticks.callback=function(a){return $func.numberFormat(a,"### ### ### ##0.0")};a._chart.options.tooltips.callbacks.label=function(b){return" "+$func.numberFormat(b.yLabel,a._capacityRound)};a._chart.update();a._chart.resize()}function chart$Close(a){document._form=null;a._chart.destroy();try{a._resizableControlBehavior.remove_resizing(chart$Resize)}catch(b){}}function chart$Init(a){document._form=a;a._resizableControlBehavior.add_resizing(chart$Resize);chart$Resize(a);var b=$get("ViewChartID").getContext("2d");a._chart=new Chart(b,{type:"bar",data:{labels:"",datasets:""},options:{maintainAspectRatio:false,title:{display:"true",fontColor:"#C75E00",position:"left",fontStyle:"normal",fontFamily:"Tahoma",fontSize:15},legend:{position:"bottom"},layout:{padding:{top:24}},tooltips:{titleFontColor:"#444",titleFontStyle:"nomal",bodyFontColor:"#444",backgroundColor:"#fff",borderColor:"#BDBBB6",borderWidth:1,callbacks:{title:function(){}}},scales:{yAxes:[{ticks:{beginAtZero:true},gridLines:{borderDash:[3,3]},position:"left"}],xAxes:[{barPercentage:.4}]}}});Chart.defaults.global.defaultFontColor="black";Chart.defaults.global.defaultFontFamily="Tahoma";Chart.defaults.global.defaultFontSize=11;document.getElementById("ViewChartID").ondblclick=function(e){var c=a._chart.getElementAtEvent(e);if(c.length>0)if(c[0]._datasetIndex==2){var d=c[0]._index,b=a.grid;b._ma_ky=c[0]._xScale.ticks[d];b._ky=d+1;b._ma_ccv=a.getItemValue("ma_ccv");b._dvt=a.getItemValue("dvt");b.showForm("rptCRPGetResourceDetailByPeriod")}}}function chart$Resize(a){var a=document._form;if(a)$get("ChartContainer").style.height=$func.measurementToNumber($get(a.get_id()+"_Tabs_body").style.height)+"px"}function chart$GenerateDataset(d,e){for(var b=[],c=["#DC3912","#3366CC","#109618","#FF9900","#990099","#3B3EAC","#0099C6","#DD4477","#66AA00","#B82E2E","#316395","#994499","#22AA99","#AAAA11","#6633CC","#E67300","#8B0707","#329262","#5574A6","#3B3EAC"],a=0;a<d.length;a++)b.push({type:"",label:d[a],data:e[a],fill:"false",backgroundColor:c[a],borderColor:c[a],borderWidth:1});return b}]]>
+      &OutlineEntry;
+    </text>
+  </script>
+  <css>
+    <text>
+      <![CDATA[
+.SelectionOutline{outline-style:dotted;outline-width:1px;}
+.]]>&Identity;<![CDATA[:hover{text-decoration:underline}
+.]]>&Identity;<![CDATA[{cursor:pointer;position:relative;width:64px!important;color:#3171c6;font-family:verdana;font-size:11px;}
+]]>
+    </text>
+  </css>
+  <response>
+
+    <action id="GetDataChart">
+      <text>
+        <![CDATA[
+exec rs_CRPQuery @ma_ccv, @dvt, @@language, @@userID, @@admin
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

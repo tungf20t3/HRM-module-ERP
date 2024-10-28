@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY VoucherCode "H16">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày chứng từ từ" e="Date From"></header>
+      <footer v="Ngày chứng từ từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày chứng từ đến" e="Date to"></header>
+    </field>
+    <field name="so_hd1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="Số chứng từ từ" e="Voucher No. from"></header>
+      <footer v="Số chứng từ từ/đến" e="Voucher No. from/to"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_hd2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="Số chứng từ đến" e="Voucher No. to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_xt1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="Xác thực từ/đến số" e="Reference No. from/to" />
+      <items style="Mask" />
+    </field>
+    <field name="so_xt2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="" e="" />
+      <items style="Mask" />
+    </field>
+
+    <field name="ma_nv" categoryIndex="1" onDemand="true">
+      <header v="Mã nhân viên" e="Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_nv" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_nv" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="tinh_trang" clientDefault="*" categoryIndex="1">
+      <header v="Tình trạng" e="Status"></header>
+      <items style="DropDownList">
+        <item value="*">
+          <text v="Tất cả các trạng thái" e="All"/>
+        </item>
+        <item value="0">
+          <text v="Chưa xác thực" e="No Action"/>
+        </item>
+        <item value="1">
+          <text v="Chờ xác thực" e="Pending"/>
+        </item>
+        <item value="2">
+          <text v="Đã xác thực" e="Released"/>
+        </item>
+        <item value="4">
+          <text v="Thay thế" e="Replaced"/>
+        </item>
+        <item value="8">
+          <text v="Chờ hủy" e="Cancelling"/>
+        </item>
+        <item value="9">
+          <text v="Hủy" e="Cancelled"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    <field name="ma_nt" categoryIndex="9">
+      <header v="Ngoại tệ" e="Currency"></header>
+      <items style="AutoComplete" controller="Currency" reference="ten_nt%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_nt%l" readOnly="true" external="true" categoryIndex="9">
+      <header v="" e=""></header>
+    </field>
+    <field name="status" dataFormatString="*, 0, 1, 2, 9" clientDefault="*" align="right" categoryIndex="9">
+      <header v="Trạng thái" e="Status"></header>
+      <footer v="Ký tự &lt;span style=&quot;color:#008200;&quot;&gt;[*]&lt;/span&gt; - Hiện tất cả các trạng thái" e="&lt;span style=&quot;color:#008200;&quot;&gt;[*]&lt;/span&gt; - Show all status information"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="maxLength" type="Int16" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="90">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101--: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="1101-1: [so_hd1].Description, [so_hd1], [so_hd2], [maxLength]"/>
+
+      <item value="1101: [so_xt1].Label, [so_xt1], [so_xt2]" />
+      <item value="110100: [ma_nv].Label, [ma_nv], [ten_nv]"/>
+      <item value="11000: [tinh_trang].Label, [tinh_trang]"/>
+      <item value="11000-: [ma_dvcs].Label, [ma_dvcs]"/>
+
+      <item value="110100: [ma_nt].Label, [ma_nt], [ten_nt%l]"/>
+      <item value="111000: [status].Label, [status], [status].Description"/>
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        <category index="9" columns="120, 30, 70, 100, 100, 130">
+          <header v="Khác" e="Other"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec hs_rptTaxDeductionStatusReport @ngay_ct1, @ngay_ct2, @so_hd1, @so_hd2, @so_xt1, @so_xt2, @maxLength, @ma_nv, @ma_nt, @tinh_trang, @status, @ma_dvcs, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);a._tabContainer.add_activeTabChanged(onChange$VoucherFilter$Tab);a._tabContainer._loaded=true;var b=a.getItem("maxLength");b.value=b.maxLength}function close$VoucherFilter$(a){try{a._tabContainer.remove_activeTabChanged(onChange$VoucherFilter$Tab)}catch(b){}try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function onChange$VoucherFilter$Tab(a){a.parentForm.focusWhenTabChanged(["ma_nv","ma_nt"])}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, dFrom = f.getItem('ngay_ct1').value, dTo = f.getItem('ngay_ct2').value;
+      g._alterTitle = [null, [['%d1', dFrom, true], ['%d2', dTo, true]]];
+      g._$voucherCode = ']]>&VoucherCode;<![CDATA[';
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+  &OutlineCss;
+</dir>

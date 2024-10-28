@@ -1,0 +1,218 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY Identity "ReplacementInvoiceRegistrationFilter">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'ReplacementInvoiceRegistrationFilter', 'Filter', 'ReplacementInvoiceRegistration'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+<dir table="hddt01" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn hóa đơn" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Hóa đơn từ ngày" e="Date From"></header>
+      <footer v="Ngày hóa đơn từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Hóa đơn đến ngày" e="Date to"></header>
+    </field>
+    <field name="ma_kh" allowNulls="false">
+      <header v="Mã khách hàng" e="Customer"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_ct" align="right" maxLength="-100" filterSource="voucherNumber" allowNulls="false">
+      <header v="Số hóa đơn" e="Invoice Number"></header>
+      <items style="AutoComplete" controller="ReplacementInvoiceLookup" reference="stt_rec_ct"/>
+    </field>
+    <field name="stt_rec_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec_ht" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="typeInv" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230, 0, 0"/>
+      <item value="1101-11: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2], [ma_ct], [ma_dvcs]"/>
+      <item value="110101: [ma_kh].Label, [ma_kh], [ten_kh%l], [typeInv]"/>
+      <item value="110--11: [so_ct].Label, [so_ct], [stt_rec_ct], [stt_rec_ht]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[Filter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Filter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[Filter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @vcID varchar(32), @vcNumber varchar(32), @vcCustomerID varchar(32), @vcCode varchar(32), @rangeFrom smalldatetime, @rangeTo smalldatetime, @dateFrom smalldatetime, @dateTo smalldatetime, @$none nvarchar(512)
+declare @c varchar(64), @m varchar(64), @q nvarchar(4000), @p char(6), @u varchar(33), @t nvarchar(33), @$invalid nvarchar(512), @ext tinyint, @$PaymentConflict nvarchar(512)
+
+select @$invalid = case
+    when @typeInv = '0' then case when @@language = 'v' then N'Hóa đơn gốc chưa xác thực.' else N'The original invoice is invalid.' end
+    else case when @@language = 'v' then N'Hóa đơn thay thế không đúng.' else N'The replacement invoice is invalid.' end
+  end, @$none = case when @@language = 'v' then N'Không có hóa đơn theo điều kiện đang lọc hoặc hóa đơn không hợp lệ.' else N'No data matching filter condition or invalid invoice.' end
+
+]]>&CheckRelativeProcess;<![CDATA[
+
+select @$PaymentConflict = case when @@language = 'v' then N'Đã có chứng từ thanh toán cho hóa đơn gốc, không thể thay thế được.' else N'The original invoice has been paid.' end
+
+select @u = case when @ma_dvcs <> '' then @ma_dvcs else @@unit end, @rangeFrom = ngay_gh1, @rangeTo = ngay_gh2 from dmstt
+select @ext = 1, @dateFrom = @ngay_ct1, @dateTo = @ngay_ct2, @t = ' and status in (''1'', ''2'')'
+if @dateFrom < @rangeFrom select @dateFrom = @rangeFrom
+if @dateTo > @rangeTo select @dateTo = @rangeTo
+
+if @ma_ct = 'HDA' select @c = 'c81$000000', @m = 'm81$'
+  else if @ma_ct = 'HD1' select @c = 'c21$000000', @m = 'm21$'
+  else if @ma_ct = 'HD2' select @c = 'c22$000000', @m = 'm22$'
+  else if @ma_ct = 'HD4' select @c = 'c25$000000', @m = 'm25$'
+  else if @ma_ct = 'HD5' select @c = 'hddc', @m = 'hddc', @t = ' and status = ''1'''
+  else if @ma_ct = 'PXC' select @c = 'c86$000000', @m = 'm86$', @t = ' and status in (''2'', ''3'')'
+  else if @ma_ct = 'PXD' select @c = 'm26$000000', @m = 'm26$000000'
+  else if @ma_ct = 'HD6' select @c = 'm42$000000', @m = 'm42$000000'
+
+if @ma_ct in ('HDA', 'HD1', 'HD2', 'HD4', 'PXC') begin
+  select @q = 'select @x = convert(char(6), ngay_ct, 112) from ' + @c + ' where ' + case when @stt_rec_ct <> '' then 'stt_rec = ''' + replace(@stt_rec_ct, '''', '''''') + '''' else 'ltrim(so_ct) = ''' + replace(ltrim(rtrim(@so_ct)), '''', '''''') + ''' and ma_dvcs = ''' + replace(@u, '''', '''''') + '''' end
+  exec sp_executesql @q, N'@x char(6) output', @x = @p output
+  select @m = @m + @p
+end
+
+select top 0 stt_rec, so_ct, ngay_ct, ma_kh, ma_nt, t_tt_nt into #r from m81$000000
+select @q = 'insert into #r select stt_rec, so_ct, ngay_ct, ma_kh, ma_nt, t_tt_nt' + case when @ma_ct = 'HDA' then ' + t_km_nt + t_thue_km_nt' else '' end + ' from ' + @m + ' where ' +
+  case
+    when @stt_rec_ct <> '' then 'stt_rec = ''' + replace(@stt_rec_ct, '''', '''''') + '''' else 'ltrim(so_ct) = ''' + replace(ltrim(rtrim(@so_ct)), '''', '''''') + '''' end +
+    ' and ma_kh = ''' + replace(@ma_kh, '''', '''''') + ''' and ma_ct = ''' + replace(@ma_ct, '''', '''''') + ''' and ma_dvcs = ''' + replace(@u, '''', '''''') + '''' + @t +
+  case when @stt_rec_ht <> '' then ' and stt_rec <> ''' + replace(@stt_rec_ht, '''', '''''') + '''' else '' end
+exec sp_executesql @q
+
+if not exists(select 1 from #r) begin
+  select 'so_ct' as field, @$none as message
+  return
+end else begin
+  select top 1 @q = 'if not exists(select 1 from hddt00$' + convert(varchar(6), ngay_ct, 112) + ' where stt_rec = ''' + replace(stt_rec, '''', '') + ''' and tinh_trang_hddt = ''' + case when @typeInv = '0' then '2' else '0' end + ''') select @extOut = 0' from #r
+  exec sp_executesql @q, N'@extOut tinyint output', @extOut = @ext output
+  if @ext = 0 begin
+    select 'so_ct' as field, @$invalid as message
+    return
+  end
+
+  -- Check Payment of Original Voucher
+  if @ma_ct in('HD2', 'HD4', 'HD6') begin
+    if exists(select 1 from cttt20 where loai_tt = 1 and stt_rec like (left(@stt_rec_ct, 10) + '%')) begin
+      select 'so_ct' as field, @$PaymentConflict as message
+      return
+    end
+  end
+  if @ma_ct in('PXC', 'PXD') begin
+    if exists(select 1 from cttt30 where loai_tt = 1 and stt_rec like (left(@stt_rec_ct, 10) + '%')) begin
+      select 'so_ct' as field, @$PaymentConflict as message
+      return
+    end
+  end
+  if exists(select 1 from cttt20 where stt_rec_tt = @stt_rec_ct) begin
+    select 'so_ct' as field, @$PaymentConflict as message
+    return
+  end
+
+  select top 1 '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$QueryComplete(this, ''' + stt_rec + ''', ''' + ltrim(rtrim(so_ct)) + ''', ''' + convert(char(8), ngay_ct, 112) + ''', ''' + a.ma_kh + ''', ''' + isnull(rtrim(replace(replace(case when @@language = 'v' then b.ten_kh else b.ten_kh2 end, '\', '\\'), '''', '\''')), '') + ''', ''' + rtrim(t_tt_nt) + ''', ''' + ma_nt + ''');' as script from #r a join dmkh b on a.ma_kh = b.ma_kh
+  return
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {f.getItem('so_ct')._idle = ]]>&IdleLookupFilter;<![CDATA[;}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f._looking.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);
+  var w = document.body._form, g = f.grid, id = (g._$typeInv == '0' ? 'stt_rec1' : 'stt_rec0'), c = (g._$typeInv == '0' ? 'ma_kh0' : 'ma_kh1'), n = (g._$typeInv == '0' ? 'ten_kh0%l' : 'ten_kh1%l');
+  f.setItemValues('ma_dvcs, ma_ct, stt_rec_ht, typeInv, ma_kh, ten_kh%l', [g._$unit, g._$voucherCode, w.getItemValue(id), g._$typeInv, w.getItemValue(c), w.getItemValue(n)]);
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {
+  try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);} catch (ex) {}
+  var w = document.body._form, g = f.grid, l = (g._$typeInv == '0' ? 'so_ct0' : 'so_ct1');
+  w.focus(l);
+  g._$deferral = g._activeCell;
+  g._activeCell = null;
+  setTimeout(function() {if (g._$deferral) {g._activeCell = g._$deferral; g._$deferral = null; g._formScript = null;}}, 1);
+}
+function on$]]>&Identity;<![CDATA[Filter$Before$Loading(sender, e) {
+  var f = sender._element.parentForm, g = f.grid;
+  if (!f.validFields('ngay_ct1, ngay_ct2, ma_kh')) e.type.cancelEvent = true;
+  else {
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: f.getItemValue('ngay_ct1')},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: f.getItemValue('ngay_ct2')},
+      {Name: 'ma_ct', Type: 'String', Value: g._$voucherCode},
+      {Name: 'ma_kh', Type: 'String', Value: f.getItemValue('ma_kh')},
+      {Name: 'ma_dvcs', Type: 'String', Value: g._$unit},
+      {Name: '$key', Type: 'String', Value: f.getItemValue('stt_rec_ht')}
+    ];
+    sender.set_memvars(a);
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$QueryComplete(f, a, b, c, d, h, e, k) {
+  var w = document.body._form, g = f.grid;
+  var l0 = (g._$typeInv == '0' ? 'stt_rec0, so_ct0, ngay_ct0, ma_kh0, ten_kh0%l, t_tt_nt0, ma_nt0' : 'stt_rec1, so_ct1, ngay_ct1, ma_kh1, ten_kh1%l, t_tt_nt1, ma_nt1');
+  var l1 = (g._$typeInv == '0' ? 'so_ct0' : 'so_ct1');
+  w.setItemValues(l0, [a, b, $func.formatStringToDate(c), d, h, e, k]);
+  w.getItem(l1).focus();
+  w.live(w.getItem(l1));
+  if (!g._formScript) g._formScript = ' ';
+}
+]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

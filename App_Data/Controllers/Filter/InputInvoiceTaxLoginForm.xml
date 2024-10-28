@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Đăng nhập" e="Login"></title>
+  <fields>
+    <field name="tax_code" allowNulls="false">
+      <header v="Mã số thuế" e="Tax Code"></header>
+      <items style="AutoComplete" controller="TaxCodeImport" reference="tax_name%l" key="ma_dvcs = @@unit and status = '1'" check="ma_dvcs = @@unit"/>
+      <clientScript><![CDATA[onchange="onchange$TaxCode(this);"]]></clientScript>
+    </field>
+    <field name="tax_name%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="user_name" allowNulls="false">
+      <header v="Tên đăng nhập" e="User Name"></header>
+      <items style="AutoComplete" controller="AccountTax" key="unit_code = @@unit and user_name like '{$%c[tax_code]}' + '%'" check="unit_code = @@unit and user_name like '{$%c[tax_code]}' + '%'"/>
+      <clientScript><![CDATA[onchange="onchange$UserName(this);"]]></clientScript>
+    </field>
+    <field name="password" allowNulls="false" allowContain="true" defaultValue="'*******' + char(255)">
+      <header v="Mật khẩu" e="Password"></header>
+      <clientScript><![CDATA[type="password"]]></clientScript>
+    </field>
+    <field name="capcha_image" readOnly="true" inactivate="true" filterSource="Vacant">
+      <header v="" e=""></header>
+      <footer v="&lt;div id=&quot;CapchaImage&quot; style=&quot;background-color:#e1edfb;width:200px;height:40px;text-align:center;vertical-align:middle;&quot;&gt;&lt;/div&gt;" e="&lt;div id=&quot;CapchaImage&quot; style=&quot;background-color:#e1edfb;width:200px;height:40px;text-align:center;vertical-align:middle;&quot;&gt;&lt;/div&gt;">
+      </footer>
+    </field>
+    <field name="capcha_text" allowNulls="false">
+      <header v="Mã bảo mật" e="Capcha"></header>
+    </field>
+    <field name="note">
+      <header v="Ghi chú" e="Note"></header>
+    </field>
+
+    <field name="pass" external="true" defaultValue="''" allowContain="true" disabled="true" readOnly="true" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="update_pass" external="true" defaultValue="'0'" allowContain="true" disabled="true" readOnly="true" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 200, 100, 130, 0"/>
+      <item value="11--1: [tax_code].Label, [tax_code], [tax_name%l]"/>
+      <item value="11--1: [user_name].Label, [user_name], [pass]"/>
+      <item value="11--1: [password].Label, [password], [update_pass]"/>
+      <item value="11: [capcha_image].Label, [capcha_image].Description"/>
+      <item value="11: [capcha_text].Label, [capcha_text]"/>
+      <item value="1100: [note].Label, [note]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @mess nvarchar(4000)
+select @mess = ''
+if exists(select 1 from @@appDatabaseName..vdmcn where ma_dvcs = @@unit) begin
+  declare @taxCode varchar(32), @taxName nvarchar(512)
+  select @taxCode = ma_so_thue, @taxName = case @@language when 'V' then ten_dvcs else ten_dvcs2 end from @@appDatabaseName..vdmcn where ma_dvcs = @@unit
+  select @mess = N'this._taxCode = ''' + rtrim(isnull(@taxCode, '')) + ''';this._taxName = ''' + replace(replace(rtrim(isnull(@taxName, '')), '\', '\\'), '''', '\''') + ''';$func.findField(''tax_code'', this._fields).Inactivate = true;'
+end
+select @mess + 'loadForm$InputInvoiceTaxLoginForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[select 'closeForm$InputInvoiceTaxLoginForm(this);' as message
+return]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function loadForm$InputInvoiceTaxLoginForm(a){a.add_onResponseComplete(on$InputInvoiceTaxLoginForm$ResponseComplete);updateCapcha(a.grid);if($func.findField("tax_code",a._fields).Inactivate){a.setItemValues("tax_code, tax_name%l",[a._taxCode,a._taxName]);if(a._taxCode){a.setItemValue("user_name",a._taxCode);a.setReferenceKeyFilter("user_name");a.request("CheckUserExist","CheckUserExist",[["user_name","String",a._taxCode]]);a.focus("password")}}}function closeForm$InputInvoiceTaxLoginForm(a){try{a.remove_onResponseComplete(on$InputInvoiceTaxLoginForm$ResponseComplete)}catch(b){}}function on$InputInvoiceTaxLoginForm$ResponseComplete(m,f){var a=f.object,j=f.type.Context,e=f.type.Result,g=a.grid,i=a.getItemValue("user_name"),k=a.getItemValue("tax_code"),d="*******"+String.fromCharCode(255),h=a.getItemValue("password");switch(j){case"Checking":a._checked=false;var c="000000";a.setItemValue("update_pass","0");if(h!=d){a.setItemValue("pass",AES(c,(c+c+c).substring(0,16),h));a.setItemValue("update_pass","1")}a.request("CheckTaxCode","CheckTaxCode",[["userName","String",i],["taxCode","String",k]]);break;case"CheckTaxCode":if(!e[0].Value){var l=a._language=="v"?'Trường <span class="Highlight">Tên đăng nhập</span> giá trị nhập không hợp lệ.':'Field <span class="Highlight">User Name</span> has invalid value.';$message.show(l,String.format("$find('{0}').getItem('user_name').focus();",a.get_id()));return}busy$Page(a,true);var b="";if(h!=d)b=a.getItemValue("pass");Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl(g._urlReceiveTax,g._baseUrl),"GetToken",false,{userName:i,password:b,ckey:g._ckey,captcha:a.getItemValue("capcha_text")},onRequest$InputInvoiceTaxLoginForm$Completed$GetToken,onRequest$InputInvoiceTaxLoginForm$Failed$GetToken,a._id);break;case"CheckUserExist":var b=e[0].Value;if(b)a.setItemValues("password, pass, note",[d,b,e[1].Value]);else a.setItemValues("password, note",["",""])}}function onRequest$InputInvoiceTaxLoginForm$Completed$GetToken(c,d){var a=$find(d),b=a.grid;busy$Page(a,false);if(!c){$message.show(a._language=="v"?"Phát sinh lỗi trong quá trình thực hiện.":"The process was failed.");a.closeDialog();return}if(c=="999"){$message.show(a._language=="v"?"Tên đăng nhập hoặc mật khẩu không đúng.":"Invalid User Name or Password.");Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl(b._urlReceiveTax,b._baseUrl),"GetCaptcha",false,{},onRequest$InputInvoiceTaxLoginForm$Completed$GetCaptcha,onRequest$InputInvoiceTaxLoginForm$Failed$GetCaptcha,a._id);return}b._taxUser=$func.trim(a.getItemValue("user_name"));b._taxNote=$func.trim(a.getItemValue("note"));b._taxCode=$func.trim(a.getItemValue("tax_code"));a.request("SaveToken","SaveToken",[["user_name","String",b._taxUser],["password","String",a.getItemValue("pass")],["tax_code","String",b._taxCode],["token","String",c],["note","String",b._taxNote],["update_pass","String",a.getItemValue("update_pass")]]);a.closeDialog()}function onRequest$InputInvoiceTaxLoginForm$Failed$GetToken(b,a){busy$Page($find(a),true)}function onRequest$InputInvoiceTaxLoginForm$Completed$GetCaptcha(a,d){var c=$find(d),b=c.grid;!a&&$message.show(c._language=="v"?"Phát sinh lỗi trong quá trình thực hiện.":"The process was failed.");b._ckey=a.CKey;b._captcha=a.CaptchaSVG;updateCapcha(b)}function onRequest$InputInvoiceTaxLoginForm$Failed$GetCaptcha(){}function updateCapcha(b){var a=$get("CapchaImage");a.innerHTML=b._captcha;a.parentNode.style.maxHeight="40px"}function onchange$TaxCode(a){var b=a.parentForm;b.setItemValue("user_name",a.value);b.setReferenceKeyFilter("user_name");onchange$UserName(a)}function onchange$UserName(a){a.parentForm.request("CheckUserExist","CheckUserExist",[["user_name","String",a.parentForm.getItemValue("user_name")]])}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="CheckUserExist">
+      <text>
+        <![CDATA[
+if exists(select 1 from tktchddt where user_name = @user_name and unit_code = @@unit)
+  select '*******' + char(255) as password, note from tktchddt where user_name = @user_name and unit_code = @@unit
+else select '' as value
+return
+]]>
+      </text>
+    </action>
+
+    <action id="SaveToken">
+      <text>
+        <![CDATA[
+if exists(select 1 from tktchddt where user_name = @user_name and unit_code = @@unit) begin
+  update tktchddt set tax_code = @tax_code, unit_code = @@unit, token = @token, note = @note, user_id2 = @@userID, datetime2 = getdate() where user_name = @user_name and unit_code = @@unit
+  if @update_pass = '1' update tktchddt set password = @password where user_name = @user_name and unit_code = @@unit
+end
+else insert into tktchddt(user_name, password, tax_code, unit_code, token, note, user_id0, datetime0, user_id2, datetime2) values(@user_name, @password, @tax_code, @@unit, @token, @note, @@userID, getdate(), @@userID, getdate())
+]]>
+      </text>
+    </action>
+
+    <action id="CheckTaxCode">
+      <text>
+        <![CDATA[
+declare @check bit
+if not exists(select 1 from userinfo2 where id = @@userID) or @userName not like @taxCode + '%' begin
+  select 0 as value
+  return
+end
+if exists(select 1 from userinfo2 where id = @@userID and admin = 1) begin
+  if exists(select 1 from @@appDatabaseName..dmdvcskb where ma_so_thue = @taxCode and status = '1') select @check = 1
+  else select @check = 0
+end else begin
+  if not exists(select 1 from @@appDatabaseName..sysunitrights where user_id = @@userID and r_access = 1) select @check = 0
+  else begin
+    if exists(select 1 from @@appDatabaseName..sysunitrights a join @@appDatabaseName..dmdvcskb b on a.ma_dvcs = b.ma_dvcs where user_id = @@userID and b.ma_so_thue = @taxCode) select @check = 1
+    else select @check = 0
+  end
+end
+select @check as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+</dir>

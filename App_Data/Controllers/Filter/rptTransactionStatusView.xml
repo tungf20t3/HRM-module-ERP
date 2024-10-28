@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Nội dung phản hồi" e="Feedback Contents"></title>
+  <fields>
+    <field name="noi_dung" readOnly="true" rows="30">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="700"/>
+      <item value="1: [noi_dung]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true' as message
+return;
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$TransactionStatusView(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$TransactionStatusView(f) {f.setItemValue('noi_dung', f.grid._$y);}
+]]>
+    </text>
+  </script>
+</dir>

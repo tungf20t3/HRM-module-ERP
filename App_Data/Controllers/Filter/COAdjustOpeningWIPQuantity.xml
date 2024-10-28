@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY Control ",@$control = '10001'">
+  <!ENTITY CostingUnitFilterShowing SYSTEM "..\Include\Command\CostingUnitInputFilterShowing.txt">
+  <!ENTITY CostingUnitFilterInserting SYSTEM "..\Include\Command\CostingUnitFilterInserting.txt">
+  <!ENTITY CostingUnitFilter SYSTEM "..\Include\Javascript\CostingUnitFilter.txt">
+]>
+
+<dir table="xcdloaiytdd0" code="ky, nam, ma_dvcs, ma_yt, ma_sp, ma_bp, so_lsx" order="ky, nam, ma_dvcs, ma_yt, ma_sp, ma_bp, so_lsx" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc số lượng sản phẩm dở dang đầu kỳ" e="Opening WIP Quantity Filter"></title>
+  <fields>
+    <field name="ky" isPrimaryKey="true" type="Decimal" dataFormatString="#0" allowNulls="false" aliasName="Period" defaultValue="(new Date()).getMonth() + 1">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" isPrimaryKey="true" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_dvcs" isPrimaryKey="true">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 330"/>
+      <item value="11: [ky].Label, [ky]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="1101: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &CostingUnitFilterShowing;
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    &CostingUnitFilterInserting;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  if (f._objectUnit) {
+    var o = f.getItem('ma_dvcs');   
+    var grandNode = o.parentNode.parentNode;     
+    o.field.AllowNulls = false;
+    Sys.UI.DomElement.addCssClass(grandNode, 'Required');
+    Sys.UI.DomElement.addCssClass(grandNode, f._id);
+  } 
+}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, u = f.getItemValue('ma_dvcs'), k = new Array();
+      g._period = f.getItemValue('ky');
+      g._year = f.getItemValue('nam');
+
+      g._costUnit = f._costUnit;
+      var msg = checkFilterLockedDate(f, g._period, g._year, 1);
+      if (msg) g._denyMessage = msg;
+
+      Array.add(k, {Name: 'ky', Opr: '=', Value: g._period, Type: 'Decimal', Ignore: false});
+      Array.add(k, {Name: 'nam', Opr: '=', Value: g._year, Type: 'Decimal', Ignore: false});
+      if (u)  Array.add(k, {Name: 'ma_dvcs', Opr: 'like', Value: u += '%', Type: 'String', Ignore: false});
+
+      g.set_externalKey(k);
+      g._alterTitle = [null, [['%s1', g._period.toString(), true], ['%s2', g._year.toString(), true]]];
+      break;
+    default:
+	  break;
+  }
+}
+]]>
+      &CostingUnitFilter;
+    </text>
+  </script>
+</dir>

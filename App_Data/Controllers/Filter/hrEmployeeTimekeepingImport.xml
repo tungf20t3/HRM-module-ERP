@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="hrvaora$000000" code="stt_rec, thoi_gian" order="c$" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="tu_ngay" type="DateTime" allowNulls="false" dataFormatString="@datetimeFormat" align="left" aliasName="fromDate" defaultValue="newDate()">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Ngày từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="den_ngay" type="DateTime" allowNulls="false" dataFormatString="@datetimeFormat" align="left" aliasName="toDate" defaultValue="newDate()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+    <field name="ma_bp" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID))"/>
+      <clientScript><![CDATA[onchange="onchange$TimekeepingImportFilter$Deparment(this);"]]></clientScript>
+    </field>
+    <field name="ten_bp%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" onDemand="true">
+      <header v="Nhân viên" e="Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_nv" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID))"/>
+    </field>
+    <field name="ten_nv" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 230"/>
+      <item value="110: [tu_ngay].Label, [tu_ngay]"/>
+      <item value="110-1: [den_ngay].Label, [den_ngay], [bp_ref]"/>
+      <item value="11010: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="11010: [ma_nv].Label, [ma_nv], [ten_nv]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @ngay_ks varchar(8)
+select @ngay_ks = convert(varchar(8), ngay_ks, 112) from dmstt
+select 'this._lockedDate = ''' + @ngay_ks + ''';active$TimekeepingImportFilter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$TimekeepingImportFilter(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$TimekeepingImportFilter(f) {f.add_onResponseComplete(on$TimekeepingImportFilter$ResponseComplete);}
+function close$TimekeepingImportFilter(f) {try {f.remove_onResponseComplete(on$TimekeepingImportFilter$ResponseComplete);} catch (ex) {}}
+function onchange$TimekeepingImportFilter$Deparment(o) {o.parentForm.request('Reference', 'Reference', ['ma_bp']);}
+function on$TimekeepingImportFilter$ResponseComplete(f, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Reference':
+      f.setItemControlBehavior('bp_ref', result[0].Value, true);
+    break;
+    case 'Checking':
+      var g = f.grid;
+      g._refreshMemvars = true;
+      g._d1 = f.getItem('tu_ngay').value;
+      g._d2 = f.getItem('den_ngay').value;
+      g._dept = f.getItemValue('ma_bp');
+      g._staff = f.getItemValue('ma_nv');
+      g._deptRef = f.getItemValue('bp_ref');
+      var d = f.getItemValue('tu_ngay', null, null, true), m = d.getMonth() + 1, y = d.getFullYear();
+      var b = f._lockedDate >= (y.toString() + (m > 9 ? m.toString() : '0' + m.toString()) + '01');
+      g._denyImport = b;
+      if (b) g._denyMessage = ((f._language == 'v') ? 'Đã khóa số liệu, kiểm tra lại ngày khóa sổ.' : 'Data is locked, you must modify system locked date.');      
+      g._alterTitle = [null, [['%s1', g._d1, true], ['%s2', g._d2, true]]];
+    break;
+    default:
+	  break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Reference">
+      <text>
+        <![CDATA[
+declare @b varchar(128)
+select @b = ''
+if exists(select 1 from hrbp where ma_bp = @ma_bp) select @b = bp_ref from hrbp where ma_bp = @ma_bp
+select @b as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

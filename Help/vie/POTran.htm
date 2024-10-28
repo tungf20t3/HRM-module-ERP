@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="POTran.doc" />
+<title>Đơn hàng mua trong nước</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Đơn hàng mua trong nước</p>
+<p id="p1">Bước lập đơn hàng là bước tiếp sau bước chọn nhà cung cấp. 
+<br>
+Trong phân hệ Quản lý mua hàng, AI ERP quản lý đơn hàng mua theo hai loại:</p>
+<ul class="lo_0">
+-        Đơn hàng mua trong nước
+<br>
+-        Đơn hàng nhập khẩu
+</ul>
+<p id="p1">Hai loại đơn hàng này được cập nhật trên hai màn hình riêng tương ứng với tên gọi. Quy trình thực hiện, mô tả 
+trạng thái và xử lý trạng thái của hai màn hình này hoàn toàn giống nhau. Riêng đối với đơn hàng nhập khẩu, chương trình có thêm chức năng khai báo tờ 
+khai hải quan trong một màn hình riêng biệt để hỗ trợ việc tính toán các chi phí phát sinh khi nhập khẩu cũng như tính thuế nhập khẩu và thuế giá trị gia tăng 
+hàng nhập khẩu.
+<br>
+Trong các màn hình đơn hàng, chương trình cho phép lập theo 02 mã giao dịch:</p>
+<ul class="lo_0">
+-        Mã giao dịch 1 – đơn hàng
+<br>
+
+-        Mã giao dịch 2 - hợp đồng</ul>
+
+<p id="p1">Khái niệm giao dịch hợp đồng trong hệ thống dùng để chỉ những đơn hàng khung - những thoả thuận mua bán giữa khách hàng và nhà 
+cung cấp không liên quan đến việc trực tiếp nhập/ xuất hàng hoá. Mọi trường hợp liên quan đến việc trực tiếp nhập/ xuất hàng hoá đều thông qua mã giao dịch 1 – đơn hàng.
+<br>
+
+Quá trình lập đơn hàng/ hợp đồng được hỗ trợ bằng nhiều cách:</p>
+<ul class="lo_0">
+-        Lập trực tiếp đơn hàng/ hợp đồng mới.
+<br>
+
+-        Sao chép từ đơn hàng/ hợp đồng cũ.
+<br>
+-        Lấy số liệu từ phiếu nhu cầu đã duyệt: một đơn hàng/ hợp đồng có thể lấy số liệu từ nhiều phiếu nhu cầu 
+(và ngược lại, một phiếu nhu cầu có thể được lập thành nhiều đơn hàng/ hợp đồng)
+<br>
+-        Lấy số liệu đã đặt hàng cho nhà cung cấp đã chọn: một đơn hàng/ hợp đồng chỉ được lấy số liệu đã đặt hàng cho một nhà cung cấp đã chọn.
+<br>
+-        Lấy số liệu từ hợp đồng: chức năng dành riêng cho mã giao dịch 1 – đơn hàng, một đơn hàng chỉ được lấy số liệu từ một hợp đồng 
+(ngược lại, một hợp đồng có thể tách thành nhiều đơn hàng).
+</ul>
+<p id="td2">Quy trình của đơn hàng</p>
+<p id="p2">
+Bước trước:     Duyệt phiếu nhu cầu hoặc chọn nhà cung cấp (nếu lập đơn hàng dựa trên thông tin chọn nhà cung cấp), duyệt hợp đồng 
+(nếu quy trình lập đơn hàng được thực hiện từ những hợp đồng ký kết)
+<br>
+
+Bước sau:        Duyệt đơn hàng (hoặc lập tờ khai hải quan)
+<br>
+
+Bộ phận lập:    Bộ phận lập đơn hàng</p>
+<p id="td2">Mô tả các trạng thái của đơn hàng</p>
+<p class="node">         Lập chứng từ</p>
+<p class="node_d">
+Trạng thái đang lập đơn hàng. Đây là trạng thái ngầm định khi tạo mới đơn hàng.
+<br>
+
+Trạng thái này được xác lập ở bước lập đơn hàng.
+<br>
+
+Ở trạng thái này, đơn hàng được phép hiệu chỉnh.</p>
+<p class="node">         Chờ duyệt</p>
+<p class="node_d">Sau khi đã lập xong đơn hàng, người lập sẽ chuyển đơn hàng sang trạng thái này để chờ duyệt ở bước tiếp theo.
+Trạng thái này có thể được xác lập ở bước lập đơn hàng.Ở trạng thái này, đơn hàng được phép hiệu chỉnh.</p>
+
+<p class="node">        Đang duyệt</p>
+<p class="node_d">Là trạng thái đơn hàng đã được duyệt bởi các cấp duyệt trung gian.</p>
+
+<p class="node">         Đã duyệt</p>
+<p class="node_d">Trạng thái khi đơn hàng đã được duyệt và có thể gửi đơn hàng cho nhà cung cấp.
+<br>
+Trạng thái này có thể được xác lập ở bước lập đơn hàng (nếu người dùng có quyền duyệt đơn hàng) hoặc có thể được xác lập ở bước duyệt đơn hàng.
+<br>
+Ở trạng thái này, đơn hàng không được phép hiệu chỉnh. Nếu muốn hiệu chỉnh phải thực hiện bỏ trạng thái đã duyệt.</p>
+
+<p class="node">         Đang nhận hàng</p>
+<p class="node_d">
+Trạng thái cho biết một số vật tư và một phần trong số lượng đặt hàng đã được nhận hàng.
+<br>
+
+Trạng thái này được xác lập ở bước nhận hàng. Ngoài ra còn có thể được xác lập ở bước xuất trả lại nhà cung cấp -
+ trong trường hợp đã nhận hàng đủ nhưng có một số vật tư qua kiểm định không đạt chất lượng phải trả lại nhà cung cấp 
+ (từ trạng thái hoàn thành chuyển sang trạng thái đang nhận hàng).
+<br>
+
+Ở trạng thái này, đơn hàng không được phép hiệu chỉnh.</p>
+<p class="node">         Hoàn thành</p>
+<p class="node_d">
+Trạng thái cho biết tất cả các vật tư trong đơn hàng đã được nhận hàng và số lượng đặt hàng các vật tư đã nhận đủ. 
+Lưu ý là đơn hàng có thể hoàn thành mà không phụ thuộc vào việc nhập kho đủ hay không (đã qua kiểm định) mà chỉ phụ thuộc vào việc nhận hàng đủ hay không 
+(nhận hàng nhưng chưa qua kiểm định).
+<br>
+
+Ở trạng thái này, đơn hàng không được phép hiệu chỉnh.</p>
+<p class="node">         Đóng</p>
+<p class="node_d">
+Trạng thái cho biết các vật tư và số lượng đặt hàng sẽ không được tiếp tục nhận nữa.
+<br>
+
+Trạng thái này được xác lập ở bước đóng đơn hàng
+<br>
+
+Ở trạng thái này, đơn hàng không được phép hiệu chỉnh.</p>
+
+<p id="td2">      Màn hình cập nhật đơn hàng nhập mua trong nước</p>
+<p id="pic"><img src="vie/POTran.png"/></p>
+<p id="td2">  Mô tả các trường thông tin chung - phần trên</p>
+<p class="node">        Mã giao dịch</p>
+<p class="node_d">Chọn 01 trong 02 loại: 1 – Đơn hàng (mã ngầm định) và 2 - Hợp đồng. Trường này bắt buộc khai báo</p>
+<p class="node">        Mã ncc</p>
+<p class="node_d">Mã nhà cung cấp, lấy từ Danh mục nhà cung cấp. Trường này bắt buộc khai báo. Nếu lập đơn hàng từ thông tin chọn nhà cung cấp thì mã NCC sẽ được lấy từ nhà cung cấp được chọn cho nhu cầu.</p>
+<p class="node">        Mã thanh toán</p>
+<p class="node_d">Mã thanh toán của đơn hàng/ hợp đồng, lấy từ Danh mục thanh toán, không bắt buộc khai báo.</p>
+<p class="node">        Số đơn hàng</p>
+<p class="node_d">Số đơn hàng/ hợp đồng - chương trình tự đánh số nhưng người sử dụng có thể tự gõ lại theo hệ thống số đặc thù.</p>
+<p class="node">        Ngày lập</p>
+<p class="node_d">Ngày lập đơn hàng/ hợp đồng</p>
+<p class="node">        Tỷ giá</p>
+<p class="node_d">Chọn mã ngoại tệ và khai báo tỷ giá tại ngày lập đơn hàng/ hợp đồng (bắt buộc khai báo), dùng trong trường hợp đơn hàng mua tính theo đơn vị ngoại tệ.</p>
+<p class="node">        Tỷ lệ giảm giá</p>
+<p class="node_d">Tỷ lệ giảm giá của đơn hàng/ hợp đồng. Trường này có tác dụng trừ phần giảm giá vào giá nhập trong khi nhập hàng.</p>
+<p class="node">        Số hợp đồng</p>
+<p class="node_d">Số hợp đồng, trường này chỉ có giá trị trong trường hợp lập đơn hàng từ hợp đồng. Nếu không có bước lập hợp đồng, trường này để trống.</p>
+<p class="node">        Ngày hiệu lực</p>
+<p class="node_d">Ngày hiệu lực của hợp đồng, chỉ cập nhật giá trị trường này nếu mã giao dịch là 2 - Hợp đồng</p>
+<p class="node">        Trạng thái</p>
+<p class="node_d">Trạng thái của đơn hàng/ hợp đồng (chương trình tự xử lý). Đơn hàng/ hợp đồng có 06 trạng thái: “Lập chứng từ”, “Chờ duyệt”, “Đã duyệt”, “Đang nhận hàng”, 
+“Hoàn thành” và “Đóng”. (Xem thêm trong mục “Quy trình đơn hàng”)</p>
+<p id="td2">     Mô tả các trường ngăn Chi tiết   </p>
+<p class="node">        Mã hàng</p>
+<p class="node_d">mã vật tư đặt hàng, lấy từ Danh mục vật tư (bắt buộc khai báo)</p>
+<p class="node">        Đvt</p>
+<p class="node_d">Đơn vị tính của vật tư hàng hóa, có thể được lấy mặc nhiên như trong danh mục vật tư nhưng cũng có thể thay đổi qua đơn vị tính quy đổi trong những trường hợp đặc biệt.</p>
+<p class="node">        Số lượng</p>
+<p class="node_d">Số lượng vật tư đặt hàng (bắt buộc khai báo)</p>
+<p class="node">        Giá nguyên tệ</p>
+<p class="node_d">Đơn giá mua của vật tư theo đồng ngoại tệ khai báo, trường này chỉ hiện lên nếu trong phần thông tin chung chọn trường tiền là ngoại tệ, không phải đồng tiền hạch toán</p>
+<p class="node">        Tiền nguyên tệ</p>
+<p class="node_d">Số tiền phát sinh theo đồng tiền ngoại tệ</p>
+<p class="node">        Mã thuế</p>
+<p class="node_d">Mã thuế GTGT của vật tư, lấy từ Danh mục thuế</p>
+<p class="node">        Thuế suất</p>
+<p class="node_d">Thuế suất GTGT của vật tư</p>
+<p class="node">        Thuế nguyên tệ</p>
+<p class="node_d">Tiền thuế GTGT của vật tư theo đồng ngoại tệ khai báo, trường này chỉ hiện lên nếu trong phần thông tin chung chọn trường tiền là ngoại tệ, không phải đồng tiền hạch toán</p>
+<p class="node">        Ngày giao</p>
+<p class="node_d">Ngày giao hàng</p>
+<p class="node">        Giá</p>
+<p class="node_d">Đơn giá mua của vật tư theo đồng tiền hạch toán, trường này sẽ thay vị trí trường Giá nguyên tệ nếu phần thông tin chung chọn trường tiền là đồng tiền hạch toán</p>
+<p class="node">        Tiền</p>
+<p class="node_d">Số tiền phát sinh theo đồng tiền hạch toán</p>
+<p class="node">        Thuế</p>
+<p class="node_d">Tiền thuế GTGT của vật tư theo đồng tiền hạch toán, trường này sẽ thay vị trí trường Thuế nguyên tệ nếu phần thông tin chung chọn trường tiền là đồng tiền hạch toán</p>
+<p class="node">        Sl nhập</p>
+<p class="node_d">Số lượng vật tư đã nhập kho</p>
+<p class="node">        Sl hoá đơn</p>
+<p class="node_d">Số lượng vật tư đã cập nhật hoá đơn</p>
+<p class="node">        Vụ việc</p>
+<p class="node_d">Vụ việc, dự án, công trình… liên quan đến yêu cầu về vật tư</p>
+<p id="td2">     Mô tả các trường ngăn Thông tin giao hàng    </p>
+<p class="node">        Nơi nhận</p>
+<p class="node_d">Nơi nhận hàng, lấy từ Danh mục địa chỉ nhận hàng</p>
+<p class="node">        Kho nhận</p>
+<p class="node_d">Kho nhận hàng, ngầm định theo nơi nhận</p>
+<p class="node">        H.thức vận chuyển</p>
+<p class="node_d">Hình thức vận chuyển hàng hoá, lấy từ Danh mục hình thức vận chuyển</p>
+<p id="td2">      Mô tả các trường ngăn Thông tin nhà cung cấp          </p>
+<p class="node">        Tên ncc</p>
+<p class="node_d">Tên nhà cung cấp</p>
+<p class="node">        Địa chỉ</p>
+<p class="node_d">Địa chỉ nhà cung cấp</p>
+<p class="node">        Số điện thoại</p>
+<p class="node_d">Số điện thoại của nhà cung cấp</p>
+<p class="node">        Fax</p>
+<p class="node_d">Số fax của nhà cung cấp</p>
+<p id="td2">Tệp đính kèm</p>
+<p id="p2">Chương trình cho phép tải tệp đính kèm vào chứng từ. Tham khảo "Thao tác với tệp đính kèm".</p>
+<p id="td2"> Ngăn "Ghi chú"</p>
+<p id="p2"> Ngăn "Ghi chú" dùng để chia sẻ thông tin và tương tác với những người dùng khác, cho phép người 
+sử dụng có thể khai thác các tính năng: <br/>
+    - Đăng tin, ảnh, đoạn phim ngắn, tải tập tin có tính chất chia sẻ chung cho mọi người;<br/>
+    - Xem nhanh thông tin tình hình phản hồi;
+</p>
+<p class="note">
+Lưu ý:<br/>
+- Những thông tin mang tính chất riêng tư không nên đăng trên chức năng này;<br/>
+- Chỉ người dùng có quyền "quản trị" mới xóa các nội dung  của người khác; Với người dùng thông thường, chỉ xóa các nội dung do người dùng đó tạo ra;<br/>
+- Khi xóa 1 dòng nội dung  thì các nội dung "trả lời" cũng bị xóa;<br/>
+- Khi xem vẫn cho nhập nội dung, kể cả không có quyền sửa chứng từ. Những người dùng có quyền truy nhập vào chứng từ có thể tham gia viết;<br/>
+- Khi có nhiều nội dung viết, muốn xem các nội dung bị che khuất, nhấn "Xem thêm...";<br/>
+- Sau khi nhập đoạn văn bản, chèn hình ảnh...phải nhấn "Gửi nội dung", nếu không, khi thoát chứng từ, các nội dung sẽ không được lưu.
+</p>
+<p id="td2"> Thông tin khác </p>
+<p class="node">        Nv mua hàng</p>
+<p class="node_d">Mã nhân viên phụ trách đơn hàng/ hợp đồng, lấy từ Danh mục nhân viên mua hàng</p>
+<p class="node">Người duyệt/trạng thái duyệt</p>
+<p class="node_d">Mã người duyệt và trạng thái duyệt đơn hàng gần nhất.</p>
+<p class="node">Mã kiểu duyệt</p>
+<p class="node_d">Mã kiểu duyệt phù hợp được trả về tự động. Xem "Danh mục kiểu duyệt" và "Khai báo kiểu duyệt" để hiểu thêm về kiểu duyệt.</p>
+<p class="node">        Ngày lập h.đồng</p>
+<p class="node_d">Ngày lập hợp đồng, trường này chỉ hiện giá trị trong trường hợp lập đơn hàng từ hợp đồng</p>
+<p class="node">        Ngày hiệu lực</p>
+<p class="node_d">Ngày hiệu lực của hợp đồng, trường này chỉ hiện giá trị trong trường hợp lập đơn hàng từ hợp đồng.</p>
+<p class="node">        Trạng thái</p>
+<p class="node_d">Trạng thái của hợp đồng, trường này chỉ hiện giá trị trong trường hợp lập đơn hàng từ hợp đồng</p>
+
+<p class="note">Ghi chú<br/>
+Nếu một yêu cầu duyệt không được chuyển đến đúng người có thẩm quyền duyệt thích hợp. Trước tiên phải xem yêu cầu đã được xác định kiểu duyệt nào, để từ đó kiểm tra lại các khai báo liên quan quyền duyệt tượng ứng. 
+</p>
+
+<p id="td2"> Hướng dẫn sử dụng chức năng duyệt trực tuyến</p>
+<p id="td3"> Duyệt qua điện thoại di động</p>
+<p id="p3">Để dùng được chức năng này, cần đăng ký dịch vụ 3G và thiết bị USB 3G. Các cấu hình liên quan đề nghị tham khảo nhân viên tư vấn trong quá trình triển khai thực hiện.<br/>
+Cách dùng: <br/>
+ Tạo mới đơn hàng, chọn trạng thái của đơn hàng là "Chờ duyệt", nhập mã người duyệt trong ngăn "Khác" và lưu đơn hàng. 
+Chương trình sẽ gửi yêu cầu duyệt tới điện thoại di động của người duyệt với nội dung tóm tắt gồm số phiếu đơn hàng, ghi chú, 
+giá trị bằng tiền, mã lệnh duyệt và mã lệnh hủy.
+Người duyệt chỉ cần trả lời tin nhắn bằng mã duyệt hoặc mã hủy, hệ thống sẽ chuyển đơn hàng sang tình trạng tương ứng "Đã Duyệt" hoặc "Đóng".</p>
+<p class="e">Ví dụ:<br/>
+Người duyệt nhận được tin nhắn có nội dung như sau:<br/></p>
+<p class="e2">"PYC so: NC4-01-12<br/>Tong tien: 24 000 000<br/>Ma duyet: "F3E6DA"<br/>Ma huy: 9C67F3"</p>
+<p class="e2">Để chấp nhận duyệt, nhắn trả lời "F3E6DA", nếu không chấp nhận duyệt, nhắn trả lời "9C67F3"</p>
+
+
+<p class="note">
+Lưu ý: <br/>
+Mã xác nhận là duy nhất, cho phép dùng điện thoại khác để nhắn về hệ thống, chương trình sẽ biết ai là người đã duyệt qua tin nhắn.
+</p>
+
+<p id="td3"> Duyệt qua thư điện tử</p>
+<p id="p3">Để dùng được chức năng này, giả định doanh nghiệp đã đăng ký sử dụng dịch vụ internet, các cấu hình liên quan đề nghị tham khảo nhân viên tư vấn trong quá trình triển khai thực hiện.<br/>
+Cách dùng: <br/>Chọn trạng thái "Chờ duyệt", nhập mã người duyệt và lưu đơn hàng. 
+Chương trình sẽ gửi yêu cầu duyệt tới hộp thư của người duyệt.
+Người duyệt chỉ cần nhấn vào liên kết "Duyệt đơn hàng" để duyệt hoặc nhấn vào liên kết "Hủy đơn hàng" để hủy, hệ thống sẽ chuyển đơn hàng sang tình trạng tương ứng "Đã Duyệt" hoặc "Đóng".</p>
+<p id="pic"><img src="vie\Potran-email.png"/></p>
+<p id="td2">     Các thao tác cơ bản khi lập đơn hàng</p>
+<p id="p2">Cần nắm rõ những thao tác đặc biệt sau đây trong khi lập đơn hàng:</p>
+<p class="node">        Lập đơn hàng từ số liệu trên hợp đồng </p>
+<p class="node_d">Tạo mới đơn hàng, nhấn chức năng “<img src="vie\retrieve.png"/> - Lấy dữ liệu", chọn chức năng “Lấy số liệu từ hợp đồng”, 
+nhập ngày giới hạn đầu, sau đó nhấn tìm hợp đồng. <br/>
+Chọn hợp đồng cần chuyển, nhập số lượng đơn hàng và nhấp "chọn", sau đó thoát khỏi màn hình hợp đồng. 
+Chương trình sẽ tự động cập nhật vào đơn hàng những dòng hàng hóa đã chọn trong danh sách trên.</p>
+<p class="node">        Lập đơn hàng/ hợp đồng từ số liệu trên phiếu nhu cầu</p>
+<p class="node_d">Tạo mới đơn hàng, nhấn chức năng “<img src="vie\retrieve.png"/> - Lấy dữ liệu", chọn chức năng “Lấy số liệu từ phiếu nhu cầu”, 
+nhập ngày giới hạn đầu, sau đó nhấn tìm phiếu nhu cầu. <br/>
+Chọn phiếu nhu cầu cần chuyển, nhập số lượng đơn hàng và nhấp "chọn", sau đó thoát khỏi màn hình phiếu nhu cầu. 
+Chương trình sẽ tự động cập nhật vào đơn hàng những dòng hàng hóa đã chọn trong danh sách trên.</p>
+<p class="note">Chú ý:<br/>
+Màn hình chọn phiếu nhu cầu sẽ liệt kê những phiếu nhu cầu có ngày phát sinh từ ngày giới hạn đầu trong màn hình lọc đến ngày đơn hàng.</p>
+<p class="node">        Lập đơn hàng/ hợp đồng từ số liệu đã phân bổ cho nhà cung cấp trong phần chọn nhà cung cấp trước đó</p>
+<p class="node_d">Tạo mới đơn hàng, nhấn chức năng “<img src="vie\retrieve.png"/> - Lấy dữ liệu từ phiếu yêu cầu", 
+nhập ngày giới hạn đầu, sau đó nhấn tìm phiếu nhu cầu. <br/>
+Chọn phiếu nhu cầu cần chuyển, nhập số lượng đơn hàng và nhấp "chọn", sau đó "Nhận" để thoát khỏi màn hình chọn nhà cung cấp. 
+Chương trình sẽ tự động cập nhật vào đơn hàng những dòng hàng hóa đã chọn trong danh sách trên.</p>
+<p class="note">Chú ý:<br/>
+Màn hình chọn nhà cung cấp sẽ liệt kê những chi tiết chọn nhà cung cấp có ngày phát sinh từ ngày giới hạn đầu trong màn hình lọc đến ngày đơn hàng.</p>
+<p class="node">Thao tác với tệp đính kèm</p>
+<p class="node_d">Chương trình cho phép tải tệp đính kèm vào chứng từ. 
+Để tải lên, nhấn biểu tượng <img src="vie\attach_up.png"/> để chọn tệp. Để tải xuống, nhấn biểu tượng <img src="vie\attach_dow.png"/>. 
+Để xóa tệp khỏi chứng từ, nhấn biểu tượng <img src="vie\attach_rem.png"/>.</p>
+<p class="note">- Tổng dung lượng các tệp là khoảng 10Mb, dung lượng lớn nhất từng tệp có thể khai báo;<br/>
+- Tham khảo nhân viên tư vấn để sử dụng chức năng này hiệu quả.</p>
+ 
+<!--
+--> 
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>

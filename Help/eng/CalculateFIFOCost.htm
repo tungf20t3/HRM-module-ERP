@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="CalculateDailyAverageCost.doc" />
+<title>Calculate FIFO Cost</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+
+</head>
+<body>
+<p id="td1">First In – First Out
+<p id="td2">First In – First Out Logic
+<p id="p2">
+First in first out cost (FIFO) is calculated to apply to Issues by gradually deducting from Receipts following the principle that first receipt is issued first. 
+<p class="note">The system only gives out the last issue unit cost, does not show from which Receipt Issue is created.
+<p class="node">	Priority in FIFO<p class="node_d">
+In FIFO calculation, it is important for you to define which Receipt is issued first. The order can be defined as following:
+<ul class="lo_2">
+-	1. Issue date<br/>
+-	2. Calculate and update cost to all Transfers<br/>
+-	3. Calculate and update cost to Invoice and other Issues<br/>
+</ul>
+<p class="node_d">In each step 2 and 3, there are many sites, many kinds of transaction with different numbering system so calculation will follow priority order:
+<ul class="lo_2">
+-	1. Priority ordinal number of sites<br/>
+-	2. Voucher number of Issues<br/>
+-	3. Priority ordinal number of Receipts<br/>
+-	4. Voucher number of Receipts
+</ul>
+<p class="node_d">The reason of the priority order above:
+<ul class="lo_2">
+-	Transfer is first priority to solve 02 unclear problems: cost of items in Transfer will be cost in Receipt at receiving site 
+and other Issues will be calculated then; voucher number of Receipt is the same as one of Transfer so its numbering system will be different from that of other Receipts.<br/>
+-	In case there are many sites and transfers among sites, the program can not recognize which voucher is created first because they can be numbered by different systems. So user should number priority order to transferred sites in “Site List” definition.<br/>
+-	There are many transactions which have different numbering system. So you should number priority order to know which voucher is first. You can view in “No.-FIFO” field in “Transaction List” definition.
+</ul>
+<p class="node">		Receipt voucher date order in accordance with Issue<p class="node_d">
+First in first out cost (FIFO) is calculated by gradually deducting from Receipts. So if inventory quantity is not enough to issue, program will stop calculation and ask to check Receipt vouchers date though closing inventory quantity is enough to issue.<br/>
+To avoid these problems when using FIFO cost, you should select “Calculate monthly FIFO cost” and apply reasonable management method so that on-hand inventory always supplies requirement for effective use of the program.<br/>
+Items cost by FIFO method are defined in Item information entry. FIFO cost is calculated at “Calculate FIFO Cost” function.
+
+<p id="td2">Related system parameters
+<p class="node">	Calculating method
+<ul class="lo_2">
+-	1 – “By day”: if quantity of an issue applied FIFO cost is greater than stock to issue date, the program can not calculate cost for this issue and gives message “there is not enough item to issue” to check. <br/>
+-	2 – “By month”: it is necessary for Issues or Stocks satisfy issue quantity monthly.
+</ul>
+<p id="td2">	Entry screen
+<p id="pic"><img src="eng/CalculateFIFOCost.png"/></p> 
+<p id="td2">Field descriptions
+<p class="node">	From period / to period / year<p class="node_d">
+FIFO cost is usually calculated monthly, continuously. If it hasn’t been calculated in some month, you must recalculate from that month.
+<p class="node">	Item code / item type / item group<p class="node_d">
+Calculation limit of site / item / item type / item group
+<p class="node">	Update Types<p class="node_d">
+There are 3 options for update result of calculation to system:
+<ul class="lo_2">
+
+-	0 – “Calculate and Update Stock”: warehouse dept. calculates issuing cost for reference, does not post to GL. <br/>
+-	1 – “Calculate and Update Stock and GL”: adequate entry<br/>
+-	2 – “Post to GL”: calculate cost and not update to stock card.</ul><br/>
+
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>
+

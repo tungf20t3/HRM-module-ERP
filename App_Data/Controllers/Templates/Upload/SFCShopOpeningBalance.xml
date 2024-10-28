@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'SFCShopOpeningBalance' else 'SFCShopOpeningBalance2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$SFCShopOpeningBalanceImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$SFCShopOpeningBalanceImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="cdpx"/>
+    <table value="cdpx" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where year(ngay_ks) >= @year)" condition="&And;" tag="&And;" updateValue="None" errorCode="00001&And;00002"/>
+    <field name="ma_vt" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_vt not in (select ma_vt from dmvt)" errorCode="00001"/>
+    <field name="ma_px" column="D" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_px not in (select ma_px from sfdmxuong)" errorCode="00001"/>
+    <field name="ma_lsx" column="E" isPrimaryKey="true" upperCase="true" updateValue="None" check="ma_lsx &lt;&gt; '' and ma_lsx not in (select ma_lsx from cs2$000000 where status in ('2', '3', '4'))" errorCode="00001"/>
+    <field name="ma_cd" column="F" isPrimaryKey="true" upperCase="true" updateValue="None" check="ma_cd &lt;&gt; '' and ma_cd not in (select ma_cd from ctrt)&And;ma_lsx &lt;&gt; '' and ma_cd &lt;&gt; '' and not exists(select 1 from sfctwo b where @@table.ma_cd = b.ma_cd and @@table.ma_lsx = b.ma_lsx)" condition="&And;" tag="&And;" errorCode="invalidValueMessage&And;00001"/>
+    <field name="ma_lo" column="G" isPrimaryKey="true" upperCase="true" updateValue="None" check="@@table.ma_lo = '' and exists(select 1 from dmvt b where @@table.ma_vt = b.ma_vt and b.lo_yn = 1)&And;@@table.ma_lo  &lt;&gt; '' and not exists(select 1 from dmvt b where @@table.ma_vt = b.ma_vt and b.lo_yn = 1)&And;@@table.ma_lo &lt;&gt; '' and not exists(select 1 from dmlo b where @@table.ma_lo = b.ma_lo and @@table.ma_vt = b.ma_vt)" errorCode="invalidValueMessage&And;00001&And;00001"/>
+    <field name="loai" column="H" isPrimaryKey="true" upperCase="true" updateValue="None" check="loai &lt;&gt; '' and loai not in (select ma_loai from sfdmtttk)" errorCode="00001"/>
+    <field name="ton00" column="I" type="Decimal"/>
+
+    <field name="nam" column="None" insertValue="@year" updateValue="None"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+
+    <field name="ma_vi_tri" column="" isPrimaryKey="true"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật tồn kho phân xưởng đầu kỳ" e="Floor Stock Opening Balance"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ma_vt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã vật tư" e="Item"/>
+      </field>
+      <field name="ten_vt" width="32" afterField="ma_vt" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên vật tư" e="Item Name"/>
+      </field>
+      <field name="ma_px" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã phân xưởng" e="Shop"/>
+      </field>
+      <field name="ma_lsx" width="16">
+        <text v="Yêu cầu sản xuất" e="Work Order"/>
+      </field>
+      <field name="ma_cd" width="16">
+        <text v="Mã công đoạn" e="Operation"/>
+      </field>
+      <field name="ma_lo" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã lô" e="Lot"/>
+      </field>
+      <field name="loai" width="16">
+        <text v="Trạng thái tồn kho" e="Stock Type"/>
+      </field>
+      <field name="ton00" width="16">
+        <text v="Tồn đầu" e="Quantity"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @field varchar(32), @user int, @admin bit, @year int, @r int
+select @admin = @@admin, @user = @@userID, @year = nam_bd from dmstt
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select @field = 'ma_dvcs'
+if @admin <> 1 begin
+  if @type = '1' and @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'SFCShopOpeningBalance', 'Edit') = 0 select @type = '0'
+
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table a
+      where not exists(select 1 from cdpx b where a.ma_vt = b.ma_vt and a.ma_dvcs = b.ma_dvcs and a.ma_px = b.ma_px and a.ma_lsx = b.ma_lsx and a.ma_cd = b.ma_cd and a.ma_lo = b.ma_lo and a.loai = b.loai and b.nam = @year)
+        and not exists(select 1 from sysunitrights c where a.ma_dvcs = c.ma_dvcs and user_id = @user and r_new = 1)
+        ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+
+    if @type = '1' begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table a
+        where exists(select 1 from cdpx b where a.ma_vt = b.ma_vt and a.ma_dvcs = b.ma_dvcs and a.ma_px = b.ma_px and a.ma_lsx = b.ma_lsx and a.ma_cd = b.ma_cd and a.ma_lo = b.ma_lo and a.loai = b.loai and b.nam = @year)
+          and not exists(select 1 from sysunitrights c where a.ma_dvcs = c.ma_dvcs and user_id = @user and r_edit = 1)
+          ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end
+  end else begin
+    select @r = min(a.stt) from @@table a
+      where not exists(select 1 from cdpx b where a.ma_vt = b.ma_vt and a.ma_dvcs = b.ma_dvcs and a.ma_px = b.ma_px and a.ma_lsx = b.ma_lsx and a.ma_cd = b.ma_cd and a.ma_lo = b.ma_lo and a.loai = b.loai and b.nam = @year)
+        and not exists(select 1 from sysunitrights c where a.ma_dvcs = c.ma_dvcs and user_id = @user and r_new = 1)
+  ]]>&Error;<![CDATA[
+
+    if @type = '1'
+      select @r = min(a.stt) from @@table a
+        where exists(select 1 from cdpx b where a.ma_vt = b.ma_vt and a.ma_dvcs = b.ma_dvcs and a.ma_px = b.ma_px and a.ma_lsx = b.ma_lsx and a.ma_cd = b.ma_cd and a.ma_lo = b.ma_lo and a.loai = b.loai and b.nam = @year)
+          and not exists(select 1 from sysunitrights c where a.ma_dvcs = c.ma_dvcs and user_id = @user and r_edit = 1)
+  ]]>&Error;<![CDATA[
+  end
+end
+
+if @type = '0' delete @@table from @@table a where exists(select 1 from cdpx b where a.ma_vt = b.ma_vt and a.ma_dvcs = b.ma_dvcs and a.ma_px = b.ma_px and a.ma_lsx = b.ma_lsx and a.ma_cd = b.ma_cd and a.loai = b.loai and a.ma_lo = b.ma_lo and b.nam = @year)
+
+if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table a join dmkho b on a.ma_dvcs = b.ma_dvcs join dmdvcsks c on b.ma_dvcs = c.ma_dvcs where year(c.ngay_ks) >= @year
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(a.stt) from @@table a join dmkho b on a.ma_dvcs = b.ma_dvcs join dmdvcsks c on b.ma_dvcs = c.ma_dvcs where year(c.ngay_ks) >= @year]]>&Error;<![CDATA[
+end
+
+select a.* into #k from @@table a join cdpx b on a.ma_vt = b.ma_vt and a.ma_dvcs = b.ma_dvcs and a.ma_px = b.ma_px and a.ma_lsx = b.ma_lsx and a.ma_cd = b.ma_cd and a.loai = b.loai and a.ma_lo = b.ma_lo and b.nam = @year
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_vt = b.ma_vt and a.ma_dvcs = b.ma_dvcs and a.ma_px = b.ma_px and a.ma_lsx = b.ma_lsx and a.ma_cd = b.ma_cd and a.loai = b.loai and a.ma_lo = b.ma_lo)
+
+]]>&EndErrorMode;<![CDATA[
+
+--insert
+]]>&Inserting;<![CDATA[
+
+if @type = '1' ]]>&Updating;<![CDATA[ where a.nam = @year
+]]>
+    </text>
+  </processing>
+
+</import>

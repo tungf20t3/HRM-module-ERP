@@ -1,0 +1,36 @@
+<![CDATA[
+declare @$control char(5), @$costUnit char(1), @objectUnit char(1), @$costDept char(1), @$costMO char(1), @$delta int, @$ext int, @$l int, @$r int
+
+select @$ext = 0
+select @$costUnit = rtrim(val) from options where name = 'm_gt_dvcs'
+select @objectUnit = case when exists(select 1 from options where name = 'm_dtgt_dvcs' and val = '1') then '1' else '0' end
+
+select @$costMO = rtrim(val) from options where name = 'x_dt_lsx'
+select @$costDept = rtrim(val) from options where name = 'x_dt_bp'
+
+if @objectUnit = '1' begin
+  select @$costDept = x_dt_bp, @$costMO = x_dt_lsx from dmdvcskb where ma_dvcs = @@unit and status = '1' and (x_dt_bp <> 0 or x_dt_lsx <> 0 or x_dt_sp <> 0)
+  select @$costDept = isnull(@$costDept, '0'), @$costMO = isnull(@$costMO, '0')
+end
+select @$delta = 0]]>&Control;<![CDATA[
+if substring(@$control, 1, 1) = 1 and @$costUnit <> 1 select @$delta = @$delta + 1
+
+if substring(@$control, 2, 1) = 1 begin
+  if @objectUnit = '0' begin
+    if @$costDept = '0' select @$delta = @$delta + 1
+  end
+  else select @$delta = @$delta + case when @$costDept = '1' then 0 else 1 end
+end
+if substring(@$control, 3, 1) = 1 begin
+  if @objectUnit = '0' begin
+    if @$costMO = '0' select @$delta = @$delta + 1
+  end
+  else select @$delta = @$delta + case when @$costMO = '1' then 0 else 1 end
+end
+
+if ]]>&Control.LineMinimume;<![CDATA[ = 1 begin
+  select @$l = ]]>&LineCounter;<![CDATA[ + (]]>&Delta12;<![CDATA[ + ]]>&Delta13;<![CDATA[ + ]]>&Delta14;<![CDATA[), @$r = (]]>&ExtensionCounter;<![CDATA[ + (]]>&Delta22;<![CDATA[ + ]]>&Delta23;<![CDATA[ + ]]>&Delta24;<![CDATA[))
+  select @$ext = case when (((@$l - @$delta) <= 3) and (@$r <= 0)) then -1 else 0 end, @$delta = case when (@$l - @$delta) < 3 then (@$l - 3) else @$delta end
+end
+if @$delta > 0 select @message = 'adjustSize$VoucherFilter$(this, ' + rtrim(@$delta) + ', ' + rtrim(@$ext) + ');' + @message
+]]>

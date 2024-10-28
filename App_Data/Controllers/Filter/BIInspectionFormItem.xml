@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIInspectionFormItem">
+
+  <!ENTITY TableDetail "bidmvtkdvung">
+
+  <!ENTITY k1 "ma_vt">
+  <!ENTITY k2 "ma_vung">
+  <!ENTITY f1 "ten_vung">
+
+  <!ENTITY l "Mã vùng">
+  <!ENTITY l2 "Plant Code">
+
+  <!ENTITY l3 "Tên vùng">
+  <!ENTITY l4 "Plant Name">
+
+  <!ENTITY t "Khai báo thông tin kiểm định theo vùng">
+  <!ENTITY t2 "Inspection by Plant">
+]>
+
+<dir table="&TableDetail;" code="&k1;, &k2;" order="&k1;, &k2;" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="&t;" e="&t2;"></title>
+  <fields>
+    <field name="&k1;" isPrimaryKey="true" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="&k2;" isPrimaryKey="true">
+      <header v="&l;" e="&l2;"></header>
+    </field>
+
+    <field name="&f1;" external="true" clientDefault="Default" defaultValue="''">
+      <header v="&l3;" e="&l4;"></header>
+    </field>
+    <field name="&TableDetail;" external="true" clientDefault="0" defaultValue="0" rows="208" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="BIInspectionGridItem" row="1">
+        <item value="ForeignKey">
+          <text v ="String: &k1;, &k1;" e="String: &k1;, &k1;"></text>
+        </item>
+        <item value="ForeignKey">
+          <text v ="String: &k2;, &k2;" e="String: &k2;, &k2;"></text>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="5">
+      <item value="120, 30, 45, 25, 65, 45, 30, 25, 65, 75, 25, 0, 0"/>
+      <item value="1100-------1: [&k2;].Label, [&k2;], [&k1;]"/>
+      <item value="110000000000: [&f1;].Label, [&f1;]"/>
+      <item value="1: [&TableDetail;]"/>
+
+      <categories>
+        <category index="1" columns="566" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var z = f.grid, d = z._detailInfo, w = z.get_element().parentForm;
+  f.setItemValues(']]>&k2;<![CDATA[, ]]>&f1;<![CDATA[, ]]>&k1;<![CDATA[', [d.]]>&k2;<![CDATA[, d.]]>&f1;<![CDATA[, w.getItemValue(']]>&k1;<![CDATA[')]);
+  f.setReadOnlyFields(']]>&k2;<![CDATA[, ]]>&f1;<![CDATA[');
+  f.getItem(']]>&k2;<![CDATA[').focus();
+}
+function load$]]>&Identity;<![CDATA[$Form(f) {f.add_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);}
+function close$]]>&Identity;<![CDATA[$Form(f) {try {f.remove_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}}
+function onForm$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+     var g = f.getItem(']]>&TableDetail;<![CDATA[')._controlBehavior;
+      if (f._checked) {
+        var id = f.get_id();
+        var cold1 = g._getColumnOrder('ngay_hl_tu'), cold2 = g._getColumnOrder('ngay_hl_den');
+        var ebi3 = (f._language == 'v' ? 'Trường <span class="Highlight">Ngày hiệu lực đến</span> phải lớn hơn hoặc bằng trường <span class="Highlight">Ngày hiệu lực từ</span>.' : '<span class="Highlight">Effective date to</span> must be larger than or equal to <span class="Highlight">Effective date from</span>.');
+        for (var row = 1; row <= g._rowCount; row++) {
+          var bid1 = g._getItemValue(row, cold1), bid2 = g._getItemValue(row, cold2);
+          if (bid2 != null && bid1 > bid2) {
+            g._errorObject = g._getItem(row, cold2);
+            f._checked = false;
+            $func.hideWait(f);
+            $message.show(ebi3, String.format('$find(\'{0}\').focus(\'{1}\');$find(\'{2}\')._errorObject.focus();', id, ']]>&TableDetail;<![CDATA[', g.get_id()));
+            break;
+          }
+        }
+      }
+      if (f._checked) {
+        f._checked = false;
+        f._jdata = bi$Inspection$TransferData(f, g, f._dataIndex);
+        f.request('CompleteForm', 'CompleteForm', [['s', 'String', f._jdata.toString()]]);
+      }
+      break;
+    case 'CompleteForm':
+      var val = result[0].Value;
+      if (val) {
+        var id = f.get_id(), v = f._language == 'v', g = f.getItem(']]>&TableDetail;<![CDATA[')._controlBehavior;
+        var r = result[1].Value;
+        $func.hideWait(id);
+        g._errorObject = g._getItem(r, g._getColumnOrder('ma_loai_kd'));
+        $message.show(val, String.format('$find(\'{0}\').focus(\']]>&TableDetail;<![CDATA[\');$find(\'{1}\')._errorObject.focus();', id, g.get_id()));
+      } else {
+        var z = f.grid, d = z._detailInfo;
+        if (d.handle) {d.handle.call(this, z, f._jdata);};
+        f.cancelDialog();
+      }
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+
+
+  </script>
+  <response>
+    <action id="CompleteForm">
+      <text>
+        <![CDATA[
+if @s <> '' begin
+  create table #data(id int, ma_loai_kd varchar(32), ngay_hl_tu smalldatetime, ngay_hl_den smalldatetime, ghi_chu nvarchar(4000))
+  declare @id int
+
+  exec dbo.[AI_ERP$App$ConvertStringArray] @s, '#data', 'id, ma_loai_kd, ngay_hl_tu, ngay_hl_den, ghi_chu'
+  select @id = min(id) from #data group by ma_loai_kd, ngay_hl_tu having count(*) > 1
+  if @id is not null begin
+    select case when @@language = 'v' then N'Có tồn tại loại kiểm định và ngày hiệu lực trùng nhau trong phần thông tin kiểm định, không thể lưu được.' else N'Inspection type with effective date already exists. It can not be saved.' end as c1, @id as c2
+    return
+  end
+  select @id = min(id) from #data a join bikddmloai b on a.ma_loai_kd = b.ma_loai group by b.ma_nguon, a.ngay_hl_tu having count(*) > 1
+  if @id is not null begin
+    select case when @@language = 'v' then N'Tồn tại loại kiểm định có nguồn kiểm định trùng ngày hiệu lực trong phần thông tin kiểm định, không thể lưu được.' else N'Inspection type with effective date already exists. It can not be saved.' end as c1, @id as c2
+    return
+  end
+end
+select '' as c1
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

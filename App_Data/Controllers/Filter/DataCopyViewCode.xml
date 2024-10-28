@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Key "declare @rk varchar(16)
+select @rk = rkey from @@sysDatabaseName..userinfo2 where id = @@userID">
+]>
+
+<dir table="dmscsl" code="id" order="id" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Mã số" e="Authentication Code"></title>
+  <fields>
+    <field name="cpass" external="true" defaultValue="''">
+      <header v="Xác nhận mật khẩu" e="Confirm Password"></header>
+      <clientScript><![CDATA[type="password" onchange="viewCode$genHash(this);"]]></clientScript>
+      <footer v="&lt;div id=&quot;btnViewCode&quot; class=&quot;divOriginal&quot; align=&quot;center&quot; onclick=&quot;showAuthenticationCode(this);&quot;&gt;Hiển thị&lt;/div&gt;" e="&lt;div id=&quot;btnViewCode&quot;class=&quot;divOriginal&quot; align=&quot;center&quot; onclick=&quot;showAuthenticationCode(this);&quot;&gt;Show&lt;/div&gt;"/>
+    </field>
+
+    <field name="chkpass" type="Int32" external="true" defaultValue="0" allowContain="true" inactivate="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="ma_so" dataFormatString="@upperCaseFormat" inactivate="true">
+      <header v="Mã số" e="Authentication Code"></header>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="209">
+      <item value="120, 100, 100, 230, 0, 0"/>
+      <item value="11011: [cpass].Label, [cpass], [cpass].Description, [chkpass]"/>
+      <item value="11: [ma_so].Label, [ma_so]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        &Key;<![CDATA[
+select 't=this;t._url=''~/AppService/AI_ERP.TransferData.Service.asmx'';t._service$Method=''ExcuteCommand'';this._key = ''' + @rk + ''';load$DataCopyViewCode(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$DataCopyViewCode(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$DataCopyViewCode(f) {
+  f.add_onResponseComplete(on$DataCopyViewCode$ResponseComplete);
+  f.setReadOnlyFields('ma_so');
+  $get('btnViewCode').parentForm = f;
+}
+
+function close$DataCopyViewCode(f) {try {f.remove_onResponseComplete(on$DataCopyViewCode$ResponseComplete);} catch (ex) {}}
+
+function on$DataCopyViewCode$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result, g = f.grid, v = (f._language == 'v');
+  switch (context) {
+    case 'Checking':
+      break;
+    default:
+      break;
+  }
+}
+
+function showAuthenticationCode(o) {
+  var f = o.parentForm, g = f.grid, v = (g._language == 'v'), cpass = f.getItem('cpass');
+  viewCode$checkFieldEntry(f, cpass.value);
+}
+
+function viewCode$genHash(o) {
+  var f = o.parentForm, p = $func.trim(MD5(o.value));
+  f.getItem('chkpass').value = CRC32($func.trim(f._key).substr(0, 8) + p.substr(1, p.length - 2));
+}
+
+function viewCode$checkFieldEntry(f, v) {
+  var g = f.grid, , action = 100, id = g._viewID, hash = f.getItemValue('chkpass'); 
+  if (v <> '') {Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl(f._url, f._baseUrl), f._service$Method, false, { action: action, id: id, hash: hash}, onRequest$Completed, onRequest$Failed, f._id);}
+}
+
+function onRequest$Completed(result, id) {
+  var f = $find(id), g = f.grid, msg, v = f._language == 'v', refresh = true;
+  var o = f.getItem('cpass');
+  if (result == '') {
+    $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), o.field.Label), String.format('$find(\'{0}\').focus(\'{1}\');', f.get_id(), o.field.Name));
+  } else {
+    f.setItemValues('cpass, ma_so', ['', AES(MD5(f.getItemValue('cpass')), f._key, result, true)]);
+    f.getItem('ma_so').focus();
+  }
+}
+
+function onRequest$Failed(e, id) {
+  var f = $find(id);
+  $func.hideWait(id);
+  f._busy(false);
+  $message.showError(e);
+}
+]]>
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.divOriginal:hover{text-decoration:underline}
+.divOriginal{cursor:pointer;position:relative;width:64px!important;height:22px!important;overflow:hidden;color:#3171c6;font-family:verdana;font-size:11px;}
+]]>
+    </text>
+  </css>
+</dir>

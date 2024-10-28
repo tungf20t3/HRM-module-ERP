@@ -1,0 +1,162 @@
+﻿<![%Conditional.BIMode;[
+  <!ENTITY BI.PSDetail.Grid.Fields SYSTEM "..\Include\XML\BI.PSDetail.Grid.Fields.txt">
+  <!ENTITY BI.PSDetail.Grid.Fields.Retrieve SYSTEM "..\Include\XML\BI.PSDetail.Grid.Fields.Retrieve.txt">
+  <!ENTITY BI.PSDetail.Grid.Fields.Retrieve.WS SYSTEM "..\Include\XML\BI.PSDetail.Grid.Fields.Retrieve.WS.txt">
+  <!ENTITY BI.PSDetail.Grid.Fields.Retrieve.PO SYSTEM "..\Include\XML\BI.PSDetail.Grid.Fields.Retrieve.PO.txt">
+  <!ENTITY BI.PSDetail.Grid.Views SYSTEM "..\Include\XML\BI.PSDetail.Grid.Views.txt">
+
+  <!ENTITY BI.PSDetail.Grid.Inspection.Retrieve.v "Lấy số liệu từ kiểm định">
+  <!ENTITY BI.PSDetail.Grid.Inspection.Retrieve.e "Extract Data from Inspection Lot Origin">
+  <!ENTITY BI.PSDetail.Grid.Inspection.ExecuteCommand "g.showForm('BIPSQualityControlFilter');">
+  <!ENTITY BI.PSDetail.Grid.Inspection.Check "">
+
+  <!ENTITY BI.Field.Retrieve.Copying "fields += (fields != '' ? ', ' : '') + 'ma_bp0, ma_nh0, ma_vung, stt_rec_ttmh, stt_rec0ttmh, stt_rec_sa, stt_rec0sa';">
+
+  <!ENTITY BI.Field.Retrieve ", ma_bp0, ma_nh0, ma_vung, stt_rec_ttmh, stt_rec0ttmh, stt_rec_sa, stt_rec0sa">
+  <!ENTITY BI.Field.Retrieve.Response ", rtrim(a.ma_bp0) as ma_bp0, rtrim(a.ma_nh0) as ma_nh0, rtrim(a.ma_vung) as ma_vung, a.stt_rec_ttmh, a.stt_rec0ttmh, a.stt_rec_hd as stt_rec_sa, a.stt_rec0hd as stt_rec0sa">
+  <!ENTITY BI.Field.Retrieve.Response.WS ", rtrim(a.ma_bp0) as ma_bp0, rtrim(a.ma_nh0) as ma_nh0, rtrim(a.ma_vung) as ma_vung, a.stt_rec_ttmh, a.stt_rec0ttmh, a.stt_rec_sa, a.stt_rec0sa">
+  <!ENTITY BI.Field.Retrieve.Response.PO ", rtrim(a.ma_bp0) as ma_bp0, rtrim(a.ma_nh0) as ma_nh0, cast(null as varchar(32)) as ma_vung, a.stt_rec_ttmh, a.stt_rec0ttmh, a.stt_rec_hd as stt_rec_sa, a.stt_rec0hd as stt_rec0sa">
+
+  <!ENTITY BI.Post.History.PO "
+if @status &lt;&gt; '0' and not exists(select 1 from options where name = 'm_instock_split' and val = '1') begin
+  exec AI_ERP$BI$Voucher$Posting$HistoryPO 'm86$$partition$current', 'd86$$partition$current', @stt_rec, @@id, 'a.stt_rec_dh &lt;&gt; '''' and right(a.stt_rec_dh, 3) = ''PO1'' and b.loai_ct in(''1'', ''6'', ''9'')',
+    'tien_nt0, tien0, tien_nhap, tien_nt_n, tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_xuat = b.tien, tien_nt_x = b.tien_nt', '', &StockType;
+end
+">
+  <!ENTITY BI.Delete.History.PO "delete bih94$000000 where stt_rec = @stt_rec">
+
+  <!ENTITY BI.Post.History.PI "
+if @status &lt;&gt; '0' and not exists(select 1 from options where name = 'm_instock_split' and val = '1') begin
+  exec AI_ERP$BI$Voucher$Posting$HistoryPI 'm86$$partition$current', 'd86$$partition$current', @stt_rec, @@id, 'a.stt_rec_dh &lt;&gt; '''' and right(a.stt_rec_dh, 3) = ''PO2'' and b.loai_ct in(''1'', ''6'', ''9'')',
+    'tien_nt0, tien0, tien_nhap, tien_nt_n, tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_xuat = b.tien, tien_nt_x = b.tien_nt', '', &StockType;
+end
+">
+  <!ENTITY BI.Delete.History.PI "delete bih95$000000 where stt_rec = @stt_rec">
+
+  <!ENTITY BI.Post.History.SA "
+if @status &lt;&gt; '0' and not exists(select 1 from options where name = 'm_instock_split' and val = '1') begin
+  exec AI_ERP$BI$Voucher$Posting$HistorySA 'm86$$partition$current', 'd86$$partition$current', @stt_rec, @@id, 'a.stt_rec_sa &lt;&gt; '''' and b.loai_ct in(''1'', ''6'', ''9'')',
+    'tien_nt0, tien0, tien_nhap, tien_nt_n, tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_xuat = b.tien, tien_nt_x = b.tien_nt', '', &StockType;
+end
+">
+  <!ENTITY BI.Delete.History.SA "delete bih06$000000 where stt_rec = @stt_rec">
+
+  <!ENTITY BI.PSTran.Approval.Before "
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '1', stt_rec_sa, stt_rec0sa, (so_luong * he_so) from d86$$partition$previous where stt_rec = @stt_rec and stt_rec_sa &lt;&gt; ''
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '1', stt_rec_ttmh, stt_rec0ttmh, (so_luong * he_so) from d86$$partition$previous where stt_rec = @stt_rec and stt_rec_ttmh &lt;&gt; ''
+">
+  <!ENTITY BI.PSTran.Approval.After "
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '2', stt_rec_sa, stt_rec0sa, (so_luong * he_so) from d86$$partition$current where stt_rec = @stt_rec and stt_rec_sa &lt;&gt; ''
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '2', stt_rec_ttmh, stt_rec0ttmh, (so_luong * he_so) from d86$$partition$current where stt_rec = @stt_rec and stt_rec_ttmh &lt;&gt; ''
+">
+  <!ENTITY BI.PSTran.Form.CheckWhenVoucherBeforeEdit "
+#IF @@view = 0 #THEN
+  #IF @@action = 'Edit' #THEN
+    if exists(select 1 from @@prime$partition$current where stt_rec = @stt_rec and status &lt;&gt; '0') begin
+      &BI.PSTran.Form.CheckDelivery;
+    end
+  #END
+#END
+">
+  <!ENTITY BI.PSTran.Form.CheckWhenVoucherBeforeDelete "
+if exists(select 1 from @@prime$partition$previous where stt_rec = @stt_rec and status &lt;&gt; '0') begin
+  &BI.PSTran.Form.CheckDelivery;
+end
+">
+
+  <!ENTITY BI.PSTran.Form.CheckDelivery "
+declare @q$Delivery nvarchar(4000), @e$Delivery$Invalid nvarchar(512), @e$Delivery$Line int
+
+select @e$Delivery$Invalid = case when @@language = 'v' then N'Đã có phát sinh liên quan đến vật tư &lt;span class=&quot;Highlight&quot;&gt;&#37;s&lt;/span&gt; của đơn hàng, không sửa hoặc xóa được.' else N'There existed processing against Purchase Order for item &lt;span class=&quot;Highlight&quot;&gt;&#37;s&lt;/span&gt;, it cannot be edited or deleted.' end
+select a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_sa as stt_rec_hd, a.stt_rec0sa as stt_rec0hd, min(a.line_nbr) as line_nbr, max(b.datetime2) as datetime2 into #d$Delivery from d86$$partition$current a left join m86$$partition$current b on a.stt_rec = b.stt_rec where a.stt_rec = @stt_rec and b.tt_yn = 1 and (a.stt_rec_dh &lt;&gt; '' or a.stt_rec_sa &lt;&gt; '') group by a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_sa, a.stt_rec0sa
+
+if exists(select 1 from #d$Delivery where stt_rec_dh &lt;&gt; '') begin
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih94$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec &lt;&gt; b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 &lt; b.datetime2
+  if @e$Delivery$Line is not null begin
+    select 'd86' as field, replace(@e$Delivery$Invalid, '&#37;s', rtrim(ma_vt)) as message from d86$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih95$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec &lt;&gt; b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 &lt; b.datetime2
+  if @e$Delivery$Line is not null begin
+    select 'd86' as field, replace(@e$Delivery$Invalid, '&#37;s', rtrim(ma_vt)) as message from d86$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+end
+
+if exists(select 1 from #d$Delivery where stt_rec_hd &lt;&gt; '') begin
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih06$000000 b on a.stt_rec_hd = b.stt_rec_hd and a.stt_rec0hd = b.stt_rec0hd where (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 &lt; b.datetime2
+  if @e$Delivery$Line is not null begin
+    select 'd86' as field, replace(@e$Delivery$Invalid, '&#37;s', rtrim(ma_vt)) as message from d86$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+end
+">
+  <!ENTITY BI.PSTran.Form.Check SYSTEM "..\Include\Command\BI.PSTran.Form.Check.txt">
+  <!ENTITY BI.PSTran.Form.Checking.l ", l4 = g._getColumnOrder('stt_rec_kt')">
+  <!ENTITY BI.PSTran.Form.Checking.v ", v4 = (g._getItemValue(i, l4) != '')">
+  <!ENTITY BI.PSTran.Form.Checking.i " || v4">
+
+  <!ENTITY BI.PSTran.DetailTableSource "
+#IF $d86.NewValue = $d86.OldValue #THEN
+  (select * from d86$$partition$previous where stt_rec = @stt_rec)
+#ELSE
+  @d86
+#END
+">
+  <!ENTITY BI.PSTran.DetailTableSource.Action "
+#IF @@action = 'Edit' #THEN
+  (select * from d86$$partition$previous where stt_rec = @stt_rec)
+#ELSE
+  @d86
+#END
+">
+]]>
+
+<!ENTITY BI.PSDetail.Grid.Fields "">
+<!ENTITY BI.PSDetail.Grid.Fields.Retrieve "">
+<!ENTITY BI.PSDetail.Grid.Fields.Retrieve.WS "">
+<!ENTITY BI.PSDetail.Grid.Fields.Retrieve.PO "">
+<!ENTITY BI.PSDetail.Grid.Views "">
+
+<!ENTITY BI.PSDetail.Grid.Inspection.Retrieve.v "Lấy số liệu từ phiếu kiểm định">
+<!ENTITY BI.PSDetail.Grid.Inspection.Retrieve.e "Extract Data from QA Transaction">
+<!ENTITY BI.PSDetail.Grid.Inspection.ExecuteCommand "
+if (v1) break;
+g.showForm('PSQualityControlFilter');
+">
+<!ENTITY BI.PSDetail.Grid.Inspection.Check "
+if (v1 &amp;&amp; !(g.validRowExpression('kt_so', '[stt_rec_kt] == &quot;&quot;'))) break;
+">
+
+<!ENTITY BI.Field.Retrieve.Copying "">
+<!ENTITY BI.Field.Retrieve "">
+<!ENTITY BI.Field.Retrieve.Response "">
+<!ENTITY BI.Field.Retrieve.Response.WS "">
+<!ENTITY BI.Field.Retrieve.Response.PO "">
+
+<!ENTITY BI.Post.History.PO "">
+<!ENTITY BI.Delete.History.PO "">
+<!ENTITY BI.Post.History.PI "">
+<!ENTITY BI.Delete.History.PI "">
+<!ENTITY BI.Post.History.SA "">
+<!ENTITY BI.Delete.History.SA "">
+
+<!ENTITY BI.PSTran.Approval.Before "">
+<!ENTITY BI.PSTran.Approval.After "">
+<!ENTITY BI.PSTran.Form.CheckWhenVoucherBeforeEdit "">
+<!ENTITY BI.PSTran.Form.CheckWhenVoucherBeforeDelete "">
+
+<!ENTITY BI.PSTran.Form.CheckDelivery "">
+<!ENTITY BI.PSTran.Form.Check "">
+<!ENTITY BI.PSTran.Form.Checking.l "">
+<!ENTITY BI.PSTran.Form.Checking.v "">
+<!ENTITY BI.PSTran.Form.Checking.i "">
+
+<!ENTITY BI.PSTran.DetailTableSource "">
+<!ENTITY BI.PSTran.DetailTableSource.Action "">

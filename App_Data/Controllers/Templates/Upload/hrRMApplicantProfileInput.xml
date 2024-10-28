@@ -1,0 +1,348 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrRMApplicantProfileInput' else 'hrRMApplicantProfileInput2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$hrRMApplicantProfileInputImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$hrRMApplicantProfileInputImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrrmhs"/>
+    <table value="hrrmhs" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    <listTable value="#r"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dot" column="A" allowNulls="false" upperCase="true" check="ma_dot not in (select ma_dot from hrrmdot)" errorCode="00001"/>
+    <field name="ma_hs" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue ="None"/>
+    <field name="ho_uv" column="C" allowNulls="false"/>
+    <field name="ten_uv" column="D" allowNulls="false"/>
+    <field name="ngay_sinh" column="E" allowNulls="false" type="DateTime"/>
+    <field name="noi_sinh" column="F"/>
+    <field name="gioi_tinh" column="G" defaultValue="1" check="gioi_tinh not in ('1', '2')" errorCode="00002"/>
+    <field name="ngay_nop" column="H" allowNulls="false" type="DateTime"/>
+    <field name="ma_tt" column="I" allowNulls="false" upperCase="true" check="ma_tt not in (select ma_tt from hrdmtths)" errorCode="00001"/>
+    <field name="ma_vtr" column="J" allowNulls="false" upperCase="true" check="not exists(select 1 from hrrmdotct b where b.ma_dot = @@table.ma_dot and b.ma_vtr = @@table.ma_vtr)" errorCode="00001"/>
+    <field name="ma_bp" column="K" allowNulls="false" upperCase="true" check="not exists(select 1 from hrrmdotct b where b.ma_dot = @@table.ma_dot and b.ma_vtr = @@table.ma_vtr and b.ma_bp = @@table.ma_bp)" errorCode="00001"/>
+    <field name="muc_luong" column="L" type="Decimal"/>
+    <field name="ngay_lv_dk" column="M" type="DateTime"/>
+    <field name="ma_kenh" column="N" allowNulls="false" upperCase="true" check="ma_kenh not in (select ma_kenh from hrdmkenhtd)" errorCode="00001"/>
+    <field name="ma_nguon" column="O" allowNulls="false" upperCase="true" check="ma_nguon not in (select ma_nguon from hrdmnguontd)" errorCode="00001"/>
+    <field name="nguoi_gt" column="P"/>
+    <field name="dia_chi" column="Q"/>
+    <field name="dien_thoai" column="R" allowNulls="false"/>
+    <field name="email" column="S"/>
+    <field name="ghi_chu" column="T"/>
+    <field name="cmnd_so" column="U"/>
+    <field name="cmnd_ngay_hl" column="V" type="DateTime"/>
+    <field name="cmnd_noi_cap" column="W" upperCase="true" check="cmnd_noi_cap &lt;&gt; '' and cmnd_noi_cap not in (select ma_tinh from hrdmtinh)" errorCode="00001"/>
+    <field name="cmnd_ngay_hh" column="X" type="DateTime"/>
+    <field name="quoc_tich" column="Y" upperCase="true" check="quoc_tich &lt;&gt; '' and quoc_tich not in (select ma_qt from dmqt)" errorCode="00001"/>
+    <field name="dan_toc" column="Z" upperCase="true" check="dan_toc &lt;&gt; '' and dan_toc not in (select ma_dt from hrdmdt)" errorCode="00001"/>
+    <field name="ton_giao" column="AA" upperCase="true" check="ton_giao &lt;&gt; '' and ton_giao not in (select ma_tg from hrdmtg)" errorCode="00001"/>
+    <field name="ma_tthn" column="AB" upperCase="true" check="ma_tthn &lt;&gt; '' and ma_tthn not in (select ma_tthn from hrdmtthn)" errorCode="00001"/>
+    <field name="ngay_kham" column="AC" type="DateTime"/>
+    <field name="chieu_cao" column="AD" type="Decimal"/>
+    <field name="can_nang" column="AE" type="Decimal"/>
+    <field name="mat_phai" column="AF"/>
+    <field name="mat_trai" column="AG"/>
+    <field name="nhom_mau" column="AH" check="nhom_mau &lt;&gt; '' and nhom_mau not in ('A', 'B', 'AB', 'O')" errorCode="00002"/>
+    <field name="loai_sk" column="AI"/>
+    <field name="ghi_chu_sk" column="AJ"/>
+    <field name="cap_dt" column="AK"/>
+    <field name="truong_dt" column="AL"/>
+    <field name="chuong_trinh_dt" column="AM"/>
+    <field name="ngay_dt_tu" column="AN" type="DateTime"/>
+    <field name="ngay_dt_den" column="AO" type="DateTime"/>
+    <field name="ngay_cap_cc" column="AP" type="DateTime"/>
+    <field name="diem_dt" column="AQ" type="Decimal"/>
+    <field name="xep_loai_dt" column="AR"/>
+    <field name="ghi_chu_dt" column="AS"/>
+    <field name="ma_nn" column="AT" upperCase="true" check="ma_nn &lt;&gt; '' and ma_nn not in (select ma_nn from hrdmnn)" errorCode="00001"/>
+    <field name="bang_cap_nn" column="AU" upperCase="true" check="bang_cap_nn &lt;&gt; '' and bang_cap_nn not in (select ma_cc from hrdmcc)" errorCode="00001"/>
+    <field name="diem_nn" column="AV"/>
+    <field name="ngay_cap_nn" column="AW" type="DateTime"/>
+    <field name="ghi_chu_nn" column="AX"/>
+
+    <field name="status" column="None" insertValue="'0'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+    <field name="stt_rec" column="None" insertValue="@wsID + replace(str(stt + @currentID , 9), ' ', '0') + 'HAP'" updateValue="None"/>
+    <field name="ma_dvcs" column="None"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật hồ sơ ứng viên" e="Applicant Profile Input"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dot" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã đợt" e="Period Code"/>
+      </field>
+      <field name="ma_hs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã ứng viên" e="Applicant ID"/>
+      </field>
+      <field name="ho_uv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Họ" e="Last Name"/>
+      </field>
+      <field name="ten_uv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tên" e="First Name"/>
+      </field>
+      <field name="ngay_sinh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày sinh" e="Date of Birth"/>
+      </field>
+      <field name="noi_sinh" width="32">
+        <text v="Nơi sinh" e="Place of Birth"/>
+      </field>
+      <field name="gioi_tinh" width="12">
+        <text v="Giới tính" e="Gender"/>
+      </field>
+      <field name="ngay_nop" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày nộp hồ sơ" e="Date Applied"/>
+      </field>
+      <field name="ma_tt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Trạng thái hồ sơ" e="Status"/>
+      </field>
+      <field name="ma_vtr" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Vị trí ứng tuyển" e="Vacancy"/>
+      </field>
+      <field name="ma_bp" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Bộ phận ứng tuyển" e="Department Applied"/>
+      </field>
+      <field name="muc_luong" width="16">
+        <text v="Mức lương đề xuất" e="Desired Salary"/>
+      </field>
+      <field name="ngay_lv_dk" width="16">
+        <text v="Ngày có thể làm việc" e="Start Working Date"/>
+      </field>
+      <field name="ma_kenh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Kênh tuyển dụng" e="Recruitment Channel"/>
+      </field>
+      <field name="ma_nguon" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Nguồn tuyển dụng" e="Recruitment Source"/>
+      </field>
+      <field name="nguoi_gt" width="16">
+        <text v="Người giới thiệu" e="Refered by"/>
+      </field>
+      <field name="dia_chi" width="32">
+        <text v="Địa chỉ liên hệ" e="Address"/>
+      </field>
+      <field name="dien_thoai" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Điện thoại di động" e="Mobile Phone"/>
+      </field>
+      <field name="email" width="32">
+        <text v="Thư (Email)" e="Email Address"/>
+      </field>
+      <field name="ghi_chu" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+      <field name="cmnd_so" width="16">
+        <text v="Số CMND" e="ID Card No."/>
+      </field>
+      <field name="cmnd_ngay_hl" width="16">
+        <text v="Ngày cấp CMND" e="Date of Issue"/>
+      </field>
+      <field name="cmnd_noi_cap" width="16">
+        <text v="Nơi cấp" e="Place of Issue"/>
+      </field>
+      <field name="cmnd_ngay_hh" width="16">
+        <text v="Ngày hết hạn CMND" e="Expiry Date"/>
+      </field>
+      <field name="quoc_tich" width="16">
+        <text v="Quốc tịch" e="Nationality"/>
+      </field>
+      <field name="dan_toc" width="16">
+        <text v="Dân tộc" e="Ethnic"/>
+      </field>
+      <field name="ton_giao" width="16">
+        <text v="Tôn giáo" e="Religion"/>
+      </field>
+      <field name="ma_tthn" width="16">
+        <text v="Tình trạng hôn nhân" e="Marital Status"/>
+      </field>
+      <field name="ngay_kham" width="16">
+        <text v="Ngày khám sức khỏe" e="Health Care Date"/>
+      </field>
+      <field name="chieu_cao" width="16">
+        <text v="Chiều cao" e="Height"/>
+      </field>
+      <field name="can_nang" width="16">
+        <text v="Cân nặng" e="Weight"/>
+      </field>
+      <field name="mat_phai" width="16">
+        <text v="Mắt phải" e="Right Eye"/>
+      </field>
+      <field name="mat_trai" width="16">
+        <text v="Mắt trái" e="Left Eye"/>
+      </field>
+      <field name="nhom_mau" width="16">
+        <text v="Nhóm máu" e="Blood Type"/>
+      </field>
+      <field name="loai_sk" width="16">
+        <text v="Loại sức khỏe" e="Health Type"/>
+      </field>
+      <field name="ghi_chu_sk" width="50">
+        <text v="Thông tin khác" e="Other Information"/>
+      </field>
+      <field name="cap_dt" width="32">
+        <text v="Cấp đào tạo" e="Level"/>
+      </field>
+      <field name="truong_dt" width="32">
+        <text v="Trường đào tạo" e="Training Provider"/>
+      </field>
+      <field name="chuong_trinh_dt" width="32">
+        <text v="Chương trình đào tạo" e="Training Program"/>
+      </field>
+      <field name="ngay_dt_tu" width="16">
+        <text v="Từ ngày" e="Training Date from"/>
+      </field>
+      <field name="ngay_dt_den" width="16">
+        <text v="Đến ngày" e="Training Date to"/>
+      </field>
+      <field name="ngay_cap_cc" width="16">
+        <text v="Ngày tốt nghiệp" e="Date of Issue"/>
+      </field>
+      <field name="diem_dt" width="16">
+        <text v="Điểm số" e="Mark"/>
+      </field>
+      <field name="xep_loai_dt" width="16">
+        <text v="Xếp loại tốt nghiệp" e="Grade"/>
+      </field>
+      <field name="ghi_chu_dt" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+      <field name="ma_nn" width="16">
+        <text v="Ngoại ngữ" e="Foreign Language"/>
+      </field>
+      <field name="bang_cap_nn" width="16">
+        <text v="Bằng cấp" e="Certificate"/>
+      </field>
+      <field name="diem_nn" width="16">
+        <text v="Bằng/Điểm" e="Grade/Score"/>
+      </field>
+      <field name="ngay_cap_nn" width="16">
+        <text v="Ngày cấp" e="Date of Issue"/>
+      </field>
+      <field name="ghi_chu_nn" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @q nvarchar(4000), @key nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @wsID varchar(1), @maxID char(13)
+declare @user int, @admin bit, @language char(1), @sys varchar(32), @count int, @r int, @currentID int
+
+select @admin = @@admin, @user = @@userID, @key = ''
+select @wsID = rtrim(val) from options where rtrim(name) = 'm_ws_id'
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars end
+
+-- Delete
+if @type = '0' delete @@table from @@table a where exists(select 1 from hrrmhs b where a.ma_hs = b.ma_hs)
+
+-- Check
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_hs', stt, @message from @@table where ma_hs like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_hs', @r = min(stt) from @@table where ma_hs like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+-- Key
+if @@admin = 0 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'hrRMApplicantProfileInput', 'Edit') = 0 select @type = '0'
+  end
+end
+
+-- Gather
+if @type = '0' delete @@table from @@table a where exists(select 1 from hrrmhs b where a.ma_hs = b.ma_hs)
+select c.ma_dvcs, a.* into #k from @@table a join hrrmhs b with(nolock) on a.ma_hs = b.ma_hs join hrrmdot c with(nolock) on a.ma_dot = c.ma_dot
+  where (@admin = 1 or exists(select 1 from sysunitrights r where r.user_id = @user and r.ma_dvcs = c.ma_dvcs and r.r_access = 1))
+
+delete a from @@table a where exists(select 1 from #k b where a.ma_hs = b.ma_hs)
+delete a from @@table a join hrrmdot b with(nolock) on a.ma_dot = b.ma_dot
+  where (@admin <> 1 and not exists(select 1 from sysunitrights r where r.user_id = @user and r.ma_dvcs = b.ma_dvcs and r.r_access = 1))
+
+delete a from #k a where exists(select 1 from hrrmhs b where a.ma_hs = b.ma_hs and b.status = '1')
+
+select top 0 ma_dvcs, ma_dot, ma_hs, ho_uv, ten_uv, ngay_sinh, noi_sinh, gioi_tinh, ngay_nop, ma_tt, ma_vtr, ma_bp, muc_luong, ngay_lv_dk, ma_kenh, ma_nguon, nguoi_gt, dia_chi, dien_thoai, email, ghi_chu, cmnd_so, cmnd_ngay_hl, cmnd_noi_cap, cmnd_ngay_hh, quoc_tich, dan_toc, ton_giao, ma_tthn, ngay_kham, chieu_cao, can_nang, mat_phai, mat_trai, nhom_mau, loai_sk, ghi_chu_sk, cap_dt, truong_dt, chuong_trinh_dt, ngay_dt_tu, ngay_dt_den, ngay_cap_cc, diem_dt, xep_loai_dt, ghi_chu_dt, ma_nn, bang_cap_nn, diem_nn, ngay_cap_nn, ghi_chu_nn, cast(0 as int) as stt into #r from hrrmhs
+
+insert into #r select b.ma_dvcs, a.ma_dot, a.ma_hs, a.ho_uv, a.ten_uv, a.ngay_sinh, a.noi_sinh, a.gioi_tinh, a.ngay_nop, a.ma_tt, a.ma_vtr, a.ma_bp,
+    a.muc_luong, a.ngay_lv_dk, a.ma_kenh, a.ma_nguon, a.nguoi_gt, a.dia_chi, a.dien_thoai, a.email, a.ghi_chu,
+    a.cmnd_so, a.cmnd_ngay_hl, a.cmnd_noi_cap, a.cmnd_ngay_hh, a.quoc_tich, a.dan_toc, a.ton_giao, a.ma_tthn,
+    a.ngay_kham, a.chieu_cao, a.can_nang, a.mat_phai, a.mat_trai, a.nhom_mau, a.loai_sk, a.ghi_chu_sk,
+    a.cap_dt, a.truong_dt, a.chuong_trinh_dt, a.ngay_dt_tu, a.ngay_dt_den, a.ngay_cap_cc, a.diem_dt, a.xep_loai_dt, a.ghi_chu_dt,
+    a.ma_nn, a.bang_cap_nn, a.diem_nn, a.ngay_cap_nn, a.ghi_chu_nn, a.stt
+  from @@table a join hrrmdot b with(nolock) on a.ma_dot = b.ma_dot
+  order by a.ma_dot, a.ma_hs, a.stt
+
+-- Insert
+select @count = count(*) from #r
+if @count > 0 begin
+  select @maxID = max(stt_rec) from hrrmhs
+  select @currentID = case when @maxID is null then 1 else cast(substring(@maxID, 2, 9) as int) end
+
+  ]]>&Inserting;<![CDATA[
+end
+
+-- Update
+if @type = '1' ]]>&Updating;<![CDATA[
+]]>
+    </text>
+  </processing>
+</import>

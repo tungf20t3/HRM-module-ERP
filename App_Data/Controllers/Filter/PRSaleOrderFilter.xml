@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY Identity "PRSaleOrder">
+]>
+
+<dir table="m91$000000" code="stt_rec" order="ngay_ct, so_ct" id="PR1" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_nhan1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu từ" e="Require from"></header>
+      <footer v="Ngày yêu cầu từ/đến" e="Require from/to"/>
+    </field>
+    <field name="ngay_nhan2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu đến" e="Require to"></header>
+    </field>
+
+    <field name="ngay_dat1" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày đặt hàng từ" e="Release from"></header>
+      <footer v="Ngày đặt hàng từ/đến" e="Release from/to"></footer>
+    </field>
+    <field name="ngay_dat2" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày đặt hàng đến" e="Release to"></header>
+    </field>
+    <field name="ma_vt">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="kieu_hd &lt;&gt; '0' and status = '1'" check="kieu_hd &lt;&gt; '0'"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true">
+      <header v="" e=""/>
+    </field>
+    <field name="xac_nhan_yn" categoryIndex="1" type="Boolean" external="true" allowContain="true" defaultValue="true">
+      <header v="" e=""></header>
+      <footer v="Đã xác nhận" e="Confirmed"></footer>
+      <items style="CheckBox"/>
+    </field>
+
+    <field name="sap_xep">
+      <header v="Sắp xếp theo" e="Sort by"></header>
+      <items style="DropDownList">
+        <item value="1">
+          <text v="Ngày đặt" e="Release Date"/>
+        </item>
+        <item value="2">
+          <text v="Mã hàng" e="Item Code"/>
+        </item>
+        <item value="3">
+          <text v="Ngày yêu cầu" e="Due date"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101: [ngay_nhan1].Description, [ngay_nhan1], [ngay_nhan2]"/>
+      <item value="1101: [ngay_dat1].Description, [ngay_dat1], [ngay_dat2]"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11: [xac_nhan_yn].Description, [xac_nhan_yn]"/>
+      <item value="11000: [sap_xep].Label, [sap_xep]"/>
+    </view>
+  </views>
+
+  <commands>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, ''' + replace(replace(@ma_vt, '\', '\\'), '''', '\''') + ''',' + rtrim(@$xac_nhan_yn) + ',' + @sap_xep + ',''' + convert(char(8), isnull(@ngay_dat1, ''), 112) +  ''','''   +  convert(char(8), isnull(@ngay_dat2, ''), 112) + ''',''' + convert(char(8), @ngay_nhan1, 112) +  ''',''' + convert(char(8), @ngay_nhan2, 112) +  ''');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, a, b, c, d, e, h, i) {
+  var g = f.grid, w = g.get_element().parentForm;
+  g._$deptID = w.getItemValue('dept_id');
+  g._$deptName = w.getItemValue('ten_bp%l');
+  g._$item = a;
+  g._$firm = b;
+  g._$order = c;
+  g._$d1 = d;
+  g._$d2 = e;
+  g._$n1 = h;
+  g._$n2 = i;
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g);
+}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g) {
+  g.showForm(']]>&Identity;<![CDATA[Form');
+  g._memvars = [];
+}
+]]>
+      &OutlineEntry;
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.Column_stt_rec{visibility:hidden;display:none;}      
+.SelectionOutline{outline-style:dotted;outline-width:1px;}
+]]>
+    </text>
+  </css>
+</dir>

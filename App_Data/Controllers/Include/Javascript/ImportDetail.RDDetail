@@ -1,0 +1,64 @@
+﻿<![CDATA[
+function set$Grid$ImportResult(z) {
+  var g = z.grid, f = z.form, w = g.get_element().parentForm, result = z.result, row = g._rowCount, first = true, refIndex = 27;
+  var c0 = g._getColumnOrder('so_phieu'), c1 = g._getColumnOrder('ngay_phieu'), c2 = g._getColumnOrder('so_hd'), c3 = g._getColumnOrder('ngay_hd');
+  var s0 = g._getColumnOrder('stt_rec_phieu'), s1 = g._getColumnOrder('stt_rec_hd'), s2 = g._getColumnOrder('ma_kh_phieu'), s3 = g._getColumnOrder('ma_kh_hd');
+  var t0 = g._getColumnOrder('ma_nt'), t1 = g._getColumnOrder('ty_gia'), t2 = g._getColumnOrder('ma_nt_hd'), t3 = g._getColumnOrder('ty_gia_hd');
+  var t4 = g._getColumnOrder('tien_nt'), t5 = g._getColumnOrder('tk_du'), t51 = g._getColumnOrder('tk'), t6 = g._getColumnOrder('tien_hd_nt'), t7 = g._getColumnOrder('da_tt_nt'), t8 = g._getColumnOrder('cl_nt')
+
+  ]]>&ImportUserDefinedDeclare;<![CDATA[
+  var beginUDIndex = 2;
+  var fields = 'tag, stt_rec_phieu, so_phieu, ngay_phieu, ma_kh_phieu, ma_nt, ty_gia, tk, tien_nt, stt_rec_hd, so_hd, ngay_hd, ma_kh_hd, ma_nt_hd, ty_gia_hd, tk_du, tien_hd_nt, da_tt_nt, cl_nt, tt_nt, ' + ']]>&ImportUserDefinedFields;<![CDATA[';
+
+  for (var i = 0; i < result.length; i++) {
+    var ins = true, row = g._rowCount, importItems = result[i];
+    if (first && row > 0) if (g.blankMemvar(row)) {ins = false; first = false;}
+    if (ins) g._appendRow(null, true);
+    row = g._rowCount;
+    var o = g._getItem(row, c0);
+    o.row = row;
+    insert$Import$Items(g, fields, row, importItems);
+    var ref = importItems[refIndex];
+    var itemGridBehavior = [
+        ['so_phieu', g._getItemValue(row, c0), ['', ref.substr(0, 1) == '1'], true],
+        ['stt_rec_phieu', g._getItemValue(row, s0), null, true],
+        ['ngay_phieu', g._getItemValue(row, c1), null, true],
+        ['ma_nt', g._getItemValue(row, t0), null, true],
+        ['ty_gia', g._getItemValue(row, t1), null, true],
+        ['tien_nt', g._getItemValue(row, t4), null, true],
+        ['ma_kh_phieu', g._getItemValue(row, s2), null, true],
+        ['so_hd', g._getItemValue(row, c2), ['', ref.substr(1, 1) == '1'], true],
+        ['stt_rec_hd', g._getItemValue(row, s1), null, true],
+        ['ngay_hd', g._getItemValue(row, c3), null, true],
+        ['ma_nt_hd', g._getItemValue(row, t2), null, true],
+        ['ty_gia_hd', g._getItemValue(row, t3), null, true],
+        ['tk_du', g._getItemValue(row, t5), null, true],
+        ['tk', g._getItemValue(row, t51), null, true],
+        ['tien_hd_nt', g._getItemValue(row, t6), null, true],
+        ['da_tt_nt', g._getItemValue(row, t7), null, true],
+        ['cl_nt', g._getItemValue(row, t8), null, true],
+        ['ma_kh_hd', g._getItemValue(row, s3), null, true]
+    ];
+    ]]>&ImportUserDefinedSetItem;<![CDATA[
+
+    g.validExpression(o, [g.$a.tt_tg], null, null);
+    set$GridVoucherDetail$Payment(o, g, w) ;
+  }
+  g._focusWhenTabChanged();
+  f._busy = false;
+  parent.$func.hideWait(f.get_id());
+  ]]>&ImportDetailCloseForm;<![CDATA[
+  z.parentNode.removeChild(z);
+}
+function insert$Import$Items(g, fields, row, value) {
+  var field = fields.split(',');
+  for (var i = 0; i < field.length; i++) {
+    var column = g._getColumnOrder(parent.$func.trim(field[i]));
+    if (column > 0) {
+      var f = g._fields[column - 1], v = value[i];
+      if (f.ItemStyle == 'AutoComplete' && v && !$func.trim(v)) v = '';
+      g._setItemValue(row, column, v);
+    }
+  }
+}
+]]>

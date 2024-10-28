@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<template xmlns="urn:schemas-ai-erp:data-dashboard">
+  <fields>
+    <field name="type" type="String" v="pie" e="pie"></field>
+    <field name="labels" type="Data" v="#colName#" e="#colName#"></field>
+    <field name="options" type="List" v="" e="">
+      <items>
+        <item name="responsive" type="String" v="true" e="true"></item>
+        <item name="title" type="List" v="" e="">
+          <![CDATA[
+{"display": "true", "text": "@title", "position": "top", "fontSize": 16, "fontStyle": "bold", "padding": 22}
+]]>
+        </item>
+        <item name="legend" type="List" v="" e="">
+          <![CDATA[
+{"position": "bottom" , "labels": {"boxWidth": 12}}
+]]>
+        </item>
+        <item name="layout" type="List" v="" e="">
+          <![CDATA[
+{"padding": {"left": "5", "right": "5", "top": "0", "bottom": "0"}}
+]]>
+        </item>
+        <item name="tooltips" type="List" v="" e="">
+          <![CDATA[
+{"backgroundColor": "#eee", "bodyFontColor": "#000", "titleFontColor": "#000" , "bodyFontSize": 12, "titleFontSize": 12}
+]]>
+        </item>
+
+        <item name="tooltips" type="Script" v="" e="">
+          <![CDATA[
+function(tooltipItem, data) {
+  var sum1 = data.datasets[0].data.reduce((a, b) => Math.abs(parseFloat(a)) + Math.abs(parseFloat(b)), 0);
+  var per1 = data.datasets[0].data.map(x => Math.round((x * 100 / sum1) * 100) / 100);
+  var per2 = per1.slice(0, per1.length - 1);
+  var sum2 = per2.reduce((a, b) => a + b, 0);
+  per1[per1.length - 1] = Math.round((100 - sum2) *100) / 100;
+  var label = data.labels[tooltipItem.index] || '';
+  if (label) {
+	  label += ': ';
+  }
+  label += per1[tooltipItem.index] + " %";
+  return label;
+}
+]]>
+        </item>
+        <item name="plugins" type="List" v="" e="">
+          <![CDATA[
+{"chartJsPluginSubtitle": {"display": "true", "text": "@subtitle", "fontSize": 10, "fontStyle": "italic"}}
+]]>
+        </item>
+        <item name="nullData" type="List" v="" e="">
+          <![CDATA[
+{ "chartJsPluginSubtitle": { "display": "true", "text": "@defaultData", "fontSize": 16, "fontColor": "#111"}}
+]]>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <series>
+    <variable name="backgroundColor" type="Array" v="@colors,@colors,@colors" e="@colors,@colors,@colors"></variable>
+    <variable name="data" type="Data" v="#gia_tri#" e="#gia_tri#"></variable>
+  </series>
+</template>

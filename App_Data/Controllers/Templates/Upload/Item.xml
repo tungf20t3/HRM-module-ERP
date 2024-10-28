@@ -1,0 +1,338 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY ItemFields SYSTEM "Include\ItemFields.txt">
+  <!ENTITY ItemFieldsCompact SYSTEM "Include\ItemFieldsCompact.txt">
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % Nested SYSTEM "..\..\Include\Nested.ent">
+  %Nested;
+
+  <!ENTITY % UnitConversion SYSTEM "..\..\Include\UnitConversion.ent">
+  %UnitConversion;
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.Item;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "declare @filename varchar(128)
+if @@language = 'v' select @filename = case when @compactMode = '0' then 'Item' else 'Item3' end
+else select @filename = case when @compactMode = '0' then 'Item2' else 'Item4' end
+&UnitConversionFilenameImport;
+">
+  <!ENTITY Controller "Item">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$ItemImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$ItemImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmvt"/>
+    <table value="dmvt" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="00003">
+      <header v="Giá trị &Customer.Nested.Message.v;." e="The value is &Customer.Nested.Message.e;." />
+    </var>
+  </variable>
+
+  <query>
+    <command>
+      <text>
+        &Tiny.External.Import.Command;<![CDATA[
+declare @compactMode char(1)
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') select @compactMode = '1' else select @compactMode = '0'
+]]>&ExportImportTemplateQuery;<![CDATA[
+]]>&UnitConversionViewIndex;<![CDATA[
+if @compactMode = 1 select '1' as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[ else select '0' as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[
+]]>
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        &ItemFieldsCompact;
+      </fields>
+      <fields identity="true" name="stt" index="2">
+        &UnitConversionItemFields;
+      </fields>
+
+      &Tiny.External.Import.View.Item;
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    &ItemFields;
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục hàng hóa - vật tư" e="Item List"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_vt" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã vật tư" e="Item Code"/>
+      </field>
+      <field name="ten_vt" width ="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên vật tư" e="Description"/>
+      </field>
+      <field name="ten_vt2" width ="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="dvt" width ="12" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị tính" e="Unit of Measure"/>
+      </field>
+      <field name="nhieu_dvt" width ="12">
+        <text v="Nhiều đvt" e="Multi-UOM"/>
+      </field>
+      <field name="vt_ton_kho" width ="12">
+        <text v="Theo dõi tồn kho" e="Stock Control"/>
+      </field>
+      <field name="lo_yn" width ="12">
+        <text v="Theo dõi lô" e="Lot Control"/>
+      </field>
+      <field name="kk_yn" width ="12">
+        <text v="Theo dõi kiểm kê" e="Physical Count"/>
+      </field>
+      <field name="gia_ton" width ="16">
+        <text v="Cách tính giá tồn kho" e="Valuation Method"/>
+      </field>
+      <field name="loai_vt" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại vật tư" e="Item Type"/>
+      </field>
+      <field name="nh_vt1" width ="16">
+        <text v="Nhóm vật tư 1" e="Item Group 1"/>
+      </field>
+      <field name="nh_vt2" width ="16">
+        <text v="Nhóm vật tư 2" e="Item Group 2"/>
+      </field>
+      <field name="nh_vt3" width ="16">
+        <text v="Nhóm vật tư 3" e="Item Group 3"/>
+      </field>
+      <field name="nh_vt9" width ="16">
+        <text v="Nhóm giá" e="Item Price Class"/>
+      </field>
+      <field name="ma_kho" width ="16">
+        <text v="Mã kho" e="Site"/>
+      </field>
+      <field name="ma_vi_tri" width ="16">
+        <text v="Mã vị trí" e="Location"/>
+      </field>
+      <field name="ma_thue" width ="16">
+        <text v="Thuế giá trị gia tăng" e="VAT"/>
+      </field>
+      <field name="ma_thue_nk" width ="16">
+        <text v="Thuế nhập khẩu" e="Import Tax"/>
+      </field>
+      <field name="tk_vt" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tk vật tư" e="Inventory Account"/>
+      </field>
+      <field name="sua_tk_vt" width ="12">
+        <text v="Sửa tk vật tư" e="Edit Inventory Account"/>
+      </field>
+      <field name="tk_gv" width ="16">
+        <text v="Tk giá vốn" e="COGS Account"/>
+      </field>
+      <field name="tk_dt" width ="16">
+        <text v="Tk doanh thu" e="Sales Account"/>
+      </field>
+      <field name="tk_dtnb" width ="16">
+        <text v="Tk doanh thu nội bộ" e="Internal Sales Account"/>
+      </field>
+      <field name="tk_tl" width ="16">
+        <text v="Tk hàng bán trả lại" e="Sales Return Account"/>
+      </field>
+      <field name="tk_dl" width ="16">
+        <text v="Tk đại lý" e="Consignment Account"/>
+      </field>
+      <field name="tk_spdd" width ="16">
+        <text v="Tk sản phẩm dở dang" e="WIP Account"/>
+      </field>
+      <field name="tk_cl_vt" width ="16">
+        <text v="Tk chênh lệch giá vốn" e="Cost Difference Acct."/>
+      </field>
+      <field name="tk_ck" width ="16">
+        <text v="Tk chiết khấu" e="Discount Account"/>
+      </field>
+      <field name="tk_cpbh" width ="16">
+        <text v="Tk chi phí khuyến mãi" e="Promotion Account"/>
+      </field>
+      <field name="kieu_lo" width ="16">
+        <text v="Kiểu lô" e="Assignment"/>
+      </field>
+      <field name="cach_xuat" width ="16">
+        <text v="Cách xuất" e="Issue Method"/>
+      </field>
+      <field name="so_ngay_sp" width ="16">
+        <text v="Vòng đời sp (số ngày)" e="Shelf Life Days"/>
+      </field>
+      <field name="so_ngay_bh" width ="16">
+        <text v="TG bảo hành (số ngày)" e="Warranty Days"/>
+      </field>
+      <field name="tao_lo" width ="12">
+        <text v="Cho phép tạo lô ngay khi nhập" e="Allow creating lot when receiving"/>
+      </field>
+      <field name="abc_code" width ="16">
+        <text v="ABC" e="ABC Code"/>
+      </field>
+      <field name="sl_min" width ="16">
+        <text v="Số lượng tồn tối thiểu" e="Minimum Quantity"/>
+      </field>
+      <field name="sl_max" width ="16">
+        <text v="Số lượng tồn tối đa" e="Maximum Quantity"/>
+      </field>
+      <field name="volume" width ="16">
+        <text v="Thể tích" e="Volume"/>
+      </field>
+      <field name="dvtvolume" width ="12">
+        <text v="Đơn vị tính" e="UOM"/>
+      </field>
+      <field name="weight" width ="16">
+        <text v="Khối lượng" e="Weight"/>
+      </field>
+      <field name="dvtweight" width ="12">
+        <text v="Đơn vị tính" e="UOM"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'Item', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @field varchar(32), @irregularChars varchar(128), @r int
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> ]]>&Item.Nested.Message.v;<![CDATA[.' else 'The value of cell <span class="Highlight">%invalidCell</span> is ]]>&Item.Nested.Message.e;<![CDATA[.' end
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+
+create index i on @@table (ma_vt)
+
+-- Check
+if @type = '0' delete @@table from @@table a join dmvt b on a.ma_vt = b.ma_vt
+select @field = 'ma_vt'
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, @message from @@table where ma_vt like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ma_vt like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select a.*, cast(0 as bit) as ps into #k from @@table a join dmvt b with (nolock) on a.ma_vt = b.ma_vt
+
+-- Do not delete following line
+-- #OverwriteChecking
+
+if @type = '1' delete @@table where ma_vt in (select ma_vt from #k)
+
+--
+select @field = 'ma_vt'
+]]>&Item.Nested.Key.b;<![CDATA[
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_vt <> b.ma_vt and a.ma_vt like rtrim(b.ma_vt) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a with (index(i)), dmvt b with (nolock index(PK_dmvt)) where a.ma_vt like rtrim(b.ma_vt) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from dmvt a with (nolock index(PK_dmvt)), @@table b with (index(i)) where a.ma_vt like rtrim(b.ma_vt) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_vt <> b.ma_vt and a.ma_vt like rtrim(b.ma_vt) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = a.stt from @@table a with (index(i)), dmvt b with (nolock index(PK_dmvt)) where a.ma_vt like rtrim(b.ma_vt) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = b.stt from dmvt a with (nolock index(PK_dmvt)), @@table b with (index(i)) where a.ma_vt like rtrim(b.ma_vt) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  end
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+insert into dmqddvt(ma_vt, dvt, he_so, xtype, status, datetime0, datetime2, user_id0, user_id2)
+  select ma_vt, dvt, 1, 'S', '1', getdate(), getdate(), @@userID, @@userID from @@table where nhieu_dvt = 1
+
+if @type = 1 begin
+  create index i on #k (ma_vt)
+  select distinct ma_vt into #ct70 from ct70 where ma_vt in (select ma_vt from #k)
+  select distinct ma_vt into #ct90 from ct90 where ma_vt in (select ma_vt from #k)
+  create index i on #ct70 (ma_vt)
+  create index i on #ct90 (ma_vt)
+
+  update #k set ps = 1 from #k a join #ct70 b on a.ma_vt = b.ma_vt
+  update #k set ps = 1 from #k a join #ct90 b on a.ma_vt = b.ma_vt
+
+  delete dmqddvt from dmqddvt a join #k b on a.ma_vt = b.ma_vt where a.xtype = 'S' and b.ps = 0
+  insert into dmqddvt(ma_vt, dvt, he_so, xtype, status, datetime0, datetime2, user_id0, user_id2)
+    select ma_vt, dvt, 1, 'S', '1', getdate(), getdate(), @@userID, @@userID from #k where nhieu_dvt = 1 and ps = 0
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+
+</import>

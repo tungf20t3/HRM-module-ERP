@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE report [
+  <!ENTITY b SYSTEM ".\Include\BaseCurrency.xml">
+  <!ENTITY f SYSTEM ".\Include\ForeignCurrency.xml">
+  <!ENTITY s SYSTEM ".\Include\Separate.xml">
+
+  <!ENTITY p "../images/pdf.gif">
+  <!ENTITY e "../images/excel.gif">
+]>
+
+<report xmlns="urn:schemas-ai-erp:data-report">
+  <forms>
+    <form id="010" reportFile="hrptEmployeeAnnualLeaveDetailed_01" commandArgument="pdf" urlImage="&p;">
+      <header v="Bảng theo dõi số ngày nghỉ phép trong năm" e="Employee Annual Leave Detailed Report"></header>
+      <download>
+        <header v="Bảng theo dõi số ngày nghỉ phép trong năm" e="Employee Annual Leave Detailed Report"/>
+      </download>&b;
+    </form>
+    <form id="020" reportFile="hrptEmployeeAnnualLeaveDetailed_02" commandArgument="pdf">
+      <header v="Bảng tổng hợp theo dõi số ngày nghỉ phép trong năm" e="Summary Employee Annual Leave Report"></header>
+      <download>
+        <header v="Bảng tổng hợp theo dõi số ngày nghỉ phép trong năm" e="Summary Employee Annual Leave Report"/>
+      </download>
+      <fields>
+        <field name="title" type="String">
+          <header v="BẢNG TỔNG HỢP THEO DÕI SỐ NGÀY NGHỈ PHÉP TRONG NĂM" e="SUMMARY EMPLOYEE ANNUAL LEAVE REPORT"/>
+        </field>
+        <field name="isFC" type="Boolean">
+          <header v="False" e="False"/>
+        </field>
+      </fields>
+    </form>
+
+    &s;
+
+    <form id="110" templateFile ="hrptEmployeeAnnualLeaveDetailed_01" commandArgument="Excel" urlImage="&e;" rowFilter="[2$tt &lt;&gt; 0]">
+      <header v="Bảng theo dõi số ngày nghỉ phép trong năm" e="Employee Annual Leave Detailed Report"/>
+      <download>
+        <header v="Bảng theo dõi số ngày nghỉ phép trong năm" e="Employee Annual Leave Detailed Report"/>
+      </download>
+    </form>
+    <form id="120" templateFile="hrptEmployeeAnnualLeaveDetailed_02" commandArgument="Excel" rowFilter="[2$tt &lt;&gt; 0]">
+      <header v="Bảng tổng hợp theo dõi số ngày nghỉ phép trong năm" e="Summary Employee Annual Leave Report"></header>
+      <download>
+        <header v="Bảng tổng hợp theo dõi số ngày nghỉ phép trong năm" e="Summary Employee Annual Leave Report"/>
+      </download>
+      <fields>
+        <field name="title" type="String">
+          <header v="BẢNG TỔNG HỢP THEO DÕI SỐ NGÀY NGHỈ PHÉP TRONG NĂM" e="SUMMARY EMPLOYEE ANNUAL LEAVE REPORT"/>
+        </field>
+        <field name="isFC" type="Boolean">
+          <header v="False" e="False"/>
+        </field>
+      </fields>
+    </form>
+  </forms>
+
+  <fields>
+    <field name="title" type="String">
+      <header v="BẢNG THEO DÕI SỐ NGÀY NGHỈ PHÉP TRONG NĂM" e="EMPLOYEE ANNUAL LEAVE DETAILED REPORT"/>
+    </field>
+    <field name="h_nam" type="String">
+      <header v="Năm:" e="Year:"/>
+    </field>
+    <field name="h_stt" type="String">
+      <header v="Stt" e="No."/>
+    </field>
+    <field name="h_ma_nv" type="String">
+      <header v="Mã nhân viên" e="Employee ID"/>
+    </field>
+    <field name="h_ten_nv" type="String">
+      <header v="Họ và tên" e="Full Name"/>
+    </field>
+    <field name="h_t1" type="String">
+      <header v="Tháng 1" e="Jan"/>
+    </field>
+    <field name="h_t2" type="String">
+      <header v="Tháng 2" e="Feb"/>
+    </field>
+    <field name="h_t3" type="String">
+      <header v="Tháng 3" e="Mar"/>
+    </field>
+    <field name="h_t4" type="String">
+      <header v="Tháng 4" e="Apr"/>
+    </field>
+    <field name="h_t5" type="String">
+      <header v="Tháng 5" e="May"/>
+    </field>
+    <field name="h_t6" type="String">
+      <header v="Tháng 6" e="Jun"/>
+    </field>
+    <field name="h_t7" type="String">
+      <header v="Tháng 7" e="Jul"/>
+    </field>
+    <field name="h_t8" type="String">
+      <header v="Tháng 8" e="Aug"/>
+    </field>
+    <field name="h_t9" type="String">
+      <header v="Tháng 9" e="Sep"/>
+    </field>
+    <field name="h_t10" type="String">
+      <header v="Tháng 10" e="Oct"/>
+    </field>
+    <field name="h_t11" type="String">
+      <header v="Tháng 11" e="Nov"/>
+    </field>
+    <field name="h_t12" type="String">
+      <header v="Tháng 12" e="Dec"/>
+    </field>
+    <field name="h_phep_dn" type="String">
+      <header v="Dư đầu" e="Opening"/>
+    </field>
+    <field name="h_phep_hh" type="String">
+      <header v="Phép hết hạn" e="Expired"></header>
+    </field>
+    <field name="h_phep_tn" type="String">
+      <header v="Trong năm" e="Available"></header>
+    </field>
+    <field name="h_phep_th" type="String">
+      <header v="Đã nghỉ" e="Used Leaves"/>
+    </field>
+    <field name="h_phep_cl" type="String">
+      <header v="Còn lại" e="Remaining"/>
+    </field>
+  </fields>
+</report>

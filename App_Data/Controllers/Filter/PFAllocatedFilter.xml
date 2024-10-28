@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "PFAllocated">
+  <!ENTITY DetailTable "d73">
+]>
+
+<dir table="m73$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Sửa chi phí phân bổ" e="Edit Charge Amount"></title>
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh">
+      <header v="Mã ncc" e="Supplier"></header>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày chứng từ" e="Voucher Date"></header>
+    </field>
+    <field name="ma_nt">
+      <header v="Mã nt" e="Currency"></header>
+    </field>
+    <field name="ty_gia" type="Decimal" dataFormatString="@exchangeRateInputFormat" clientDefault="Default" defaultValue="1">
+      <header v="Tỷ giá" e="Ex. Rate"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="&DetailTable;" external="true" clientDefault="0" defaultValue="0" rows="208" categoryIndex="1" allowContain="true">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="&Identity;Grid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="4">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="11010000000101: [ma_kh].Label, [ma_kh], [ten_kh%l], [ngay_ct].Label, [ngay_ct]"/>
+      <item value="1----------111: [stt_rec], [ty_gia].Label, [ma_nt], [ty_gia]"/>
+      <item value="1: [&DetailTable;]"/>
+      <categories>
+        <category index="1" columns="769, 0, 0, 0" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  var z = f.getItem('d73')._controlBehavior;
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  f.setReadOnlyFields('ma_kh, ngay_ct, ma_nt, ty_gia');
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid, w = g.get_element().parentForm, u = w.getItemValue('ma_nt'), v = w.getItemValue('ty_gia'), x = w.getItemValue('ma_kh'), y = w.getItemValue('ten_kh%l'), z = w.getItemValue('ngay_ct');
+  f._denyFocus = true;
+  f.setItemValues('stt_rec, ma_kh, ten_kh%l, ngay_ct, ma_nt, ty_gia', ['', x, y, z, u, v]);
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      set$]]>&Identity;<![CDATA[Form$FlowScript(f);
+      break;
+    default:
+      break;
+  }
+}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {
+  var z = f.getItem('d73')._controlBehavior, y = f.grid, w = y.get_element().parentForm, v = w.getItemValue('ma_nt').toUpperCase() == w._baseCurrency.toUpperCase();
+  if (!check$Allocated$Charge$Amount(z, y, v)) {
+    $func.hideWait(f.get_id());
+    f._checked = false;
+    $message.show((f._language == 'v' ? 'Tiền chi phí không hợp lệ.' : 'Invalid charge amount.'));
+  } else f._flowScript = 'update$]]>&Identity;<![CDATA[Form$Allocated$Data(this)';
+}
+function update$]]>&Identity;<![CDATA[Form$Allocated$Data(f) {
+  var z = f.getItem('d73')._controlBehavior, y = f.grid, w = y.get_element().parentForm, g = w.getItem('d73')._controlBehavior;
+  var f1 = 'cp_vc_nt, cp_bh_nt, cp_khac_nt, cp_nt', f2 = 'cp_vc, cp_bh, cp_khac, cp';
+  var c1 = f1 + ', ' + f2;
+  var c2 = (w.getItemValue('ma_nt').toUpperCase() == w._baseCurrency.toUpperCase() ? f2 : f1) + ', ' + f2;
+  for (var r = 1; r <= g._rowCount; r++) {
+    update$Allocated$Items(g, r, z, r, c1, c2);
+  }
+}
+function update$Allocated$Items(g, r1, z, r2, c1, c2) {
+  var a1 = c1.split(','), a2 = c2.split(',');
+  for (var i = 0; i < a1.length; i++) {
+    var l1 = g._getColumnOrder($func.trim(a1[i])), l2 = z._getColumnOrder($func.trim(a2[i]));
+    g._setItemValue(r1, l1, z._getItemValue(r2, l2));
+  }
+  g.get_element().parentForm.setItemValue('xtag', '1');
+}
+]]>
+    </text>
+  </script>
+</dir>

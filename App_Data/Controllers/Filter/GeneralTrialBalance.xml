@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Khai báo tham số bảng cân đối số phát sinh của các tài khoản" e="General Trial Balance Declaration"></title>
+
+  <fields>
+    <field name="M_ds_tk_ctr" clientDefault="Default" >
+      <header v="Danh sách tài khoản được bù trừ giữa các đơn vị" e="List of Account Mutually Balanced among Units"></header>
+      <items style="Lookup" controller="Account" key="status = '1' and tk_me = ''" check="tk_me = ''" information="tk$dmtk.ten_tk%l" new="Default"/>
+    </field>
+    <field name="M_ds_tk_cn_1ve" clientDefault="Default" >
+      <header v="Danh sách tài khoản công nợ hiện số dư một bên" e="List of AR-AP Accounts with Balance in One Side"></header>
+      <items style="Lookup" controller="Account" key="status = '1' and tk_me = ''" check="tk_me = ''" information="tk$dmtk.ten_tk%l" new="Default"/>
+    </field>
+    <field name="M_ds_tk_2ve" clientDefault="Default" >
+      <header v="Danh sách tài khoản hiện số dư hai bên" e="List of AR-AP Accounts with Balance in Two Side"></header>
+      <items style="Lookup" controller="Account" key="status = '1' and tk_me = ''" check="tk_me = ''" information="tk$dmtk.ten_tk%l" new="Default"/>
+    </field>
+    <field name="name_M_ds_tk_2ve"  hidden="true" clientDefault="Default">
+      <header v="" e=""></header>
+    </field>
+    <field name="name_M_ds_tk_cn_1ve"  hidden="true" clientDefault="Default">
+      <header v="" e=""></header>
+    </field>
+    <field name="name_M_ds_tk_ctr"  hidden="true" clientDefault="Default">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="159">
+      <item value="250, 300, 0"/>
+      <item value="111: [M_ds_tk_ctr].Label, [M_ds_tk_ctr], [name_M_ds_tk_ctr]"/>
+      <item value="111: [M_ds_tk_cn_1ve].Label, [M_ds_tk_cn_1ve], [name_M_ds_tk_cn_1ve]"/>
+      <item value="111: [M_ds_tk_2ve].Label, [M_ds_tk_2ve], [name_M_ds_tk_2ve]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @name_M_ds_tk_2ve nvarchar(512), @name_M_ds_tk_cn_1ve nvarchar(512), @name_M_ds_tk_ctr nvarchar(512), @val1 nvarchar(512), @val2 nvarchar(512), @val3 nvarchar(512), @message nvarchar(4000)
+select @name_M_ds_tk_2ve = name,  @val1 = val from options where name = 'M_ds_tk_2ve'
+select @name_M_ds_tk_cn_1ve = name, @val2 = val from options where name = 'M_ds_tk_cn_1ve'
+select @name_M_ds_tk_ctr = name, @val3 = val from options where name = 'M_ds_tk_ctr'
+select @message = 'this._name_M_ds_tk_2ve = ''' + rtrim(@name_M_ds_tk_2ve) + '''; this._name_M_ds_tk_cn_1ve = ''' + rtrim(@name_M_ds_tk_cn_1ve) + '''; this._name_M_ds_tk_ctr = ''' + rtrim(@name_M_ds_tk_ctr) + '''; this._val1 = ''' + rtrim(@val1) + '''; this._val2 = ''' + rtrim(@val2) + '''; this._val3 = ''' + rtrim(@val3) + ''';loadFormFilter(this);'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+update options set val = @M_ds_tk_2ve where name = @name_M_ds_tk_2ve
+update options set val = @M_ds_tk_cn_1ve where name = @name_M_ds_tk_cn_1ve
+update options set val = @M_ds_tk_ctr where name = @name_M_ds_tk_ctr
+]]>
+      </text>
+
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function loadFormFilter(a){a.getItem("name_M_ds_tk_2ve").value=a._name_M_ds_tk_2ve;a.getItem("name_M_ds_tk_cn_1ve").value=a._name_M_ds_tk_cn_1ve;a.getItem("name_M_ds_tk_ctr").value=a._name_M_ds_tk_ctr;a.getItem("M_ds_tk_2ve").value=a._val1;a.getItem("M_ds_tk_cn_1ve").value=a._val2;a.getItem("M_ds_tk_ctr").value=a._val3;changeLookupReadonly(a,"M_ds_tk_ctr",true);changeLookupReadonly(a,"M_ds_tk_cn_1ve",true);changeLookupReadonly(a,"M_ds_tk_2ve",true)}]]>
+    </text>
+  </script>
+
+</dir>

@@ -1,0 +1,5 @@
+﻿<![CDATA[declare @ticket varchar(32), @filename varchar(128), @description nvarchar(128)
+select @ticket = lower(replace(newid(),'-',''))
+if @@language = 'v' select @filename = 'ContractBalance.xlsx', @description = N'Vào số dư đầu kỳ hợp đồng'
+else select @filename = 'ContractBalance2.xlsx', @description = N'Contract Opening Balance'
+insert into @@sysDatabaseName..ticket values(@ticket, @@userID, ']]>&TransferID;<![CDATA[', @filename, @description, '@@appDatabaseName', getdate());]]>

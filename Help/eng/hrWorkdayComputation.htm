@@ -1,0 +1,262 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Workday Computation</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Workday Computation</p>
+<p id="pic"><img src="eng\Computation.png"/></p>
+<p id="td2">Functions Required before Processing Workday Computation</p>
+<ul class="lo_2">
+- Transfer Annual Leave Balance to Next Year;<br/>
+- Salary Computation;<br/>
+- Late In/ Early Out Reports;<br/>
+- Workday, Annual Leave Reports.
+</ul>
+<p id="td2">Logic of Workday Computation</p>
+<p class="node">Check Access Right of Current User</p>
+<p class="node_d">
+Check the access right by unit: only users who are assigned the "New" right by unit can perform this function to the required unit;<br/>
+Check the department access right: only users who are assigned the department access right can perform this function to the required 
+department;<br/>
+Check the task access right: only users who are assigned the task access right (selected during right assignment) can perform this function.
+</p>
+<p class="node">"Next Day" option</p>
+<p class="node_d">
+In case some employees work in a shift which begins on a day and ends on next day, it is required to define the time out in the 
+detailed shift as next day so that the system can recognize which is the time out of the previous working day.</p>
+<p class="tip">Refer to "Employee Time In/Out Input" and "Detailed Shift" for more information</p>
+
+
+<p class="node">	Minimum Minutes/ Maximum Hours </p>
+<p class="node_d">
+Minimum minutes and maximum hours of detailed shift defined in “Detailed Shift” and “Employee overtime register”.</p>
+<ul class="lo_2">
+- If the calculated “hours” (regular or overtime working) plus “added minutes” is greater than “Maximum Hours”, it will be equal 
+to “Maximum Hours”;<br/>
+- If the calculated “hours” (regular or overtime working) is less than “Minimum Minutes”, it will be 0 and not be added “Late in, early 
+out” minutes or “Added minutes” of this detailed shift.<br/>
+The minimum minutes and maximum hours in working shift schedule have higher priority than ones detailed shift. This is used for:<br/>
+
++ overtime register with detailed shift: regular and overtime working day;<br/>
++ overtime register without detailed shift: overtime working day.
+</ul>
+
+<p class="node">Maximum Idle Time</p>
+<p class="node_d">
+The (actual) time out of previous working day can be coincided or nested with time in of the next working day (defined in detailed 
+shift), so it is required to define the maximum idle time that the employees are waited for checking out (Working Shift List - Maximum 
+Idle Time). This means that the actual time out can only be later than one in detailed shift a period of time equal to the maximum 
+idle time. Otherwise it will be shown in "Employees with Inaccurate Time In/Out" report.</p>
+<p class="e"> For example:<br/>
+Night shift of previous day end at 6am, day shift of the next day begins at 7am.<br/> 
+The employees working in the night shift can check out late:<br/>
+- Time in on 02 Jan 2013: 22:00-00 - time out on 03 Jan 2013: 06:59-00 (next day);<br/>
+- Time in on 03 Jan 2013: 07:00-00 - time out: 11:00-00.<br/>
+If the "Maximum Idle Time" is 60 minutes, the system can recognize that 06:59-00 on 03 Jan 2013 is time out and calculate the working 
+hours of the night shift (59 minutes is within the maximum idle time - 60 minutes).<br/>
+In case there is no maximum idle time, the system cannot calculate the working hours of the night shift.
+</p>
+<p class="node">Working on weekend and public holidays</p>
+<p class="node_d">On weekend and public holidays, the employees do not go to work, these days are default as non-working day sign. If 
+there is any employee going to work, it will be calculated as working overtime on weekend or public holidays.
+</p>
+
+<p class="node">Working department</p>
+<p class="node_d">If an employee has worked for more than 1 department in month, there are notes for correct data entry:</p>
+<ul class="lo_2">
+- In case there is no data in “Working Department Definition”, the system will calculated by “Department” in “Current Working History” in 
+which current position is official, change type is 1 or 2 and start date is before “Date to” in Workday Computation. Only latest 
+departments before “Date from” in workday computation are used. If there is no working history, the “Current Department” will be used. <br/>
+- If there is department defined in “Working Department Definition”, it will be used to compute workday (within Effective Date from/to). If 
+the date of workday computation is not within the period of effective date from/to, the same as the case mentioned above.
+</ul>
+
+<p id="td3">Some Definition for Workday Computation</p>
+<p class="node">Employee Card Info Input</p>
+<p class="node_d">Define the default workday sign of public holidays (without timekeeping data). If the default workday sign is not 
+defined in this function, the system will get from "Non-working Days, Public Holidays".
+</p>
+<p class="node">Working Shift, Detailed Shift</p>
+<ul class="lo_2">
+- Support some parameters to correctly determine the time in/out in timekeeping data;<br/> 
+- Support the workday sign being used;<br/>
+- Besides, support in defining shift of the previous working day. 
+</ul>
+
+<p class="node">Working Shift Schedule</p>
+<p class="node_d">On the basis of timekeeping data from timekeeper (Time In/Out Input, Time In/Out Adjusting), the system will compare 
+with the scheduled working shift to calculate the working days.</p>
+<p class="node">Overtime Definition</p>
+<p class="node_d">On the basis of timekeeping data from timekeeper (Time In/Out Input, Time In/Out Adjusting), the system will compare 
+with the registered overtime shift to calculate the overtime working hours.<br/>
+After defining working shift and details, you can have working shift and overtime scheduled to calculate regular and overtime 
+working time in following cases:<br/>
+<ul class="lo_2">
+- Case 1 – employee working shift schedule:<br/>
++ Regular working shift C1 with details CT1 &amp; CT2 (regular workday type);<br/>
++ Overtime working shift C2 with details CT3 &amp; CT4 (overtime workday type).<br/>
+
+- Case 2 - employee regular and overtime working shift schedule:<br/>
++ Regular working shift C1 with details CT1 &amp; CT2 (regular workday type): working shift schedule;<br/>
++ Regular working shift C1 with details CT3 &amp; CT4 (overtime workday type): overtime schedule.<br/>
+- Case 3 - employee overtime working shift schedule:<br/>
++ Regular working shift C1 with details CT1 &amp; CT2 (regular workday type);<br/>
++ Regular working shift C1 with details CT3 &amp; CT4 (overtime workday type).<br/>
+In case 3, overtime shift is scheduled in the whole month including non-working days, only overtime on workdays will be 
+calculated. If the employees have non-working day overtime, it’s required to separately schedule overtime shift on workdays and 
+non-working days.</ul>
+
+<p id="td3">Data for Workday Computation</p>
+<p class="node">Non-working Days, Public Holidays</p>
+<p class="node_d">On non-working days or holidays, there is no timekeeping data of employees from timekeeper so the system will get 
+information (shift, workday sign) define in "Non-working Days, Public Holidays" for workday computation.
+</p>
+<p class="node">Department Non-working Days</p>
+<p class="node_d">Used to define weekly non-working days (not public holidays). If there is timekeeping time on these days and overtime 
+register, the system will calculate overtime working hours.</p>
+<p class="node">Employee Leave Input</p>
+
+<p class="node_d">On leave days, there is no timekeeping data of employees from timekeeper so the system will get information 
+(shift, workday sign) define in "Employee Leave Input" for workday computation.<br/>
+In case of leave in many days (from date/ to date), if the "Priority" is "By Defined Workday", 
+the system will get the "Workday" defined in this function for workday computation.
+If the priority is "By Non-working Days, Public Holidays", the system will get the "Workday" defined in "Non-working Days, Public Holidays"
+for workday computation.
+</p>
+<p class="node">Timekeeping Data (get from timekeeper) or Time In/Out Input</p>
+<p class="node_d">The system will arrange "Time In/Out" in pairs to compute the working hours on the basis of following parameters:</p>
+<ul class="lo_2">
+	- No. of working hours per day: Based on the actual time in/out from timekeeping data to compute the actual working hours.<br/>
+	- Min Time Block (Seconds): in the timekeeping data, there may be many times of check in or out. 
+	If the distance between 2 times of check in or out is less than this parameter, 
+	it will be removed on the principle of latest time in and earliest time out.  
+</ul>
+<p class="node">Time In/Out Adjusting</p>
+<p class="node_d">If there are time in/out input in this function, the system will get it for workday computation instead of ones in 
+timekeeping data.</p>
+<p class="node">Workday Adjusting</p>
+<p class="node_d">The information input in this function is the first priority when the system gets data from workday computation. 
+The information includes department, date, shift, detailed shift, workday, time in/out, (number of) hours, late in/ early out (minutes) 
+and overtime shift. </p>
+
+<p class="node">	Timekeeping Data Adjusting</p>
+
+<p class="node_d">Refer to <b> <a href="hrTimekeepingAdjusting.htm"> Timekeeping Data Adjusting </a></b></p>
+
+
+<p id="td2"> Reports from Workday Computation</p>
+<p id="td3"> Time-card Reports</p>
+<p class="node">Employees with Inaccurate Time In/Out</p>
+<p class="node_d">This report is used to show the inaccurate information in timekeeping data such as:</p>
+<ul class="lo_2">
+	- Lack of time in or time out;<br/>
+	- Excess of time in or time out of which the duration between 2 times of checking in the same type (in or out) is greater than 
+	the "Minimum Time Block (seconds)" parameter;<br/>
+	- Time in is after time out in a pair of time in/out.
+</ul>
+
+<p class="node">Late In/Early Out Report / Employee Late In/Early Out Statistics</p>
+<p class="node_d">From raw timekeeping data, besides cases shown in "Employee Inaccurate Time In/Out" report, 
+the system will calculate number of hours (minutes) late in/ early out of employees based on the following parameters:</p>
+<ul class="lo_2">
+	- Minimum Time Block (Seconds);<br/>
+	- No. of Working Hours per Day.
+</ul>
+<p class="node_d">Some related parameters:</p>
+<ul class="lo_2">
+	- Employee Card Info Input - Hours (equals Number of Hours per Day);<br/>
+	- Working Shift List - Rounding Minutes;<br/>
+	- Working Shift List - Rounding Type;<br/>
+	- Working Shift List - Maximum Idle Time: used in case the employees work in shift from this day to next day;<br/>
+	- Detailed Shift - Late In/ Early Out (Minutes): number of minutes that employees are allowed to be late in or early out without 
+	being subtracted the working hours;<br/>
+	- Detailed Shift - Added Minutes: number of minutes that an employee is allowed to be early out and recorded as full working day.
+</ul>
+
+<p id="td3">Annual and other Leave Reports</p>
+<p class="node">Leave Time Detailed Report/ Leave Time Summary Report</p>
+<p class="node_d">The system will get information from Employee Leave Input for workday computation.
+</p>
+<p class="node">Employee Leave Detailed Report/ Employee Annual Leave Detailed Report</p>
+<p class="node_d">
+The system will get information from Employee Leave Input with the workday sign as one defined in "Annual Leave Sign" parameter for 
+workday computation.
+</p>
+<p class="node">Employee Annual Leave Summary Report</p>
+<p class="node_d">For workday computation, the system will get information from:</p>
+<ul class="lo_2">
+	- Annual leave balance input or transferred from previous year;<br/>	
+	- Employee leave input with workday sign as one defined in "Annual Leave Sign" parameter;<br/>
+	- Employee/department additional annual leave.
+</ul>
+<p class="node_d">Besides, the system will get information based on following parameters:</p>
+<ul class="lo_2">
+- Year of seniority to be added a day of annual leave: the system will calculate employee seniority based on the official hire date 
+in Employee Information; with the rule of full days in a year;<br/>
+- Number of annual leaves in year;<br/>
+- Number of annual leaves in month: the system will calculate employee seniority based on the official hire date 
+in Employee Information; with the rule of full days in a month.
+</ul>
+
+
+<p id="td3">Workday Reports</p>
+<p class="node">Time-sheet</p>
+<p class="node_d">The system will get information from many sources for workday computation:</p>
+<ul class="lo_2">
+	- Timekeeping data from timekeeper, time in/out input, time in/out adjusting, workday adjusting;<br/>
+	- Leave information: the system will get workday sign and hours defined in Employee Leave Input;<br/>
+	- Leave by regulation: the system will get workday sign and hours defined in Employee Leave by Regulation;<br>
+	- Working shift schedule: On the basis of timekeeping data from timekeeper (Time In/Out Input, Time In/Out Adjusting, Workday Adjusting),
+    the system will compare with the defined working shift to define the working day;<br/>
+	- Overtime register: On the basis of timekeeping data from timekeeper (Time In/Out Input, Time In/Out Adjusting, Workday Adjusting),
+    the system will compare with the defined overtime shift to define the overtime working day.
+</ul>
+
+<p class="node">Detailed Time Record Sheet</p>
+<ul class="lo_2">
+- Timesheet: The processed data will be shown in "Timesheet";<br/>
+- Detailed Shift: Working shifts are split into small (detailed) shifts.
+</ul>
+<p class="node">Employee Workday Sheet</p>
+<p class="node_d">This report is summarized by department, employee, number of days and hours detailed by workday.
+</p>
+
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

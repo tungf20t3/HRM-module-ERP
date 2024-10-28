@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<template type="grid" xmlns="urn:schemas-ai-erp:data-dashboard">
+  <header v="" e=""></header>
+
+  <queries>
+    <query event="Loading">
+      <text>
+        <![CDATA[
+declare @c_acc varchar(4000)
+select @c_acc = c_acc from biform where form_id = '005'
+exec ds_Dashboard004 'G004', @c_acc, '', '2', default, @@language, @@userID, @@admin
+select filter_unit = ''
+]]>
+      </text>
+    </query>
+
+    <query event="Filtering">
+      <text>
+        <![CDATA[
+declare @c_acc varchar(4000)
+select @c_acc = c_acc from biform where form_id = '005'
+exec ds_Dashboard004 'G004', @c_acc, @@$unit, '2', default, @@language, @@userID, @@admin
+select filter_unit = @@$unit
+]]>
+      </text>
+    </query>
+  </queries>
+
+  <fields>
+    <field name="ma_kh" width="100">
+      <header v="Mã khách" e="Customer ID"></header>
+    </field>
+    <field name="ten_kh" width="200">
+      <header v="Tên khách" e="Customer Name"></header>
+    </field>
+    <field name="tien" type="Decimal" width="120" dataFormartString="@baseCurrencyAmountViewFormat" align="right">
+      <header v="Tổng cộng" e="Total"></header>
+    </field>
+    <field name="tien1" type="Decimal" width="120" dataFormartString="@baseCurrencyAmountViewFormat" align="right">
+      <header v="1 - 30 ngày" e="1 - 30 Days"></header>
+    </field>
+    <field name="tien2" type="Decimal" width="120" dataFormartString="@baseCurrencyAmountViewFormat" align="right">
+      <header v="31 - 60 ngày" e="31 - 60 Days"></header>
+    </field>
+    <field name="tien3" type="Decimal" width="120" dataFormartString="@baseCurrencyAmountViewFormat" align="right">
+      <header v="61 - 90 ngày" e="61 - 90 Days"></header>
+    </field>
+    <field name="tien4" type="Decimal" width="120" dataFormartString="@baseCurrencyAmountViewFormat" align="right">
+      <header v="> 90 ngày" e="Over 90 Days"></header>
+    </field>
+  </fields>
+</template>

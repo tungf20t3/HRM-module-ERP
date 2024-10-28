@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Khai báo chi tiết ca</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Khai báo chi tiết ca</p>
+<p id="td2">Màn hình khai báo chi tiết ca</p>
+<p id="pic"><img src="Vie\hrDetailedShift.png"/></p>
+<p id="td2">Giải thích các thông tin quan trọng</p>
+
+<p class="node">	
+Số phút chờ tối đa</p>
+
+<p class="node_d">	
+Số phút chờ tối đa dùng trong trường hợp ca làm việc liên ngày, để xác định giờ ra của ca ngày hôm trước. Nếu rơi vào trường hợp này,
+ thì giờ ra chỉ được trễ hơn giờ ra trong chi tiết ca khoảng thời gian bằng "Số phút chờ tối đa". Nếu quá thời gian này, chương trình sẽ 
+ thể hiện giờ chấm công sai trong báo cáo "Danh sách nhân viên sai số liệu chấm công".</p>
+
+<p class="node">Chi tiết ca</p>
+
+<p class="node_d">Chi tiết ca để khai báo trong trường hợp trong 1 ca có nhiều lần chấm công, hoặc nghỉ giữa ca.</p>
+<p class="e">Ví dụ:
+<br/>Ca hành chính ngày thường từ 8h đến 17. Giữa giờ ăn trưa có khoảng thời gian gián đoạn. Trong trường hợp này sẽ khai báo 2 ca chi tiết 
+cho ca hành chính. </p>
+<p class="node">Hôm sau (Giờ vào/Giờ ra)
+</p>
+<p class="node_d">	Trong trường hợp ca chính bắt đầu ngày hôm trước và kéo dài đến ngày hôm sau; hoặc ca chi tiết thuộc hẳn ngày hôm sau 
+thì phải chọn tùy chọn này. 
+Khi lấy dữ liệu chấm công, chương trình sẽ hiểu các lần chấm công có ngày thuộc ngày hôm sau nhưng có chọn "hôm sau" sẽ là chấm công của 
+ngày hôm trước.Trong trường hợp điều chỉnh giờ vào/ra, do chương trình không thể sửa thông tin do người dùng nhập thủ công, nên phải chọn 
+tùy chọn "hôm sau" riêng ở chức năng điểu chỉnh. Lúc đó, phải nhập ngày là ngày hôm trước, và chọn "hôm sau".
+</p>
+
+<p class="node">Số phút tối thiểu / Số giờ tối đa </p>
+<p class="node_d">
+Số phút tối thiểu, số giờ tối đa được cập nhật cho chi tiết ca khai báo trong chức năng "Khai báo chi tiết ca" và "Đăng ký tăng ca"</p>
+<ul class="lo_2">
+- Nếu "Số giờ công" (công thường hoặc tăng ca) tính được + (cộng) số phút cộng thêm &gt; (lớn hơn) "Số giờ tối đa": chương trình tính ra 
+"Số giờ công" = (bằng) "Số giờ tối đa";<br/>
+- Nếu "Số giờ công" (công thường hoặc tăng ca) tính được &lt; (nhỏ hơn) "Số phút tối thiểu": chương trình tính ra "Số giờ công" =0 (bằng 0) 
+và không tính "Số phút đi muộn, số phút về sớm", đồng thời cũng không cộng "Số phút thêm" cho chi tiết ca đó.</ul>
+
+<p class="note">
+Chương trình ưu tiên xét số phút tối thiểu và số giờ tối đa trong đăng ký tăng ca trước, nếu không có sẽ xét trong khai báo chi tiết ca. 
+Áp dụng đối với:<br/>
++ Đăng ký tăng ca có chọn chi tiết ca: công thường và công tăng ca;<br/>
++ Đăng ký tăng ca không chọn chi tiết ca: công tăng ca.</p>
+
+<p class="node">Số phút đi muộn/Số phút về sớm</p>
+<p class="node_d"> Nếu chấm công vào trễ thực tế nhỏ hơn hoặc bằng "Số phút đi muộn", chương trình xem như không đi muộn và ngược lại. <br/>
+Nếu chấm công ra sớm thực tế nhỏ hơn hoặc bằng "Số phút về sớm", chương trình xem như không về sớm và ngược lại. <br/>
+</p>
+<p class="note">Lưu ý: <br/>
+Số phút đi muộn/ về sớm chỉ áp dụng cho việc xác định đi muộn/về sớm. Có thể không bị xét đi muộn/ về sớm nhưng thời gian tính công vẫn bị trừ.
+</p>
+<p class="node">Số phút đi muộn cho phép", "Số phút về sớm cho phép"</p>
+<p class="node_d">Số phút đi muộn/về sớm cho phép dùng để bù thời gian để làm tròn công trong trường hợp nhân viên được phép. Nếu thời gian
+đi muộn/về sớm nhỏ hơn hoặc bằng số phút khai báo, khi tính công chương trình sẽ cộng vào để đủ giờ công.  
+</p>
+<p class="note">Lưu ý: <br/>
+- Nếu chi tiết ca có giới hạn giờ tối đa, sau khi bù xong mới phân bổ giờ tối đa để bảo đảm số giờ tối đa;<br/>
+- Bù muộn vào khoảng thời gian đầu, về sớm bù vào khoảng thời gian cuối cùng.
+</p>
+<p class="node">Số phút thêm</p>
+<p class="node_d">Số phút thêm chỉ dùng cho những ca không đủ giờ nhưng vẫn tính tròn giờ. Nếu ca đã đủ giờ thì không dùng trường thông tin này.
+</p>
+<p class="e">Ví dụ:
+<br/>
+Ngày thứ 7 theo quy định là làm việc 4h, nhưng công ty cho về trước 1h. Khi tính công phải tính đủ 4h. Khai báo ca (chi tiết ca) sáng 
+thứ 7 từ 8 giờ đến 11 giờ, có số phút thêm là 60 phút.<br/>
+
+Hoặc trong chi tiết ca đến 24 giờ, ta chỉ khai báo được đến 23 giờ 59 phút, nên "Số phút thêm" phải khai báo 1 phút.
+</p>
+<p class="node">	Công</p>
+<p class="node_d">Khai báo mã công sẽ tính cho chi tiết ca. Công được chọn nhập từ danh mục ký hiệu chấm công.<br/> 
+
+ Thể hiện mã công có tính chất là tăng ca (*) trong cả hai trường hợp:<br/>
+- Mã ca có “Tính chất” = 1 – Trong giờ quy định;<br/>
+- Mã ca có “Tính chất” = 2 – Tăng ca </p>
+
+<p class="note">
+(*) Để biết công có tính chất là tăng ca hay không thì dựa vào thông tin “Loại công” của mã công (xem trường “Tính chất” trong "Danh mục loại công").
+</p><script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

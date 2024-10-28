@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY f "ma_ct in ('HDA', 'HD1', 'HD2', 'HD4', 'HD5', 'HD6', 'PXC', 'PXD')">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'AIInvoice', 'Filter', 'AITran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+
+<dir table="ctpbhddc" code="" order="" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn hóa đơn" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Hóa đơn từ ngày" e="Date From"></header>
+    </field>
+    <field name="ma_ct" allowNulls="false">
+      <header v="Mã chứng từ" e="Voucher Code"></header>
+      <items style="AutoComplete" controller="Voucher" reference="ten_ct%l" key="&f; and status = '1'" check="&f;"/>
+    </field>
+    <field name="ten_ct%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_ct" align="right" maxLength="-100" filterSource="voucherNumber" allowNulls="false">
+      <header v="Số hóa đơn" e="Invoice Number"></header>
+      <items style="AutoComplete" controller="AIInvoiceLookup" reference="stt_rec_ct"/>
+    </field>
+    <field name="stt_rec_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_kh" readOnly="true" defaultValue="''" hidden="true" allowNulls="false">
+      <header v="Mã khách" e="Customer"></header>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" readOnly="true" hidden="true" allowNulls="false">
+      <header v="Ngày chứng từ" e="Voucher Date"></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec_ht" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="110--1: [ngay_ct1].Label, [ngay_ct1], [ngay_ct2]"/>
+      <item value="110101: [ma_ct].Label, [ma_ct], [ten_ct%l], [ma_kh]"/>
+      <item value="110111: [so_ct].Label, [so_ct], [stt_rec_ct], [ma_dvcs], [stt_rec_ht]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$AITranAllocationFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$AITranAllocationFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$AITranAllocationFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @vcID varchar(32), @vcNumber varchar(32), @vcCustomerID varchar(32), @vcCode varchar(32), @rangeFrom smalldatetime, @rangeTo smalldatetime, @dateFrom smalldatetime, @dateTo smalldatetime, @$none nvarchar(512)
+declare @c varchar(64), @m varchar(64), @q nvarchar(4000), @p char(6), @u varchar(33), @t nvarchar(33)
+
+select @u = case when @ma_dvcs <> '' then @ma_dvcs else @@unit end,  @rangeFrom = ngay_gh1, @rangeTo = ngay_gh2, @$none = case when @@language = 'v' then N'Không có hóa đơn theo điều kiện đang lọc hoặc hóa đơn không hợp lệ.' else N'No data matching filter condition or invalid invoice.' end from dmstt
+
+]]>&CheckRelativeProcess;<![CDATA[
+
+select @dateFrom = @ngay_ct1, @dateTo = @ngay_ct2, @t = ' and status in (''1'', ''2'')'
+if @dateFrom < @rangeFrom select @dateFrom = @rangeFrom
+if @dateTo > @rangeTo select @dateTo = @rangeTo
+
+if @ma_ct = 'HDA' select @c = 'c81$000000', @m = 'm81$'
+  else if @ma_ct = 'HD1' select @c = 'c21$000000', @m = 'm21$'
+  else if @ma_ct = 'HD2' select @c = 'c22$000000', @m = 'm22$'
+  else if @ma_ct = 'HD4' select @c = 'c25$000000', @m = 'm25$'
+  else if @ma_ct = 'HD5' select @c = 'hddc', @m = 'hddc', @t = ' and status = ''1'''
+  else if @ma_ct = 'PXC' select @c = 'c86$000000', @m = 'm86$', @t = ' and status in (''2'', ''3'')'
+  else if @ma_ct = 'PXD' select @c = 'm26$000000', @m = 'm26$000000'
+  else if @ma_ct = 'HD6' select @c = 'm42$000000', @m = 'm42$000000'
+
+if @ma_ct in ('HDA', 'HD1', 'HD2', 'HD4', 'PXC') begin
+  select @q = 'select @x = convert(char(6), ngay_ct, 112) from ' + @c + ' where ' + case when @stt_rec_ct <> '' then 'stt_rec = ''' + replace(@stt_rec_ct, '''', '''''') + '''' else 'ltrim(so_ct) = ''' + replace(ltrim(rtrim(@so_ct)), '''', '''''') + '''' end
+  exec sp_executesql @q, N'@x char(6) output', @x = @p output
+  select @m = @m + @p
+end
+
+select top 0 stt_rec as stt_rec_hd, ma_ct as ma_ct_hd, so_ct as so_ct_hd, so_seri as so_seri_hd, ngay_ct as ngay_ct_hd, ma_kh as ma_kh_hd into #r from m81$000000
+select @q = 'insert into #r select stt_rec, ma_ct, so_ct, so_seri, ngay_ct, ltrim(rtrim(ma_kh)) from ' + @m +
+  ' where ' + case when @stt_rec_ct <> '' then 'stt_rec = ''' + replace(@stt_rec_ct, '''', '''''') + '''' else 'ltrim(so_ct) = ''' + replace(ltrim(rtrim(@so_ct)), '''', '''''') + '''' end + ' and ma_kh = ''' + replace(@ma_kh, '''', '''''') + ''' and ma_ct = ''' + replace(@ma_ct, '''', '''''') + ''' and ma_dvcs = ''' + replace(@u, '''', '''''') + '''' + @t +
+  case when @ma_ct = 'HD5' and @stt_rec_ht <> '' then ' and stt_rec <> ''' + replace(@stt_rec_ht, '''', '''''') + '''' else '' end
+exec sp_executesql @q
+
+if not exists(select 1 from #r) begin
+  select 'so_ct' as field, @$none as message
+  return
+end else begin
+  select top 1 '' as field, '' as message, 'on$Filter$QueryComplete(this, ''' + stt_rec_hd + ''', ''' + ma_ct_hd + ''', ''' + ltrim(rtrim(so_ct_hd)) + ''', ''' + ltrim(rtrim(so_seri_hd)) + ''', ''' + convert(char(8), ngay_ct_hd, 112) + ''', ''' + ma_kh_hd + ''');' as script from #r
+  return
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$AITranAllocationFilter$(f) {f.getItem('so_ct')._idle = ]]>&IdleLookupFilter;<![CDATA[;}
+function active$AITranAllocationFilter$(a){a._looking=a.getItem("so_ct")._controlBehavior;a._looking.add_loading(on$AITranAllocationFilter$Before$Loading);var b=a.grid.get_element().parentForm;a.setItemValues("ngay_ct2, ma_kh, ma_dvcs, stt_rec_ht",[b.getItemValue("ngay_ct"),b.getItemValue("ma_kh"),b.getItemValue("ma_dvcs"),b.getItemValue("stt_rec")])}function close$AITranAllocationFilter$(a){try{a._looking.remove_loading(on$AITranAllocationFilter$Before$Loading)}catch(b){}}function on$AITranAllocationFilter$Before$Loading(c,d){var b=c._element.parentForm;if(!b.validFields("ngay_ct1, ngay_ct2, ma_ct, ma_kh"))d.type.cancelEvent=true;else{a=[{Name:"ngay_ct1",Type:"DateTime",Value:b.getItemValue("ngay_ct1")},{Name:"ngay_ct2",Type:"DateTime",Value:b.getItemValue("ngay_ct2")},{Name:"ma_ct",Type:"String",Value:b.getItemValue("ma_ct")},{Name:"ma_kh",Type:"String",Value:b.getItemValue("ma_kh")},{Name:"ma_dvcs",Type:"String",Value:b.getItemValue("ma_dvcs")},{Name:"stt_rec_ht",Type:"String",Value:b.getItemValue("stt_rec_ht")}];c.set_memvars(a)}}function on$Filter$QueryComplete(a,b,c,e,f,d,g){Array.add(a._memvars,{Name:"vcID",OldValue:null,NewValue:b,Modified:true,Items:[]});Array.add(a._memvars,{Name:"vcCode",OldValue:null,NewValue:c,Modified:true,Items:[]});Array.add(a._memvars,{Name:"vcDate",OldValue:null,NewValue:d,Modified:true,Items:[]});var h=a.grid.get_element().parentForm;h.setItemValues("stt_rec_hd, ma_ct_hd, so_ct_hd, so_seri_hd, ngay_ct_hd, ma_kh_hd",[b,c,e,f,$func.formatStringToDate(d),g])}]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

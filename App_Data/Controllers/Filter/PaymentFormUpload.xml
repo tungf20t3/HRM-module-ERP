@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY UploadButtonCss SYSTEM "..\Include\XML\ImageUploadForm.txt">
+  <!ENTITY UploadField SYSTEM "..\Include\XML\TransferField.txt">
+  <!ENTITY TransferID "PaymentForm">
+]>
+
+<dir table="dmmauunc" code="ma_mau" order="ma_mau" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tải lên" e="Upload"></title>
+
+  <fields>
+    &UploadField;
+    <field name="ma_mau" hidden="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 100, 30, 0"/>
+      <item value="11000101: [upload].Label, [upload], [upload].Description, [ma_mau]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'init$PaymentFormUpload(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$PaymentFormUpload(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$PaymentFormUpload(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, fileName = getFileName($get('fileupload').value), allowExt = 'rpt';
+var err = (f._language == 'v' ? 'Định dạng tệp không đúng.' : 'Invalid file type.');
+if (fileName != '') {
+  var ext = fileName.split('.').pop()
+  if (allowExt.indexOf(ext.toLowerCase()) < 0) {
+    f._checked = false;
+    $message.show(err);
+  }
+  else {
+    $get('uploadIFrame').form = f;
+    f.grid._formScript = '';
+    var query = '?a=0&t=' + ']]>&TransferID;<![CDATA[' + '&k=' + f._key + '&e=1';
+    $get('uploadForm').action = '../AppHandler/Transfer.ashx' + query;
+    $get('uploadForm').submit();
+    f.request('Upload', 'Upload', [['ma_mau', 'String', f.getItemValue('ma_mau')]]);
+    f._checked = false;
+    window.setTimeout(function() {f._busy = true; $func.showWait(f.get_id());}, 50);
+  }
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$PaymentFormUpload(f) {
+  f.add_onResponseComplete(on$PaymentFormUpload$ResponseComplete);
+  var g = f.grid, v = g._getItemValue(g._activeRow, g._getColumnOrder('ma_mau'));
+  f.setItemValue('ma_mau', v);
+  f.request('Upload', 'Upload', [['ma_mau', 'String', v]]);
+}
+function load$PaymentFormUpload(f) {
+  var g = f.grid;  
+  document.body._form = f;
+  $get('fileupload').value = '';
+  f.getItem('upload').field.AllowNulls = false;
+  $get(f.get_id() + '_form_upload').style.color = 'grey'; 
+}
+function close$PaymentFormUpload(f) {
+  try {f.remove_onResponseComplete(on$PaymentFormUpload$ResponseComplete);} catch (ex) {}
+  document.body._form = null;
+}
+function setFileName() {
+  var f = document.body._form;
+  $get(f.get_id() + '_form_upload').value = getFileName($get('fileupload').value);  
+}
+function getFileName(s) {
+  var p = s.lastIndexOf('\\');
+  if (p != -1) {return s.substring(p + 1);}
+  else {return s;}
+}
+function on$PaymentFormUpload$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Upload':
+      f._key = result[0].Value;
+      break;
+    default:
+      break;
+  }
+}
+
+function on$PaymentFormUpload$Fail(z) {window.setTimeout(function() {on$PaymentFormUpload$Response(z)}, 50);}
+function on$PaymentFormUpload$Complete(z) {
+  var f = z.form, g = f.grid;
+  f._busy = false;
+  $func.hideWait(f.get_id());
+  f.completion(true);
+  g.request(g, 'Update', 'Update', [['ma_mau', 'String', g._getItemValue(g._activeRow, g._getColumnOrder('ma_mau'))]]);
+  g._focusWhenTabChanged();
+}
+function on$PaymentFormUpload$Response(z) {
+  var f = z.form;
+  f._busy = false;
+  $func.hideWait(f.get_id());
+  var err = (f._language == 'v' ? 'Có lỗi chưa xác định.' : 'There was an unexpected error.');
+  $message.show(err);
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Upload">
+      <text>
+        <![CDATA[
+declare @ticket varchar(32), @filename varchar(128), @description nvarchar(128)
+select @ticket = lower(replace(newid(),'-',''))
+
+insert into @@sysDatabaseName..ticket select @ticket, @@userID, ']]>&TransferID;<![CDATA[',
+  case when in_nl_yn = '0'
+    then case when mau_chuan <> '' then rtrim(mau_chuan) else 'CPTran_' + @ma_mau end + '.rpt'
+    else case when mau_nl <> '' then rtrim(mau_nl) else 'CPTran_' + @ma_mau + 'Multi' end + '.rpt' end,
+  case when @@language = 'V' then ten_mau else ten_mau2 end,
+  '@@appDatabaseName', getdate() from dmmauunc where ma_mau = @ma_mau
+
+select @ticket as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &UploadButtonCss;
+</dir>

@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\Circular\A1080\ReportCircularTypeField.IndexOfIncomeStatement.xml">
+
+  <!ENTITY defaultTable "GLTHUEPL01_28">
+  <!ENTITY defaultForm "GLTHUEPL01_28">
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Ngày từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    &ReportCircularTypeField;
+
+    <field name="form" allowNulls="false">
+      <header v="Chọn báo cáo" e="Select Report"></header>
+      <items style="DropDownList">
+        <item value="">
+          <text v="" e=""/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="mau_bc" clientDefault="10">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="11001--: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="110000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110000-: [chon_tt].Label, [chon_tt]"/>
+      <item value="110000-: [form].Label, [form]"/>
+      <item value="110000-: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @form nvarchar(4000), @name nvarchar(4000)
+select @form = '', @name = ''
+select @form = @form + rtrim(form) + char(255), @name = @name + case when lower(@@language) = 'v' then rtrim(ten_maubc) else rtrim(ten_maubc2) end + char(255) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA['
+select @form = left(@form, len(@form) - 1), @name = left(@name, len(@name) - 1)
+select 'this._itemValue=''' + rtrim(@form) + ''';this._itemText=''' + dbo.AI_ERP$Function$EncodeScript(@name) + ''';initForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+Select @ngay_tu as tu_ngay, @ngay_den as den_ngay,
+       h_line1, h_line12, h_line2, h_line22, h_line3, h_line32, h_line4, h_line42, h_line5, h_line52 from v20dmmaubc where ma_maubc = ']]>&defaultTable;<![CDATA[' and form = @form
+exec rs_rptIndexOfIncomeStatement @ngay_tu, @ngay_den, @ma_dvcs, @form, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs")}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(l,c){var a=c.object,g=c.type.Context,k=c.type.Result;switch(g){case"Checking":var b=a.grid,e=a.getItemValue("mau_bc"),d=a.getItemValue("chon_tt");b._hiddenForms=[{Form:[1,2,4,5,8,9,11,12],Value:d=="1"},{Form:[0,2,3,5,7,9,10,12],Value:d=="2"},{Form:[0,1,3,4,7,8,10,11],Value:d=="5"}];b._ValueFormType=e;b._hiddenFields=[{Fields:"tien_nt",Value:e=="10"}];var h=a.getItem("ngay_tu").value,i=a.getItem("ngay_den").value,e=a.getItem("form").selectedIndex,j=a.getItem("form").options,f=j[e].text;b._alterTitle=[null,[["%f1",f,true],["%d1",h,true],["%d2",i,true]]];remove$GridReport$Filter(b)}}function initForm(b){for(var d=b.getItem("form"),e=b._itemValue.split(String.fromCharCode(255)),f=b._itemText.split(String.fromCharCode(255)),a=0;a<e.length;a++)d.options[a]=new Option(f[a],e[a]);var c=b.getItem("chon_tt").options.length;if(c>1&&d.options.length>=c)d.options[c-1].selected=true}]]>
+    </text>
+  </script>
+  &OutlineCss;
+
+</dir>

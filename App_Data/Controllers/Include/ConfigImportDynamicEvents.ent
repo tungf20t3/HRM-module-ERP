@@ -1,0 +1,15 @@
+﻿<!ENTITY % Conditional.ConfigDynamicEvents SYSTEM "..\Include\ConfigDynamicEvents.txt">
+
+<![%Conditional.ConfigDynamicEvents;[
+  <!ENTITY ConfigDynamicEventsReference "APTran, ARTran, ASTran, CBTran, CDTran, CITran, CKTran, CPTran, CRTran, DCTran, DTTran, GLTran, GRTran, IPTran, IRTran, ISTran, ITTran, JPTran, JRTran, PATran, PFTran, PGTran, PMTran, PSTran, PVTran, PXTran, SDTran, SPTran, SRTran, SVTran, VATran, GSTran">
+  <!ENTITY ConfigDynamicImportChecking "
+exec AI_ERP$Generate$DynamicImportChecking '@@table', '&Code;', '&ConfigDynamicVoucherType;', &ConfigDynamicType;, '@@sysDatabaseName', @field output, @r output, @$mode, @$errorCount output
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  &Error;
+end
+">
+]]>
+<!ENTITY ConfigDynamicEventsReference "">
+<!ENTITY ConfigDynamicImportChecking "">

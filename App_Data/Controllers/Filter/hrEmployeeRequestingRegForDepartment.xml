@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="hrdncbh" code="nam, ky, dot, stt_rec" order="nam, ky, dot, ma_nv" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tạo danh sách" e="Register for Department"></title>
+
+  <fields>
+    <field name="dot" isPrimaryKey="true" type="Decimal" dataFormatString="#0" clientDefault="1" defaultValue="1" allowNulls="false">
+      <header v="Đợt" e="Time"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ky" isPrimaryKey="true" type="Decimal" dataFormatString="#0" readOnly="true">
+      <header v="Tháng" e="Month"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" isPrimaryKey="true" type="Decimal" dataFormatString="###0" readOnly="true">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ngay_ct_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Ngày chính thức từ" e="Official Hire Date from"></header>
+      <footer v="Ngày chính thức từ/đến" e="Hire Date from/to"></footer>
+    </field>
+    <field name="ngay_ct_den" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Ngày chính thức đến" e="Official Hire Date to"></header>
+    </field>
+    <field name="bo_phan" allowNulls="false">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+      <clientScript><![CDATA[onchange="onchange$EmployeeOvertimeRegForDepartment$Deparment(this);"]]></clientScript>
+    </field>
+    <field name="ten_bp%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 10, 60, 100, 230, 0, 0"/>
+      <item value="11001001: [bo_phan].Label, [bo_phan], [ten_bp%l], [bp_ref]"/>
+      <item value="110---11: [dot].Label, [dot], [ky], [nam]"/>
+      <item value="11001---: [ngay_ct_tu].Description, [ngay_ct_tu], [ngay_ct_den]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$VoucherFilter$Deparment(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$VoucherFilter$Deparment(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'hrEmployeeRequestingForSIBookInput', 'New') = 0 return
+
+declare @ref varchar(512)
+select @ref = rtrim(bp_ref) + '%' from hrbp where ma_bp = @bo_phan
+
+insert into hrdncbh (dot, ky, nam, stt_rec, datetime0, datetime2, user_id0, user_id2)
+  select @dot, @ky, @nam, a.stt_rec, getdate(), getdate(), @@userID, @@userID
+    from hrnv a left join hrttbh b on a.stt_rec = b.stt_rec
+    where a.bp_ref like @ref and (a.ngay_chinh_thuc between @ngay_ct_tu and @ngay_ct_den) and (isnull(b.si_no, '') = '' or isnull(b.hi_no, '') = '')
+      and a.stt_rec not in (select stt_rec from hrdncbh where nam = @nam and ky = @ky and dot = @dot)
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$Deparment(f) {
+  f.add_onResponseComplete(on$Filter$Deparment$ResponseComplete);
+  f.setItemValue('ky', f.grid._month);
+  f.setItemValue('nam', f.grid._year);
+}
+function close$VoucherFilter$Deparment(f) {try {f.remove_onResponseComplete(on$Filter$Deparment$ResponseComplete);} catch (ex) {}}
+function onchange$EmployeeOvertimeRegForDepartment$Deparment(o) {o.parentForm.request('Reference', 'Reference', ['bo_phan']);}
+function on$Filter$Deparment$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Reference':
+      f.setItemControlBehavior('bp_ref', result[0].Value, true);			
+      break;
+    default:
+      break;
+  }
+}
+function setFieldsEmpty(f, c, v) {
+  var a = c.split(',');
+  for (var i = 0; i < a.length; i++) {
+    var o = f.getItem($func.trim(a[i]));
+    if(v) o.value = '';
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Reference">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrbp where ma_bp = @bo_phan) begin
+  select bp_ref from hrbp where ma_bp = @bo_phan
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+
+</dir>

@@ -1,0 +1,35 @@
+﻿<![%Conditional.BIMode;[ 
+  
+  <!ENTITY BI.PaymentRequest.Dir.Currency.Declare "f._g1$ = ">
+  <!ENTITY BI.PaymentRequest.Dir.Currency.Checking "
+if (this._checked) {
+  var k1$ = this._g1$._getColumnOrder('stt_rec_dn'), id1$ = this.get_id();
+  var message1$ = ((this._language == 'v') ? '&BIMode.PaymentRequestCheckingTitle.v;' : '&BIMode.PaymentRequestCheckingTitle.e;');
+  var t1$ = this.getItemValue('ma_nt');
+  for (var i1$ = 1; i1$ &lt;= this._g1$._rowCount; i1$++) {
+    var y1$ = (this._g1$._getItemValue(i1$, k1$) != '');
+    if (y1$) {
+      var u1$ = this._g1$._getItem(i1$, 1)._currencyIdentity;
+      if (!u1$) u1$ = (this._action == 'Edit') ? this._currencyIdentity : t1$;
+
+      if (t1$ != u1$) {
+        $func.hideWait(id$);
+        $message.show(message1$, String.format('$find(\'{0}\').getItem(\'ma_nt\').focus()', id1$));
+        this._checked = false;
+        break;
+      }
+    }
+  }
+}
+">
+  <!ENTITY BI.PaymentRequest.Dir.Currency.Set "if (f._action == 'Edit') f._currencyIdentity = f.getItemValue('ma_nt');">
+  
+  <!ENTITY BI.PaymentRequest.Filter.Currency.Declare ", m1 = f.getItemValue('ma_nt')">
+  <!ENTITY BI.PaymentRequest.Filter.Currency.Set "g._getItem(r, 1)._currencyIdentity = m1;">  
+]]>
+
+<!ENTITY BI.PaymentRequest.Dir.Currency.Declare "">
+<!ENTITY BI.PaymentRequest.Dir.Currency.Checking "">
+<!ENTITY BI.PaymentRequest.Dir.Currency.Set "">
+<!ENTITY BI.PaymentRequest.Filter.Currency.Declare "">
+<!ENTITY BI.PaymentRequest.Filter.Currency.Set "">

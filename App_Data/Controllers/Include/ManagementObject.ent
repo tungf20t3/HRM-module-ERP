@@ -1,0 +1,106 @@
+﻿<!ENTITY % ManagementObjectClosing SYSTEM "..\Include\ManagementObjectClosing.txt">
+<!ENTITY % ManagementObjectReport "IGNORE">
+<!ENTITY % ManagementObjectTransaction "IGNORE">
+<!ENTITY % ManagementObject.Name SYSTEM "..\Include\ManagementObjectName.ent">
+<!ENTITY % Tiny.External SYSTEM "..\Include\Tiny.External.ent">
+%Tiny.External;
+%Tiny.External.ManagementObject;
+
+<![%ManagementObjectReport;[
+  %ManagementObject.Name;
+
+  <!ENTITY ManagementObjectQuerySubTitle "
+declare @subTitle nvarchar(1024)
+select @subTitle = case
+    when @loai_dtqt = 1 then case when @@language = 'V' then N'&Name.ReportTitle1.v;' else '&Name.ReportTitle1.e;' end
+	  when @loai_dtqt = 2 then case when @@language = 'V' then N'&Name.ReportTitle2.v;' else '&Name.ReportTitle2.e;' end
+	  when @loai_dtqt = 3 then case when @@language = 'V' then N'&Name.ReportTitle3.v;' else '&Name.ReportTitle3.e;' end
+  end
+">
+  <!ENTITY ManagementObjectQuerySelect ", @subTitle as subtitle">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY XMLWhenFilterShowingManagementObject SYSTEM "..\Include\XML\WhenFilterShowingManagementObject.xml">
+
+  <!ENTITY ManagementObjectTypeField SYSTEM "..\Include\XML\ManagementObjectTypeField.txt">
+  <!ENTITY ManagementObjectTypeView SYSTEM "..\Include\XML\ManagementObjectTypeView.xml">
+  <!ENTITY ManagementObjectChange "onchange=&quot;onChange$&Controller;$Object(this);&quot;">
+  <!ENTITY ManagementObjectScriptActive "onChange$&Controller;$Object(f.getItem('loai_dtqt'););">
+
+  <!ENTITY ManagementObjectIndex "">
+  <!ENTITY ManagementObjectFields SYSTEM "..\Include\XML\ManagementObjectFields.txt">
+  <!ENTITY ManagementObjectViews SYSTEM "..\Include\XML\ManagementObjectViews.xml">
+  <!ENTITY ManagementObjectScript "
+function onChange$&Controller;$Object(o) {
+  var f = o.parentForm;
+  f.setReferenceKeyFilter('ma_dtqt');
+  f.setReferenceKeyFilter('nh_dtqt1');
+  f.setReferenceKeyFilter('nh_dtqt2');
+  f.setReferenceKeyFilter('nh_dtqt3');
+}">
+]]>
+
+<![%ManagementObjectTransaction;[
+  <![%ManagementObjectClosing;[
+    %ManagementObject.Name;
+
+    <!ENTITY ManagementObjectTranDetailFieldReadOnly "false">
+    <!ENTITY ManagementObjectTranDetailFields SYSTEM "..\Include\XML\ManagementObjectTranDetailFields.txt">
+    <!ENTITY ManagementObjectTranDetailViews SYSTEM "..\Include\XML\ManagementObjectTranDetailViews.xml">
+    <!ENTITY ManagementObjectTranDetailQuery " left join dmdtqt1 t1 on a.ma_td1 = t1.ma_dtqt left join dmdtqt2 t2 on a.ma_td2 = t2.ma_dtqt left join dmdtqt3 t3 on a.ma_td3 = t3.ma_dtqt">
+
+    <!ENTITY ManagementObjectTranFormFields SYSTEM "..\Include\XML\ManagementObjectTranFormFields.txt">
+    <!ENTITY ManagementObjectTranFormViews SYSTEM "..\Include\XML\ManagementObjectTranFormViews.xml">
+    <!ENTITY ManagementObjectFieldList ", ma_td1, ma_td2, ma_td3">
+    <!ENTITY ManagementObjectFieldNameList ", ten_dtqt1&#37;l, ten_dtqt2&#37;l, ten_dtqt3&#37;l">
+
+    <!ENTITY ManagementObjectCheck "
+select sum(case when ma_vv = '' then 0 else 1 end) as vv, sum(case when ma_bp = '' then 0 else 1 end) as bp, sum(case when ma_hd = '' then 0 else 1 end) as hd, sum(case when ma_td1 = '' then 0 else 1 end) as td1, sum(case when ma_td2 = '' then 0 else 1 end) as td2, sum(case when ma_td3 = '' then 0 else 1 end) as td3 into #g from @dmpb1
+if exists(select 1 from #g where (case when vv &gt; 0 then 1 else 0 end + case when bp &gt; 0 then 1 else 0 end + case when hd &gt; 0 then 1 else 0 end + case when td1 &gt; 0 then 1 else 0 end + case when td2 &gt; 0 then 1 else 0 end + case when td3 &gt; 0 then 1 else 0 end) &gt; 1) begin
+  select 'stt' as field, case when @@language = 'v' then N'Chỉ được chọn một tiêu thức phân bổ trong các đối tượng &lt;span class=&quot;Highlight&quot;&gt;vụ việc&lt;/span&gt;, &lt;span class=&quot;Highlight&quot;&gt;bộ phận&lt;/span&gt;&Tiny.External.ManagementObject.Comma;&lt;span class=&quot;Highlight&quot;&gt;&Tiny.External.ManagementObject.Field.Contract.v;&lt;/span&gt;, &lt;span class=&quot;Highlight&quot;&gt;&Name.Field1.Text.v;&lt;/span&gt;, &lt;span class=&quot;Highlight&quot;&gt;&Name.Field2.Text.v;&lt;/span&gt; hoặc &lt;span class=&quot;Highlight&quot;&gt;&Name.Field3.Text.v;&lt;/span&gt;.' else N'Only one to choose allocation criteria.' end as message
+  return
+end
+if exists(select 1 from (select count(*) as n from @dmpb1 group by tk, ma_vv, ma_bp, ma_hd, ma_td1, ma_td2, ma_td3) a where n &gt; 1) begin
+  select 'stt' as field, case when @@language = 'v' then N'Kiểm tra lại trong chi tiết có tài khoản, vụ việc, bộ phận&Tiny.External.ManagementObject.Comma;&Tiny.External.ManagementObject.Field.Contract.v;, &Name.Field1.Text.v;, &Name.Field2.Text.v; và &Name.Field3.Text.v; nhập hơn một lần.' else N'Invalid account, job, department&Tiny.External.ManagementObject.Comma;&Tiny.External.ManagementObject.Field.Contract.e;, &Name.Field1.Text.e;, &Name.Field2.Text.e; or &Name.Field3.Text.e;, it already exists..' end as message
+  return
+end
+">
+
+    <!ENTITY ManagementObjectFormFieldHidden "false">
+  ]]>
+
+  <!ENTITY Name.Field1.v "">
+  <!ENTITY Name.Field1.e "">
+  <!ENTITY Name.Field2.v "">
+  <!ENTITY Name.Field2.e "">
+  <!ENTITY Name.Field3.v "">
+  <!ENTITY Name.Field3.e "">
+
+  <!ENTITY ManagementObjectTranDetailFields "">
+
+  <!ENTITY ManagementObjectTranDetailFields "">
+  <!ENTITY ManagementObjectTranDetailViews "">
+  <!ENTITY ManagementObjectTranDetailQuery "">
+
+  <!ENTITY ManagementObjectTranFormFields "">
+  <!ENTITY ManagementObjectTranFormViews "">
+  <!ENTITY ManagementObjectFieldList "">
+  <!ENTITY ManagementObjectFieldNameList "">
+
+  <!ENTITY ManagementObjectCheck "
+select sum(case when ma_vv = '' then 0 else 1 end) as vv, sum(case when ma_bp = '' then 0 else 1 end) as bp, sum(case when ma_hd = '' then 0 else 1 end) as hd into #g from @dmpb1
+if exists(select 1 from #g where (case when vv &gt; 0 then 1 else 0 end + case when bp &gt; 0 then 1 else 0 end + case when hd &gt; 0 then 1 else 0 end) &gt; 1) begin
+  select 'stt' as field, case when @@language = 'v' then N'Chỉ được chọn một tiêu thức phân bổ trong các đối tượng &lt;span class=&quot;Highlight&quot;&gt;vụ việc&lt;/span&gt;&Tiny.External.ManagementObject.Field.ContractAndDepartment.Html.v;.' else N'Only one to choose allocation criteria.' end as message
+  return
+end
+if exists(select 1 from (select count(*) as n from @dmpb1 group by tk, ma_vv, ma_bp, ma_hd) a where n &gt; 1) begin
+  select 'stt' as field, case when @@language = 'v' then N'Kiểm tra lại trong chi tiết có tài khoản, vụ việc&Tiny.External.ManagementObject.Field.ContractAndDepartment.v; nhập hơn một lần.' else N'Invalid account, job&Tiny.External.ManagementObject.Field.ContractAndDepartment.e;, it already exists..' end as message
+  return
+end
+">
+
+  <!ENTITY ManagementObjectFormFieldHidden "true">
+]]>

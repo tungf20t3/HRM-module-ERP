@@ -1,0 +1,112 @@
+﻿<![CDATA[
+function set$]]>&ImportIdentity;<![CDATA[FileName(o){
+  var form = o.parentNode;
+  var g = o._g, f = g.get_element().parentForm;
+  var fileName = get$]]>&ImportIdentity;<![CDATA[FileName(o.value), allowExt = 'xlsx';
+  var err = (g._language == 'v' ? 'Định dạng tệp không đúng.' : 'Invalid file type.');
+  if (fileName != '') {
+    var ext = fileName.split('.').pop();
+    if (allowExt.indexOf(ext.toLowerCase()) < 0) {
+      $message.show(err);
+    }
+    else {
+      init$]]>&ImportIdentity;<![CDATA[IFrame(g);
+      var importMemvars = [], unit = (f._action == 'New') ? g._unit : f.getItem('ma_dvcs').value, controlerUpload = (!g._controlerUpload) ? g._controller : g._controlerUpload;
+      ]]>&ImportDetailCreateMemvar;<![CDATA[
+      var query = {Language: f._language, Controller: controlerUpload, Key: g._key, Memvars: importMemvars, Time: new Date().getTime().toString()};
+      $get('query', form).value = Sys.Serialization.JavaScriptSerializer.serialize(query);
+      form.action = $func.resolveClientUrl('~/AppHandler/Import.ashx', g._baseUrl);
+      form.target = g._controller + '_IFrame';
+      form.submit();
+      
+      g.request(g, 'Download', 'Download', []);
+      window.setTimeout(function() {f._busy = true; $func.showWait(f.get_id());}, 50);
+    }
+  }
+  form.parentNode.removeChild(form);
+  g._importFile = null;
+}
+function get$]]>&ImportIdentity;<![CDATA[FileName(s) {
+  var p = s.lastIndexOf('\\');
+  if (p != -1) {return s.substring(p + 1);}
+  else {return s;}
+}
+function create$]]>&ImportIdentity;<![CDATA[Memvar(a, n, v) {
+  var k = n.split(',');
+  for (var i = 0; i < k.length; i++) {
+    Array.add(a, {Name: String.fromCharCode(253) + $func.trim(k[i]), OldValue: null, NewValue: v[i]});
+  }
+}
+function set$]]>&ImportIdentity;<![CDATA[Memvar(f, a, s) {
+  var k = s.split(',');
+  for (var i = 0; i < k.length; i++) {
+    var b = true, m = $func.trim(k[i]), n = String.fromCharCode(253) + m, v = f.getItem(m).value;
+    for (var j = 0; j < a.length; j++) {
+      if (a[j].Name == n) {
+        a[j].NewValue = v;
+        b = false;
+        break;
+      }  
+    }
+    if (b) Array.add(a, {Name: n, OldValue: null, NewValue: v});
+  }
+}
+function init$]]>&ImportIdentity;<![CDATA[IFrame(g) {
+  var frameName = g._controller + '_IFrame', z = $get(frameName);
+  if (!z) {
+    z = document.createElement('iframe');
+    z.src = 'about:blank';
+    z.id = z.name = frameName;
+    z.grid = g;
+    z.form = g.get_element().parentForm;
+    z.setAttribute('style', 'display:none;width:0;height:0');
+    document.body.appendChild(z);
+  }
+}
+
+function on$]]>&ImportIdentity;<![CDATA[Form$Fail(z) {
+  var f = z.form;
+  f._busy = false;
+  z.grid._focusWhenTabChanged();
+  $func.hideWait(f.get_id());
+}
+function on$]]>&ImportIdentity;<![CDATA[Form$Complete(z) {
+  var f = z.form;
+  f._busy = false;
+  z.grid._focusWhenTabChanged();
+  $func.hideWait(f.get_id());
+}
+function importDetailImportDataCommand (g) {
+  if (g._importFile) {
+    var form = g._importFile.parentNode;
+    form.parentNode.removeChild(form);
+    g._importFile = null;
+  }
+  var idContainer = g._id + '_ToolbarButton_ImportData', elementContainer = $get(idContainer);
+  var form = document.createElement('form')
+  form.setAttribute('id', 'uploadForm]]>&ImportIdentity;<![CDATA[');
+  form.setAttribute('method', 'post');
+  form.setAttribute('target', '');
+  form.setAttribute('enctype', 'multipart/form-data')
+
+  var inputQuery = document.createElement('input');
+  inputQuery.setAttribute('type', 'hidden');
+  inputQuery.setAttribute('id', 'query');
+  inputQuery.setAttribute('name', 'query');
+  form.appendChild(inputQuery);
+
+  var input = document.createElement('input');
+  input.setAttribute('id', 'fileupload]]>&ImportIdentity;<![CDATA[');
+  input.setAttribute('name', 'fileupload]]>&ImportIdentity;<![CDATA[');
+  input.setAttribute('type', 'file');
+  input.setAttribute('style', 'display: none;');
+  input.setAttribute('onchange', 'set$]]>&ImportIdentity;<![CDATA[FileName(this);');
+  input.setAttribute('accept', '.xlsx');
+  input._g = g;
+  g._importFile = input;
+  form.appendChild(input);
+  input.click()
+  elementContainer.appendChild(form);
+  break;
+}
+]]>

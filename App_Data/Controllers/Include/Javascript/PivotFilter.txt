@@ -1,0 +1,14 @@
+﻿<![CDATA[
+function remove$GridReport$Filter(g) {
+  var r = name, field;
+  for (var j = g._filter.length - 1; j >= 0; j--) {
+    var x = g._filter[j].match(/^([\w\$]+):/)[1];
+    name = $func.trim(x);
+    field = $func.findField(name, g._fields);
+    if (x.indexOf('$') != -1) {
+      if (field) field.FilterPanelValue = '';
+      Array.removeAt(g._filter, j);
+    }
+  }
+}
+]]>

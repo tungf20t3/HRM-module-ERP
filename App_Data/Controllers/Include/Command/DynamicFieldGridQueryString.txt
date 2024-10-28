@@ -1,0 +1,8 @@
+﻿<![CDATA[
+declare @$c char(1), @$queryString nvarchar(4000), @$dynamicFilter nvarchar(4000), @$filterKey nvarchar(4000)
+select @$c = char(254), @$dynamicFilter = '', @$filterKey = ''
+select * into #t0 from dbo.AI_ERP$Function$System$Split(@@queryString, @$c)
+select @$queryString = data from #t0 where id = 1
+select @$dynamicFilter = data from #t0 where id = 2
+if @$dynamicFilter <> '' exec AI_ERP$Report$GetDynamicFilterKey @$dynamicFilter, '@@sysDatabaseName', @$filterKey output
+]]>

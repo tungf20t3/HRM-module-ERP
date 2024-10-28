@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "InputInvoicePdf">
+  <!ENTITY TransferID "InputInvoice">
+  <!ENTITY UploadButtonCss SYSTEM "..\Include\XML\ImageUploadForm.txt">
+
+  <!ENTITY UploadField SYSTEM "..\Include\XML\UploadField.txt">
+  <!ENTITY UploadCommand SYSTEM "..\Include\Command\UploadCommand.txt">
+  <!ENTITY UploadScript SYSTEM "..\Include\Javascript\UploadScript.txt">
+
+  <!ENTITY ImportXmlType "9">
+  <!ENTITY ImportXmlTemplate "InputInvoice">
+  <!ENTITY ImportXmlIdentity "InputInvoice">
+
+  <!ENTITY CreateTicket "declare @ticket varchar(32)
+select @ticket = '';select @ticket = lower(replace(newid(),'-',''))
+insert into @@sysDatabaseName..ticket values(@ticket, @@userID, '&TransferID;', '', '', '@@appDatabaseName', getdate());">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật bản thể hiện" e="Upload printable file"></title>
+
+  <fields>
+    &UploadField;
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 100, 30, 0"/>
+      <item value="110001: [upload].Label, [upload], [upload].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    &UploadCommand;
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, g = f.grid, importMemvars = [], fileName = get$]]>&Identity;<![CDATA[FileName($get('fileupload').value), allowExt = 'pdf';
+var err = (this._language == 'v' ? 'Định dạng tệp không đúng.' : 'Invalid file type.');
+
+if (fileName != '') {
+  var ext = fileName.split('.').pop();
+  if (allowExt.indexOf(ext.toLowerCase()) < 0) {
+    f._checked = false;
+    $message.show(err);
+  } else {
+    init$]]>&Identity;<![CDATA[IFrame(f);
+    var p = g._getItemValue(g._activeRow, g._getColumnOrder('ngay_ct')).z.format('yyyyMMdd'), s = g._getItemValue(g._activeRow, g._getColumnOrder('stt_rec'));
+    var form = $get('uploadForm'), query = {Unit: '', Controller: ']]>&ImportXmlIdentity;<![CDATA[', Name: s, Key: g._key, UserID: g._uid, Language: g._language, Partion: p, ID: f._id};
+    $get('query', form).value = Sys.Serialization.JavaScriptSerializer.serialize(query);
+    form.action = $func.resolveClientUrl('~/AppHandler/PdfImport.ashx', g._baseUrl);
+    form.target = g._controller + '_IFrame';
+    form.submit();
+    f.request('GetTicket', 'GetTicket', []);
+    f._checked = true;
+  }
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &UploadScript;
+
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[(f) {
+  var g = f.grid;
+  document.body._form = f;
+  document.body._grid = g;
+  $get('fileupload').value = '';
+  f.getItem('upload').field.AllowNulls = false;
+  $get(f.get_id() + '_form_upload').style.color = 'grey';
+}
+function on$]]>&Identity;<![CDATA[$ResponseComplete(f, e) {
+  var f = e.object, g = f.grid, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      f._checked = false;
+      break;
+    case 'GetTicket':
+      g._key = result[0].Value;
+      window.setTimeout(function() {f.closeDialog();}, 50);
+      break;
+    default:
+      break;
+  }
+}
+function on$]]>&ImportXmlIdentity;<![CDATA[$ImportSuccess(f, m) {
+  var g = f.grid, s = String.format('$find(\'{0}\')._focusWhenTabChanged();', g._id);
+  g._setItemValue(g._activeRow, g._getColumnOrder('pdf_yn'), true);
+  $message.show(m, s);
+}
+function on$]]>&ImportXmlIdentity;<![CDATA[$ImportFailed(f, m) {$message.show(m);}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetTicket">
+      <text>
+        &CreateTicket;<![CDATA[
+select @ticket as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &UploadButtonCss;
+</dir>

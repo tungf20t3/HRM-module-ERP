@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "BIPOPQ">
+  <!ENTITY DetailTable "bid93">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Vendor">
+  <!ENTITY c21 "Số báo giá">
+  <!ENTITY c22 "Quotation Number">
+  <!ENTITY c31 "Ngày báo giá">
+  <!ENTITY c32 "Quotation Date">
+]>
+
+<dir table="bim93$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật báo giá" e="Quotation"></title>
+  <fields>
+    &XMLFlowFormFields;
+    <field name="ma_nh0" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ong_ba" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="11010000001101: [ma_kh].Label, [ma_kh], [ten_kh%l], [stt_rec], [so_ct].Label, [so_ct]"/>
+      <item value="-----1----1101: [ma_nh0], [ong_ba], [ngay_ct].Label, [ngay_ct]"/>
+
+      <item value="1: [&DetailTable;]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('bid93')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, stt_rec, stt_rec0, so_ct, ma_vt_ncc', f2 = 'so_luong, stt_rec_bg, stt_rec0bg, so_tham_chieu, ma_vt0';
+  var append = false, first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]), b = false;
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = g._getColumnOrder('so_luong0');
+  var l2 = z._getColumnOrder('dvt'), l3 = g._getColumnOrder('nhieu_dvt');
+  var l5 = g._getColumnOrder('ct_gia_dk'), l6 = z._getColumnOrder('gia_chuan_nt'), l7 = z._getColumnOrder('gia_nt'), l8 = z._getColumnOrder('gia');
+  var externalFields = '', fields = 'ma_vt, ten_vt%l, dvt, he_so, so_ngay_giao, ngay_giao, ma_vung, ma_kho, so_theo_doi, stt_rec_nc, stt_rec0nc, ma_rb, sai_can_duoi, sai_can_tren, ct_gia_dk, pp_ck_dv_nt, pp_cp_dv_nt, pp_ck_nt, pp_cp_nt, ]]>&XMLHiddenFields;<![CDATA[';
+  var purGroup = f.getItemValue('ma_nh0'), tranUser = f.getItemValue('ong_ba'), vcDate = w.getItemValue('ngay_lct', null, null, true);
+
+  if (v) {fields += ', gia_chuan_nt'; f1 += ', gia_nt'; f2 += ', gia_nt';}
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l1) != 0) {
+      b = true;
+      append = true;
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (check$GridVoucherDetail$DefaultMemvar(z, row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+
+      z.setItemGridBehavior(o, [['loai_hang', '1', '', null], ['pp_thay_doi', false, '', null], ['ct_gia_pv', '', '', null]]);
+
+      var v2 = (g._getItemValue(r, l5) != '');
+      $func.setObjectWhen(z._getItem(row, l2), g._getItemValue(r, l3));
+      $func.setObjectWhen(z._getItem(row, l6), true);
+      $func.setObjectWhen(z._getItem(row, l7), !v2);
+      $func.setObjectWhen(z._getItem(row, l8), !v2);
+
+      if (v) {z.executeExpression(o, [z.$a.gia_tg, z.$a.tien_nt, z.$a.tien_tg, z.$a.thue_nt, z.$a.thue_tg]);}
+    }
+  }
+  if (b) {
+    var oCus = w.getItem('ma_kh'), action = 'Customer', res = false;
+    if (oCus.value == '') {
+      w.setItemControlBehavior('ma_kh', m, f.getItemValue('ten_kh%l'), false);
+      res = true;
+    }
+    if (w.getItemValue('ma_tt') == '') {
+      w.setItemValue('ma_tt', z._voucher$Retrieve$Payment);
+      w.setReferenceKeyFilter('ma_tt');
+      action = 'CustomerRetrieve';
+    }
+    if (res) onChange$Voucher$Customer(oCus, action);
+
+    w.setItemValue('ong_ba', tranUser);
+    on$GridVoucherDetail$RowChange(z, w);
+  }
+  z.executeAggregate([z.$a.t_so_luong]);
+  if (append && w.getItemValue('t_cp_nt')) w._is$Allocated = 0;
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

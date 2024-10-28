@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "Fields">
+  <!ENTITY % CompactMode SYSTEM "..\Include\CompactMode.ent">
+  %CompactMode;
+]>
+
+<dir table="functions" code="id" order="id" database="Sys" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc dữ liệu" e="Filter Data"></title>
+
+  <fields>
+    <field name="type" dataFormatString="0, 1, 2" clientDefault="0" align="right">
+      <header v="Loại" e="Type"></header>
+      <footer v="0 - Chứng từ, 1 - Danh mục, 2 - Báo cáo" e="0 - Voucher, 1 - List, 2 - Report"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&Controller;<![CDATA[$Type(this);"]]></clientScript>
+    </field>
+    <field name="id" allowNulls="false">
+      <header v="Chức năng" e="Function"></header>
+      <items style="AutoComplete" controller="Function" reference="description%l" key="type='{$%c[type]}' and status = '1'&Operation.And;&FieldsFilter;" check="type='{$%c[type]}'&Operation.And;&FieldsFilter;" information="id$functions.description%l"/>
+    </field>
+    <field name="description%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11100: [type].Label, [type], [type].Description"/>
+      <item value="11010: [id].Label, [id], [description%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+if not exists(select 1 from userinfo where id = @@userID and admin = 1) begin
+  select '' as field, case when @@language = 'V' then N'Không có quyền truy cập chức năng này.' else 'You have not permission in this function.' end as message
+  return
+end        
+select 'active$]]>&Controller;<![CDATA[$Filter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @controller varchar(128)
+if exists(select 1 from @@sysDatabaseName..functions where id = @id) begin
+  select @controller = controller from @@sysDatabaseName..functions where id = @id
+end
+select '' as field, '' as message, 'set$VoucherFilter$(this, ''' + replace(replace(isnull(@controller, ''), '\', '\\'), '''', '\''') + ''');' as script
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Controller;<![CDATA[$Filter(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Controller;<![CDATA[$Filter(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  f.setReferenceKeyFilter('id');
+}
+function close$]]>&Controller;<![CDATA[$Filter(f) {try {f.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function onChange$]]>&Controller;<![CDATA[$Type(o) {o.parentForm.setReferenceKeyFilter('id');}
+function on$Filter$ResponseComplete(f, e) {
+  var context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array(), name = f.getItemValue('description%l');
+      g._$v = [];
+      g._$controller = f.getItemValue('controller');
+      g._$type = f.getItemValue('type');
+      g._alterTitle = [null, [['%s', name, true]]];
+      g.set_externalKey(k);
+      break;
+    default:
+      break;
+  }
+}
+function set$VoucherFilter$(sender, c) {
+  var g = sender.grid;
+  g._$controller = c;
+  if (c) Array.add(g._externalKey, {Name: 'controller', Opr: '=', Value: c, Type: 'String', Ignore: false});}
+}
+]]>
+    </text>
+  </script>
+</dir>

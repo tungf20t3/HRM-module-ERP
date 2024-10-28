@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "PSPhysical">
+  <!ENTITY DetailTable "d68">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Supplier">
+  <!ENTITY c21 "Số phiếu xuất">
+  <!ENTITY c22 "Return Goods to Supplier Number">
+  <!ENTITY c31 "Ngày phiếu xuất">
+  <!ENTITY c32 "Return Goods to Supplier Date">
+
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+
+  <!ENTITY % BIMode.PSTran SYSTEM "..\Include\BIMode.PSTran">
+  %BIMode.PSTran;
+]>
+
+<dir table="m68$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Phiếu xuất trả lại nhà cung cấp thực tế" e="Return Goods to Supplier"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d68')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'sl_tl, stt_rec, stt_rec0, so_ct, line_nbr', f2 = 'so_luong, stt_rec_wh, stt_rec0wh, wh_so, wh_ln';
+  var first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]);
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt');
+  var l5 = z._getColumnOrder('dvt'), l6 = g._getColumnOrder('nhieu_dvt'), l7 = z._getColumnOrder('tk_vt'), l8 = g._getColumnOrder('sua_tk_vt'), l3 = g._getColumnOrder('sl_tl');
+  var fields = 'ma_vt, ten_vt%l, dvt, he_so, gia_ton, ma_kho, ma_vi_tri, ma_lo, vi_tri_yn, lo_yn, tk_vt, stt_rec_dh, stt_rec0dh, ]]>&XMLHiddenFields;&BI.Field.Retrieve;<![CDATA[';
+  var la, lb, lc = g._getColumnOrder('ton13'), ld, lx, ly, lz, lt, lf = z._getColumnOrder('ton13'), status = null, round;
+
+  if (w._row.length > 0) status = w._row[w.getItem('status').field.Index];
+  var adj = (w._action == 'Edit' && status != '0');
+  if (adj) {
+    var f$ = z._fields;
+    la = g._getColumnOrder('ma_vt'), lb = g._getColumnOrder('ma_kho'), ld = g._getColumnOrder('he_so');
+    lx = $func.findField('ma_vt', f$).Index, ly = $func.findField('ma_kho', f$).Index, lz = $func.findField('so_luong', f$).Index, lt = $func.findField('he_so', f$).Index;
+    round = $func.scaleLength(g._getColumnFormat(l3));
+  }
+
+  if (v) fields += ', gia_nt';
+
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, g._getColumnOrder('sl_tl')) != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+
+      var o = z._getItem(row, l0);
+      o.row = row;
+
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+
+      if (v) z.executeExpression(o, [z.$a.gia, z.$a.tien_nt, z.$a.tien]);
+
+      $func.setObjectWhen(z._getItem(row, l5), g._getItemValue(r, l6));
+      $func.setObjectWhen(z._getItem(row, l7), g._getItemValue(r, l8));
+
+      var currentStock = g._getItemValue(r, lc);
+      if (currentStock == null) currentStock = 0;
+      if (adj) {
+        var currentItem = g._getItemValue(r, la), currentSite = g._getItemValue(r, lb), currentRatio = g._getItemValue(r, ld), total = 0;
+        if (currentRatio != 0) {
+          for (var i = 0; i < z._rows.length; i++) {
+            if ((z._rows[i][lx] == currentItem) && (z._rows[i][ly] == currentSite)) {
+              var quantity = 0;
+              if (z._rows[i][lz] != null) quantity = z._rows[i][lz] * z._rows[i][lt];
+              total += quantity;
+            }
+          }
+          currentStock += Math.round(total / currentRatio, round);
+        }
+      }
+      z._setItemValue(row, lf, currentStock);
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong, z.$a.t_tien_nt, z.$a.t_tien]);
+  w.executeExpression([z.$a.t_thue_nt, z.$a.t_thue, z.$a.t_tt_nt, z.$a.t_tt]);
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

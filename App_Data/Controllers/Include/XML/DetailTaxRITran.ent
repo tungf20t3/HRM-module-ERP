@@ -1,0 +1,7 @@
+﻿<!ENTITY % Conditional.DetailTax SYSTEM "..\..\Include\DetailTax.txt">
+
+<![%Conditional.DetailTax;[
+  <!ENTITY DetailTaxRITranRetrieve "">
+]]>
+
+<!ENTITY DetailTaxRITranRetrieve "if @vcCode = 'HDA' select @join = @join + ' left join ' + @m + ' b on a.stt_rec = b.stt_rec left join dmthue t on b.ma_thue = t.ma_thue', @f = replace(replace(replace(@f, 'a.ma_thue', 'case when a.km_yn = 1 then '''' else b.ma_thue end'), 'a.thue_suat', 'case when a.km_yn = 1 then 0 else t.thue_suat end'), 'a.ma_kh2', 'case when a.km_yn = 1 then '''' else b.ma_kh2 end')">

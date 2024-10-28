@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+
+  <!ENTITY Identity "PKOrder">
+  <!ENTITY c11 "Đơn hàng từ ngày">
+  <!ENTITY c12 "Order Date From">
+  <!ENTITY c21 "Số đơn hàng">
+  <!ENTITY c22 "Order Number">
+  <!ENTITY ext "95">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'PKOrderFilter', 'Filter', 'PKTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+
+  <!ENTITY % BIMode.PKTran SYSTEM "..\Include\BIMode.PKTran">
+  %BIMode.PKTran;
+]>
+
+<dir table="m95$000000" code="stt_rec" order="ngay_ct, so_ct" id="PO2" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn đơn hàng" e="Select Order"></title>
+  <fields>
+    &FlowMultiFilterFields;
+    &BI.PKTran.Retrieve.Order.Fields;
+  </fields>
+
+  <views>
+    &XMLFlowFilterViews;
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @so_ct <> '' begin
+  declare @fields nvarchar(128), @keyFlow nvarchar(4000), @keyMaster nvarchar(4000), @$none nvarchar(512)
+  select @fields = 'ma_nt + char(255) + status', @$none = case when @@language = 'v' then N'Không có đơn hàng theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+  ]]>&BI.PKTran.Retrieve.Order.Flow.Key;<![CDATA[
+  ]]>&CheckRelativeProcess;&XMLFlowFilterCheck;<![CDATA[
+end else begin
+  select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, '''', '''', '''', '''', '']]>&Identity;<![CDATA[MultiForm'', [''' + convert(char(8), @ngay_ct1, 112) + ''']);' as script
+  return
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFilterFunction;
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

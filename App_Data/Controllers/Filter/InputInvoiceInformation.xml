@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "InputInvoiceInformation">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Thông tin người bán" e="Seller Information"></title>
+  <fields>
+    <field name="mst_cn">
+      <header v="Mã số thuế" e="Tax Code"></header>
+    </field>
+    <field name="ten_cn">
+      <header v="Tên đơn vị" e="Seller Name"></header>
+    </field>
+    <field name="dia_chi_cn">
+      <header v="Địa chỉ" e="Address"></header>
+    </field>
+    <field name="dien_thoai_cn">
+      <header v="Điện thoại" e="Phone Number"></header>
+    </field>
+    <field name="tinh_trang">
+      <header v="Tình trạng" e="Status"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 20, 100, 230"/>
+      <item value="1100--: [mst_cn].Label, [mst_cn]"/>
+      <item value="110000: [ten_cn].Label, [ten_cn]"/>
+      <item value="110000: [dia_chi_cn].Label, [dia_chi_cn]"/>
+      <item value="11000-: [dien_thoai_cn].Label, [dien_thoai_cn]"/>
+      <item value="11000-: [tinh_trang].Label, [tinh_trang]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[select 'initInfoForm$]]>&Identity;<![CDATA[(this);loadForm$]]>&Identity;<![CDATA[(this);set$]]>&Identity;<![CDATA[Form(this);'  as message
+return]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[select 'closeForm$]]>&Identity;<![CDATA[(this);' as message
+return]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function initInfoForm$]]>&Identity;<![CDATA[(f) {
+  var button = $get(f.get_id() + '_updateDlgOk');
+  $get(f.get_id() + '_updateDlgCancel').innerHTML = button.innerHTML;
+  button.style.visibility = 'hidden';
+}
+function loadForm$]]>&Identity;<![CDATA[(f) {}
+function closeForm$]]>&Identity;<![CDATA[(f) {}
+function set$]]>&Identity;<![CDATA[Form(f) {
+  var g = f.grid, r = g._info;
+  f.setReadOnlyFields('mst_cn, ten_cn, dia_chi_cn, dien_thoai_cn, tinh_trang');
+  f.setItemValues('mst_cn, ten_cn, dia_chi_cn, dien_thoai_cn, tinh_trang', [r['TaxCode'], r['Name'], r['Address'], r['Contact'], g._info$status]);
+}
+]]>
+    </text>
+  </script>
+</dir>

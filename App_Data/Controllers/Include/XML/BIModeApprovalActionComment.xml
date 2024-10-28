@@ -1,0 +1,421 @@
+﻿      <action id="PQApproval" table="m92$000000" v="Đề nghị báo giá chờ duyệt" e="Request for Quotation waiting for approval">
+        <fields>
+          <field name="h_title">
+            <header v="Đề nghị báo giá chờ duyệt" e="Request for Quotation waiting for approval"/>
+          </field>
+          <field name="h_so_ct">
+            <header v="Số đề nghị" e="Number"/>
+          </field>
+          <field name="h_ngay_ct">
+            <header v="Ngày" e="Date"/>
+          </field>
+          <field name="h_nha_cc">
+            <header v="Nhà cung cấp" e="Supplier"/>
+          </field>
+          <field name="h_dien_giai">
+            <header v="Diễn giải" e="Memo"/>
+          </field>
+          <field name="h_t_so_luong">
+            <header v="Tổng số lượng" e="Total Quantity"/>
+          </field>
+          <field name="h_ghi_chu">
+            <header v="Lý do:" e="Comment:"/>
+          </field>
+        </fields>
+
+        <query id="report">
+          <command id="master">
+            <text>
+              <![CDATA[
+declare @l char(1)
+select @l = d_language from @@sysDatabaseName..userinfo2 where id = @@contactID
+create table #msg (smsg varchar(10), msg0 nvarchar(4000), msg1 nvarchar(4000), msg2 nvarchar(4000), msg3 nvarchar(4000), msg4 nvarchar(4000), msg5 nvarchar(4000), msg6 nvarchar(4000), msg7 nvarchar(4000), msg8 nvarchar(4000), msg9 nvarchar(4000))
+insert into #msg exec AI_ERP$APV$PU$GetApprovalDetail @@stt_rec, '01245', @l, 1, 1
+
+select ltrim(a.so_ct) as so_ct, ma_nt,
+convert(varchar(12), a.ngay_ct, 103) as ngay_ct,
+convert(varchar(32), a.datetime2, 121) as datetime2,
+case @l when 'v' then d.ten_kh else d.ten_kh2 end as ten_kh, dien_giai, b.dien_thoai, b.e_mail, b.d_language,
+    upper(c.ma_nhan) as ma_nhan, upper(c.ma_huy) as ma_huy, m.smsg, m.msg0, m.msg1, m.msg2, m.msg3, m.msg4, m.msg5, m.msg6, m.msg7, m.msg8, m.msg9
+  from @@table a, @@sysDatabaseName..userinfo2 b, dmxn c, dmkh d, #msg m
+  where a.stt_rec = @@stt_rec and b.id = @@contactID and a.stt_rec = c.stt_rec and a.ma_kh = d.ma_kh and b.id = c.user_id
+]]>
+            </text>
+          </command>
+
+          <command id="footer">
+            <text>
+              <![CDATA[
+declare @amountFormat varchar(32)
+declare @t table(field varchar(32), format varchar(128))
+
+insert into @t select 't_tt_nt', rtrim(val) from options where name = 'm_ip_sl'
+
+select cast(t_so_luong as varchar) as t_tt_nt from @@table where stt_rec = @@stt_rec
+select * from @t
+]]>
+            </text>
+          </command>
+        </query>
+
+        <body>
+          <header>
+            <text>
+              <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body><div style="padding:8px">
+<div style="text-align:left;padding-bottom:8px;font-size:12px;font-weight:600;" class="ts">{!h_title}</div>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_nha_cc}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_dien_giai}</td><td class="r9">{!dien_giai}</td></tr>
+</table><br/>
+<table class="ts detail" border="1" cellspacing="2" cellpadding="4">
+]]>
+            </text>
+          </header>
+
+          <footer>
+            <text>
+              <![CDATA[
+<tr class="h"><td colspan="3" style="width:115px;text-align: right;">{!h_t_so_luong}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div><br />
+</body></html>
+]]>&Comment;
+            </text>
+          </footer>
+        </body>
+
+      </action>
+
+
+
+
+
+      <action id="BIOAApproval" table="bim10$000000" v="Thỏa thuận mua hàng chờ duyệt" e="Outline agreement waiting for approval">
+        <fields>
+          <field name="h_title">
+            <header v="Thỏa thuận mua hàng chờ duyệt" e="Outline agreement waiting for approval"/>
+          </field>
+          <field name="h_so_ct">
+            <header v="Số thỏa thuận" e="Number"/>
+          </field>
+          <field name="h_ngay_ct">
+            <header v="Ngày" e="Date"/>
+          </field>
+          <field name="h_dien_giai">
+            <header v="Diễn giải" e="Memo"/>
+          </field>
+          <field name="h_nha_cc">
+            <header v="Nhà cung cấp" e="Supplier"/>
+          </field>
+          <field name="h_t_tien">
+            <header v="Tiền hàng" e="Amount"/>
+          </field>
+          <field name="h_t_cp">
+            <header v="Chi phí" e="Charges"/>
+          </field>
+          <field name="h_t_gtgt">
+            <header v="Thuế" e="Tax"/>
+          </field>
+          <field name="h_t_tt">
+            <header v="Tổng tiền" e="Total Amount"/>
+          </field>
+          <field name="h_ghi_chu">
+            <header v="Lý do:" e="Comment:"/>
+          </field>
+        </fields>
+
+        <query id="report">
+          <command id="master">
+            <text>
+              <![CDATA[
+declare @id int, @l varchar(8)
+select @id = @@contactID
+select @l = d_language from @@sysDatabaseName..userinfo2 where id = @id
+
+create table #msg (smsg varchar(10), msg0 nvarchar(4000), msg1 nvarchar(4000), msg2 nvarchar(4000), msg3 nvarchar(4000), msg4 nvarchar(4000), msg5 nvarchar(4000), msg6 nvarchar(4000), msg7 nvarchar(4000), msg8 nvarchar(4000), msg9 nvarchar(4000))
+insert into #msg exec AI_ERP$APV$PU$GetApprovalDetail @@stt_rec, '01250', @l, 1, 1
+
+select ltrim(so_ct) as so_ct, ma_nt,
+convert(varchar(12), a.ngay_ct, 103) as ngay_ct,
+convert(varchar(32), a.datetime2, 121) as datetime2,
+case @l when 'v' then d.ten_kh else d.ten_kh2 end as ten_kh, dien_giai, b.dien_thoai, b.e_mail, b.d_language,
+    upper(ma_nhan) as ma_nhan, upper(ma_huy) as ma_huy, m.smsg, m.msg0, m.msg1, m.msg2, m.msg3, m.msg4, m.msg5, m.msg6, m.msg7, m.msg8, m.msg9
+  from @@table a, @@sysDatabaseName..userinfo2 b, dmxn c, dmkh d, #msg m
+  where a.stt_rec = @@stt_rec and b.id = @id and a.stt_rec = c.stt_rec and a.ma_kh = d.ma_kh and b.id = c.user_id
+]]>
+            </text>
+          </command>
+
+          <command id="footer">
+            <text>
+              <![CDATA[
+declare @amountFormat varchar(32), @ma_nt varchar(32)
+declare @t table(field varchar(32), format varchar(128))
+select @ma_nt = ma_nt from @@table where stt_rec = @@stt_rec
+
+if exists(select 1 from options where name = 'm_ma_nt0' and rtrim(val) = @ma_nt) select @amountFormat = rtrim(val) from options where name = 'm_ip_tien'
+else select @amountFormat = rtrim(val) from options where name = 'm_ip_tien_nt'
+
+insert into @t select 't_tien_nt', @amountFormat
+insert into @t select 't_cp_nt', @amountFormat
+insert into @t select 't_thue_nt', @amountFormat
+insert into @t select 't_tt_nt', @amountFormat
+
+select cast(t_tien_nt0 as varchar) as t_tien_nt, cast(t_cp_nt as varchar) as t_cp_nt,
+    cast(t_thue_nt as varchar) as t_thue_nt, cast(t_tt_nt as varchar) as t_tt_nt
+  from @@table where stt_rec = @@stt_rec
+
+select * from @t
+]]>
+            </text>
+          </command>
+        </query>
+
+        <body>
+          <header>
+            <text>
+              <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body><div style="padding:8px">
+<div style="text-align:left;padding-bottom:8px;font-size:12px;font-weight:600;" class="ts">{!h_title}</div>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_nha_cc}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_dien_giai}</td><td class="r9">{!dien_giai}</td></tr>
+</table><br/>
+<table class="ts detail" border="1" cellspacing="2" cellpadding="4">
+]]>
+            </text>
+          </header>
+
+          <footer>
+            <text>
+              <![CDATA[
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_cp}</td><td class="r3">{!t_cp_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_gtgt}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div><br />
+</body></html>
+]]>&Comment;
+            </text>
+          </footer>
+        </body>
+
+      </action>
+
+
+
+
+
+      <action id="BISAApproval" table="bim06$000000" v="Thỏa thuận mua hàng chờ duyệt" e="Outline agreement waiting for approval">
+        <fields>
+          <field name="h_title">
+            <header v="Hợp đồng mua hàng chờ duyệt" e="Schedule Agreement waiting for approval"/>
+          </field>
+          <field name="h_so_ct">
+            <header v="Số hợp đồng" e="Number"/>
+          </field>
+          <field name="h_ngay_ct">
+            <header v="Ngày" e="Date"/>
+          </field>
+          <field name="h_dien_giai">
+            <header v="Diễn giải" e="Memo"/>
+          </field>
+          <field name="h_nha_cc">
+            <header v="Nhà cung cấp" e="Supplier"/>
+          </field>
+          <field name="h_t_tien">
+            <header v="Tiền hàng" e="Amount"/>
+          </field>
+          <field name="h_t_cp">
+            <header v="Chi phí" e="Charges"/>
+          </field>
+          <field name="h_t_gtgt">
+            <header v="Thuế" e="Tax"/>
+          </field>
+          <field name="h_t_tt">
+            <header v="Tổng tiền" e="Total Amount"/>
+          </field>
+          <field name="h_ghi_chu">
+            <header v="Lý do:" e="Comment:"/>
+          </field>
+        </fields>
+
+        <query id="report">
+          <command id="master">
+            <text>
+              <![CDATA[
+declare @id int, @l varchar(8)
+select @id = @@contactID
+select @l = d_language from @@sysDatabaseName..userinfo2 where id = @id
+
+create table #msg (smsg varchar(10), msg0 nvarchar(4000), msg1 nvarchar(4000), msg2 nvarchar(4000), msg3 nvarchar(4000), msg4 nvarchar(4000), msg5 nvarchar(4000), msg6 nvarchar(4000), msg7 nvarchar(4000), msg8 nvarchar(4000), msg9 nvarchar(4000))
+insert into #msg exec AI_ERP$APV$PU$GetApprovalDetail @@stt_rec, '01250', @l, 1, 1
+
+select ltrim(so_ct) as so_ct, ma_nt,
+convert(varchar(12), a.ngay_ct, 103) as ngay_ct,
+convert(varchar(32), a.datetime2, 121) as datetime2,
+case @l when 'v' then d.ten_kh else d.ten_kh2 end as ten_kh, dien_giai, b.dien_thoai, b.e_mail, b.d_language,
+    upper(ma_nhan) as ma_nhan, upper(ma_huy) as ma_huy, m.smsg, m.msg0, m.msg1, m.msg2, m.msg3, m.msg4, m.msg5, m.msg6, m.msg7, m.msg8, m.msg9
+  from @@table a, @@sysDatabaseName..userinfo2 b, dmxn c, dmkh d, #msg m
+  where a.stt_rec = @@stt_rec and b.id = @id and a.stt_rec = c.stt_rec and a.ma_kh = d.ma_kh and b.id = c.user_id
+]]>
+            </text>
+          </command>
+
+          <command id="footer">
+            <text>
+              <![CDATA[
+declare @amountFormat varchar(32), @ma_nt varchar(32)
+declare @t table(field varchar(32), format varchar(128))
+select @ma_nt = ma_nt from @@table where stt_rec = @@stt_rec
+
+if exists(select 1 from options where name = 'm_ma_nt0' and rtrim(val) = @ma_nt) select @amountFormat = rtrim(val) from options where name = 'm_ip_tien'
+else select @amountFormat = rtrim(val) from options where name = 'm_ip_tien_nt'
+
+insert into @t select 't_tien_nt', @amountFormat
+insert into @t select 't_cp_nt', @amountFormat
+insert into @t select 't_thue_nt', @amountFormat
+insert into @t select 't_tt_nt', @amountFormat
+
+select cast(t_tien_nt0 as varchar) as t_tien_nt, cast(t_cp_nt as varchar) as t_cp_nt,
+    cast(t_thue_nt as varchar) as t_thue_nt, cast(t_tt_nt as varchar) as t_tt_nt
+  from @@table where stt_rec = @@stt_rec
+
+select * from @t
+]]>
+            </text>
+          </command>
+        </query>
+
+        <body>
+          <header>
+            <text>
+              <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body><div style="padding:8px">
+<div style="text-align:left;padding-bottom:8px;font-size:12px;font-weight:600;" class="ts">{!h_title}</div>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_nha_cc}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_dien_giai}</td><td class="r9">{!dien_giai}</td></tr>
+</table><br/>
+<table class="ts detail" border="1" cellspacing="2" cellpadding="4">
+]]>
+            </text>
+          </header>
+
+          <footer>
+            <text>
+              <![CDATA[
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_cp}</td><td class="r3">{!t_cp_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_gtgt}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td style="width:115px;text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div><br />
+</body></html>
+]]>&Comment;
+            </text>
+          </footer>
+        </body>
+
+      </action>
+
+      <action id="BIILApproval" table="bim11$000000" v="Phiếu yêu cầu kiểm định chờ duyệt" e="Inspection Lot waiting for approval">
+        <fields>
+          <field name="h_title">
+            <header v="Phiếu yêu cầu kiểm định chờ duyệt" e="Inspection Lot waiting for approval"/>
+          </field>
+          <field name="h_so_ct">
+            <header v="Số" e="Number"/>
+          </field>
+          <field name="h_ngay_ct">
+            <header v="Ngày" e="Date"/>
+          </field>
+          <field name="h_dien_giai">
+            <header v="Diễn giải" e="Memo"/>
+          </field>
+          <field name="h_t_so_luong">
+            <header v="Tổng số lượng" e="Total Quantity"/>
+          </field>
+          <field name="h_ghi_chu">
+            <header v="Lý do:" e="Comment:"/>
+          </field>
+        </fields>
+
+        <query id="report">
+          <command id="master">
+            <text>
+              <![CDATA[
+declare @l char(1)
+select @l = d_language from @@sysDatabaseName..userinfo2 where id = @@contactID
+create table #msg (smsg varchar(10), msg0 nvarchar(4000), msg1 nvarchar(4000), msg2 nvarchar(4000), msg3 nvarchar(4000), msg4 nvarchar(4000), msg5 nvarchar(4000), msg6 nvarchar(4000), msg7 nvarchar(4000), msg8 nvarchar(4000), msg9 nvarchar(4000))
+insert into #msg exec AI_ERP$APV$GetApprovalDetail @@stt_rec, '01510', @l, 1, 1
+
+select ltrim(so_ct) as so_ct, convert(varchar(12), b.ngay_ct, 103) as ngay_ct,
+    convert(varchar(32), b.datetime2, 121) as datetime2, dien_giai, dien_thoai, e_mail, d_language,
+    upper(ma_nhan) as ma_nhan, upper(ma_huy) as ma_huy, m.smsg, m.msg0, m.msg1, m.msg2, m.msg3, m.msg4, m.msg5, m.msg6, m.msg7, m.msg8, m.msg9
+  from @@sysDatabaseName..userinfo2 a, @@table b, dmxn c, #msg m
+  where a.id = @@contactID and b.stt_rec = @@stt_rec and b.stt_rec = c.stt_rec and a.id = c.user_id
+]]>
+            </text>
+          </command>
+
+          <command id="footer">
+            <text>
+              <![CDATA[
+declare @amountFormat varchar(32)
+declare @t table(field varchar(32), format varchar(128))
+
+insert into @t select 't_tt_nt', rtrim(val) from options where name = 'm_ip_sl'
+
+select cast(t_so_luong as varchar) as t_tt_nt from @@table where stt_rec = @@stt_rec
+select * from @t
+]]>
+            </text>
+          </command>
+        </query>
+
+        <body>
+          <header>
+            <text>
+              <![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body><div style="padding:8px">
+<div style="text-align:left;padding-bottom:8px;font-size:12px;font-weight:600;" class="ts">{!h_title}</div>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;white-space:nowrap;">{!h_dien_giai}</td><td class="r9">{!dien_giai}</td></tr>
+</table><br/>
+<table class="ts detail" border="1" cellspacing="2" cellpadding="4">
+]]>
+            </text>
+          </header>
+
+          <footer>
+            <text>
+              <![CDATA[
+<tr class="h"><td colspan="3" style="width:115px;text-align: right;">{!h_t_so_luong}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div><br />
+</body></html>
+]]>&Comment;
+            </text>
+          </footer>
+        </body>
+
+      </action>

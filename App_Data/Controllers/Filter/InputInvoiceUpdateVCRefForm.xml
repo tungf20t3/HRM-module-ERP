@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật mã chứng từ theo khai báo..." e="Update assignment voucher code..."></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Hóa đơn từ ngày" e="Date From"></header>
+      <footer v="Ngày hóa đơn từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Hóa đơn đến ngày" e="Date to"></header>
+    </field>
+    <field name="overwrite" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Kiểu cập nhật" e="Type"></header>
+      <footer v="1 - Chép đè, 0 - Không" e="1 - Overwrite, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="1101-: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="11100: [overwrite].Label, [overwrite], [overwrite].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[select 'loadForm$InputInvoiceInsertVCForm(this);' as message
+return]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[select 'closeForm$InputInvoiceInsertVCForm(this);' as message
+return]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function loadForm$InputInvoiceInsertVCForm(a){a.add_onResponseComplete(on$InputInvoiceInsertVCForm$ResponseComplete)}function closeForm$InputInvoiceInsertVCForm(a){try{a.remove_onResponseComplete(on$InputInvoiceInsertVCForm$ResponseComplete)}catch(b){}}function on$InputInvoiceInsertVCForm$ResponseComplete(h,b){var a=b.object,e=b.type.Context,g=b.type.Result,f=a.grid;switch(e){case"Checking":a._checked=false;var c=a.getItemValue("ngay_ct1"),d=a.getItemValue("ngay_ct2");localStorage.setItem("fromDate",c.z.format("dd/MM/yyyy"));localStorage.setItem("toDate",d.z.format("dd/MM/yyyy"));a.request("Update","Update",[["ngay_ct1","DateTime",c],["ngay_ct2","DateTime",d],["overwrite","String",a.getItemValue("overwrite")]]);break;case"Update":a.closeDialog();$message.show(a._language=="v"?"Chương trình đã thực hiện xong.":"The process was completed successfully.",String.format("$find('{0}')._focusWhenTabChanged();",f.get_id()))}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Update">
+      <text>
+        <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @k nvarchar(128)
+select @k = case when @overwrite = '0' then ' and isnull(a.ma_ct_gs, '''') = ''''' else '' end
+select @key = '%[a.status <> ''4'' and a.status <> ''*'' and a.tt_gs <> ''2'' and a.ma_dvcs = '@@unit'' + @k + ']%'
+
+select @q = '
+update m15$%Partition set ma_ct_gs = isnull(b.ma_ct, '''') from m15$%Partition a with(nolock)
+  join dmcthddv b with(nolock) on '','' + replace(ltrim(rtrim(a.email_kh)), '' '', '''') + '','' like ''%,'' + ltrim(rtrim(b.gia_tri)) + '',%'' and b.chi_tieu = ''2'' and b.status = ''1''
+  where ' + @key + '
+
+update m15$%Partition set ma_ct_gs = isnull(b.ma_ct, '''') from m15$%Partition a with(nolock)
+  join dmcthddv b with(nolock) on rtrim(a.mst_cn) = rtrim(b.gia_tri) and b.chi_tieu = ''1'' and b.status = ''1''
+  where ' + @key
+
+exec dbo.AI_ERP$Partition$Execute @q, null, 'a.ngay_ct', @ngay_ct1, @ngay_ct2, @@userID, @@admin
+select '' as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+</dir>

@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY Key "declare @rk varchar(16)
+select @rk = lower(left(replace(newid(),'-',''), 16))
+update @@sysDatabaseName..userinfo2 set rkey = @rk where id = @@userID">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xác nhận mật khẩu" e="Confirm Password"></title>
+  <fields>
+    <field name="cpass" external="true" defaultValue="''">
+      <header v="Xác nhận mật khẩu" e="Confirm Password"></header>
+      <clientScript><![CDATA[type="password" onchange="genHash(this);"]]></clientScript>
+    </field>
+    <field name="chkpass" external="true" hidden="true" readOnly="true" defaultValue="''" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="110-1: [cpass].Label, [cpass], [chkpass]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        &Key;<![CDATA[
+select 'this._key = ''' + @rk + ''';loadForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'closeForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,o=f.getItem("cpass");o.oldValue=o.value;o.value="";checkFieldEntry(f,o);if(f._checked){f._checked=false;f.request("CheckKey","CheckKey",["chkpass"])}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function loadForm(a){var b=a.grid,c=a.getItem("type");a.add_onResponseComplete(on$Form$ResponseComplete);a._$init&&a.request("Key","Key",[]);a._$init=true}function closeForm(a){try{a.remove_onResponseComplete(on$Form$ResponseComplete)}catch(b){}}function on$Form$ResponseComplete(k,e){var a=e.object,g=e.type.Context,b=e.type.Result,d=a.grid;switch(g){case"Key":a._key=b[0].Value;break;case"CheckKey":if(b[0].Value){var i=","+d._$k.join(",")+",";a.request("Truncate","Truncate",[["ma_ct","String",d._voucherCode],["s","Infinite",i]])}else $message.show(a._language=="v"?"Mật khẩu xác nhận không đúng.":"Confirmation password is invalid.",String.format("revertPassword('{0}', '', true); $find('{0}').focus('{1}');",a.get_id(),"cpass"));break;case"Truncate":var j=a._language=="v",h;if(!b[0].Value){var h=j?"Chương trình đã thực hiện xong.":"The process was completed successfully.";$message.show(h,String.format("refresh$Page($find('{0}'));",d._id))}else{var f=b[1].Value,c=b[2].Value;if(f=="")$message.show(c);else{c=f=="$NotAuthorized"?$df.getResources(d._language,"Message.NotAccess"):c;$message.show(c)}}busy$Page(a,false);a.cancelDialog()}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Key">
+      <text>
+        &Key;<![CDATA[
+select @rk as value
+return
+]]>
+      </text>
+    </action>
+
+    <action id="CheckKey">
+      <text>
+        <![CDATA[
+declare @hash varchar(32), @c bit, @d bit, @k varchar(6)
+exec @@sysDatabaseName..AI_ERP$System$CheckSum @@userID, @chkpass, 0, @c output
+select @c as val
+return
+]]>
+      </text>
+    </action>
+    <action id="Truncate">
+      <text>
+        <![CDATA[
+select * into #table from @s
+exec AI_ERP$App$Voucher$Processing @ma_ct, '#table', @@userID, @@admin, @@language, @@sysDatabaseName, @@appDatabaseName
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

@@ -1,0 +1,6 @@
+﻿<![CDATA[
+declare @$query varchar(256)
+select @$query = ''
+select @$query = @$query + case when @$query <> '' then ',' else '' end + replace(c.fields, ' ', '') from [@@sysDatabaseName]..columnfilters a join [@@sysDatabaseName]..sysfilters b on a.controller = b.controller and a.id = b.id join [@@sysDatabaseName]..reportfilters c on b.controller = c.controller and b.name = c.name where a.controller = ']]>&Controller;<![CDATA[' and a.status = 1 order by a.i
+select @message = @message + 'this._$queryFilters = ''' + replace(replace(@$query, '\', '\\'), '''', '\''') + ''';'
+]]>

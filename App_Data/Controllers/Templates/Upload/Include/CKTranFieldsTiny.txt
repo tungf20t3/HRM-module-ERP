@@ -1,0 +1,42 @@
+<field name="ma_dvcs" column="A" allowNulls="false" upperCase="true" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;exists(select 1 from #unit b where @@table.ngay_ct = b.ngay_ct and @@table.so_ct = b.so_ct having count(b.ma_dvcs) > 1)&And;ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)" condition="&And;&And;if @admin = 0 begin" tag="&And;&And;end" errorCode="00001&And;00002&And;00002" category="1" resource="master, inquiry, general"/>
+<field name="so_ct" column="B" allowNulls="false" upperCase="true" resource="master, detail, inquiry, general"/>
+<field name="ngay_ct" column="C" allowNulls="false" type="DateTime" resource="master, detail, inquiry, general"/>
+<field name="ma_kh" column="D" allowNulls="false" upperCase="true" check="ma_kh not in (select ma_kh from dmkh)" errorCode="00001" category="1" resource="master"/>
+<field name="loai_ct" column="F" allowNulls="false" upperCase="true" check="loai_ct not in ('2', '3', '9')" errorCode="00002" category="1" resource="master"/>
+<field name="tk" column="G" allowNulls="false" upperCase="true" check="tk not in (select tk from dmtk where loai_tk = 1)" errorCode="00001" category="1" resource="master"/>
+<field name="tk_no" column="H" allowNulls="false" reference="1" upperCase="true" check="tk_no not in (select tk from dmtk where loai_tk = 1)" errorCode="00001" category="1" resource="detail"/>
+<field name="ma_kh_i" column="I" reference="1" upperCase="true" check="loai_ct = '3' and ma_kh_i not in (select ma_kh from dmkh)&And;loai_ct &lt;&gt; '3' and ma_kh_i &lt;&gt; ''" errorCode="00001&And;00002" category="1" resource="detail"/>
+<field name="tien_nt" column="K" type="Decimal" resource="detail"/>
+<field name="dien_giai" column="L" reference="1.dien_giai" resource="detail"/>
+<field name="ma_vv" column="M" reference="1" upperCase="true" check="ma_vv &lt;&gt; '' and ma_vv not in (select ma_vv from dmvv)" errorCode="00001" category="1" resource="detail"/>
+<field name="ma_bp" column="N" reference="1" upperCase="true" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from dmbp)" errorCode="00001" category="1" resource="detail"/>
+<field name="so_lsx" column="O" reference="1" upperCase="true" check="so_lsx &lt;&gt; '' and so_lsx not in (select so_lsx from phlsx)" errorCode="00001" category="1" resource="detail"/>
+<field name="ma_sp" column="P" reference="1" upperCase="true" check="ma_sp &lt;&gt; '' and ma_sp not in (select ma_vt from vdmsp)" errorCode="00001" category="1" resource="detail"/>
+<field name="ma_hd" column="" reference="1" upperCase="true" check="ma_hd &lt;&gt; '' and ma_hd not in (select ma_hd from dmhd)" errorCode="00001" category="1" resource="detail"/>
+<field name="ma_phi" column="" reference="1" upperCase="true" check="ma_phi &lt;&gt; '' and ma_phi not in (select ma_phi from dmphi)" errorCode="00001" category="1" resource="detail"/>
+<field name="ma_ku" column="" reference="1" upperCase="true" check="ma_ku &lt;&gt; '' and ma_ku not in (select ma_ku from dmku)" errorCode="00001" category="1" resource="detail"/>
+
+<field name="tien" column="None" type="Decimal" resource="detail"/>
+<field name="tt" column="None" type="Decimal" insertValue="tien" resource="detail"/>
+<field name="tt_nt" column="None" type="Decimal" insertValue="tien_nt" resource="detail"/>
+<field name="line_nbr" column="None" type="Int" resource="detail"/>
+
+<field name="stt_rec" column="None" resource="master, detail, inquiry, general"/>
+<field name="stt_rec0" column="None" resource="detail"/>
+<field name="ma_ct" column="None" insertValue="@voucherID" expression="''' + @voucherID + '''" resource="master, detail"/>
+<field name="ngay_lct" column="None" type="DateTime" insertValue="ngay_ct" resource="master"/>
+<field name="ma_nt" column="None" upperCase="true" insertValue="@baseCurrency" expression="''' + @baseCurrency + '''" resource="master"/>
+<field name="ty_gia" column="None" type="Decimal" insertValue="rtrim(@baseExchangeRate)" expression="' + rtrim(@baseExchangeRate) + '" resource="master"/>
+<field name="t_tien_nt" column="None" type="Decimal" resource="master"/>
+<field name="t_tien" column="None" type="Decimal" resource="master"/>
+
+<field name="c$" column="None" resource="inquiry"/>
+<field name="m$" column="None" resource="inquiry"/>
+<field name="d$" column="None" resource="inquiry"/>
+<field name="e$" column="None" resource="inquiry"/>
+
+<field name="status" column="None" insertValue="@status" expression="' + @status + '" resource="master, inquiry, general"/>
+<field name="datetime0" column="None" type="DateTime" insertValue="@datetime0" expression="''' + @datetime0 + '''" resource="master"/>
+<field name="datetime2" column="None" type="DateTime" insertValue="@datetime0" expression="''' + @datetime0 + '''" resource="master"/>
+<field name="user_id0" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master, inquiry, general"/>
+<field name="user_id2" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master"/>

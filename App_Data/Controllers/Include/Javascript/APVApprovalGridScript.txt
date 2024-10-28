@@ -1,0 +1,215 @@
+﻿<![CDATA[
+function load$Approval(g) {
+  g._$k = [], g._$c = [], g._$v = [];
+	if (!g._authorizeType) {g._authorizeType = 1;}
+  g._$i = g._getColumnOrder('stt_rec');
+  g._$t = g._getColumnOrder(']]>&Tag;'<![CDATA[);
+  g._$x = g._getColumnOrder('ma_md');
+  g._$v1 = g._getColumnOrder('ly_do');
+  ]]>&APVCommentHideField;'<![CDATA[
+  g.add_commandEvent(on$Approval$ExecuteCommand);
+	g.add_onResponseComplete(on$Approval$ResponseComplete);
+}
+
+function dispose$Approval(g) {
+  g._$k = g._$c = g._authorizeType = g._$i = g._$t = g._$x = g._$v = g._$v1 = null;
+  try {g.remove_commandEvent(on$Approval$ExecuteCommand);} catch (ex) {}
+	try {g.remove_onResponseComplete(on$Approval$ResponseComplete);} catch (ex) {}
+}
+function scatter$Approval(g) {
+  fill$Grid(g, true);
+  fill$Comment(g);
+}
+
+function on$Approval$ExecuteCommand(sender, e) {
+  var action = e.type.Action, g = sender, id = g.get_id(), type = 0;
+  switch (action) {
+    case 'Approve':
+      if (g._authorizeType == 1) {
+        if (!isCheck$Grid(g)) break;
+        type = 1;
+        var msg = (g._language == 'v' ? 'Hệ thống sẽ <span class="Highlight">duyệt bản ghi đang được chọn</span>, bạn có chắc chắn thực hiện không?' : 'Are you sure you want to <span class="Highlight">approve the selected records</span>?');
+        $message.show(msg, 0, String.format('request$Approval($find(\'{0}\'), {1});', id, type), String.format('$find(\'{0}\')._focusWhenTabChanged();', id));
+      }
+      break;
+    case 'Cancel':
+      if (g._authorizeType == 1) {
+        if (!isCheck$Grid(g)) break;
+        type = 2;
+        var msg = (g._language == 'v' ? 'Hệ thống sẽ <span class="Highlight">hủy bản ghi đang được chọn</span>, bạn có chắc chắn thực hiện không?' : 'Are you sure you want to <span class="Highlight">cancel the selected records</span>?');
+        $message.show(msg, 0, String.format('request$Approval($find(\'{0}\'), {1});', id, type), String.format('$find(\'{0}\')._focusWhenTabChanged();', id));
+      }
+      break;
+    case 'Undo':
+      if (g._authorizeType == 2) {
+        if (!isCheck$Grid(g)) break;
+        type = 0;
+        var msg = (g._language == 'v' ? 'Hệ thống sẽ <span class="Highlight">bỏ duyệt bản ghi đang được chọn</span>, bạn có chắc chắn thực hiện không?' : 'Are you sure you want to <span class="Highlight">undo the selected records</span>?');
+        $message.show(msg, 0, String.format('request$Approval($find(\'{0}\'), {1});', id, type), String.format('$find(\'{0}\')._focusWhenTabChanged();', id));
+      }
+      break;
+		]]>&APVHistoryExecute;<![CDATA[		
+    default:
+      break;
+  }
+}
+
+function on$Approval$ResponseComplete(sender, e) {
+  var g = e.object, context = e.type.Context, result = e.type.Result, o = e.type.Object;
+  switch (context) {
+    ]]>&APVHistoryResponse;<![CDATA[
+    default:
+      break;
+  }
+}
+
+function request$Approval(g, type, force) {
+  var id = g._id, controller = ']]>&APVController;'<![CDATA[';
+  if (!force) {
+     $func.showWait(id);
+     window.setTimeout(function() {request$Approval(g, type, true);}, 2);
+     return;
+  }
+  
+  var comment = '';
+  for (var i = 0; i < g._$k.length; i++) {
+    comment = comment + '&ÿ;';
+    for (var j = 0; j < g._$v.length; j++) {
+      if (g._$v[j][0] == g._$k[i]) {
+        comment = comment + g._$v[j][1];
+        break;
+      }
+    }
+  }
+  if (comment <> '') {comment = comment.substring(3, comment.length)}
+
+  var query = Sys.Serialization.JavaScriptSerializer.serialize({
+    'IDNumber': g._$k.toString(),
+    'Priority': g._$c.toString(),
+    'Comment': comment
+    });
+
+  Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl(g._url, g._baseUrl), g._service$Method, false, {
+      idMail: controller,
+      type: type,
+      query: query
+  }, onRequest$Completed, onRequest$Failed, g._id);
+}
+
+function onRequest$Completed(r, id) {
+  var g = $find(id), msg, v = g._language == 'v', refresh = true;
+  if (r.Success == '1') {
+    msg = v ? 'Chương trình đã thực hiện xong.' : 'The process was completed successfully.';
+  } else {
+    if (r.Message != '') {
+      msg = r.Message;
+    }
+    else {
+      msg = v ? 'Chương trình đã thực hiện xong.' : 'The process was completed successfully.';
+    }
+  }
+
+  $func.hideWait(id);
+  g._busy(false);
+  $message.show(msg, String.format(refresh ? 'refresh$Page($find(\'{0}\'));' : '$find(\'{0}\')._focusWhenTabChanged();', id));
+}
+
+function onRequest$Failed(e, id) {
+  var g = $find(id);
+  $func.hideWait(id);
+  g._busy(false);
+  $message.showError(e);
+}
+function refresh$Page(g) {
+  if (g._$v.length > 0) {
+    for (var i = 0; i < g._$k.length; i++) {
+      for (var j = 0; j < g._$v.length; j++) {
+        if (g._$v[j][0] == g._$k[i]) {
+          g._$v.splice(j, 1);
+          break;
+        }
+      }
+    }
+  }
+  g._$k = [], g._$c = [], a = [];
+  g.goToPage(-1);
+}
+function isCheck$Grid(g) {
+  var msg = (g._language == 'v' ? 'Chưa có bản ghi nào được chọn, phải đánh dấu trước khi thực hiện chức năng này.' : 'No record selected, please select at least one record to process.');
+  if (g._$k.length == 0) {
+    $message.show(msg, String.format('$find(\'{0}\')._focusWhenTabChanged();', g.get_id()));
+    return false;
+  }
+  return true;
+}
+function fill$Grid(g, f) {
+  if (f && g._$k.length == 0) return;
+  for (var r = 1; r <= g._rowCount; r++) {
+    var k = row$Key(g, r, g._$i), i = Array.indexOf(g._$k, k);
+    g._setItemValue(r, g._$t, (i > -1));
+  }
+}
+function toggle$Grid(o) {
+  var c = o.parentNode.parentNode.parentNode.id, g = $find($func.left(c, c.length - 11));
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (!g._getItem(r, g._$t).disabled) {
+      var k = row$Key(g, r, g._$i), l = row$Key(g, r, g._$x), i = Array.indexOf(g._$k, k);
+      if (i == -1) Array.add(g._$k, k), Array.add(g._$c, l);
+        else Array.removeAt(g._$k, i), Array.removeAt(g._$c, i);
+      g._setItemValue(r, g._$t, (i == -1));
+    }
+  }
+
+  if (g._rowCount <= 0) return;
+  else {
+    g._activeRow = g._rowCount;
+    g._activeColumn = g._$t;
+    g._activeCell = g._getItem(g._activeRow, g._activeColumn);
+    g._focusWhenTabChanged();
+  }
+}
+function onChange$SelectedValue(o) {
+  var a = o.id.split('_inputCell_'), g = o.grid;
+  if (!g) g = $find(a[0]);
+  var r = $func.getLocationCell(o)[0];
+  var k = row$Key(g, r, g._$i), l = row$Key(g, r, g._$x), i = Array.indexOf(g._$k, k);
+  if (i == -1) Array.add(g._$k, k), Array.add(g._$c, l);
+    else Array.removeAt(g._$k, i), Array.removeAt(g._$c, i);
+
+  g._activeRow = a[1].split('.')[0];
+  g._activeColumn = a[1].split('.')[1];
+  g._activeCell = g._getItem(g._activeRow, g._activeColumn);
+}
+function row$Key(g, r, c) {return g._getItemValue(r, c);}
+
+function addComment(o) {
+  var g = o.grid, key = row$Key(g, g._activeRow, g._$i), v1 = o.value;
+  for (var i = 0; i < g._$v.length; i++) {
+    if (g._$v[i][0] == key) {
+      g._$v[i][1] = v1;
+      return;
+    }
+  }
+  Array.add(g._$v, [key, v1]);
+}
+function fill$Comment(g) {
+  if (g._$v.length == 0) return;
+  for (var r = 1; r <= g._rowCount; r++) {
+    var key = row$Key(g, r, g._$i);
+    for (var i = 0; i < g._$v.length; i++) {
+      if (g._$v[i][0] == key) {
+        g._setItemValue(r, g._$v1, g._$v[i][1]);
+        break;
+      }
+    }
+  }
+}
+
+function setGridHiddenFields(g, c, v) {
+  var a = c.split(',');
+  for (var i = 0; i < a.length; i++) {
+    var l = g._getColumnOrder($func.trim(a[i]));
+    if (l != -1) g._setColumnVisible(l, !v);
+  }
+}
+]]>

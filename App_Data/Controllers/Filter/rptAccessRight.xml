@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+
+  <!ENTITY % BIMode.AccessRight SYSTEM "..\Include\BIMode.AccessRight.ent">
+  %BIMode.AccessRight;
+
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="phan_loai" clientDefault="1" filterSource="Optional">
+      <header v="Loại phân quyền" e="Type"/>
+      <items style="DropDownList">
+        <item value="1">
+          <text v="Theo chức năng" e="By Function"/>
+        </item>
+        <item value="2">
+          <text v="Đơn vị" e="Unit"/>
+        </item>
+        <item value="3">
+          <text v="Kho" e="Site"/>
+        </item>
+        <item value="4">
+          <text v="Giới hạn truy cập các báo cáo" e="Limit to Reports"/>
+        </item>
+        <item value="5">
+          <text v="Theo số liệu thực tế và số liệu hóa đơn" e="By Physical Stock and Books"/>
+        </item>
+        &BI.AccessRight.Type;
+      </items>
+      <clientScript><![CDATA[onchange=onChange$Item(this); onfocus="onSelectionOutlineEntry(this, true);" onblur="onSelectionOutlineEntry(this, false);"]]></clientScript>
+    </field>
+
+    <field name="user" filterSource="Optional">
+      <header v="Người sử dụng" e="User"></header>
+      <footer v="5 - Theo số liệu thực tế và số liệu hóa đơn" e="5 - By Physical Stock and Books"></footer>
+      <items style="AutoComplete" controller="UserGroup" reference="ten%l" key="((admin &lt;&gt; 1 and ('{$%c[phan_loai]}' in ('1', '3', '4', '&BI.AccessRight.Type.Plant;'))) or ('{$%c[phan_loai]}' in ('2', '5', '&BI.AccessRight.Type.PurOrg;', '&BI.AccessRight.Type.PurGr;', '&BI.AccessRight.Type.Inspection;'))) and (@@admin = 1 or id in (select distinct id from @@appDatabaseName..vsysunitrights where dbo.ff_ExactInlist(name, (select restrict_users from userinfo2 where id = @@userID and restrict_yn = '1')) = 1) or id = @@userID) and status = '1' and user_yn = 1" check="((admin &lt;&gt; 1 and ('{$%c[phan_loai]}' in ('1', '3', '4', '&BI.AccessRight.Type.Plant;'))) or ('{$%c[phan_loai]}' in ('2', '5', '&BI.AccessRight.Type.PurOrg;', '&BI.AccessRight.Type.PurGr;', '&BI.AccessRight.Type.Inspection;'))) and (@@admin = 1 or id in (select distinct id from @@appDatabaseName..vsysunitrights where dbo.ff_ExactInlist(name, (select restrict_users from userinfo2 where id = @@userID and restrict_yn = '1')) = 1) or id = @@userID) and user_yn = 1"/>
+      <clientScript><![CDATA[onchange=onChange$Item(this);]]></clientScript>
+    </field>
+    <field name="ten%l" clientDefault="Default" external="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" filterSource="Optional">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+      <clientScript><![CDATA[onchange=onChange$Item(this);]]></clientScript>
+    </field>
+    <field name="ten_dvcs%l" clientDefault="Default" external="true" readOnly="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    &BI.AccessRight.Fields;
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="11000: [phan_loai].Label, [phan_loai]"/>
+      <item value="110100: [user].Label, [user], [ten%l]"/>
+      <item value="110100: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      &BI.AccessRight.Views;
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @typeName nvarchar(128), @description nvarchar(128), @label nvarchar(128), @u varchar(32)
+if @phan_loai = '1' select @typeName = case when @@language = 'V' then N'theo chức năng' else 'by Functions' end
+if @phan_loai = '2' select @typeName = case when @@language = 'V' then N'theo đơn vị' else 'by Unit' end
+if @phan_loai = '3' select @typeName = case when @@language = 'V' then N'theo kho' else 'by Site' end
+if @phan_loai = '4' select @typeName = case when @@language = 'V' then N'theo giới hạn truy cập các báo cáo' else 'by Limit to Reports' end
+if @phan_loai = '5' begin
+  select @typeName = case when @@language = 'V' then N'theo số liệu thực tế và số liệu hóa đơn' else 'by Physical Stock and Books' end,
+    @label = case when @@language = 'V' then N'Người sử dụng' else 'User(s)' end,
+    @description = case when @@language = 'V' then N'người sử dụng: Tất cả người sử dụng.' else 'User: All Users.' end
+end
+if @user <> '' begin
+  select @description = case when @@language = 'V' then N'người sử dụng: ' + rtrim(name) + ' - ' + comment else 'User: ' + rtrim(name) + ' - ' + comment2 end from vsysuserinfo where name = @user
+  if @phan_loai = '1' or @phan_loai = '4' select @label = case when @@language = 'V' then N'Chức năng' else 'Functions' end
+  if @phan_loai = '2' or @phan_loai = '3' select @label = case when @@language = 'V' then N'Đơn vị' else 'Unit' end
+end
+if @ma_dvcs <> '' begin
+  select @description = case when @@language = 'V' then N'đơn vị: ' + rtrim(@ma_dvcs) + ' - ' + ten_dvcs else 'Unit: ' + rtrim(@ma_dvcs) + ' - ' + ten_dvcs2 end from dmdvcs where ma_dvcs = @ma_dvcs
+  select @label = case when @@language = 'V' then N'Người sử dụng' else 'User(s)' end
+end
+]]>&BI.AccessRight.Command.Processing;<![CDATA[
+select @typeName as typename, @description as dien_giai, @label as label
+exec rs_rptAccessRight @phan_loai, @user, @u, '@@sysDatabaseName', @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  f.getItem('phan_loai').focus()
+  onChange$Item(f.getItem('phan_loai'), true);
+  if (('2]]>&BI.AccessRight.Type.PurOrg;&BI.AccessRight.Type.Inspection;<![CDATA['.indexOf(f.getItemValue('phan_loai')) > -1) && f.getItemValue('user')) onChange$Item(f.getItem('user'));
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, t = f.getItemValue('phan_loai'), u = f.getItemValue('user') + ' - ' + f.getItemValue('ten%l'), d = f.getItemValue('ma_dvcs') + ' - ' + f.getItemValue('ten_dvcs%l'), s, v = (f._language == 'v');
+      ]]>&BI.AccessRight.Script.Check;<![CDATA[
+      switch (t) {
+        case '1':
+          s = (v ? 'Loại phân quyền theo chức năng, người sử dụng: ' : 'Type Access Right by Functions, User: ') + u;
+          g._headerName = (v ? 'Chức năng' : 'Functions');
+          break;
+        case '2':
+          s = (v ? 'Loại phân quyền theo đơn vị cơ sở, ' : 'Type Access Right by Unit, ');
+          if (u != ' - ') {
+            s = s + (f.getItem('user').field.Label.toLowerCase() + ': ' + u);
+            g._headerID = (v ? 'Đơn vị' : 'Unit');
+            g._headerName = (v ? 'Tên đơn vị' : 'Unit Name');
+          }
+          else {
+            s = s + (f.getItem('ma_dvcs').field.Label.toLowerCase() + ': ' + d);
+            g._headerID = (v ? 'Người sử dụng' : 'User(s)');
+            g._headerName = (v ? 'Tên đầy đủ' : 'Full Name');
+          }
+          break;
+        case '3':
+          s = (v ? 'Loại phân quyền theo kho, ' : 'Type Access Right by Site, ');
+          s = s + (f.getItem('user').field.Label.toLowerCase() + ': ' + u);
+          g._headerID = (v ? 'Đơn vị' : 'Unit');
+          g._headerName = (v ? 'Tên đơn vị' : 'Unit Name');
+          break;
+        case '4':
+          s = (v ? 'Loại phân quyền giới hạn truy cập các báo cáo, ' : 'Type Access Right Limit to Reports, ') + u;
+          g._headerName = (v ? 'Chức năng' : 'Functions');
+          break;
+        case '5':
+          s = (v ? 'Loại phân quyền theo số liệu thực tế và số liệu hóa đơn, ' : 'Type Access Right by Physical Stock and Books, ');
+          if (u != ' - ') {
+            s = s + (f.getItem('user').field.Label.toLowerCase() + ': ' + u);
+          } else {
+            s = s + (f.getItem('user').field.Label.toLowerCase() + ': ' + (v ? 'Tất cả người sử dụng' : 'All User');
+          }
+          g._headerID = (v ? 'Người sử dụng' : 'User(s)');
+          g._headerName = (v ? 'Tên đầy đủ' : 'Full Name');
+          break;
+        ]]>&BI.AccessRight.Script.ResponseComplete;<![CDATA[
+      }
+      g._alterTitle = [null, [['%s', s, true]]];
+      g._hiddenFields = [
+        {Fields: 'name2, description2', Value: ('3]]>&BI.AccessRight.Type.Plant;<![CDATA['.indexOf(t) == -1)},
+        {Fields: 'name', Value: (t == '1' || t == '4')}
+      ];
+      ]]>&BI.AccessRight.Script.HiddenForms;<![CDATA[
+      g._externalHeaderFields = [];
+      if (!g._v) g._v = t;
+      if (g._v != t) {
+        remove$GridReport$Filter(g);
+        g._v = t;
+      }
+      break;
+    default:
+      break;
+  }
+}
+function setItemAllowNulls(d,c,e){var b,a;if($func.trim(c)!=""){b=d.getItem($func.trim(c));b.field.AllowNulls=!e;a=b.parentNode.parentNode;if(e){Sys.UI.DomElement.addCssClass(a,"Required");Sys.UI.DomElement.addCssClass(a,d._id)}else Sys.UI.DomElement.removeCssClass(a,"Required")}}function setFieldsEmpty(d,c,f){for(var b=c.split(","),a=0;a<b.length;a++){var e=d.getItem($func.trim(b[a]));if(!f)e.value=""}}function remove$GridReport$Filter(a){var e="id, name, description, name2, description2".split(","),d,c;for(i=0;i<e.length;i++)for(var b=0;b<a._filter.length;b++){d=$func.trim(e[i]);c=$func.findField(d,a._fields);if(c)c.FilterPanelValue="";if(a._filter[b].match(/^([\w\$]+):/)[1]==d){Array.removeAt(a._filter,b);break}}}]]>
+      &BI.AccessRight.Script.ChangeItem;
+      &OutlineEntry;
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

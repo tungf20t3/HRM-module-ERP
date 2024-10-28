@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="Notify" targetNamespace="urn:schemas-ai-erp:data-notify" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-notify" xmlns:a="urn:schemas-ai-erp:data-notify" xmlns:mstns="urn:schemas-ai-erp:data-notify" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="notify" type="notifyType">
+    <xs:key name="commands">
+      <xs:selector xpath="a:commands/a:command" />
+      <xs:field xpath="@name"/>
+    </xs:key>
+  </xs:element>
+
+  <xs:complexType name="notifyType">
+    <xs:sequence>
+      <xs:element name="commands" type="commandsType" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="toolbar" type="toolbarType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="css" type="cssType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="script" type="scriptType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="commandsType">
+    <xs:sequence>
+      <xs:element name="command" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="text" type="xs:string" />
+          </xs:sequence>
+          <xs:attribute name="name" use="required" type="xs:string"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="toolbarType">
+    <xs:sequence>
+      <xs:element name="button" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="title" minOccurs="1" maxOccurs="1">
+              <xs:complexType>
+                <xs:attribute name="v" use="required" type="xs:string"/>
+                <xs:attribute name="e" use="required" type="xs:string"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+          <xs:attribute name="command" use="required" type="xs:string"/>
+          <xs:attribute name="class" use="optional" type="xs:string"/>
+          <xs:attribute name="script" use="optional" type="xs:string"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="cssType">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="scriptType">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

@@ -1,0 +1,1 @@
+﻿<%@ WebService Class="AI_ERP.EInvoice.GetInformation.Service" %>

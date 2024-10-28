@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+  <!ENTITY k "a.ma_vt = b.ma_vt and a.ngay_hl = b.ngay_hl">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'CRProductionLeadtimeUnit' else 'CRProductionLeadtimeUnit2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$CRProductionLeadtimeUnitImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$CRProductionLeadtimeUnitImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+    <baseTable value="crdmtgsp"/>
+    <table value="crdmtgsp" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_vt" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_vt not in (select ma_vt from dmvt where loai_vt in ('41', '51') and kieu_hd &lt;&gt; 0)" errorCode="00001"/>
+    <field name="ngay_hl" column="C" isPrimaryKey="true" type="DateTime" allowNulls="false"/>
+    <field name="dvt" column="D"/>
+    <field name="cong_suat" column="E" type="Decimal" allowNulls="false" check="isnull(cong_suat, 0) = 0" errorCode="00002"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None" resource="master, inquiry"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Định mức thời gian sản xuất sản phẩm" e="Processing Time per Unit"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_vt" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã sản phẩm" e="Product Code"/>
+      </field>
+      <field name="ten_vt" width ="32" afterField="ma_vt" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên sản phẩm" e="Product Name"/>
+      </field>
+      <field name="ngay_hl" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Hiệu lực từ" e="Effective Start"/>
+      </field>
+      <field name="dvt" width ="12">
+        <text v="Đvt" e="UOM"/>
+      </field>
+      <field name="cong_suat" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Định mức thời gian" e="Proc. Time per Unit"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @field varchar(32), @user int, @admin bit, @r int, @unit varchar(32)
+select @admin = @@admin, @user = @@userID, @unit = @@unit
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+if @admin <> 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'CRProductionLeadtimeUnit', 'Edit') = 0 select @type = '0'
+  end
+end
+
+-- Update
+update @@table set dvt = case when a.dvt <> '' then a.dvt else b.dvt end from @@table a left join dmvt b on a.ma_vt = b.ma_vt
+
+select @field = 'dvt'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt where a.dvt <> '' and b.dvt is null and c.dvt is null
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'dvt', @r = min(stt) from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt where a.dvt <> '' and b.dvt is null and c.dvt is null]]>&Error;<![CDATA[
+end
+
+if @type = '0' delete @@table from @@table a where exists(select 1 from crdmtgsp b where ]]>&k;<![CDATA[)
+
+select ma_vt, ngay_hl, cong_suat, 1 as he_so into #r from @@table
+update #r set he_so = isnull(b.he_so, 1) from @@table a join vdmvtqddvt b on (a.ma_vt = b.ma_vt or b.ma_vt = '*') and a.dvt = b.dvt left join dmvt c on a.ma_vt = c.ma_vt where c.nhieu_dvt = 1
+
+select a.* into #k from @@table a join crdmtgsp b on ]]>&k;<![CDATA[
+delete @@table from @@table a where exists(select 1 from #k b where ]]>&k;<![CDATA[)
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  ]]>&Updating;<![CDATA[ where ]]>&k;<![CDATA[
+end
+
+update crdmtgsp set he_so = b.he_so, cs_qd = b.cong_suat from crdmtgsp a join #r b on ]]>&k;<![CDATA[
+]]>
+    </text>
+  </processing>
+</import>

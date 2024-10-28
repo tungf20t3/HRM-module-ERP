@@ -1,0 +1,53 @@
+﻿<![CDATA[
+function init$FlowMulti$GridQuery$]]>&Identity;<![CDATA[(g) {
+  var f = g._$parentForm, c = String.fromCharCode(253), a = f._$queryFilterString.split(c);
+  g._alterTitle = [null, [['%d1', formatDateView(a[2]), true], ['%d2', formatDateView(a[3]), true]]];
+}
+
+function load$FlowMulti$GridQuery$]]>&Identity;<![CDATA[(g) {
+  g._$t = g._getColumnOrder('chon');
+  g._$k = [];
+  g._$f = ['stt_rec'];
+  g._$i = [g._getColumnOrder('stt_rec')];
+  g._$s = [g._getColumnOrder('tien_nt')];
+}
+function dispose$FlowMulti$GridQuery$]]>&Identity;<![CDATA[(g) {g._$t = g._$k = g._$f = g._$i = g._$s =null;}
+function scatter$FlowMulti$GridQuery$]]>&Identity;<![CDATA[(g) {scatter$FlowMulti$GridQuery(g);}
+
+function toggle$FlowMulti$GridQuery$]]>&Identity;<![CDATA[(o) {
+  var c = o.parentNode.parentNode.parentNode.id, g = $find($func.left(c, c.length - 11)), l = g._getColumnOrder('chon');
+  var f = g.get_element().parentForm;
+
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (!g._getItem(r, l).disabled) {
+      g._setItemValue(r, l, !g._getItemValue(r, l));
+      var o = g._getItem(r, l);
+      g._setItemValue(r, g._getColumnOrder('tien_nt'), o.checked ? g._getItemValue(r, g._getColumnOrder('cl_nt')) : 0);
+      if (o.checked) addTagRow$FlowMulti$(g, r);
+        else removeTagRow$FlowMulti$(g, r);
+    }
+  }
+
+  if (g._rowCount <= 0) return;
+  else {
+    g._activeRow = g._rowCount;
+    g._activeColumn = l;
+    g._activeCell = g._getItem(g._activeRow, g._activeColumn);
+  }
+}
+
+function onClick$FlowMulti$GridQuery$]]>&Identity;<![CDATA[Calculate(o) {
+  var g = o.grid, a = o.id.split('_inputCell_'), r = a[1].split('.')[0];
+  if (!g) g = $find(a[0]);
+  g._setItemValue(r, g._getColumnOrder('tien_nt'), o.checked ? g._getItemValue(r, g._getColumnOrder('cl_nt')) : 0);
+  if (o.checked) addTagRow$FlowMulti$(g, r);
+  else removeTagRow$FlowMulti$(g, r);
+}
+
+function onChange$FlowMulti$GridQuery$]]>&Identity;<![CDATA[InvoiceAmount(o) {
+  var g = o.grid, a = o.id.split('_inputCell_'), r = a[1].split('.')[0];
+  var l = g._getColumnOrder('chon'), v = g._getItemValue(r, l);
+  if (v || o.value != 0) addTagRow$FlowMulti$(g, r);
+    else removeTagRow$FlowMulti$(g, r);
+}
+]]>

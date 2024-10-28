@@ -1,0 +1,83 @@
+﻿<!ENTITY % Conditional.BIMode SYSTEM "..\Include\BIMode.txt">
+
+<![%Conditional.BIMode;[
+  <!ENTITY BI.PODefaultValue.Script.LoadGrid "biPODefaultValue$CheckInfo(g, 1);">
+  <!ENTITY BI.PODefaultValue.Script.ExecuteCommand SYSTEM "..\Include\Javascript\BI.PODefaultValue.ExecuteCommand.txt">
+  <!ENTITY BI.PODefaultValue.Script.SetValue SYSTEM "..\Include\Javascript\BI.PODefaultValue.SetValue.txt">
+
+  <!ENTITY BI.PODefaultValue.Script.ResponseComplete SYSTEM "..\Include\Javascript\BI.PODefaultValue.ResponseComplete.txt">
+  <!ENTITY BI.PODefaultValue.XML.Response SYSTEM "..\Include\XML\BI.PODefaultValue.Response.txt">
+
+  <!ENTITY BI.PODefaultValue.XML.Button SYSTEM "..\Include\XML\BI.PODefaultValue.Button.txt">
+  <!ENTITY BI.PODefaultValue.XML.ButtonCss SYSTEM "..\Include\XML\BI.PODefaultValue.ButtonCss.txt">
+
+  <!ENTITY BI.PODefaultValue.Script SYSTEM "..\Include\Javascript\BI.PODefaultValue.Script.txt">
+
+  <!ENTITY BI.PODefaultValue.Form.Load "
+if (f._action == 'View') {
+  var btnNew = $get(String.format('{0}_updateDlgNew', f.get_id()));
+  btnNew._parentForm = f;
+  btnNew.setAttribute('onclick', 'if (!onClick$Form$ButtonNew(this, event)) return false;' + btnNew.getAttribute('onclick'));
+}
+">
+  <!ENTITY BI.PODefaultValue.Form.Shown "
+if (f._action == 'View') {
+  var btnNew = $get(String.format('{0}_updateDlgNew', f.get_id()));
+  btnNew._parentForm = f;
+  btnNew.setAttribute('onclick', 'if (!onClick$Form$ButtonNew(this, event)) return false;' + btnNew.getAttribute('onclick'));
+  f.grid._$firstAction = null;
+}
+">
+  <!ENTITY BI.PODefaultValue.Form.Copy "f.grid._$firstAction = 'Copy';">
+
+  <!ENTITY BI.PODefaultValue.DetailRender "
+if (f._action == 'New' &amp;&amp; f.grid._$firstAction != 'Copy' &amp;&amp; g._rowCount > 0) {
+  var dfData = f.grid._$PODefaultValue;
+  if (dfData) {
+    if (g._getItemValue(g._rowCount, g._getColumnOrder('ma_vung')) == '' &amp;&amp; dfData['ma_vung'] != '') {
+      g.setItemGridBehavior({row: g._rowCount}, [['ma_vung', dfData['ma_vung'], ['', true], true]]);
+    }
+  }
+}
+">
+  <!ENTITY BI.PODefaultValue.AfterInsertRow "
+var dfData = f.grid._$PODefaultValue;
+if (dfData) {
+  if (g._getItemValue(g._rowCount, g._getColumnOrder('ma_vung')) == '' &amp;&amp; dfData['ma_vung'] != '') {
+    g.setItemGridBehavior({row: g._rowCount}, [['ma_vung', dfData['ma_vung'], ['', true], true]]);
+  }
+}
+">
+  <!ENTITY BI.PODefaultValue.Detail.Copy "f.grid._$firstAction = 'Copy';">
+]]>
+
+<!ENTITY BI.PODefaultValue.Script.LoadGrid "">
+<!ENTITY BI.PODefaultValue.Script.ExecuteCommand "">
+<!ENTITY BI.PODefaultValue.Script.SetValue "">
+
+<!ENTITY BI.PODefaultValue.Script.ResponseComplete "">
+<!ENTITY BI.PODefaultValue.XML.Response "">
+
+<!ENTITY BI.PODefaultValue.XML.Button "">
+<!ENTITY BI.PODefaultValue.XML.ButtonCss "">
+
+<!ENTITY BI.PODefaultValue.Script "">
+
+<!ENTITY BI.PODefaultValue.Form.Load "">
+<!ENTITY BI.PODefaultValue.Form.Shown "">
+<!ENTITY BI.PODefaultValue.Form.Copy "">
+
+<!ENTITY BI.PODefaultValue.DetailRender "">
+<!ENTITY BI.PODefaultValue.AfterInsertRow "">
+<!ENTITY BI.PODefaultValue.Detail.Copy "">
+
+<!ENTITY BI.PODefaultValue.Command.GetCurrentUnit "
+declare @unitName nvarchar(1023)
+select @unitName = case when @@language = 'v' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit
+select @message = @message + 'this._unitCode=''' + replace(@@unit, '''', '''''') + ''';this._unitName=''' + replace(replace(isnull(@unitName, ''), '\', '\\'), '''', '\''') + ''';'
+">
+<!ENTITY BI.PODefaultValue.Script.SetCurrentUnit "
+if (f._action == 'New') {
+  f.setItemControlBehavior('ma_dvcs', f._unitCode, f._unitName, false);
+}
+">

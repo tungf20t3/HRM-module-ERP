@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="CoefficientofDistribution.doc" />
+<title>Set up Coefficient of Distribution</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+
+</head>
+<body>
+<p id="td1">Set up Coefficient of Distribution</p>
+<p id="p1">Costs which can not be detailed to each product when entering must be distributed to aggregating objects by coefficient of distribution.<br/>
+Program supports the following ways of distribution:</p>
+<ul class="lo_2">
+- Distribute by BOM towards cost related to raw materials;<br/>
+- Distribute by arising of other cost factor calculated; this way is used for cost related to value.</ul>
+<p id="p1">Besides, if coefficient is not in those 2 options, it must be set up by the most possible cost aggregation unit. We now consider what the “cost aggregation unit” is.<br/>
+The most general and smallest cost aggregation unit of program is combination of [Product Code + Dept. + Cost Factor Code + MO]; it means that costs will always be detailed to this combination in any case. In special case, if there is less than 1 element of combination in aggregation, it means that field is “NULL”.</p>
+
+<p class="e">Example: in general case, costs are “separated” as following table</p>
+<p id="pic"><img src="eng/CoefficientofDistribution1.png"/></p>
+
+<p class="e">If you want to distribute 1 factor in general case, there must be value (amount or cost) to be detailed as table above.<br/>
+In special case, costs are “separated” by [Dept. + Factor Code], results in table:</p>
+<p id="pic"><img src="eng/CoefficientofDistribution2.png"/></p> <br/>
+<p class="e">That means we have paid no attention to Product Code and MO any more, coefficients depend only on combination [Dept. + Factor Code], all product codes and MOs are the same.<br/>
+Physical Apply:<br/>
+-          “Set up Coefficient of Distribution” menu can be used to enter salary coefficient (salary unit price/unit of product) in case salary costs are distributed by salary unit / unit of product.<br/>
+-          “Set up Coefficient of Distribution” menu can also be used in case some costs are clearly defined the rate %.<br/>
+…</p>
+<p id="td2">  Entry Screen</p>
+<p id="pic"><img src="eng/CoefficientofDistribution.png"/></p>
+<p id="td2">      Field Descriptions</p>
+<p class="node">Period / Year</p>
+<p class="node_d">Period / Year are closing time, defined by order from the beginning of fiscal year.</p>
+<p class="node">Factor Code</p>
+<p class="node_d">Code of cost factor having coefficient of distribution</p>
+<p class="node">Product</p>
+<p class="node_d">Code of product having coefficient of distribution</p>
+<p class="node">Department</p>
+<p class="node_d">Code of production line, workshop in case product WIP by line, workshop. This is a required field if cost is calculated by department in system parameter.</p>
+<p class="node">MO Number</p>
+<p class="node_d">Number of MO WIP in case product WIP in MO. This is a required field if cost is calculated by MO in system parameter.</p>
+<p class="node">Indirect Dept.</p>
+<p class="node_d">It is used as intermediary section to distribute to other sections.</p>
+<p class="node">Item Code</p>
+<p class="node_d">It is used in case there is no BOM; items are distributed by density in coefficient table.</p>
+
+<p class="war">Important note:<br/>
+Selecting objects to be updated coefficient of distribution depends on cost factor declaration. If there is no declaration of cost factor aggregation types, program will not help to extract data from that field when entering coefficient.<br/>
+Coefficient updated by material is used only when there is no BOM. If cost factors have coefficient defined by ratio but recalculated by BOM, the 2nd result will be used.</p>
+
+<p class="tip">To save hours of manual effort each month, the system enables you to copy the declaration of previous month. When opening this menu, in filter screen, select “Copy” field is 1 -   Copy data from previous period.</p>
+
+<p id="td2">Import data from excel file</p>
+<p id="p2">The system is enabled to import data from excel spreadsheet to save hours of manual effort.</p>
+<p class="node">The data importing process:</p>
+<p class="node_d">
+	- Enter "Setup Coefficient of Distribution" menu;<br/>
+	- Click the icon <img src="eng/download.png"/> to download template file to put data in;<br/>
+	- After keying data in the spreadsheet, to up data to the system, click the icon <img src="eng/upload.png"/>, 
+	select the file, the system will get data from this file into the system.<br/>
+
+<p class="note">Notes of inputting data in template file:<br/>
+- Factor Code, Item Code, Product, Department, MO Number: must be one existing in the corresponding lists (Cost Factor List, Item List, Section List, Manufacturing Order) with the same length in add (edit) screen in list;<br/>
+- Department, MO Number: are optional fields depending on structure of the costing problem;<br/>
+- Indirect Department: must be one existing in Section List, which is not checked in "Direct" option;<br/>
+- Coefficient: number format, 12 digits and 4 decimal digits maximum (standard format);<br/>
+- Product, Item Name: user-defined information, 128 characters maximum.
+</p>
+	
+<p class="note">Other notes:<br/>
+- Cannot import data after system data closing date (the data closing date after the beginning input date);<br/>
+- The current user must have the "Edit" right in this function to update the available data in the system (Copy type 1 - Overwrite);<br/>
+- The current user must have the "New" right in this function to add new data to the system (Copy type 1 - No);<br/>
+- Cannot import data from spreadsheet with macro;<br/>
+- Only support for spreadsheet in Excel 2007 or higher.
+</p>
+
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>

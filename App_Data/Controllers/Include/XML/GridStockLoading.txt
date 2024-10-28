@@ -1,0 +1,71 @@
+  <query event="Loading">
+    <text>
+      <![CDATA[
+declare @$stock$View$Type char(1)
+if ']]>&Tag;<![CDATA[' = '2' and exists(select 1 from options where name = 'm_instock_split' and val = '1')
+  select @$stock$View$Type = rtrim(val) from options where name = 'm_instock_view2'
+else 
+  select @$stock$View$Type = rtrim(val) from options where name = 'm_instock_view'
+
+select @$stock$View$Type = isnull(@$stock$View$Type, '1')
+
+select top 0 ma_vt, ma_kho, ma_vi_tri, ma_lo, sl_nhap as so_luong0 into #d from r]]>&Ext;<![CDATA[$$partition$current
+if @@copying <> 1 begin
+  if @$stock$View$Type = '1' insert into #d select ma_vt, ma_kho, '', '', sum(sl_nhap - sl_xuat) from r]]>&Ext;<![CDATA[$$partition$current where @@whereClause group by ma_vt, ma_kho
+  if @$stock$View$Type = '2' insert into #d select ma_vt, ma_kho, ma_vi_tri, '', sum(sl_nhap - sl_xuat) from r]]>&Ext;<![CDATA[$$partition$current where @@whereClause group by ma_vt, ma_kho, ma_vi_tri
+  if @$stock$View$Type = '3' insert into #d select ma_vt, ma_kho, '', ma_lo, sum(sl_nhap - sl_xuat) from r]]>&Ext;<![CDATA[$$partition$current where @@whereClause group by ma_vt, ma_kho, ma_lo
+  if @$stock$View$Type = '4' insert into #d select ma_vt, ma_kho, ma_vi_tri, ma_lo, sum(sl_nhap - sl_xuat) from r]]>&Ext;<![CDATA[$$partition$current where @@whereClause group by ma_vt, ma_kho, ma_vi_tri, ma_lo
+end
+
+if not exists(select 1 from options where name = 'm_instock_onhand' and val = '1') begin
+  if @$stock$View$Type = '1' select @@fieldExternal from @@prime$partition$current a left join dmvt b on a.ma_vt = b.ma_vt left join #d d on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho left join cdvt]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho where @@whereClause order by @@orderByClause
+  if @$stock$View$Type = '2' select @@fieldExternal from @@prime$partition$current a left join dmvt b on a.ma_vt = b.ma_vt left join #d d on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri left join cdvitri]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_vi_tri = e.ma_vi_tri where @@whereClause order by @@orderByClause
+  if @$stock$View$Type = '3' select @@fieldExternal from @@prime$partition$current a left join dmvt b on a.ma_vt = b.ma_vt left join #d d on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_lo = d.ma_lo left join cdklo]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_lo = e.ma_lo where @@whereClause order by @@orderByClause
+  if @$stock$View$Type = '4' select @@fieldExternal from @@prime$partition$current a left join dmvt b on a.ma_vt = b.ma_vt left join #d d on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri and a.ma_lo = d.ma_lo left join cdlo]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_vi_tri = e.ma_vi_tri and a.ma_lo = e.ma_lo where @@whereClause order by @@orderByClause
+end else begin
+  select top 0 ma_kho, ma_vi_tri, ma_vt, ma_lo, so_luong as ton13 into #xcd from cdvt73
+
+  if @$stock$View$Type = '1' insert into #d select distinct ma_vt, ma_kho, '', '', 0 from @@prime$partition$current a where @@whereClause and not exists(select 1 from #d b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho)
+  if @$stock$View$Type = '2' insert into #d select distinct ma_vt, ma_kho, ma_vi_tri, '', 0 from @@prime$partition$current a where @@whereClause and not exists(select 1 from #d b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri)
+  if @$stock$View$Type = '3' insert into #d select distinct ma_vt, ma_kho, '', ma_lo, 0 from @@prime$partition$current a where @@whereClause and not exists(select 1 from #d b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_lo = b.ma_lo)
+  if @$stock$View$Type = '4' insert into #d select distinct ma_vt, ma_kho, ma_vi_tri, ma_lo, 0 from @@prime$partition$current a where @@whereClause and not exists(select 1 from #d b where a.ma_vt = b.ma_vt and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo)
+
+  if @$stock$View$Type = '1' begin
+    insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(ton13) from #d d join cdvt]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho group by a.ma_kho, a.ma_vt
+    if ']]>&Tag;<![CDATA[' = ''
+      insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(a.so_luong) from #d d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho group by a.ma_kho, a.ma_vt
+    else
+      insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(a.so_luong) from #d d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho group by a.ma_kho, a.ma_vt
+    select @@fieldExternal from @@prime$partition$current a left join dmvt b on a.ma_vt = b.ma_vt left join #d d on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho left join (select ma_kho, ma_vt, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho where @@whereClause order by @@orderByClause
+   end
+   
+  if @$stock$View$Type = '2' begin
+    insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(ton13) from #d d join cdvitri]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri group by a.ma_kho, a.ma_vi_tri, a.ma_vt
+    if ']]>&Tag;<![CDATA[' = ''
+      insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(a.so_luong) from #d d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri group by a.ma_kho, a.ma_vi_tri, a.ma_vt
+    else
+      insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(a.so_luong) from #d d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri group by a.ma_kho, a.ma_vi_tri, a.ma_vt
+    select @@fieldExternal from @@prime$partition$current a left join dmvt b on a.ma_vt = b.ma_vt left join #d d on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri left join (select ma_kho, ma_vt, ma_vi_tri, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_vi_tri) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_vi_tri = e.ma_vi_tri where @@whereClause order by @@orderByClause
+  end
+
+  if @$stock$View$Type = '3' begin
+    insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(ton13) from #d d join cdklo]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_lo
+    if ']]>&Tag;<![CDATA[' = ''
+      insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(a.so_luong) from #d d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_lo
+    else
+      insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(a.so_luong) from #d d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_lo
+    select @@fieldExternal from @@prime$partition$current a left join dmvt b on a.ma_vt = b.ma_vt left join #d d on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_lo = d.ma_lo left join (select ma_kho, ma_vt, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_lo) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_lo = e.ma_lo where @@whereClause order by @@orderByClause
+  end
+
+  if @$stock$View$Type = '4' begin
+    insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(ton13) from #d d join cdlo]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_vi_tri, a.ma_lo
+    if ']]>&Tag;<![CDATA[' = ''
+      insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(a.so_luong) from #d d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_vi_tri, a.ma_lo
+    else
+      insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(a.so_luong) from #d d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_vi_tri, a.ma_lo
+    select @@fieldExternal from @@prime$partition$current a left join dmvt b on a.ma_vt = b.ma_vt left join #d d on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri and a.ma_lo = d.ma_lo left join (select ma_kho, ma_vt, ma_vi_tri, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_vi_tri, ma_lo) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_vi_tri = e.ma_vi_tri and a.ma_lo = e.ma_lo where @@whereClause order by @@orderByClause
+  end
+end
+]]>
+    </text>
+  </query>

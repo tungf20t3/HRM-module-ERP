@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="ScheduleMail" targetNamespace="urn:schemas-ai-erp:data-schedule-mail" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-schedule-mail" xmlns:a="urn:schemas-ai-erp:data-schedule-mail" xmlns:mstns="urn:schemas-ai-erp:data-schedule-mail" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="scheduleMail" type="scheduleMailType">
+    <xs:key name="job">
+      <xs:selector xpath="a:group/a:job" />
+      <xs:field xpath="@name"/>
+    </xs:key>
+    <xs:key name="query">
+      <xs:selector xpath="a:group/a:job/a:query" />
+      <xs:field xpath="@name"/>
+    </xs:key>
+  </xs:element>
+
+  <xs:complexType name="scheduleMailType">
+    <xs:sequence>
+      <xs:element name="setting" type="settingMailType" />
+      <xs:element name="group" type="groupType" />
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <xs:complexType name="settingMailType">
+    <xs:sequence>
+      <xs:element name="isSend" type="valueBoolean" />
+      <xs:element name="aliasName" type="valueString" />
+      <xs:element name="userName" type="valueString" />
+      <xs:element name="password" type="valueString" />
+      <xs:element name="host" type="valueString" />
+      <xs:element name="port" type="valueInt" />
+
+      <xs:element name="isBodyHTML" type="valueBoolean" />
+      <xs:element name="enableSSL" type="valueBoolean" />
+      <xs:element name="clientTimeout" type="valueInt" />
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <xs:complexType name="groupType">
+    <xs:sequence>
+      <xs:element name="job" minOccurs="0" maxOccurs="unbounded" type="jobType" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="jobType">
+    <xs:sequence>
+      <xs:element name="query" minOccurs="0" maxOccurs="2" type="queryType" />
+    </xs:sequence>
+    <xs:attribute name="name" use="required" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="queryType">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" />
+    </xs:sequence>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="BeforeSending"/>
+          <xs:enumeration value="AfterSending"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="valueString">
+    <xs:attribute name="value" type="xs:string" />
+  </xs:complexType>
+  <xs:complexType name="valueInt">
+    <xs:attribute name="value" type="xs:int" />
+  </xs:complexType>
+  <xs:complexType name="valueBoolean">
+    <xs:attribute name="value" type="xs:boolean" />
+  </xs:complexType>
+</xs:schema>

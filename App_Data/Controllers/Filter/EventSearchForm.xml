@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn ngày làm việc" e="Select Working Date"></title>
+  <fields>
+    <field name="date_start" allowNulls="false" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="StartDate">
+      <header v="Từ ngày" e="Date From"></header>
+      <footer v="Ngày làm việc từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="date_end" allowNulls="false" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="EndDate">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="1101: [date_start].Description, [date_start], [date_end]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000), @d1 smalldatetime, @d2 smalldatetime
+select @d1 = dateadd(week, -1, getdate()), @d2 = dateadd(week, 1, getdate())
+select @message = 'this._user_id = ' + cast(@@userID as varchar(10)) + ';this._fromDate=' + 'new Date(' + replace(convert(varchar(7), @d1, 21), '-', ',') + '-1' + ',' + ltrim(str(day(@d1), 2)) + ')' + ';this._toDate=' + 'new Date(' + replace(convert(varchar(7), @d2, 21), '-', ',') + '-1' + ',' + ltrim(str(day(@d2), 2)) + ')' + ';'
+select @message = @message + 'active$VoucherFilter(this);'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$VoucherFilter;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var d1 = this.getItemValue('date_start'), d2 = this.getItemValue('date_end');
+this._date_start = d1;
+this._date_end = d2;
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$VoucherFilter(a){a.live(a.getItem("date_start"));a.add_onResponseComplete(on$Filter$ResponseComplete);document._form=a}function close$VoucherFilter(a){a.remove_onResponseComplete(on$Filter$ResponseComplete);document._form=null}function on$Filter$ResponseComplete(e,b){var a=b.object,c=b.type.Context,d=b.type.Result;switch(c){case"Checking":Sys.Net.WebServiceProxy.invoke(a.grid._task._servicePath,a.grid._task._serviceTaskMethod,false,{type:scheduler._type,uID:a._user_id,isEvent:scheduler._isEvent,startDate:a._date_start.format("yyyyMMdd"),endDate:a._date_end.format("yyyyMMdd")},onSearchSucc,function(){})}}function onSearchSucc(b){var a=document._form;scheduler&&scheduler.clearAll();scheduler.init(a.grid._task._schedulerId,a._date_start,"month");var c=JSON.parse(b);scheduler.parse(c.Data,"json");a.remove_onResponseComplete(on$Filter$ResponseComplete);$get("spanDate").innerHTML=a.grid._task.setFilterLabel(a._date_start.format("dd/MM/yyyy"),a._date_end.format("dd/MM/yyyy"));scheduler._date_start=a._date_start.format("yyyyMMdd");scheduler._date_end=a._date_end.format("yyyyMMdd")}]]>
+    </text>
+  </script>
+</dir>

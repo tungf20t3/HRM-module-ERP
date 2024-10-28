@@ -1,0 +1,63 @@
+﻿<!ENTITY % Conditional.CompactMode SYSTEM "..\Include\CompactMode.txt">
+<!ENTITY % Conditional.ExportImportTemplate SYSTEM "..\Include\ExportImportTemplate.txt">
+
+<![%Conditional.CompactMode;[
+  <!ENTITY NoticeResolveClientUrl "
+var notice$Query = '?type=TemplateUpload&amp;&ExportImportTemplate.UploadController;' + String.format('&amp;r={0}', Math.random());
+notice$Link = $func.resolveClientUrl('~/AppHandler/ExportHandler.ashx' + notice$Query, g._baseUrl);
+">
+
+  <!ENTITY NoticeMessageScriptUpdate "update$Messenger$Receipt($find(\'{0}\'), \'{1}\', \'{2}\');">
+  <!ENTITY NoticeMessageScriptRefesh "refesh$Messenger$Receipt($find(\'{0}\'), \'{1}\', \'{2}\');">
+
+  <!ENTITY NoticeMessageCheckText.v "'Vui lòng &lt;a onclick=&#34;&NoticeMessageScriptUpdate;&NoticeMessageScriptRefesh;&#34; href=&#34;{3}&#34; target=&#34;_blank&#34; style=&#34;color:#035ab8;&#34;&gt;tải lại tệp mẫu&lt;/a&gt; và cập nhật lại số liệu theo mẫu mới nếu tệp hiện thời chưa được bổ sung.'">
+  <!ENTITY NoticeMessageCheckText.e "'Please &lt;a onclick=&#34;&NoticeMessageScriptUpdate;&NoticeMessageScriptRefesh;&#34; href=&#34;{3}&#34; target=&#34;_blank&#34; style=&#34;color:#035ab8;&#34;&gt;download the latest template&lt;/a&gt; and fulfill your data again for the next upload.'">
+
+  <!ENTITY NoticeMessageCheckTextEnd "(g._language == 'v' ? ' Không hiển thị lại thông báo này.' : ' Do not show this message again.')">
+
+  <!ENTITY NoticeInputCheckStart "&lt;table width=&#34;100&#37;&#34; cellspacing=&#34;1&#34; cellpadding=&#34;1&#34;&gt;&lt;tbody&gt;&lt;tr height=&#34;3px&#34;/&gt;&lt;tr&gt;&lt;td width=&#34;5&#37;&#34;/&gt;&lt;td width=&#34;80&#37;&#34; style=&#34;color:#035ab8;&#34;&gt;">
+  <!ENTITY NoticeInputCheck "&lt;input id=&#34;messageCheckID&#34; style=&#34;vertical-align:middle;&#34; type=&#34;checkbox&#34; onclick=&#34;$find(\'{0}\')._$message=this.checked;&#34;&gt;">
+  <!ENTITY NoticeInputCheckEnd "&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;">
+
+  <!ENTITY NoticeExecuteCommand "g.request(g, 'Notice', 'Notice', [['c', 'String', '&Controller;'], ['action', 'String', action]]);">
+  <!ENTITY NoticeResponseComplete "
+    case 'Notice':
+      &NoticeResponseScript;
+      break;
+    case 'NoticeUpdate':
+      g._$message = null;
+      break;
+">
+  <!ENTITY NoticeResponseScript "
+var c = '&NoticeFormUploadID;', msg = result[0].Value;
+if ((g._$notice) || (msg == '')) show$Form(g, c);
+else {
+  var act = result[1].Value, notice$Link, notice$Message;
+  &NoticeResolveClientUrl;
+  notice$Message = String.format((g._language == 'v' ? &NoticeMessageCheckText.v; : &NoticeMessageCheckText.e;), g.get_id(), c, act, notice$Link);
+  msg = msg + String.format('&lt;div id=&#34;messageCheckLinkDownloadTemplate&#34; style=&#34;text-align:left;&#34;&gt;{0}&lt;/div&gt;', notice$Message);
+  msg = msg + String.format('&NoticeInputCheckStart;&NoticeInputCheck;{1}&NoticeInputCheckEnd;', g.get_id(), &NoticeMessageCheckTextEnd;);
+  $message.show(msg, String.format('&NoticeMessageScriptUpdate;show$Form($find(\'{0}\'), \'{1}\');', g.get_id(), c, act));
+}
+g._$notice = 1;
+">
+
+  <!ENTITY NoticeScript "
+function update$Messenger$Receipt(g, c, act) {g.request(g, 'NoticeUpdate', 'NoticeUpdate', [['c', 'String', '&Controller;'], ['action', 'String', act], ['chk', 'String', (g._$message ? 1 : 0)]]);}
+function refesh$Messenger$Receipt(g, c, act) {
+  var r = $get('messageCheckLinkDownloadTemplate');
+  if (r) {
+    &NoticeResolveClientUrl;
+    r.innerHTML = String.format((g._language == 'v' ? &NoticeMessageCheckText.v; : &NoticeMessageCheckText.e;), g.get_id(), c, act, notice$Link);
+  }
+}
+">
+  <!ENTITY NoticeResponse SYSTEM "..\Include\Command\NoticeResponse.txt">
+]]>
+
+
+<!ENTITY NoticeExecuteCommand "show$Form(g, '&NoticeFormUploadID;');">
+
+<!ENTITY NoticeResponseComplete "">
+<!ENTITY NoticeScript "">
+<!ENTITY NoticeResponse "">

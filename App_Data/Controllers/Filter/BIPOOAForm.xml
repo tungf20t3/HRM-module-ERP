@@ -1,0 +1,209 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "BIPOOA">
+  <!ENTITY DetailTable "bid10">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Vendor">
+  <!ENTITY c21 "Số thỏa thuận">
+  <!ENTITY c22 "Outline Agr. No.">
+  <!ENTITY c31 "Ngày thỏa thuận">
+  <!ENTITY c32 "Outline Agr. Date">
+
+  <!ENTITY BIGetPriceScript SYSTEM "..\Include\Javascript\BIOAGetPriceScript.txt">
+  <!ENTITY RetrieveGetPrice SYSTEM "..\Include\Command\BIRetrieveGetPrice.txt">
+]>
+
+<dir table="bim10$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Thỏa thuận mua hàng" e="Outline Agreement"></title>
+  <fields>
+    &XMLFlowFormFields;
+    <field name="ma_nh0" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="11010000001101: [ma_kh].Label, [ma_kh], [ten_kh%l], [stt_rec], [so_ct].Label, [so_ct]"/>
+      <item value="-----1-----101: [ma_nh0], [ngay_ct].Label, [ngay_ct]"/>
+
+      <item value="1: [&DetailTable;]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  f.setReadOnlyFields('ma_kh, so_ct, ngay_ct');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid;
+  f._denyFocus = true;
+  f.setItemValues('stt_rec, ma_kh, ten_kh%l, so_ct, ngay_ct', [g._voucher$Retrieve$ID, g._custID, g._custName, g._voucher$Retrieve$Number, g._voucher$Retrieve$Date]);
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var a = get$]]>&Identity;<![CDATA[Form$DataIR(f);
+      if (a) {
+        var z = f.grid, w = z.get_element().parentForm;
+        var listRow = a.Row.join(',') + ',', listItem = a.Item.join(',') + ',', listUom = a.Uom.join(',') + ',', listPlant = a.Plant.join(',') + ',', listQuantity = a.Quantity.join(',') + ',';
+        f.request('GetPrice', 'GetPrice', [
+          ['ds_dong', 'Infinite', listRow],
+          ['ds_ma_vt', 'Infinite', listItem],
+          ['ds_dvt', 'Infinite', listUom],
+          ['ds_ma_vung', 'Infinite', listPlant],
+          ['ds_so_luong', 'Infinite', listQuantity],
+          ['voucherCode', 'String', z._voucherCode],
+          ['defaultUOM', 'String', '0'],
+          ['getPrice', 'String', '1'],
+          ['ma_dvcs', 'String', w.getItemValue('ma_dvcs')],
+          ['ma_bp0', 'String', w.getItemValue('ma_bp0')],
+          ['ma_nh0', 'String', w.getItemValue('ma_nh0')],
+          ['ma_kh', 'String', w.getItemValue('ma_kh')],
+          ['ngay_lct', 'DateTime', w.getItemValue('ngay_lct')],
+          ['ma_nt', 'String', w.getItemValue('ma_nt')]
+        ]);
+        f._checked = false;
+      } else set$]]>&Identity;<![CDATA[Form$FlowScript(f);
+      break;
+    case 'GetPrice':
+      if (result[0].Value) insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f);
+      else {
+        var fields = 'dong,gia_chuan_nt,gia_nt,so_ct,ma_rb,sl_dat_tt,sl_dat_td,sai_can_duoi,sai_can_tren,so_ngay_giao,ct_gia_dk,ck_dv_nt,cp_dv_nt,ck_nt,cp_nt,exist_price,stt_rec,stt_rec0,get_price'.split(",");
+        var data = {dong: [], gia_chuan_nt: [], gia_nt: [], so_ct: [], ma_rb: [], sl_dat_tt: [], sl_dat_td: [], sai_can_duoi: [], sai_can_tren: [], so_ngay_giao: [], ct_gia_dk: [], ck_dv_nt: [], cp_dv_nt: [], ck_nt: [], cp_nt: [], exist_price: [], stt_rec: [], stt_rec0: [], get_price: []};
+        for (var r = 0; r < result.length; r++) {
+          var row  = result[r], key = row[1];
+          for (var i = 0; i < fields.length; i++) {
+            data[fields[i]].push(row[i + 1]);
+          }
+        }
+        insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f, data);
+      }
+      f.cancelDialog();
+      break;
+    default:
+      break;
+  }
+}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f, data) {
+  var g = f.getItem('bid10')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, stt_rec, stt_rec0, so_ct, ma_vt_ncc', f2 = 'so_luong, stt_rec_ttmh, stt_rec0ttmh, so_tham_chieu, ma_vt0';
+  var append = false, first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]), b = false;
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = g._getColumnOrder('so_luong0'), l7 = g._getColumnOrder('so_ngay_giao');
+  var l2 = z._getColumnOrder('dvt'), l3 = g._getColumnOrder('nhieu_dvt');
+  var l5 = g._getColumnOrder('ct_gia_dk'), l6 = z._getColumnOrder('gia_chuan_nt'), l7 = z._getColumnOrder('gia_nt'), l8 = z._getColumnOrder('gia');
+  var externalFields = '', fields = 'ma_vt, ten_vt%l, dvt, he_so, so_ngay_giao, ngay_giao, ma_vung, ma_kho, ma_thue, thue_suat, so_theo_doi, stt_rec_nc, stt_rec0nc, stt_rec_bg, stt_rec0bg, stt_rec_kh, stt_rec0kh, ma_rb, sai_can_duoi, sai_can_tren, so_tham_chieu, ct_gia_dk, cn_tt_gia, gia_chuan_nt, pp_ck_dv_nt, pp_cp_dv_nt, pp_ck_nt, pp_cp_nt, ]]>&XMLHiddenFields;<![CDATA[';
+
+  if (v) {fields += ', gia_chuan_nt'; f1 += ', gia_nt0'; f2 += ', gia_nt';}
+
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l1) != 0) {
+      b = true;
+      append = true;
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (check$GridVoucherDetail$DefaultMemvar(z, row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+      var index = -1;
+      if (data && data.dong.indexOf(r) > -1) index = data.dong.indexOf(r);
+      if (index != -1) {
+        z._activeRow = o.row;
+        if (data.get_price[index] == '1' && data.exist_price[index] == '1') {
+          z.setItemGridBehavior(o, [
+            ['gia_chuan_nt', [data.gia_chuan_nt[index], true], null, null],
+            ['so_tham_chieu', [data.so_ct[index], true], null, null],
+            ['ma_rb', [data.ma_rb[index], true], null, null],
+            ['ct_gia_dk', [data.ct_gia_dk[index], true], null, null],
+            ['stt_rec_tc', [data.stt_rec[index], true], null, null],
+            ['stt_rec0tc', [data.stt_rec0[index], true], null, null],
+            ['sai_can_duoi', data.sai_can_duoi[index], null, false],
+            ['sai_can_tren', data.sai_can_tren[index], null, false]
+          ]);
+          if (data.ct_gia_dk[index] == '') {
+            z.setItemGridBehavior(o, [
+              ['gia_nt', [data.gia_nt[index], true], null, null],
+              ['pp_ck_dv_nt', [data.ck_dv_nt[index], true], null, null],
+              ['pp_cp_dv_nt', [data.cp_dv_nt[index], true], null, null],
+              ['pp_ck_nt', [data.ck_nt[index], true], null, null],
+              ['pp_cp_nt', [data.cp_nt[index], true], null, null]
+            ]);
+          } else {
+            on$GridVoucherDetail$CalcPrice(z, o.row, null, null, null, null, 'gia_nt');
+          }
+          on$GridVoucherDetail$ValidPrice(z, o.row, 'gia_chuan_nt');
+          onChange$GridVoucherDetail$Allocation(o.row, z, w);
+        }
+      }
+      z.setItemGridBehavior(o, [['loai_hang', '1', '', null], ['pp_thay_doi', false, '', null], ['ct_gia_pv', '', '', null]]);
+
+      var v2 = (g._getItemValue(r, l5) != '');
+      $func.setObjectWhen(z._getItem(row, l2), g._getItemValue(r, l3));
+      $func.setObjectWhen(z._getItem(row, l6), true);
+      $func.setObjectWhen(z._getItem(row, l7), !v2);
+      $func.setObjectWhen(z._getItem(row, l8), !v2);
+
+      if (v) {z.executeExpression(o, [z.$a.gia_tg, z.$a.tien_nt, z.$a.tien_tg, z.$a.thue_nt, z.$a.thue_tg]);}
+    }
+  }
+
+  if (b) {
+    var oCus = w.getItem('ma_kh'), action = 'Customer', res = false;
+    if (oCus.value == '') {
+      w.setItemControlBehavior('ma_kh', m, f.getItemValue('ten_kh%l'), false);
+      res = true;
+    }
+
+    if (w.getItemValue('ma_tt') == '' && z._voucher$Retrieve$Payment) {
+      w.setItemValue('ma_tt', z._voucher$Retrieve$Payment);
+      w.setReferenceKeyFilter('ma_tt');
+      action = 'CustomerRetrieve';
+    }
+    if (res) onChange$Voucher$Customer(oCus, action);
+
+    on$GridVoucherDetail$RowChange(z, w);
+  }
+  z.executeAggregate([z.$a.t_so_luong]);
+
+  if (append && w.getItemValue('t_cp_nt')) w._is$Allocated = 0;
+  z._focusWhenTabChanged();
+}
+]]>
+      &BIGetPriceScript;
+    </text>
+  </script>
+
+  <response>
+    <action id="GetPrice">
+      <text>
+        &RetrieveGetPrice;
+      </text>
+    </action>
+  </response>
+</dir>

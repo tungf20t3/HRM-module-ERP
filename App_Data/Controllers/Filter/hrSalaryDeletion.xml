@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xóa lương" e="Salary Deletion"></title>
+  <fields>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false" align="right" aliasName="Period" defaultValue="(new Date()).getMonth() + 1">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="bo_phan" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" onDemand="true">
+      <header v="Mã nhân viên" e="Employee ID"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 230"/>
+      <item value="11---: [ky].Label, [ky]"/>
+      <item value="11---: [nam].Label, [nam]"/>
+      <item value="11010: [bo_phan].Label, [bo_phan], [ten_bp%l]"/>
+      <item value="11010: [ma_nv].Label, [ma_nv], [ten]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @$lockedDate nvarchar(512), @jointUnit bit, @jointDept bit, @bp_ref varchar(511), @min_ky_ngay_den smalldatetime
+select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+select @key = ''
+if @@admin = 0 exec AI_ERP$HRM$DeptRightFilter @@userID, @@admin, 'a', 'a', '@@sysDatabaseName', @key output, @jointUnit output, @jointDept output
+if @bo_phan <> '' select @key = @key + case when @key = '' then '' else ' and ' end + dbo.AI_ERP$Function$HRM$GetDeptRightKey(@bo_phan)
+
+--
+select top 0 a.ma_bp, b.bp_ref, cast(0 as int) as ky, cast(0 as int) as nam, a.ngay_tu as ky_ngay_tu, a.ngay_den as ky_ngay_den, a.so_ngay into #deptLocking from hrky a join hrbp b on a.ma_bp = b.ma_bp
+insert into #deptLocking(ma_bp, bp_ref, ky, nam, ky_ngay_tu, ky_ngay_den, so_ngay) exec AI_ERP$HRM$GetPeriod$Department @ky, @nam, @ky, @nam, '', @key, 'a', @@userID, @@admin, '@@sysDatabaseName'
+select @min_ky_ngay_den = min(ky_ngay_den) from #deptLocking
+
+--
+select top 0 ma_bp, bp_ref into #bp from hrbp
+select top 0 a.loai, a.ma_bp, a.ngay_ks, b.bp_ref into #hrbpks from hrbpks a, hrbp b
+
+select a.*, b.bp_ref into #dmbpks from hrbpks a with(nolock) join hrbp b with(nolock) on a.ma_bp = b.ma_bp where a.loai = 2
+
+set @q = 'insert into #bp select a.ma_bp, a.bp_ref from hrbp a with(nolock) where a.status = 1 ' + case when @key <> '' then ' and ' + @key else '' end
+exec sp_executesql @q
+insert into #hrbpks select 2, ma_bp, null, bp_ref from #bp
+
+select a.ma_bp, min(b.ngay_ks) ngay_ks, min(b.bp_ref) bp_ref into #bp0 from #bp a cross join #dmbpks b where a.bp_ref like rtrim(b.bp_ref) + '%' group by a.ma_bp
+--
+update #bp0 set bp_ref = b.bp_ref from #bp0 a left join hrbp b on a.ma_bp = b.ma_bp
+update #hrbpks set ngay_ks = b.ngay_ks from #hrbpks a join #dmbpks b on a.ma_bp = b.ma_bp
+update #hrbpks set ngay_ks = b.ngay_ks from #hrbpks a join #bp0 b on a.ma_bp = b.ma_bp and a.bp_ref = b.bp_ref where a.ngay_ks is null
+
+if exists(select 1 from dmstt where ngay_ks >= @min_ky_ngay_den) begin
+  select 'ky' as field, @$lockedDate as message
+  return
+end
+
+if exists(select 1 from #hrbpks a join #deptLocking b on a.ma_bp = b.ma_bp where a.ngay_ks >= b.ky_ngay_den) begin
+  select 'ky' as field, @$lockedDate as message
+  return
+end
+
+--
+drop table #bp
+drop table #bp0
+drop table #hrbpks
+drop table #dmbpks
+drop table #deptLocking
+
+exec hs_DeletePayroll @ky, @nam, @bo_phan, @ma_nv, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+      </text>
+    </command>
+  </commands>
+
+</dir>

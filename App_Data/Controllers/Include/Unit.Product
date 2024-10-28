@@ -1,0 +1,31 @@
+﻿<![%Conditional.Control.Unit.Product;[
+  %Control.Unit.Include;
+  <!ENTITY Conditional.Control.Unit.Product.Query "declare @q varchar(1024);select @q = '';if @@admin = 0 begin exec AI_ERP$System$GetUnitFilter '' , @@userID, @@admin, 'b', 'ma_vt', 'ma_dvcs', 'b.ds_dvcs', 'dmvtdv', @q output;select @q = 'a.ma_sp = b.ma_vt' + case when @q = '' then '' else ' and ' + @q end end">
+  <!ENTITY Conditional.Control.Unit.Product.Source " + case when @@admin = 1 then '' else ' a, dmvt b' end">
+  <!ENTITY Conditional.Control.Unit.Product.Alias " + case when @@admin = 1 then '' else 'a.' end">
+
+  <!ENTITY Conditional.Control.Unit.Product.Parameters ", @@queryString, @q">
+  <!ENTITY Conditional.Control.Unit.Product.Variable ", default, default, default, default, @alias">
+  <!ENTITY Conditional.Control.Unit.Product.Extension ", default, default, default, @alias">
+
+  <!ENTITY Conditional.Control.Unit.Product.Conditional "@@admin = 0">
+  <!ENTITY Conditional.Control.Unit.Product.FilterQuery "declare @q varchar(1024);select @q = '';if @@admin = 0 exec AI_ERP$System$GetUnitFilter '' , @@userID, @@admin, '&#37;[a]', 'ma_vt', 'ma_dvcs', '&#37;[a].ds_dvcs', 'dmvtdv', @q output">
+  <!ENTITY Conditional.Control.Unit.Product.DataSource "dmvt">
+  <!ENTITY Conditional.Control.Unit.Product.FilterKey "@q">
+
+  <!ENTITY ProductDefault "">
+]]>
+<!ENTITY Conditional.Control.Unit.Product.Query "">
+<!ENTITY Conditional.Control.Unit.Product.Source "">
+<!ENTITY Conditional.Control.Unit.Product.Alias "">
+
+<!ENTITY Conditional.Control.Unit.Product.Parameters ", @@queryString">
+<!ENTITY Conditional.Control.Unit.Product.Variable "">
+<!ENTITY Conditional.Control.Unit.Product.Extension "">
+
+<!ENTITY Conditional.Control.Unit.Product.Conditional "0 = 1">
+<!ENTITY Conditional.Control.Unit.Product.FilterQuery "">
+<!ENTITY Conditional.Control.Unit.Product.DataSource "">
+<!ENTITY Conditional.Control.Unit.Product.FilterKey "''">
+
+<!ENTITY ProductDefault ", default">

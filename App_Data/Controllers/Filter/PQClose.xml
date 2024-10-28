@@ -1,0 +1,148 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterInit SYSTEM "..\Include\XML\WhenFilterInit.xml">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY TableDetail "d92">
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+]>
+
+<dir table="m92$000000" code="stt_rec" order="ngay_ct, so_ct" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày lập từ" e="Voucher Date from"></header>
+      <footer v="Ngày lập từ/đến" e="Voucher Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày lập đến" e="Voucher Date to"></header>
+    </field>
+    <field name="so_ct1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Số đề nghị từ/đến" e="RFQ No. from/to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ct2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="" e=""></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="ma_kh" filterSource="master" operation="10">
+      <header v="Mã nhà cung cấp" e="Supplier"></header>
+      <items style="AutoComplete" controller="&VendorController;" reference="ten_ncc%l" key="cc_yn = 1 and status = '1'" check="cc_yn = 1"/>
+    </field>
+    <field name="ten_ncc%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_th_bg" dataFormatString="@upperCaseFormat" filterSource="master" operation="20">
+      <header v="Số tập hợp báo giá" e="Collection No."></header>
+      <items style="Mask"/>
+    </field>
+
+    <field name="ma_vt" categoryIndex="1" filterSource="detail" operation="10">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1" information="&TableDetail;"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vung" categoryIndex="1" filterSource="detail" operation="20">
+      <header v="Mã vùng" e="Plant"></header>
+      <items style="AutoComplete" controller="BIPlant" reference="ten_vung%l" key="status = '1'" check="1 = 1" information="&TableDetail;"/>
+    </field>
+    <field name="ten_vung%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_theo_doi" categoryIndex="1" dataFormatString="@upperCaseFormat" align="right" maxLength="-102" filterSource="detail" operation="30">
+      <header v="Số theo dõi" e="Tracking No."></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="ma_vt_ncc" categoryIndex="1" dataFormatString="@upperCaseFormat" align="right" maxLength="-102" filterSource="detail" operation="40">
+      <header v="Mã của nhà cung cấp" e="Vendor Material No."></header>
+      <items style="Mask"></items>
+    </field>
+
+    <field name="ma_bp0" categoryIndex="2" filterSource="master" operation="30">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+      <items style="AutoComplete" controller="BIPurchasingOrganization" reference="ten_bp0%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''" categoryIndex="2">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nh0" categoryIndex="2" filterSource="master" operation="40">
+      <header v="Nhóm mua" e="Purchasing Group"></header>
+      <items style="AutoComplete" controller="BIPurchasingGroup" reference="ten_nh0%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_nh0%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''" categoryIndex="2">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="status" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="9">
+      <header v="Trạng thái" e="Status"></header>
+      <footer v="0 - Chưa đóng, 1 - Đã đóng" e="0 - Open, 1 - Close"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="-1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="user_id0" dataFormatString="0, 1" clientDefault="0" align="right" inactivate="true" categoryIndex="-1">
+      <header v="Người sử dụng" e="User"></header>
+      <footer v="1 - Lọc theo người sử dụng, 0 - Không" e="1 - Filter by User, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="112">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="1101: [so_ct1].Label, [so_ct1], [so_ct2]"/>
+      <item value="11010: [ma_kh].Label, [ma_kh], [ten_ncc%l]"/>
+      <item value="110--: [so_th_bg].Label, [so_th_bg]"/>
+
+      <item value="11010: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11010: [ma_vung].Label, [ma_vung], [ten_vung%l]"/>
+      <item value="110: [so_theo_doi].Label, [so_theo_doi]"/>
+      <item value="110: [ma_vt_ncc].Label, [ma_vt_ncc]"/>
+
+      <item value="11010: [ma_bp0].Label, [ma_bp0], [ten_bp0%l]"/>
+      <item value="11010: [ma_nh0].Label, [ma_nh0], [ten_nh0%l]"/>
+
+      <item value="11100: [status].Label, [status], [status].Description"/>
+
+      <item value="11010: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="11100: [user_id0].Label, [user_id0], [user_id0].Description"/>
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 230">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+        <category index="2" columns="120, 30, 70, 100, 230">
+          <header v="Công ty" e="Organization"/>
+        </category>
+        <category index="9" columns="120, 30, 70, 100, 230">
+          <header v="Khác" e="Other"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterInit;
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFilterInit;
+      <![CDATA[function onChange$VoucherFilter$Tab(a){a.parentForm.focusWhenTabChanged(["ma_vt","ma_bp0","status"])}function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);a._tabContainer.add_activeTabChanged(onChange$VoucherFilter$Tab);a._tabContainer._loaded=true}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}if(a._tabContainer)try{a._tabContainer.remove_activeTabChanged(onChange$VoucherFilter$Tab)}catch(b){}}function on$Filter$ResponseComplete(f,b){var c=b.object,d=b.type.Context,e=b.type.Result;switch(d){case"Checking":var a=c.grid;a._authorizeType=c.getItemValue("status");if(a._$k!=null)a._$k=[];if(a._$v!=null)a._$v=[]}}]]>
+    </text>
+  </script>
+</dir>

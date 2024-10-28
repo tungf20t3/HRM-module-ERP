@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="hrky" code="ky, nam" order="nam, ky" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Sao chép số liệu năm trước" e="Copy Data from Previous Year"></title>
+
+  <fields>
+    <field name="del" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Xóa năm hiện tại" e="Clear before copy"></header>
+      <footer v="1 - Có, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="type" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Kiểu sao chép" e="Type"></header>
+      <footer v="1 - Chép đè, 0 - Không" e="1 - Overwrite, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="ky" type="Decimal" dataFormatString="#0" isPrimaryKey="true" readOnly="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" isPrimaryKey="true" readOnly="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 10, 60, 100, 230, 0, 0, 0"/>
+      <item value="11100011-: [del].Label, [del], [del].Description, [ky], [nam]"/>
+      <item value="111000000: [type].Label, [type], [type].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'this.getItem(''nam'').value = this.grid._year;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+create table #dept(ma_bp varchar(16))
+if @@admin <> 1 insert into #dept select ma_bp from hrbp where (ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'
+
+select ky, nam + 1 as nam, ma_bp, dateadd(year, 1, ngay_tu) as ngay_tu, dateadd(year, 1, ngay_den) as ngay_den
+  into #t from hrky a where nam = @nam - 1 and (ma_bp in (select ma_bp from #dept) or @@admin = 1)
+
+if @del = 1 delete hrky where nam = @nam and (ma_bp in (select ma_bp from #dept) or @@admin = 1)
+else begin
+  if @type = 1 delete hrky from hrky a join #t b on a.nam = b.nam and a.ky = b.ky and a.ma_bp = b.ma_bp where (a.ma_bp in (select ma_bp from #dept) or @@admin = 1)
+    else delete #t from #t a join hrky b on a.nam = b.nam and a.ky = b.ky and a.ma_bp = b.ma_bp where (a.ma_bp in (select ma_bp from #dept) or @@admin = 1)
+end
+if @@admin = 1 insert into #dept select ma_bp from hrbp
+insert into hrky (ky, nam, ma_bp, ngay_tu, ngay_den, so_ngay, datetime0, datetime2, user_id0, user_id2)
+  select ky, @nam, b.ma_bp, ngay_tu, ngay_den, 0, getdate(), getdate(), @@userID, @@userID from #dept a join #t b on a.ma_bp = b.ma_bp
+
+drop table #t
+drop table #dept
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+</dir>

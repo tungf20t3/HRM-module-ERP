@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "PVIR">
+  <!ENTITY DetailTable "d74">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Supplier">
+  <!ENTITY c21 "Số phiếu nhập">
+  <!ENTITY c22 "Receipt Number">
+  <!ENTITY c31 "Ngày phiếu nhập">
+  <!ENTITY c32 "Receipt Date">
+
+  <!ENTITY % BIMode.POFlow SYSTEM "..\Include\BIMode.POFlow">
+  %BIMode.POFlow;
+
+  <!ENTITY % BIMode.PVTran.Flow SYSTEM "..\Include\BIMode.PVTran.Flow">
+  %BIMode.PVTran.Flow;
+]>
+
+<dir table="m74$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Phiếu nhập kho" e="Receipt"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d74')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, tk_du, stt_rec, stt_rec0, so_ct, line_nbr, stt_rec_nm, stt_rec0nm, nm_so, nm_ln]]>&BI.FlowSA.Fields.F1;<![CDATA[', f2 = 'so_luong, tk_vt, stt_rec_ir, stt_rec0ir, ir_so, ir_ln, stt_rec_pn, stt_rec0pn, pn_so, pn_ln]]>&BI.FlowSA.Fields.F2;<![CDATA[';
+  var first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]);
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = z._getColumnOrder('dvt'), l2 = g._getColumnOrder('nhieu_dvt'), l3 = g._getColumnOrder('so_luong0'), l4 = z._getColumnOrder('tk_vt'), l5 = g._getColumnOrder('sua_tk_vt');
+  var fields = 'ma_vt, ten_vt%l, dvt, ma_kho, ma_vi_tri, ma_lo, gia_ton, ]]>&XMLHiddenFields;&BI.PO.Flow.Fields;&BI.FlowOA.Fields;<![CDATA[, he_so, vi_tri_yn, lo_yn, tao_lo, stt_rec_dh, stt_rec0dh, dh_so, dh_ln';
+  if (v) {
+    f1 += ', gia_nt';
+    f2 += ', gia_nt0';
+  }
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l3) != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+      z.executeExpression(o, [z.$a.gia0_tg, z.$a.tien_nt0, z.$a.tien0]);
+      $func.setObjectWhen(z._getItem(row, l1), g._getItemValue(r, l2));
+      $func.setObjectWhen(z._getItem(row, l4), g._getItemValue(r, l5));
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong, z.$a.t_tien_nt0, z.$a.t_tien0]);
+  w.executeExpression([z.$a.t_tt_nt, z.$a.t_tt]);
+
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

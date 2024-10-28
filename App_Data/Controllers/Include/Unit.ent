@@ -1,0 +1,211 @@
+﻿<!ENTITY % Conditional.Control.Unit SYSTEM "..\Include\Unit.txt">
+<!ENTITY % Conditional.Control.Unit.Access SYSTEM "..\Include\Unit.Access">
+
+<![%Conditional.Control.Unit;[
+  <!ENTITY % Conditional.Control.Unit.Account "INCLUDE">
+  <!ENTITY % Conditional.Control.Unit.Customer "INCLUDE">
+
+  <!ENTITY % Conditional.Control.Unit.Item "INCLUDE">
+  <!ENTITY % Conditional.Control.Unit.Product "INCLUDE">
+
+  <!ENTITY % Conditional.Control.Unit.Department "INCLUDE">
+  <!ENTITY % Conditional.Control.Unit.Job "INCLUDE">
+  <!ENTITY % Conditional.Control.Unit.Contract "INCLUDE">
+  <!ENTITY % Conditional.Control.Unit.Expense "INCLUDE">
+  <!ENTITY % Conditional.Control.Unit.LoanContract "INCLUDE">
+
+  <!ENTITY Import.Query.Declare "declare @q varchar(1024); exec AI_ERP$System$GetUnitFilter '' , @@userID, @@admin, '{0}', '{1}', 'ma_dvcs', 'ds_dvcs', '{2}', @q output; declare @t table (id varchar(32), k varchar(1024))">
+  <!ENTITY Import.Query.Result "select * from @t;return">
+]]>
+
+<!ENTITY % Conditional.BIMode SYSTEM "..\Include\BIMode.txt">
+<![%Conditional.BIMode;[
+  <!ENTITY Import.Query.Declare "declare @q varchar(1024); declare @t table (id varchar(32), k varchar(1024))">
+  <!ENTITY Import.Query.Result "select * from @t;return">
+]]>
+
+<!ENTITY % Conditional.Control.Unit.MO "INCLUDE">
+
+<!ENTITY % Conditional.Control.Unit.Account "IGNORE">
+<!ENTITY % Conditional.Control.Unit.Customer "IGNORE">
+
+<!ENTITY % Conditional.Control.Unit.Item "IGNORE">
+<!ENTITY % Conditional.Control.Unit.Product "IGNORE">
+
+<!ENTITY % Conditional.Control.Unit.Department "IGNORE">
+<!ENTITY % Conditional.Control.Unit.Job "IGNORE">
+<!ENTITY % Conditional.Control.Unit.Contract "IGNORE">
+<!ENTITY % Conditional.Control.Unit.Expense "IGNORE">
+
+<!ENTITY % Conditional.Control.Unit.LoanContract "IGNORE">
+
+
+<![%Conditional.Control.Unit;[
+  <!ENTITY Control.Unit.Inserted "declare @max int
+select @max = max(id) + 1 from @@table
+update @@table set id = isnull(@max, 1) where ma_dvcs = @ma_dvcs">
+]]>
+
+<!ENTITY Control.Unit.Inserted "">
+
+<![%Conditional.Control.Unit.Access;[
+  <!ENTITY Control.Unit.Access.Type "1">
+  <!ENTITY Control.Unit.Access.UnitFilter "@@0">
+  <!ENTITY Control.Unit.Access.UnitQuery "declare @q varchar(1024); exec AI_ERP$System$GetUnitFilter '', @@userID, @@admin, '', '', 'ma_dvcs', '', '', @q output, &Control.Unit.Access.Type;; select '&amp;' + char(255) + ';' + @q as value">
+
+  <!ENTITY Lookup.Unit SYSTEM "..\Lookup\Config\Unit.xml">
+  <!ENTITY Lookup.Site SYSTEM "..\Lookup\Config\Site.xml">
+  <!ENTITY Lookup.BIBlockOrderByItem SYSTEM "..\Lookup\Config\BIBlockOrderByItem.xml">
+
+  <!ENTITY Lookup.VoucherBook SYSTEM "..\Lookup\Config\VoucherBook.xml">
+]]>
+<!ENTITY Control.Unit.Access.UnitFilter "">
+<!ENTITY Control.Unit.Access.UnitQuery "">
+<!ENTITY Lookup.BIBlockOrderByItem "">
+
+<!ENTITY % Control.Unit.Include SYSTEM "..\Include\Unit.f">
+
+<!ENTITY % Control.Unit.Include.Account SYSTEM "..\Include\Unit.Account">
+<!ENTITY % Control.Unit.Include.Customer SYSTEM "..\Include\Unit.Customer">
+
+<!ENTITY % Control.Unit.Include.Item SYSTEM "..\Include\Unit.Item">
+<!ENTITY % Control.Unit.Include.Product SYSTEM "..\Include\Unit.Product">
+
+<!ENTITY % Control.Unit.Include.Department SYSTEM "..\Include\Unit.Department">
+<!ENTITY % Control.Unit.Include.Job SYSTEM "..\Include\Unit.Job">
+<!ENTITY % Control.Unit.Include.Contract SYSTEM "..\Include\Unit.Contract">
+<!ENTITY % Control.Unit.Include.Expense SYSTEM "..\Include\Unit.Expense">
+<!ENTITY % Control.Unit.Include.LoanContract SYSTEM "..\Include\Unit.LoanContract">
+
+
+
+<![%Conditional.Control.Unit.Account;[
+  <!ENTITY Lookup.Account SYSTEM "..\Lookup\Config\Account.xml">
+  <!ENTITY Lookup.Account.JobAccumulation SYSTEM "..\Lookup\Config\JobAccumulation.xml">
+
+  <!ENTITY Account.Delimiter ", ">
+  <!ENTITY Account.Code "tk">
+  <!ENTITY Account.Reference "tk_du">
+  <!ENTITY Account.Debit "tk_no">
+  <!ENTITY Account.Credit "tk_co">
+  <!ENTITY Account.Tax "tk_thue">
+  <!ENTITY Account.Tax.Debit "tk_thue_no">
+  <!ENTITY Account.Tax.Credit "tk_thue_co">
+
+  <!ENTITY Import.Query.Account "insert into @t select 'Account', replace(replace(replace(@q, '{0}', 'dmtk'), '{1}', 'tk'), '{2}', 'dmtkdv')">
+  <!ENTITY Import.Define.Account SYSTEM "..\Templates\Upload\Config\Include\Unit.Account">
+
+  <!ENTITY % Conditional.DetailTax SYSTEM "..\Include\DetailTax.txt">
+  <![%Conditional.DetailTax;[
+
+    <!ENTITY TaxDetail.Delimiter ", ">
+    <!ENTITY TaxDetail.Account "tk_thue">
+  ]]>
+  <!ENTITY Lookup.Controller.Account "Account">
+  <!ENTITY Lookup.Regular.Account "&Config.Regular.Account;">
+  <!ENTITY Account.ExchangeRate "
+select * into #t1 from #t
+delete #t1 where tk not in (select tk from dmtkdv)
+delete #t1 from #t1 a join dmtkdv b on a.ma_dvcs = b.ma_dvcs and a.tk = b.tk
+
+if exists(select a.* from #t1 a join dmtkdv b on a.ma_dvcs &lt;&gt; b.ma_dvcs and a.tk &lt;&gt; b.tk) begin
+  select '' as array$, 1 as value
+  return
+end
+">
+]]>
+<![%Conditional.Control.Unit.Customer;[
+  <!ENTITY Lookup.Customer SYSTEM "..\Lookup\Config\Customer.xml">
+  <!ENTITY Lookup.Supplier SYSTEM "..\Lookup\Config\Supplier.xml">
+
+  <!ENTITY Customer.Code "ma_kh">
+
+  <!ENTITY Import.Query.Customer "insert into @t select 'Customer', replace(replace(replace(@q, '{0}', 'dmkh'), '{1}', 'ma_kh'), '{2}', 'dmkhdv')">
+  <!ENTITY Import.Define.Customer SYSTEM "..\Templates\Upload\Config\Include\Unit.Customer">
+  <!ENTITY Lookup.Controller.Customer "Customer">
+  <!ENTITY Lookup.Regular.Customer "&Config.Regular.Customer;">
+
+  <!ENTITY GroupListUnitRight "1">
+]]>
+
+<![%Conditional.Control.Unit.Item;[
+  <!ENTITY Lookup.Item SYSTEM "..\Lookup\Config\Item.xml">
+  <!ENTITY Lookup.Item.ItemUOMConversion SYSTEM "..\Lookup\Config\ItemUOMConversion.xml">
+
+  <!ENTITY Item.Code "ma_vt">
+
+  <!ENTITY Import.Query.Item "insert into @t select 'Item', replace(replace(replace(@q, '{0}', 'dmvt'), '{1}', 'ma_vt'), '{2}', 'dmvtdv')">
+  <!ENTITY Import.Define.Item SYSTEM "..\Templates\Upload\Config\Include\Unit.Item">
+
+  <!ENTITY GroupListUnitRight "1">
+]]>
+<![%Conditional.Control.Unit.Product;[
+  <!ENTITY Lookup.Product SYSTEM "..\Lookup\Config\Product.xml">
+
+  <!ENTITY Product.Code "ma_sp">
+
+  <!ENTITY Import.Query.Product "insert into @t select 'Product', replace(replace(replace(@q, '{0}', 'vdmsp'), '{1}', 'ma_vt'), '{2}', 'dmvtdv')">
+  <!ENTITY Import.Define.Product SYSTEM "..\Templates\Upload\Config\Include\Unit.Product">
+  <!ENTITY Lookup.Controller.Product "Product">
+  <!ENTITY Lookup.Regular.Product "&Config.Regular.Product;">
+
+  <!ENTITY GroupListUnitRight "1">
+]]>
+
+
+<![%Conditional.Control.Unit.Department;[
+  <!ENTITY Lookup.Department SYSTEM "..\Lookup\Config\Department.xml">
+  <!ENTITY Lookup.Section SYSTEM "..\Lookup\Config\Section.xml">
+
+  <!ENTITY Import.Query.Department "insert into @t select 'Department', replace(replace(replace(@q, '{0}', 'dmbp'), '{1}', 'ma_bp'), '{2}', 'dmbpdv')">
+  <!ENTITY Import.Query.Section "insert into @t select 'Section', replace(replace(replace(@q, '{0}', 'vxdmbp'), '{1}', 'ma_bp'), '{2}', 'dmbpdv')">
+
+  <!ENTITY Import.Define.Department SYSTEM "..\Templates\Upload\Config\Include\Unit.Department">
+  <!ENTITY Import.Define.Section SYSTEM "..\Templates\Upload\Config\Include\Unit.Section">
+]]>
+<![%Conditional.Control.Unit.Job;[
+  <!ENTITY Lookup.Job SYSTEM "..\Lookup\Config\Job.xml">
+
+  <!ENTITY Import.Query.Job "insert into @t select 'Job', replace(replace(replace(@q, '{0}', 'dmvv'), '{1}', 'ma_vv'), '{2}', 'dmvvdv')">
+  <!ENTITY Import.Define.Job SYSTEM "..\Templates\Upload\Config\Include\Unit.Job">
+  <!ENTITY Import.Define.Job.Accumulation SYSTEM "..\Templates\Upload\Config\Include\Unit.Job.Accumulation">
+  <!ENTITY Lookup.Controller.Job "Job">
+  <!ENTITY Lookup.Regular.Job "&Config.Regular.Job;">
+
+  <!ENTITY GroupListUnitRight "1">
+]]>
+<![%Conditional.Control.Unit.Contract;[
+  <!ENTITY Lookup.Contract SYSTEM "..\Lookup\Config\Contract.xml">
+
+  <!ENTITY Import.Query.Contract "insert into @t select 'Contract', replace(replace(replace(@q, '{0}', 'dmhd'), '{1}', 'ma_hd'), '{2}', 'dmhddv')">
+  <!ENTITY Import.Define.Contract SYSTEM "..\Templates\Upload\Config\Include\Unit.Contract">
+
+  <!ENTITY GroupListUnitRight "1">
+]]>
+<![%Conditional.Control.Unit.Expense;[
+  <!ENTITY Lookup.Expense SYSTEM "..\Lookup\Config\Expense.xml">
+
+  <!ENTITY Import.Query.Expense "insert into @t select 'Expense', replace(replace(replace(@q, '{0}', 'dmphi'), '{1}', 'ma_phi'), '{2}', 'dmphidv')">
+  <!ENTITY Import.Define.Expense SYSTEM "..\Templates\Upload\Config\Include\Unit.Expense">
+
+  <!ENTITY GroupListUnitRight "1">
+]]>
+<![%Conditional.Control.Unit.LoanContract;[
+  <!ENTITY Lookup.LoanContract SYSTEM "..\Lookup\Config\LoanContract.xml">
+
+  <!ENTITY Import.Query.LoanContract "insert into @t select 'LoanContract', replace(replace(replace(@q, '{0}', 'dmku'), '{1}', 'ma_ku'), '{2}', 'dmkudv')">
+  <!ENTITY Import.Define.LoanContract SYSTEM "..\Templates\Upload\Config\Include\Unit.LoanContract">
+]]>
+
+<![%Conditional.Control.Unit.MO;[
+  <!ENTITY Lookup.MO SYSTEM "..\Lookup\Config\MO.xml">
+  <!ENTITY Import.Define.MO SYSTEM "..\Templates\Upload\Config\Include\Unit.MO">
+  <!ENTITY Lookup.Controller.MO "MO">
+  <!ENTITY Lookup.Regular.MO "&Config.Regular.MO;">
+]]>
+
+
+<!ENTITY % Control.Unit.Ignore SYSTEM "..\Include\Unit.e">
+
+<!ENTITY ListWhenBeforeUpdateLog "">
+<!ENTITY ListWhenBeforeDeleteLog "">

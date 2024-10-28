@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY CommandCheckLockedDate SYSTEM "..\Include\Command\ProcessLockedDate.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir" id="PND">
+  <title v="Khóa số liệu" e="Stocktaking Data Closing"></title>
+  <fields>
+    <field name="ngay_ks_kk" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" align="left">
+      <header v="Khóa số liệu đến ngày" e="Closing Date"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 330"/>
+      <item value="11: [ngay_ks_kk].Label, [ngay_ks_kk]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+if not exists(select 1 from dmstt) select @message = 'this._lockDate=null;'
+else begin
+  select @message = 'this._lockDate=' + case when ngay_ks_kk is null then 'null' else 'new Date(''' + convert(varchar(10), ngay_ks_kk, 111) + ''');' end from dmstt
+end
+select @message = @message + 'active$VoucherFilter$(this);'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+update dmstt set ngay_ks_kk = @ngay_ks_kk
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.setItemValue('ngay_ks_kk', f._lockDate);
+  f.live(f.getItem('ngay_ks_kk'));
+}
+]]>
+    </text>
+  </script>
+
+</dir>

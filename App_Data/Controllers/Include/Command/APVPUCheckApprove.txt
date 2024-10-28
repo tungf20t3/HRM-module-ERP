@@ -1,0 +1,15 @@
+﻿<![CDATA[
+declare @keyCategory nvarchar(4000)
+select @keyCategory = ]]>&APVCheckCategory;<![CDATA[
+exec AI_ERP$APV$PU$GetApprovalCategory ']]>&APVApprovalType;<![CDATA[', @keyCategory, @kieu_duyet output
+declare @role varchar(32), @m1 nvarchar(4000)
+if @status = ']]>&APVStatusApprove;<![CDATA[' begin
+  if @u_status in ('', '0') select @u_status = ']]>&APVStatusOpen;<![CDATA['
+  exec AI_ERP$APV$PU$GetApprovalRole ']]>&APVApprovalType;<![CDATA[', @@userID, @u_status, @kieu_duyet, @role output
+  if @role = '' or exists(select 1 from ]]>&APVHisTable;<![CDATA[ where xtype in ('1', '2') and reset = 0 and stt_rec = @stt_rec and user_id4 = @@userID group by stt_rec, user_id4 having count(*) % 2 = 1)  begin
+    select @m1 = case when @@language = 'V' then N'Bạn chưa có hoặc chưa được phân quyền thực hiện chức năng duyệt.' else 'You do not have permission to perform this action, please contact your administrator.' end
+    select @m1 as message
+    return
+  end
+end
+]]>

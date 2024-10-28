@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\Circular\A1080\ReportCircularTypeField.05KK.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="nam" type="Int16" dataFormatString="###0" allowNulls="false">
+      <header v ="Năm" e ="Year"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="bo_sung" type="Decimal" dataFormatString="#0">
+      <header v ="Lần bổ sung" e ="Additional Times"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1 "/>
+    </field>
+    <field name="mau_bc" clientDefault="10">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportCircularTypeField;
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 10, 60, 100, 100, 130"/>
+      <item value="110----: [nam].Label, [nam]"/>
+      <item value="110----: [bo_sung].Label, [bo_sung]"/>
+      <item value="110000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110000-: [chon_tt].Label, [chon_tt]"/>
+      <item value="110000-: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @nam as nam, @bo_sung as bo_sung
+exec hs_rpt05KK @nam, @ma_dvcs, @chon_tt, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);!a.getItemValue("nam")&&a.setItemValue("nam",(new Date).getFullYear());a.live(a.getItem("nam"));changeLookupReadonly(a,"ma_dvcs",true)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,d){var a=d.object,e=d.type.Context,h=d.type.Result;switch(e){case"Checking":var b=a.grid,g=a.getItemValue("mau_bc"),f=a.getItem("nam").value,j,c=a.getItemValue("chon_tt");b._alterTitle=[null,[["%y",f,true]]];b._hiddenFields=[{Fields:"dvt_nt, gia_tri_nt",Value:g=="10"}];b._hiddenForms=[{Form:[1,2,3,6,7,8],Value:c=="1"},{Form:[0,2,3,5,7,8],Value:c=="2"},{Form:[0,1,3,5,6,8],Value:c=="3"},{Form:[0,1,2,5,6,7],Value:c=="4"}];remove$GridReport$Filter(b)}}
+]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

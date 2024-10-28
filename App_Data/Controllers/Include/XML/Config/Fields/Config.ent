@@ -1,0 +1,29 @@
+﻿<!ENTITY % Conditional.Config SYSTEM "Field.txt">
+
+<![%Conditional.Config;[
+  <!ENTITY Config.Field SYSTEM "Field.ext">
+  <!ENTITY Config.Loading "this._admin = ' + rtrim(@@admin) + ';">
+
+  <!ENTITY Config.InitExternalFields.Declare "declare @c char(1); if exists(select 1 from @@sysDatabaseName..sysvouchertype where ma_ct = @ma_ct) select @c = '1' else select @c = '0'">
+  <!ENTITY Config.InitExternalFields.Select ", @c as c">
+
+  <!ENTITY Config.Updating "declare @$change int; select @$change = case when exists(select 1 from @@sysDatabaseName..voucherinfo where ma_ct = @ma_ct and hide &lt;&gt; @hide) then 1 else 0 end">
+  <!ENTITY Config.Updated "
+if (@@admin = 1 and @$change = 1) begin
+  select '' as message, 'Fields.Fields.Config(0 , ' + left(replace(@ma_ct, '''', ''), 3) + ', AI_ERP$Config$Fields, )' as invoke
+  return
+end">
+
+  <!ENTITY Config.Tab "if (!f._admin || f.getItemValue('c') == '0') {f._tabContainer.get_tabs()[2]._hide();if (z) z.setAttribute('accesskey', '');}">
+]]>
+
+<!ENTITY Config.Field "">
+<!ENTITY Config.Loading "">
+
+<!ENTITY Config.InitExternalFields.Declare "">
+<!ENTITY Config.InitExternalFields.Select "">
+
+<!ENTITY Config.Updating "">
+<!ENTITY Config.Updated "">
+
+<!ENTITY Config.Tab "">

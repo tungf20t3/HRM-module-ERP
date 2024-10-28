@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="Calculate FIFO Cost .doc" />
+<title>Calculate Average Cost</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+
+</head>
+<body>
+<p id="td1">Calculate Monthly and Daily Average Cost</p>
+
+<p id="td2">Average Cost Logic</p>
+
+<p id="p2">Monthly average cost can be calculated by formula:
+<p id="pic"><img src="eng/CalculateAverageCost5.png"/></p>
+<p class="e">Example: Receipt, issue, stock of item VT1 (opening balance=0) in January 2006:</p>
+<br/> <p id="pic"><img src="eng/CalculateAverageCost6.png"/></p>
+
+<p class="e">Average cost used for Issue no. 004 can be calculated by formula:</p>
+ <p id="pic"><img src="eng/CalculateAverageCost7.png"/></p>
+
+<p id="p2">Average cost is calculated at the end of a month or period (quarter, half-year or year) after users update all receipt & issue vouchers in period. This cost will be used to update issue vouchers including: 
+ 
+<ul class="lo_2">
+-	Issues<br/>
+-	Transfers<br/>
+-	Sales Invoice<br/>
+-	Receipt by average cost
+</ul>
+
+<p id="p2">
+Average cost is used to support in calculating issue cost of items received from many sources. To control calculating process and result, notice the following:</p>
+<p class="node">	Purchase expenses<p class="node_d">
+Purchase expenses, adjustment related to value only can be updated as a common record (with site code, item code) but quantity is=0. These expenses will be added to cost price of items, goods.
+<p class="node">	Multi-site manage<p class="node_d">
+In case there is a kind of item in many sites, inventory cost can be defined in 02 ways: one average cost for all sites in enterprise or different cost for each item in each site. These 02 options are declared in “Optional parameters".<br/>
+If one average cost is used for a kind of item in many sites, there will be actions:<br/>
+-	“Stock Transfers in” and Receipts following average cost will not be used in cost calculating. <br/>
+-	All Issues will be updated with a calculated cost except ones of items which specific cost calculated by monthly average method.
+<p class="node">	In-Out Difference and process<p class="node_d">
+If one average cost is used to create all in-out reports, there will not be the difference between “End-month stock value” and “End-month stock quantity * Average unit cost” but the difference can occur when creating in-out reports of each site or group. To process the difference, you should create difference balance entry for each site. It can be automatically created by program when calculating average cost.
+
+<p id="td2">Related System Parameters</p>
+<p class="node">	Calculate FC Average Cost - Yes/No (1/0) <p class="node_d">
+This option allows calculating average cost in foreign currency. In bank transactions, cost in both foreign currency and GL currency is input.
+<p class="node">	Average Cost Method<p class="node_d">
+-	1 – “One Cost for all Sites“: one common average cost is applied for all sites.  All receipt transactions of all sites are gathered to calculate issuing cost. Transfers haven’t depended on cost in source site any more. So items can be transferred in circle in month (from site A to B and vise versa).
+<br/>
+-	2 – “Separate Cost for each Site”: each site has its specific calculation of receipt transaction. Transfers in this case depend on cost in source site when receiving cost is defined. 
+<p class="node">	Calculate Common Average Cost of All Sites in Each Site Group<p class="node_d">
+Select to calculate cost of a group of sites; this option is designed to be used in case of calculating cost of each group of sites in a separate unit (or a group of sites that are in the same properties such as site of goods on promotion). All processes will only affect that unit.
+<br/>See “Field descriptions” below for more details.
+<p class="node">	Assign the Cost Difference to the Last Issue<p class="node_d">
+This option allows the system to auto assign the different amount calculated by average cost method to the last issue voucher.
+<p class="node">	Create Difference Issue of an Item when There is no Issue in Period<p class="node_d">
+This option allows the system to auto create an issue voucher for inventory cost difference of an item even if there is no issue for that item in period but there is difference.
+<p class="note">
+Note: <br/>In case “Average Cost Method” is “1 - One cost for all sites” and when running “Calculate Average Cost” function, you define to “Create Difference Issues” option as “2 - All”, this option must be “Yes” so that the inventory data is still reasonable and balance.
+</p>
+<p class="node">	Advanced Average Cost Method<p class="node_d">
+This option allows transferring an item cyclically among sites.<br/>
+The system can calculate average cost of an item when it is transferred in a circle from site A → site B → site C → site A.
+<br/>See:<br/>
+-	Average cost method;<br/>
+-	Site group.<br/>
+<p class="e">For example:<br/>
+Define optional parameters: “Average Cost Method” is “Separate Cost for each Site” and “Advanced Average Cost Method” is “Yes”. Item VTA cost is calculated by monthly average method without opening stock.
+<p id="pic"><img src="eng/CalculateAverageCost1.png"/></p>
+<p class="node_d">
+Calculate issuing price of VTA item in site KH02 on 25/01/2009. <br/>
+Supposing:<br/>
+x is issuing price from site KH01=200*150.000 +  100*y (200+100) , <br/>
+y is issuing price from site KH02=200*200.000 +  200*x (200+200) , <br/>
+Solve these equations, the result will be: x=160.000 and y=180.000<p id="td2">Calculate Screen
+<p id="pic"><img src="eng/CalculateAverageCost2.png"/></p>
+
+ 
+<p id="td2">Field descriptions
+<p class="node">	From period / to period / year<p class="node_d">
+Average cost is usually calculated monthly. 
+<p class="node">	Site ID / Item code / item type / item group<p class="node_d">
+Calculation limit of site / item / item type / item group
+
+<p class="node">	Create Difference Issues<p class="node_d">
+Create imbalance issues by many statuses<br/>
+-	0 - “None”: only calculate issuing cost from receipt transactions and update in Issue.<br/>
+-	1 - “Quantity=0, Amount # 0”: calculate issuing cost with stock quantity. If quantity is 0, amount is not 0, the program will create Issue with quantity=0 and value=stock.<br/>
+-	2 - “All”: the most complicated calculation. Besides 1 - “Quantity=0, Amount # 0”, the program has comparison between closing amount calculated and closing amount by average cost. If there is any imbalance, the program will create Issue. This case can occur for odd number multiply and division or specific cost applied for Issues.
+<p class="note">Note:<br/>
+If selecting "Average Cost Method" as "One Cost for all Sites", you have to select "All" in this option when calculating average cost.
+<p class="node">	Difference Account<p class="node_d">
+This account is used to define auto entries of imbalance issues. If there is no item account, the program will use this account for entry; on the contrary, the program will use account in item master if item has imbalance account. 
+<p class="node">	Update Average Cost<p class="node_d">
+There are 3 options for update result of calculation to system:<br/>
+-	0 – “Calculate average cost and update to stock card”: warehouse dept. calculates issuing cost for reference, does not post to GL. <br/>
+-	1 – “Calculate average cost and update to stock card and GL”: adequate entry.<br/>
+-	2 – “Post to GL”: calculate cost and not update to stock card.
+
+
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>
+

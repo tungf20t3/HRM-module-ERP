@@ -1,0 +1,39 @@
+﻿<![CDATA[
+function refresh$APV$Status(f, s, u, approver, category) {
+  ]]>&APVAddStatus;<![CDATA[
+  var c = $func.trim(category), o0 = f.getItemValue('u_status'), o1 = f.getItemValue('nguoi_duyet'), o2 = f.getItemValue('kieu_duyet'); 
+  f.setItemValues('status, u_status, nguoi_duyet, kieu_duyet', [s, u, approver, c]);
+  if (o0 != u) f.setReferenceKeyFilter('u_status');
+  if (o1 != approver) f.setReferenceKeyFilter('nguoi_duyet');
+  if (o2 != c) f.setReferenceKeyFilter('kieu_duyet');
+}
+function APV$set$Voucher$DefaultValue(f) {
+  var o = f.getItem('status');
+  if (f._action != 'View') {
+    set$Voucher$APV$DeleteStatus(o)
+  }
+}
+function set$Voucher$APV$AddStatus(o) {
+  var f = o.parentForm;
+  if (o.options.length < ]]>&APVVisibleStatusNum;<![CDATA[ + ]]>&APVHiddenStatusNum;<![CDATA[) {
+    for (var i = ]]>&APVVisibleStatusNum;<![CDATA[; i < ]]>&APVVisibleStatusNum;<![CDATA[ + ]]>&APVHiddenStatusNum;<![CDATA[; i++) o.options.add(f._$handleStatus[i]);
+  }
+}
+function set$Voucher$APV$DeleteStatus(o) {
+  var f = o.parentForm;
+  if (o.options.length >= ]]>&APVVisibleStatusNum;<![CDATA[ + ]]>&APVHiddenStatusNum;<![CDATA[) {
+    for (var i = ]]>&APVVisibleStatusNum;<![CDATA[ + ]]>&APVHiddenStatusNum;<![CDATA[ - 1; i > ]]>&APVVisibleStatusNum;<![CDATA[ - 1; i--) o.options.remove(i);
+  }
+}
+function APV$when$Voucher$Copying(f) {
+  if (f.grid._dvHandle != null) f.setItemValue('status', f.grid._dvHandle);
+  var a = 'stt_rec, u_status, user_id3, nguoi_duyet, comment, kieu_duyet'.split(',');
+  for (var i = 0; i < a.length; i++) {f.getItem($func.trim(a[i])).value = '';}
+	f.getItem('ten_kieu%l').value = '';
+	f.getItem('u_status_name%l').value = '';
+}
+function APV$onChange$Voucher$ApprovingOfficers(o) {
+  var f = o.parentForm;
+  if ($func.trim(o.value) == '') f.setItemValue('user_id3', 0);
+}
+]]>

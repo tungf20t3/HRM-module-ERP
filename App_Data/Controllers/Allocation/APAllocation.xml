@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<allocation table="d53" code="PC0" grand="c53$000000" master="m53$000000" detail="d53$000000" prime="m53$" inquiry="i53$" operation="ma_kh;#10$; :tk,tk_du,ma_nt;#10$,#20$,#30$;d53,d53, " xmlns="urn:schemas-ai-erp:data-allocation">
+  <title v="Phân bổ trả tiền hàng tự động cho các hóa đơn" e="Advanced Payment Allocation to Invoices"></title>
+  <subTitle v="Ngày chứng từ: %d, nhà cung cấp: %c - %n, mã ngoại tệ: %t..." e="Voucher Date: %d, Supplier: %c - %n, Currency: %t..."></subTitle>
+
+  <queries>
+
+    <query event="Loading">
+      <text>
+        <![CDATA[
+exec rs_APGetPaymentVoucher @ngay_ct, @ma_kh, @tk, @ma_dvcs, @ma_nt, @@refresh, @@pageIndex, @@pageCount, @@lastPage, @@lastCount, @@firstItem, @@lastItem, @@searchCode, @@type, @@language, @@userID, @@admin
+]]>
+      </text>
+    </query>
+
+    <query event="Processing">
+      <text>
+        <![CDATA[
+declare @roundExRate tinyint
+select top 1 @roundExRate = cast(rtrim(val) as tinyint) from options where name = 'm_round_tg'
+select @stt_rec = replace(@stt_rec, '''', '')
+update @d53 set ty_gia = /*
+  b.ty_gia
+*/ case when b.t_tt_nt <> 0 then round(b.t_tt / b.t_tt_nt, @roundExRate) else 0 end, tien_nt = b.t_tt_nt, tk = b.tk from @d53 a left join cttt60 b on a.stt_rec_phieu = b.stt_rec left join dmtk c on b.tk = c.tk
+
+update @d53 set tk_du = b.tk, ty_gia_hd = b.ty_gia, ma_vv = b.ma_vv, ma_sp = b.ma_sp, ma_bp = b.ma_bp, so_lsx = b.so_lsx, ma_hd = b.ma_hd, ma_ku = b.ma_ku, ma_phi = b.ma_phi
+  from @d53 a left join cttt30 b on a.stt_rec_hd = b.stt_rec left join dmtk c on b.tk = c.tk
+
+update @d53 set tt = case when ty_gia = 0 then tt_nt else tt_nt * ty_gia end, tt_qd = tt_nt
+
+-- CommandGetIdentityNumber
+declare @wsID varchar(1)
+select @wsID = rtrim(val) from options where name = 'm_ws_id'
+create table #idNumber (stt_rec varchar(32))
+insert into #idNumber exec AI_ERP$App$GetIdentityNumber @wsID, @@id, @@master, @@userID
+select @stt_rec = stt_rec from #idNumber
+drop table #idNumber
+
+select @so_ct = space(datalength(@so_ct) - len(rtrim(@so_ct))) + upper(rtrim(@so_ct))
+
+select @ma_ct = @@id, @loai_ct = @loai_ct, @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
+update @d53 set stt_rec = @stt_rec, ngay_ct = @ngay_ct, ma_ct = @@id, so_ct = @so_ct
+
+declare @l int
+set @l = 0
+
+update @d53 set @l = @l + 1, line_nbr = @l
+update @d53 set stt_rec0 = dbo.AI_ERP$Function$Voucher$GetRecordsGroup(line_nbr)
+update @d53 set so_phieu =  space(datalength(so_phieu) - len(rtrim(so_phieu))) + rtrim(so_phieu) where stt_rec = @stt_rec
+update @d53 set so_hd =  space(datalength(so_hd) - len(rtrim(so_hd))) + rtrim(so_hd) where stt_rec = @stt_rec
+
+@@insertMaster
+
+insert into d53$$partition$current select * from @d53
+update cttt60 set stt_rec_pb = @stt_rec where stt_rec in (select distinct stt_rec_phieu from @d53)
+
+-- AfterUpdate
+exec AI_ERP$App$Voucher$UpdateInquiryTable @@id, '@@inquiry$partition$current', '@@prime$partition$current', 'd53$$partition$current', 'stt_rec', @stt_rec, @@operation
+exec AI_ERP$App$Voucher$UpdateGrandTable @@id, '@@master', '@@prime$partition$current', 'stt_rec', @stt_rec, 1
+
+-- Post
+exec fs_PostDDTran 'm53$$partition$current', 'd53$$partition$current', @stt_rec
+
+-- AfterVoucherUpdate
+select stt_rec_phieu, sum(tt_nt) as tien_pb_nt, sum(tt) as tien_pb into #ctpb1
+  from d53$$partition$current with(nolock) where stt_rec = @stt_rec group by stt_rec_phieu
+
+update cttt60 set t_tien_pb_nt = isnull(t_tien_pb_nt, 0) + b.tien_pb_nt, t_tien_pb = isnull(t_tien_pb, 0) + b.tien_pb,
+    da_pb = case when isnull(t_tien_pb_nt, 0) + b.tien_pb_nt >= t_tt_nt then 1 else 0 end
+  from cttt60 a join #ctpb1 b on a.stt_rec = b.stt_rec_phieu where a.stt_rec in (select stt_rec_phieu from #ctpb1)
+
+drop table #ctpb1
+
+exec AI_ERP$App$IncreaseVoucherNumber @ma_nk, @@id, @so_ct
+
+return
+]]>
+      </text>
+    </query>
+
+  </queries>
+
+  <dropdown>
+    <item id="InvoiceDate" val="0">
+      <title v="Phân bổ tự động theo ngày" e="Allocate by Invoice Date"/>
+    </item>
+
+    <item id="DueDate" val="1">
+      <title v="Phân bổ tự động theo hạn thanh toán" e="Allocate by Due Date"/>
+    </item>
+  </dropdown>
+
+  <toolbar>
+    <button command="Allocation" type="Allocation">
+      <title v="Phân bổ" e="Allocate"/>
+    </button>
+    <button command="Search" type="Filter">
+      <title v="Lọc" e="Search"></title>
+    </button>
+    <button command="--">
+      <title v="-" e="-"></title>
+    </button>
+  </toolbar>
+
+</allocation>

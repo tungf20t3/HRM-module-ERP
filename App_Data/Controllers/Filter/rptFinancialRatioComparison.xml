@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptPivotFilter SYSTEM "..\Include\Javascript\PivotFilter.txt">
+
+  <!ENTITY defaultTable "gltcpt01">
+  <!ENTITY defaultForm "gltcpt01">
+
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY LineCounter "6">
+  <!ENTITY ExtensionCounter "2">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="periodFrom" allowNulls="false" type="Decimal" dataFormatString="#0">
+      <header v="Từ kỳ" e="From Period"></header>
+      <footer v="Từ kỳ/năm" e="From Period/Year"></footer>
+      <items style="Numeric"></items>
+    </field>
+    <field name="yearFrom" allowNulls="false" type="Decimal" dataFormatString="###0">
+      <header v="Từ năm" e="From Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="periodTo" allowNulls="false" type="Decimal" dataFormatString="#0">
+      <header v="Đến kỳ" e="To Period"></header>
+      <footer v="Đến kỳ/năm" e="To Period/Year"></footer>
+      <items style="Numeric"></items>
+    </field>
+    <field name="yearTo" allowNulls="false" type="Decimal" dataFormatString="###0">
+      <header v="Đến năm" e="To Year"></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="ke_hoach" type="Boolean" clientDefault="1" categoryIndex="1">
+      <header v="So sánh với" e="Compare with"></header>
+      <footer v="Kế hoạch" e="Plan"></footer>
+      <items style="CheckBox"></items>
+    </field>
+    <field name="binh_quan" type="Boolean" categoryIndex="1">
+      <header v="" e=""></header>
+      <footer v="Bình quân ngành" e="Branch Average"></footer>
+      <items style="CheckBox"></items>
+    </field>
+    <field name="cty_khac" type="Boolean" categoryIndex="1">
+      <header v="" e=""></header>
+      <footer v="Công ty khác" e="Other Entity"></footer>
+      <items style="CheckBox"></items>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="(@@admin = 1) or (ma_dvcs in (select rtrim(a.ma_dvcs) as ma_dvcs from dmdvcs a join sysunitrights b on a.ma_dvcs = b.ma_dvcs where a.status = '1' and b.user_id = (select top 1 id from vsysuserinfo where name in(select name from vsysuserinfo where id = @@userID)) and (r_access = 1)))" check="(@@admin = 1) or (ma_dvcs in (select rtrim(a.ma_dvcs) as ma_dvcs from dmdvcs a join sysunitrights b on a.ma_dvcs = b.ma_dvcs where a.status = '1' and b.user_id = (select top 1 id from vsysuserinfo where name in(select name from vsysuserinfo where id = @@userID)) and (r_access = 1)))"/>
+    </field>
+
+    <field name="form" allowNulls="false" categoryIndex="1">
+      <header v="Chọn báo cáo" e="Select Report"></header>
+      <items style="DropDownList">
+        <item value="">
+          <text v="" e=""/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList" >
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="111----: [periodFrom].Description, [periodFrom], [yearFrom]"/>
+      <item value="111----: [periodTo].Description, [periodTo], [yearTo]"/>
+      <item value="111000: [ke_hoach].Label, [ke_hoach], [ke_hoach].Description"/>
+      <item value="111000: [binh_quan].Label, [binh_quan], [binh_quan].Description"/>
+      <item value="111000: [cty_khac].Label, [cty_khac], [cty_khac].Description"/>
+      <item value="110000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110000-: [form].Label, [form]"/>
+      <item value="110000-: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 40, 30, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @form nvarchar(4000), @name nvarchar(4000)
+select @form = '', @name = ''
+select @form = @form + rtrim(form) + char(255), @name = @name + case when @@language = 'V' then rtrim(ten_maubc) else rtrim(ten_maubc2) end + char(255) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA['
+select @form = left(@form, len(@form) - 1), @name = left(@name, len(@name) - 1)
+select 'this._itemValue=''' + rtrim(@form) + ''';this._itemText=''' + dbo.AI_ERP$Function$EncodeScript(@name) + ''';initForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @periodFrom as periodFrom, @yearFrom as yearFrom, @periodTo as periodTo, @yearTo as yearTo
+  from v20dmmaubc where ma_maubc = ']]>&defaultTable;<![CDATA[' and form = @form
+exec rs_rptFinancialRatioComparison @periodFrom, @yearFrom, @periodTo, @yearTo, @ke_hoach, @binh_quan, @cty_khac, 1, @ma_dvcs, @form, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptPivotFilter;
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  var d = new Date();
+  if (!f.getItemValue('periodFrom')) f.setItemValues('periodFrom, yearFrom, periodTo, yearTo', [d.getMonth() + 1, d.getFullYear(), d.getMonth() + 1, d.getFullYear()]);
+  f.live(f.getItem('periodFrom'));
+  changeLookupReadonly(f, 'ma_dvcs', true);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(q,g){var b=g.object,l=g.type.Context,p=g.type.Result,a=b.grid;switch(l){case"Checking":var h=b.getItem("periodFrom").value,k=b.getItem("yearFrom").value,j=b.getItem("periodTo").value,m=b.getItem("yearTo").value,e=b.getItemValue("ke_hoach"),c=b.getItemValue("binh_quan"),d=b.getItemValue("cty_khac"),n=b.getItem("form").selectedIndex,o=b.getItem("form").options,i=o[n].text;a._alterTitle=[null,[["%f1",i,true],["%pf",h,true],["%yf",k,true],["%pt",j,true],["%yt",m,true]]];a._periodFrom=b.getItemValue("periodFrom");a._yearFrom=b.getItemValue("yearFrom");a._periodTo=b.getItemValue("periodTo");a._yearTo=b.getItemValue("yearTo");a._unit=b.getItemValue("ma_dvcs");a._form=b.getItemValue("form");a._arrValue=[];a._arrReality=[];a._finish=0;a._finishReality=0;a._select=1+(e==true?1:0)+(c==true?1:0)+(d==true?1:0);a._typeComparing=0;switch(a._select){case 2:if(e)a._typeComparing=1;if(c)a._typeComparing=2;if(d)a._typeComparing=3;break;case 3:if(e&&c)a._typeComparing=4;if(e&&d)a._typeComparing=5;if(c&&d)a._typeComparing=6;break;case 4:a._typeComparing=7}var f=e+String.fromCharCode(255)+c+String.fromCharCode(255)+d;if(!a._v)a._v=f;if(a._v!=f){remove$GridReport$Filter(a);a._v=f}}}function initForm(b){for(var e=b.getItem("form"),c=b._itemValue.split(String.fromCharCode(255)),d=b._itemText.split(String.fromCharCode(255)),a=0;a<c.length;a++)e.options[a]=new Option(d[a],c[a])}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

@@ -1,0 +1,13 @@
+﻿<command event="Showing">
+  <text>
+    <![CDATA[
+declare @$para nvarchar(4000)
+select @$para = rtrim(parameter) from @@sysDatabaseName..wcommand where sysid = ']]>&Identity;<![CDATA['
+if @$para <> '' begin
+  select 'this._filter$Pattern = ''' + dbo.AI_ERP$Function$GetWordNum(@$para, 1, ';') + ''';' 
+end else begin
+  select 'this._filter$Pattern = '''';'
+end
+]]>
+  </text>
+</command>

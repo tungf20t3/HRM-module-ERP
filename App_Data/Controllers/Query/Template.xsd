@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="Template" targetNamespace="urn:schemas-ai-erp:data-template" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-template" xmlns:a="urn:schemas-ai-erp:data-template" xmlns:mstns="urn:schemas-ai-erp:data-template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="template" type="template"></xs:element>
+
+  <xs:complexType name="template">
+    <xs:all minOccurs="1" maxOccurs="1">
+      <xs:element name="templates" type="templatesType"></xs:element>
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="templatesType">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="template" type="templateType"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="templateType">
+    <xs:all minOccurs="1" maxOccurs="1">
+      <xs:element name="title" type="templateTitle"></xs:element>
+      <xs:element name="filters" type="templateFilters"></xs:element>
+      <xs:element name="fields" type="templateFields"></xs:element>
+    </xs:all>
+
+    <xs:attribute name="id" type="xs:string" use="required"></xs:attribute>
+    <xs:attribute name="ownerID" type="xs:string" use="required"></xs:attribute>
+    <xs:attribute name="controller" type="xs:string" use="required"></xs:attribute>
+    <xs:attribute name="private" type="xs:boolean" use="required"></xs:attribute>
+    <xs:attribute name="defaultList" type="xs:string" use="optional"></xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="templateTitle">
+    <xs:attribute name="v" type="xs:string" use="required"/>
+    <xs:attribute name="e" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="templateFilters">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="filter" type="templateFilter"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="templateFilter">
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="logic" type="xs:string" use="required"/>
+    <xs:attribute name="operator" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="templateFields">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="field" type="templateField"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="templateField">
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="width" type="xs:string" use="required"/>
+    <xs:attribute name="order" type="xs:string"/>
+    <xs:attribute name="group" type="xs:string"/>
+  </xs:complexType>
+</xs:schema>

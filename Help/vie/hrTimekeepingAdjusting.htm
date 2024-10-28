@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html style="height:100%" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Điều chỉnh dữ liệu chấm công</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Điều chỉnh dữ liệu chấm công</p>
+<p id="p2">Điều chỉnh dữ liệu chấm công là điều chỉnh dữ liệu các bước (nếu có): </p>
+<ul class="lo_0"> 
+- Lấy số liệu chấm công;<br/>
+- Cập nhật giờ vào, ra cho nhân viên;<br/>
+- Điều chỉnh giờ vào, ra cho nhân viên.
+</ul>
+<p id="p2"> Quy tắc chung của dữ liệu như sau:</p>
+<ul class="lo_0"> 
+- Trình bày dữ liệu các bước trước (còn gọi là số liệu gốc) để thực hiện điều chỉnh; <br/>
+- Thể hiện cả những nhân viên khuyết giờ vào, giờ ra, cả hai (trừ nv đã nghỉ việc, nghỉ vắng mặt đã khai báo, nhân viên không cần chấm công,...);<br/>
+- Giữ đúng mốc giờ vào/ra nếu dữ liệu đầu vào trước đó đã xác định vào/ra, nếu chưa xác định được thì tự động ghép cặp theo thứ tự;<br/>
+- Khi đã điều chỉnh lưu theo cặp thì phải giữ nguyên cặp đó, không thay đổi dù cho dữ liệu đầu vào trước đó có thay đổi, đặc biệt là thứ tự vào/ra;<br/>
+- Nếu giờ chấm công trước đó đã được điều chỉnh và lưu lại rồi phải giữ nguyên, nếu dữ liệu gốc thay đổi thì xem như phát sinh giờ chấm công mới.
+Nếu đã chỉnh sửa dữ liệu trên dòng phát sinh tự động, đồng thời dữ liệu gốc cũng được chỉnh sửa, chương trình sẽ thể hiện thêm một 
+dòng dữ liệu gốc mới tại đây.
+</ul>
+
+<p class="e">Ví dụ:<br/> Giả định nhân viên NV001 có phát sinh dữ liệu chấm công: <br/>
++ Giờ vào: 08:00<br/>
++ Giờ ra: 17:00<br/>
+Chỉnh sửa (nhập trực tiếp trên màn hình) thành:<br/>
++ Giờ vào: 08:05<br/>
++ Giờ ra: 17:05<br/>
+- Tạo mới trong "Điều chỉnh dữ liệu chấm công":<br/>
++ Giờ vào: 08:10<br/>
++ Giờ ra: 17:10<br/>
+- Sửa lại dữ liệu trong "Điều chỉnh giờ vào, ra cho nhân viên":<br/>
++ Giờ vào: 08:15<br/>
++ Giờ ra: 17:15<br/>
+Thực hiện lại bước tính công để xem kết quả:<br/>
+- "Điều chỉnh dữ liệu chấm công" có các dòng dữ liệu:<br/>
++ Giờ vào: 08:05 và Giờ ra: 17:05<br/>
++ Giờ vào: 08:10 và Giờ ra: 17:10<br/>
++ Giờ vào: 08:15 và Giờ ra: 17:15<br/>
+- Xem báo cáo, kết quả chấm công của nhân viên NV001 cũng bao gồm dữ liệu như trong phần "Điều chỉnh dữ liệu chấm công"</p>
+<p id="td2">Giải thích các thông tin quan trọng</p>
+
+<p class="node">Bao gồm ngày không có chấm công (màn hình lọc)</p>
+<p class="node_d"> Tại màn hình lọc dữ liệu, nếu chọn “Bao gồm ngày không có chấm công” sẽ hiển thị tự động những ngày không có giờ 
+chấm công nào với điều kiện vẫn còn làm việc và không khai báo nghỉ để thực hiện điều chỉnh.</p>
+<p class="note">Ghi chú về hiển thị dữ liệu khi chọn tùy chọn này: <br/>
+- Hiển thị: nghỉ chế độ, ngày lễ, ngày nghỉ theo lịch nghỉ; <br/>
+- Không hiển thị: Khai báo không cần chấm công, nghỉ vắng mặt.</p>
+
+<p class="node">Giờ vào/Giờ ra/ Hôm sau</p>
+<p class="node_d"> Nhập điều chỉnh giờ chấm công.</p>
+<p class="node">Xóa</p>
+<p class="node_d">Dấu hiện chọn xóa phát sinh điều chỉnh.</p>
+
+
+
+<p id="td2">Thao tác</p>
+<p class="node">Điều chỉnh</p>
+<p class="node_d"> Người dùng nhập trực tiếp giờ chấm công vào các cột giờ vào hoặc giờ ra của từng ngày.</p>
+
+<p class="node">Tạo mới</p>
+<p id="pic"><img src="Vie\hrTimekeepingAdjusting.png"/></p>
+<p class="node_d">Trong các trường hợp cần thêm phát sinh dữ liệu chấm công tại bước điều chỉnh này, chọn thêm mới bằng cách nhấn
+ <img src="Vie\new2.png"/></p>
+
+
+<p class="node">Xóa</p>
+<p class="node_d"> Các trường hợp xảy ra sau khi đánh dấu vào ô xóa và lưu:</p>
+<ul class="lo_2"> 
+- Đối với dòng thông tin phát sinh gốc, chương trình sẽ đánh dấu vào ô xóa. Nếu không xóa tại gốc, sau khi tính công lại dữ liệu chấm công đó 
+sẽ còn hiển thị (và ngược lại); <br/>
+- Đối với dòng thông tin phát sinh điều chỉnh: khi chọn xóa và lưu, chương trình sẽ đánh dấu vào ô xóa. Và sau khi tính công lại, 
+dữ liệu chấm công đó sẽ không hiển thị.</ul>
+
+<p class="note">
+- Có thể chọn lần nữa vào ô đó để bỏ xóa, dữ liệu sẽ thể hiện trên báo cáo sau khi chạy lại tính công.<br/>
+- Dòng dữ liệu phát sinh này chỉ thực sự mất đi khi dữ liệu gốc được xóa.</p>
+<ul class="lo_2"> 
+- Đối với dòng thông tin cập nhật trong chức năng "Điều chỉnh dữ liệu chấm công": khi chọn xóa và lưu, chương trình sẽ xóa mất dòng dữ 
+liệu trên. Nếu người dùng tính công lại, dữ liệu chấm công đó cũng không còn trên báo cáo.</ul>
+ 
+<p class="node">Lưu dữ liệu</p>
+<p class="node_d"> Khi có thực hiện thay đổi dữ liệu, phải nhấn <img src="Vie\save2.png"/> để chương trình lưu lại.</p>
+
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

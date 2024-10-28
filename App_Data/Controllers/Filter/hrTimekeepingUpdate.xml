@@ -1,0 +1,229 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "hrTimekeepingUpdate">
+
+  <!ENTITY ControlFocus "ngay">
+  <!ENTITY LockedDateKey "ngay_ks >= @ngay">
+  <!ENTITY CheckLockedBeforeInsert SYSTEM "..\Include\Command\HRMCheckLockedBeforeInsert.txt">
+]>
+
+<dir type="Report" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Thêm điều chỉnh dữ liệu chấm công" e="Add Item"></title>
+  <fields>
+    <field name="stt_rec" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" allowNulls="false" external="true">
+      <header v="Mã nhân viên" e="Employee ID"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_nv" key="bp_ref like '{$%c[bp_ref]}%' and (@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="bp_ref like '{$%c[bp_ref]}%' and (@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID))"/>
+      <clientScript><![CDATA[onchange="onchange$]]>&Identity;<![CDATA[$IDNumber(this);"]]></clientScript>
+    </field>
+    <field name="ten_nv" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Ngày" e="Date"></header>
+    </field>
+    <field name="gio_vao" dataFormatString="HH:ss" align="right" allowNulls="false">
+      <header v="Giờ vào" e="Time In"></header>
+    </field>
+    <field name="hs_vao" type="Boolean" inactivate="true">
+      <header v="Hôm sau" e="Next Day"></header>
+    </field>
+    <field name="gio_ra" dataFormatString="HH:ss" align="right" allowNulls="false">
+      <header v="Giờ ra" e="Time Out"></header>
+    </field>
+    <field name="hs_ra" type="Boolean" inactivate="true">
+      <header v="Hôm sau" e="Next Day"></header>
+    </field>
+    <field name="ghi_chu" rows="2">
+      <header v="Ghi chú" e="Note"></header>
+    </field>
+    <field name="bp_ref" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="110101: [ma_nv].Label, [ma_nv], [ten_nv], [stt_rec]"/>
+      <item value="110: [ngay].Label, [ngay]"/>
+      <item value="110: [gio_vao].Label, [gio_vao]"/>
+      <item value="-1100: [hs_vao], [hs_vao].Label"/>
+      <item value="110: [gio_ra].Label, [gio_ra]"/>
+      <item value="-1100: [hs_ra], [hs_ra].Label"/>
+      <item value="110001: [ghi_chu].Label, [ghi_chu], [bp_ref]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'this.setItemValue("bp_ref", this.grid._$dept); this.setReferenceKeyFilter("ma_nv");' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        &CheckLockedBeforeInsert;
+        <![CDATA[
+declare @q nvarchar(4000), @$exists nvarchar(512), @d char(8), @return int
+select @$exists = case when @@language = 'V' then N'<span class="Highlight">Thông tin điều chỉnh giờ vào/ra cho nhân viên đang cập nhật đã được khai báo</span>, không lưu được.' else N'<span class="Highlight">This item already exists</span>, it can not be saved.' end
+select @d = convert(char(8), @ngay, 112), @return = 0
+
+select 1 as loai_dl, @stt_rec as stt_rec, @ngay as ngay, @gio_vao as gio_vao, @hs_vao as hs_vao, @gio_ra as gio_ra, @hs_ra as hs_ra,
+    cast(left(@gio_vao, 2) as int) * 60 + cast(right(@gio_vao, 2) as int) + case when @hs_vao = 1 then 1440 else 0 end as gio0_vao,
+    cast(convert(varchar(8), @ngay, 112) + ' ' + @gio_vao as datetime) + case when @hs_vao = 1 then 1 else 0 end as thoi_gian_vao,
+    cast(left(@gio_ra, 2) as int) * 60 + cast(right(@gio_ra, 2) as int) + case when @hs_ra = 1 then 1440 else 0 end as gio0_ra,
+    cast(convert(varchar(8), @ngay, 112) + ' ' + @gio_ra as datetime) + case when @hs_ra = 1 then 1 else 0 end as thoi_gian_ra,
+    0 as xoa_yn, @ghi_chu as ghi_chu
+  into #tmp
+
+set @q = 'if exists (select 1 from hrdcdulieu$' + left(@d, 6) + ' a with(nolock) join #tmp b on a.stt_rec = b.stt_rec and a.ngay = b.ngay'
+set @q = @q + ' and ((a.gio_vao = b.gio_vao and a.hs_vao = b.hs_vao) or (a.gio_ra = b.gio_vao and a.hs_ra = b.hs_vao)'
+set @q = @q + ' or (a.gio_vao = b.gio_ra and a.hs_vao = b.hs_ra) or (a.gio_ra = b.gio_ra and a.hs_ra = b.hs_ra)'
+set @q = @q + ') where a.loai_dl = 1) begin'
+set @q = @q + char(13) + 'select @v = 1' + char(13) + 'return' + char(13) + 'end'
+exec sp_executesql @q, N'@v int output', @return output
+
+if @return = 1 begin
+  select 'ngay' as field, @$exists as message
+  return
+end
+
+set @q = 'insert into hrdcdulieu$' + left(@d, 6) + ' (loai_dl, stt_rec, ngay, gio_vao, hs_vao, gio_ra, hs_ra, gio0_vao, thoi_gian_vao, gio_vao0, '
+set @q = @q + 'hs_vao0, thoi_gian_vao0, gio0_ra, thoi_gian_ra, gio_ra0, hs_ra0, thoi_gian_ra0, xoa_yn, ghi_chu, datetime0, datetime2, user_id0, user_id2)'
+set @q = @q + ' select loai_dl, stt_rec, ngay, gio_vao, hs_vao, gio_ra, hs_ra, gio0_vao, thoi_gian_vao, '''', 0, null, '
+set @q = @q + 'gio0_ra, thoi_gian_ra, '''', 0, null, xoa_yn, ghi_chu, getdate(), getdate(), @@userID, @@userID from #tmp'
+exec sp_executesql @q
+
+select '' as field, '' as message, 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this);' as script
+drop table #tmp
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, errorMessage = (f._language == 'v' ? 'Trường <span class="Highlight">Giờ vào</span> phải nhỏ hơn <span class="Highlight">Giờ ra</span>.' : '<span class="Highlight">Time In</span> must be less than <span class="Highlight">Time Out</span>.');
+var c1 = f.getItemValue('gio_vao'), c2 = f.getItemValue('gio_ra');
+var t1 = parseInt(c1.substr(0, 2)) * 60 + parseInt(c1.substr(3, 2)) + (f.getItemValue('hs_vao') ? 1440 : 0), t2 = parseInt(c2.substr(0, 2)) * 60 + parseInt(c2.substr(3, 2)) + (f.getItemValue('hs_ra') ? 1440 : 0);
+if (t1 >= t2) {
+  $func.hideWait(f.get_id());
+  f._checked = false;
+  $message.show(errorMessage, String.format('$find(\'{0}\').focus(\'{1}\');', f.get_id(), 'gio_vao'));
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[(f) {f.add_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);}
+function close$]]>&Identity;<![CDATA[(f) {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);}
+function on$]]>&Identity;<![CDATA[$ResponseComplete(f, e) {
+  var f = e.object, g = f.grid, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'IDNumber':
+      f.setItemControlBehavior('stt_rec', result[0].Value, true);
+      break;
+    default:
+	    break;
+  }
+}
+function onchange$]]>&Identity;<![CDATA[$IDNumber(o) {o.parentForm.request('IDNumber', 'IDNumber', ['ma_nv']);}
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f, d0) {
+  var g = f.grid;
+  g._appendRow();
+  var r = g._rowCount;
+  for (var i = 0; i < g._fields.length; i++) {
+    var field = g._fields[i];
+    var name = field.Name;
+    switch (name) {
+      case 'gio_vao0':
+      case 'gio_vao_old':
+        name = 'gio_vao';
+        break;
+      case 'hs_vao0':
+      case 'hs_vao_old':
+        name = 'hs_vao';
+        break;
+      case 'gio_ra0':
+      case 'gio_ra_old':
+        name = 'gio_ra';
+        break;
+      case 'hs_ra0':
+      case 'hs_ra_old':
+        name = 'hs_ra';
+        break;
+      default:
+        break;
+    }
+    var v, memvar = $func.findMemvar(name, f._memvars);
+    if (!memvar && f._extensions && f._extensions.length > 0) memvar = $func.findMemvar(field.Name, f._extensions);
+    if (memvar) v = memvar.NewValue;
+    else {
+      switch (name) {
+        case 'ngay0':
+          v = $func.formatDateOrder($func.findMemvar('ngay', f._memvars).NewValue);
+          break;
+        case 'xoa_yn':
+        case 'xoa_yn0':
+          v = 0;
+          break;
+        case 'loai_dl':
+          v = 1;
+          break;
+        default:
+          break;
+      }
+    }
+    g._setItemValue(r, i + 1, v, true);
+  }
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g);
+}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g) {g._memvars = [];}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="IDNumber">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrnv where ma_nv = @ma_nv) begin
+  select stt_rec from hrnv where ma_nv = @ma_nv
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

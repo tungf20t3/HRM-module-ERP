@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+  <!ENTITY Permissions " not exists(select 1 from sysunitrights c where b.ma_dvcs = c.ma_dvcs and r_edit = 1 and c.user_id = @@userID)">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Controller "BIPlant">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % CheckValidEmail SYSTEM "..\..\Include\CheckImportValidEmail.ent">
+  %CheckValidEmail;
+  <!ENTITY CheckValidEmail.FieldName "e_mail">
+  <!ENTITY CheckValidEmail.MultiEmail "1=0">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+
+  <!ENTITY % Nested SYSTEM "..\..\Include\Nested.ent">
+  %Nested;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BIPlantImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BIPlantImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="bidmvung"/>
+    <table value="bidmvung" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    <listTable value="#k1"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="00003">
+      <header v="Giá trị &BIPlant.Nested.Message.v;." e="The value is &BIPlant.Nested.Message.e;." />
+    </var>
+    &MailImportVariable;
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;not exists(select 1 from bidmvung b where @@table.ma_vung = b.ma_vung) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)&And;exists(select 1 from bidmvung b where @@table.ma_vung = b.ma_vung) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_edit = 1)" condition="&And;if @@admin = 0 begin&And;if @@admin = 0 begin if @type = '1' begin" tag="&And;end&And;end end" errorCode="00001&And;00002&And;00002"/>
+    <field name="ma_vung" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ten_vung" column="C" allowNulls="false"/>
+    <field name="ten_vung2" column="D"/>
+    <field name="dia_chi" column="E"/>
+    <field name="dien_thoai" column="F"/>
+    <field name="fax" column="G"/>
+    <field name="e_mail" column="H"/>
+    <field name="ghi_chu" column="I"/>
+
+    <field name="id" column="None" insertValue="(cast(stt as int) + rtrim(@max))" updateValue="None"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục vùng" e="Plant"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ma_vung" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã vùng" e="Plant"/>
+      </field>
+      <field name="ten_vung" width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên vùng" e="Description"/>
+      </field>
+      <field name="ten_vung2" width="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="dia_chi" width="50">
+        <text v="Địa chỉ" e="Address"/>
+      </field>
+      <field name="dien_thoai" width="16">
+        <text v="Điện thoại" e="Phone Number"/>
+      </field>
+      <field name="fax" width="16">
+        <text v="Số gửi bản sao (Fax)" e="Fax Number"/>
+      </field>
+      <field name="e_mail" width="32">
+        <text v="Thư (Email)" e="Email"/>
+      </field>
+
+      <field name="ghi_chu" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, ']]>&Controller;<![CDATA[', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @r int
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> ]]>&BIPlant.Nested.Message.v;<![CDATA[.' else 'The value of cell <span class="Highlight">%invalidCell</span> is ]]>&BIPlant.Nested.Message.e;<![CDATA[.' end
+
+create index i on @@table (ma_vung)
+
+-- Delete
+if @type = '0' delete @@table from @@table a join bidmvung b on a.ma_vung = b.ma_vung
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&CheckValidEmailCommandCheckingImport;<![CDATA[
+
+select @field = 'ma_vung'
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, @message from @@table where ma_vung like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ma_vung like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+-- Gather
+select a.* into #k from @@table a join bidmvung b on a.ma_vung = b.ma_vung
+delete @@table where ma_vung in (select ma_vung from #k)
+select identity(int, 1, 1) as stt, ma_dvcs, ma_vung, ten_vung, ten_vung2, dia_chi, dien_thoai, fax, e_mail, ghi_chu into #k1 from @@table
+
+-- Checking
+select @field = 'ma_vung'
+]]>&BIPlant.Nested.Key.b;<![CDATA[
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_vung <> b.ma_vung and a.ma_vung like rtrim(b.ma_vung) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, bidmvung b with (index(PK_bidmvung)) where a.ma_vung like rtrim(b.ma_vung) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from bidmvung a, @@table b with (index(i)) where a.ma_vung like rtrim(b.ma_vung) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_vung <> b.ma_vung and a.ma_vung like rtrim(b.ma_vung) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select top 1 @r = a.stt from @@table a, bidmvung b with (index(PK_bidmvung)) where a.ma_vung like rtrim(b.ma_vung) + '%']]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = b.stt from bidmvung a, @@table b with (index(i)) where a.ma_vung like rtrim(b.ma_vung) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  end
+end
+
+if @@admin = 0 begin
+  if @type = '1' begin
+    select @field = 'ma_dvcs'
+    if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from #k a join bidmvung b on a.ma_vung = b.ma_vung where ]]>&Permissions;<![CDATA[
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(a.stt) from #k a join bidmvung b on a.ma_vung = b.ma_vung where ]]>&Permissions;<![CDATA[
+      ]]>&Error;<![CDATA[
+    end
+  end
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+declare @max int
+select @max = isnull(max(id), 0) from bidmvung
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+</import>

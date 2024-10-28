@@ -1,0 +1,180 @@
+﻿<![%Conditional.BIMode;[
+  <!ENTITY BI.Dir.Field.Item SYSTEM "..\Include\XML\ItemBIModeDirField.txt">
+  <!ENTITY BI.Form.View.Item SYSTEM "..\Include\XML\BI.Form.View.Item.txt">
+  <!ENTITY BIScriptQueryData SYSTEM "..\Include\Javascript\QueryData.txt">
+
+  <!ENTITY BIUnitCategoryColumn "769">
+  <!ENTITY BIUnitCategoryRows "266">
+
+  <!ENTITY BIController "&Identification;">
+  <!ENTITY BIParameterTable "bidmvtts">
+  <!ENTITY BIFieldKey "&k;">
+  <!ENTITY BIParameterController "BIItemParameterDetail">
+  <!ENTITY BIParameterCategoryIndex "18">
+  <!ENTITY BIParameterRows "266">
+  <!ENTITY BIParameterCategoryColumn "769">
+  <!ENTITY BIParameterField SYSTEM "..\Include\XML\BIModeDirParameterField.txt">
+  <!ENTITY BIParameterView SYSTEM "..\Include\XML\BIParameterView.txt">
+  <!ENTITY BIParameterCategory SYSTEM "..\Include\XML\ItemBIModeDirParameterView.txt">
+  <!ENTITY BIPostParameterInserting SYSTEM "..\Include\Command\BIPostParameterInserting.txt">
+  <!ENTITY BIPostParameterInserted SYSTEM "..\Include\Command\BIPostParameterInserted.txt">
+  <!ENTITY BIPostParameterUpdating SYSTEM "..\Include\Command\BIPostParameterUpdating.txt">
+  <!ENTITY BIPostParameterUpdated SYSTEM "..\Include\Command\BIPostParameterUpdated.txt">
+  <!ENTITY BIPostParameterDeleting SYSTEM "..\Include\Command\BIPostParameterDeleting.txt">
+  <!ENTITY BIPostParameterScript SYSTEM "..\Include\Javascript\BIPostParameterScript.txt">
+
+  <!ENTITY BIPurchasingTable "bidmvtvung">
+  <!ENTITY BIPurchasingTableDetail "bidmvttsvung">
+
+  <!ENTITY BIPurchasingOrganizationTable "bidmvtbp0">
+  <!ENTITY BIPurchasingOrganizationTableDetail "bidmvttsbp0">
+
+  <!ENTITY BIPurchasingAfterUpdate SYSTEM "..\Include\Command\BIPurchasingAfterUpdate.txt">
+  <!ENTITY BIPurchasingPostDetail SYSTEM "..\Include\Command\BIPurchasingPostDetail.txt">
+  <!ENTITY BIPurchasingInserting SYSTEM "..\Include\Command\BIPurchasingInserting.txt">
+
+  <!ENTITY BIPurchasingOrganizationAfterUpdate SYSTEM "..\Include\Command\BIPurchasingOrganizationAfterUpdate.txt">
+  <!ENTITY BIPurchasingOrganizationPostDetail SYSTEM "..\Include\Command\BIPurchasingOrganizationPostDetail.txt">
+  <!ENTITY BIPurchasingOrganizationInserting SYSTEM "..\Include\Command\BIPurchasingOrganizationInserting.txt">
+
+  <!ENTITY BIPurchasingPostInsert SYSTEM "..\Include\Command\BIPurchasingPostInsert.txt">
+  <!ENTITY BIPurchasingBeforeUpdate SYSTEM "..\Include\Command\BIPurchasingBeforeUpdate.txt">
+  <!ENTITY BIPurchasingPostUpdate SYSTEM "..\Include\Command\BIPurchasingPostUpdate.txt">
+  <!ENTITY BIPurchasingPostDelete SYSTEM "..\Include\Command\BIPurchasingPostDelete.txt">
+
+  <!ENTITY BIPurchasingChecking "
+if (this._checked) {
+  var idbi = this.get_id(), name = 'bidmvtvung', gbi = this.getItem(name)._controlBehavior, vbi = this._language == 'v';
+  var ebi = (vbi ? 'Có tồn tại mã vùng trùng nhau trong phần thông tin mua hàng, không thể lưu được.' : 'Invalid plant code, it already exists.');
+  var lbi = gbi._getColumnOrder('ma_vung'), a = query$Select(gbi, 'count$1 $groupBy ma_vung');
+  for (var i = 0; i &lt; a.length; i++) {
+    if (a[i][1] &gt; 1) {
+      gbi._errorObject = gbi._getItem(i + 1, lbi);
+      this._checked = false;
+      $func.hideWait(idbi);
+      $message.show(ebi, String.format('$find(\'{0}\').focus(\'{1}\');$find(\'{2}\')._errorObject.focus();', idbi, name, gbi.get_id()));
+      break;
+    }
+  }
+}
+if (this._checked) this.getItem('bidmvtvung')._controlBehavior.setSequenceNumber('line_nbr');
+
+if (this._checked) {
+  var idbi1 = this.get_id(), name1 = 'bidmvtbp0', gbi1 = this.getItem(name1)._controlBehavior, vbi1 = this._language == 'v';
+  var ebi1 = (vbi1 ? 'Có tồn tại đơn vị mua trùng nhau trong phần thông tin đơn vị mua, không thể lưu được.' : 'Invalid purchasing organization, it already exists.');
+  var lbi1 = gbi1._getColumnOrder('ma_bp0'), a1 = query$Select(gbi1, 'count$1 $groupBy ma_bp0');
+  for (var i = 0; i &lt; a1.length; i++) {
+    if (a1[i][1] &gt; 1) {
+      gbi1._errorObject = gbi1._getItem(i + 1, lbi1);
+      this._checked = false;
+      $func.hideWait(idbi1);
+      $message.show(ebi1, String.format('$find(\'{0}\').focus(\'{1}\');$find(\'{2}\')._errorObject.focus();', idbi1, name1, gbi1.get_id()));
+      break;
+    }
+  }
+}
+if (this._checked) this.getItem('bidmvtbp0')._controlBehavior.setSequenceNumber('line_nbr');
+
+if (this._checked) {
+  var idbi2 = this.get_id(), name2 = 'bidmvtkd', gbi2 = this.getItem(name2)._controlBehavior, vbi2 = this._language == 'v';
+  var ebi2 = (vbi2 ? 'Có tồn tại loại kiểm định và ngày hiệu lực trùng nhau trong phần thông tin kiểm định, không thể lưu được.' : 'Inspection type with effective date already exists. It can not be saved.');
+  var lbi1 = gbi2._getColumnOrder('ma_loai_kd'), a2 = query$Select(gbi2, 'count$1 $groupBy ma_loai_kd, ngay_hl_tu');
+  for (var i = 0; i &lt; a2.length; i++) {
+    if (a2[i][2] &gt; 1) {
+      gbi2._errorObject = gbi2._getItem(i + 1, lbi1);
+      this._checked = false;
+      $func.hideWait(idbi2);
+      $message.show(ebi2, String.format('$find(\'{0}\').focus(\'{1}\');$find(\'{2}\')._errorObject.focus();', idbi2, name2, gbi2.get_id()));
+      break;
+    }
+  }
+}
+
+if (this._checked) {
+  var idbi3 = this.get_id(), name3 = 'bidmvtkd', gbi3 = this.getItem(name3)._controlBehavior;
+  var biCold1 = gbi3._getColumnOrder('ngay_hl_tu'), biCold2 = gbi3._getColumnOrder('ngay_hl_den');
+  var ebi3 = (this._language == 'v' ? 'Trường &lt;span class=&quot;Highlight&quot;&gt;Ngày hiệu lực đến&lt;/span&gt; phải lớn hơn hoặc bằng trường &lt;span class=&quot;Highlight&quot;&gt;Ngày hiệu lực từ&lt;/span&gt;.' : '&lt;span class=&quot;Highlight&quot;&gt;Effective date to&lt;/span&gt; must be larger than or equal to &lt;span class=&quot;Highlight&quot;&gt;Effective date from&lt;/span&gt;.');
+  for (var row = 1; row &lt;= gbi3._rowCount; row++) {
+    var bid1 = gbi3._getItemValue(row, biCold1), bid2 = gbi3._getItemValue(row, biCold2);
+    if (bid2 != null &amp;&amp; bid1 &gt; bid2) {
+      gbi3._errorObject = gbi3._getItem(row, biCold2);
+      this._checked = false;
+      $func.hideWait(gbi3);
+      $message.show(ebi3, String.format('$find(\'{0}\').focus(\'{1}\');$find(\'{2}\')._errorObject.focus();', idbi3, name3, gbi3.get_id()));
+      break;
+    }
+  }
+}
+
+if (this._checked) this.getItem('bidmvtkd')._controlBehavior.setSequenceNumber('line_nbr');
+">
+  <!ENTITY BITabChangedPurchasingFocus ", 'bidmvtvung'">
+  <!ENTITY BITabChangedPurchasingOrganizationFocus ", 'bidmvtbp0'">
+  <!ENTITY BITabChangedParameterFocus ", 'bidmvtts'">
+  <!ENTITY BI.Form.CategoryIndex.Item.Status "-1">
+
+  <!ENTITY BIPostInspectionInserting SYSTEM "..\Include\Command\BIPostInspectionInserting.txt">
+  <!ENTITY BIPostInspectionInserted SYSTEM "..\Include\Command\BIPostInspectionInserted.txt">
+  <!ENTITY BIPostInspectionUpdating SYSTEM "..\Include\Command\BIPostInspectionUpdating.txt">
+  <!ENTITY BIPostInspectionUpdated SYSTEM "..\Include\Command\BIPostInspectionUpdated.txt">
+  <!ENTITY BIPostInspectionDeleting SYSTEM "..\Include\Command\BIPostInspectionDelete.txt">
+  <!ENTITY BITabChangedInspectionFocus ", 'bidmvtkd'">
+]]>
+
+<!ENTITY BI.Dir.Field.Item "">
+<!ENTITY BI.Form.View.Item SYSTEM "..\Include\Standard\XML\BI.Form.View.Item.Default.txt">
+<!ENTITY BIScriptQueryData "&ScriptQueryData;">
+
+<!ENTITY BIUnitCategoryColumn "566">
+<!ENTITY BIUnitCategoryRows "260">
+
+<!ENTITY BIPurchasingChecking "">
+
+<!ENTITY BITabChangedPurchasingFocus "">
+<!ENTITY BITabChangedPurchasingOrganizationFocus "">
+<!ENTITY BITabChangedParameterFocus "">
+
+<!ENTITY BIController "">
+<!ENTITY BIParameterTable "">
+<!ENTITY BIFieldKey "">
+<!ENTITY BIParameterController "">
+<!ENTITY BIParameterCategoryIndex "">
+<!ENTITY BIParameterRows "">
+<!ENTITY BIParameterCategoryColumn "">
+<!ENTITY BIParameterField "">
+<!ENTITY BIParameterView "">
+<!ENTITY BIParameterCategory "">
+<!ENTITY BIPostParameterInserting "">
+<!ENTITY BIPostParameterInserted "">
+<!ENTITY BIPostParameterUpdating "">
+<!ENTITY BIPostParameterUpdated "">
+<!ENTITY BIPostParameterDeleting "">
+<!ENTITY BIPostParameterScript "">
+
+<!ENTITY BIPurchasingTable "">
+<!ENTITY BIPurchasingTableDetail "">
+
+<!ENTITY BIPurchasingOrganizationTable "">
+<!ENTITY BIPurchasingOrganizationTableDetail "">
+
+<!ENTITY BIPurchasingAfterUpdate "">
+<!ENTITY BIPurchasingPostDetail "">
+<!ENTITY BIPurchasingInserting "">
+
+<!ENTITY BIPurchasingOrganizationAfterUpdate "">
+<!ENTITY BIPurchasingOrganizationPostDetail "">
+<!ENTITY BIPurchasingOrganizationInserting "">
+
+<!ENTITY BIPurchasingPostInsert "">
+<!ENTITY BIPurchasingBeforeUpdate "">
+<!ENTITY BIPurchasingPostUpdate "">
+<!ENTITY BIPurchasingPostDelete "">
+<!ENTITY BI.Form.CategoryIndex.Item.Status "&Tiny.External.Form.CategoryIndex.Item;">
+
+
+<!ENTITY BIPostInspectionInserting "">
+<!ENTITY BIPostInspectionInserted "">
+<!ENTITY BIPostInspectionUpdating "">
+<!ENTITY BIPostInspectionUpdated "">
+<!ENTITY BIPostInspectionDeleting "">
+<!ENTITY BITabChangedInspectionFocus "">

@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "WRAdvancedWriteOffCreate">
+]>
+
+<dir id="0" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tạo chứng từ tất toán cho các hóa đơn" e="Write-off"></title>
+  <fields>
+    <field name="ngay_tt" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Ngày tất toán" e="Write-off Date"/>
+      <clientScript><![CDATA[onChange="onChange$]]>&Identity;<![CDATA[$DateWriteOff(this);"]]></clientScript>
+    </field>
+    <field name="dien_giai" maxLength="100">
+      <header v="Diễn giải" e="Description"/>
+    </field>
+
+    <field name="ma_quyen" onDemand="true">
+      <header v="Mã quyển" e="Book Code"/>
+      <items style="AutoComplete" controller="VoucherBook" reference="ten_quyen%l" key="status = '1' and ((ma_dvcs = '') or (ma_dvcs = @@unit)) and ((convert(smalldatetime, '{$%c[ngay_tt]}', 103) &gt;= ngay_hl_tu or ngay_hl_tu is null) and (convert(smalldatetime, '{$%c[ngay_tt]}', 103) &lt;= ngay_hl_den or ngay_hl_den is null)) and ma_nk in (select ma_nk from v20dmctnk where ma_ct = 'PT9' and (lstuser = '' or charindex(',' + rtrim(@@userName) + ',', ',' + replace(lstuser, ' ', '') + ',') &gt; 0))" check="((ma_dvcs = '') or (ma_dvcs = @@unit)) and ((convert(smalldatetime, '{$%c[ngay_tt]}', 103) &gt;= ngay_hl_tu or ngay_hl_tu is null) and (convert(smalldatetime, '{$%c[ngay_tt]}', 103) &lt;= ngay_hl_den or ngay_hl_den is null)) and ma_nk in (select ma_nk from v20dmctnk where ma_ct = 'PT9' and (lstuser = '' or charindex(',' + rtrim(@@userName) + ',', ',' + replace(lstuser, ' ', '') + ',') &gt; 0))" information="ma_nk$v20dmnk.ten_nk%l"/>
+    </field>
+
+    <field name="ten_quyen%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" external="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="keys" readOnly="true" filterSource="Infinite">
+      <header v="" e=""></header>
+    </field>
+    <field name="maxLength" type="Int16" readOnly="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 330, 0, 0, 0"/>
+      <item value="11-111: [ngay_tt].Label, [ngay_tt], [ngay_ct1], [ngay_ct2], [keys]"/>
+      <item value="1111: [ma_quyen].Label, [ma_quyen], [ten_quyen%l], [maxLength]"/>
+      <item value="110: [dien_giai].Label, [dien_giai]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$lockedDate nvarchar(512), @f varchar(32), @message nvarchar(512)
+select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+if not exists(select 1 from dmstt where @ngay_tt between ngay_gh1 and ngay_gh2) begin
+  select 'ngay_tt' as field, @$lockedDate as message
+  return
+end
+if exists(select 1 from dmstt where ngay_ks >= @ngay_tt) begin
+  select 'ngay_tt' as field, @$lockedDate as message
+  return
+end
+if exists(select 1 from dmctks where user_id = @@userID and ma_ct = 'PT9' and ngay_ks >= @ngay_tt) begin
+  select 'ngay_tt' as field, @$lockedDate as message
+  return
+end
+
+select * into #$keys from @keys
+exec rs_AdvancedWriteOff '1', @ngay_tt, @ma_quyen, @maxLength, @dien_giai, '', @f out, @message out, @@language, @@userID, @@admin
+if @f is not null begin
+  select @f as field, @message as message
+  return
+end
+select '' as field, '' as message, 'refresh$]]>&Identity;<![CDATA[$(this);' as script
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[for(var f=this,g=this.grid,d2=f.getItemValue("ngay_tt"),i=0;i<g._$d.length;i++)if(d2<g._$d[i]){f._checked=false;$message.show(String.format($df.getResources(f._language,"Message.RequiredField"),f.getItem("ngay_tt").field.Label),String.format("$find('{0}').getItem('{1}').focus()",f.get_id(),"ngay_tt"));break}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$]]>&Identity;<![CDATA[$(f) {
+  var g = f.grid, o1 = f.getItem('maxLength');
+  o1.value = o1.maxLength;
+  f.setItemValue('keys', g._$k);
+  f.setItemValue('ngay_tt', new Date());
+  f.getItem('ngay_ct1').value = g._d1;
+  f.getItem('ngay_ct2').value = g._d2;
+  f.setReferenceKeyFilter('ma_quyen');
+}
+function refresh$]]>&Identity;<![CDATA[$(f) {
+  var g = f.grid;
+  g._$k = g._$d = [];
+  $find(g.get_id()).goToPage(-1);
+}
+function onChange$]]>&Identity;<![CDATA[$DateWriteOff(o){
+  var f = o.parentForm;
+  f.setReferenceKeyFilter('ma_quyen');
+}
+]]>
+    </text>
+  </script>
+
+</dir>

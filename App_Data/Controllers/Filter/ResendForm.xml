@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  
+  <!ENTITY Key "declare @rk varchar(16)
+select @rk = lower(left(replace(newid(),'-',''), 16))
+update @@sysDatabaseName..userinfo2 set rkey = @rk where id = @@userID">
+  
+
+  <!ENTITY % CheckValidEmail SYSTEM "..\Include\CheckValidEmail.ent">
+  %CheckValidEmail;
+  <!ENTITY CheckValidEmail.FieldName "e_mail">
+  <!ENTITY CheckValidEmail.MultiEmail "true">
+]>
+
+<dir table="userinfo2" code="name" order="name" database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xác nhận" e="Confirm"></title>
+  <fields>
+
+    <field name="e_mail" external="true" defaultValue="''" allowNulls="false">
+      <header v="Thư &lt;span class=&quot;LabelDescription&quot;&gt;(Email)" e="Email Address"></header>
+    </field>
+
+    <field name="cpass" external="true" defaultValue="''">
+      <header v="Xác nhận mật khẩu" e="Confirm Password"></header>
+      <clientScript><![CDATA[type="password" onchange="genHash(this);"]]></clientScript>
+    </field>
+    <field name="chkpass" external="true" hidden="true" readOnly="true" defaultValue="''" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 100, 230, 0"/>
+      <item value="1100: [e_mail].Label, [e_mail]"/>
+      <item value="110-1: [cpass].Label, [cpass], [chkpass]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        &Key;<![CDATA[
+declare @message nvarchar(4000), @userName nvarchar(32)
+select @userName = rtrim(comment) from userinfo2 where id = @@userID
+select @message = 'this._userName = ''' + replace(replace(isnull(rtrim(@userName), ''), '\', '\\'), '''', '\''') + ''';this._key = ''' + @rk + ''';loadForm(this);'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'closeForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, o = f.getItem('cpass');
+o.oldValue = o.value;
+o.value = '';
+checkFieldEntry(f, o);
+]]>&CheckValidEmailCommandChecking;<![CDATA[
+if (f._checked) {
+  f._checked = false;
+  f.request('CheckKey', 'CheckKey', ['chkpass']);
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function loadForm(f) {
+  var g = f.grid;
+  f.add_onResponseComplete(on$Form$ResponseComplete);
+  if (f._$init) f.request('Key', 'Key', []);
+  f._$init = true;
+}
+function closeForm(f) {try {f.remove_onResponseComplete(on$Form$ResponseComplete);} catch (ex) {}}
+function on$Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Key':
+      f._key = result[0].Value;
+      break;
+    case 'CheckKey':
+      if (result[0].Value) request$EIResendEmail(f);
+        else $message.show(f._language == 'v' ? 'Mật khẩu xác nhận không đúng.' : 'Confirmation password is invalid.', String.format('revertPassword(\'{0}\', \'\', true); $find(\'{0}\').focus(\'{1}\');', f.get_id(), 'cpass'));
+      break;
+    default:
+      break;
+  }
+}
+function genHash(o) {
+  var f = o.parentForm, p = $func.trim(MD5(o.value));
+  f.getItem('chkpass').value = CRC32($func.trim(f._key).substr(0, 8) + p.substr(1, p.length - 2));
+}
+function checkFieldEntry(f, o, force) {
+  if (force) o = f.getItem(o);
+  var v = force ? o.value : o.oldValue;
+  if (f._checked && !v) {
+    f._checked = false;
+    $func.hideWait(f.get_id());
+    $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), o.field.Label), String.format('revertPassword(\'{0}\', \'\', true); $find(\'{0}\').focus(\'{1}\');', f.get_id(), o.field.Name));
+  }
+}
+function revertPassword(f, name, force) {
+  if (force) f = $find(f);
+  var o = f.getItem('cpass');
+  if (o.oldValue) o.value = o.oldValue;
+}
+
+function request$EIResendEmail(f, force) {
+  var g = f.grid, e = f.getItemValue('e_mail');
+  request$EIProcess(g, false, e);
+  f.cancelDialog();
+}
+]]>
+      &CheckValidEmailFunction;
+    </text>
+  </script>
+
+  <response>
+    <action id="Key">
+      <text>
+        &Key;<![CDATA[
+select @rk as value
+return
+]]>
+      </text>
+    </action>
+
+    <action id="CheckKey">
+      <text>
+        <![CDATA[
+declare @hash varchar(32), @c bit, @d bit, @k varchar(6)
+exec @@sysDatabaseName..AI_ERP$System$CheckSum @@userID, @chkpass, 0, @c output
+select @c as val
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrCoefficientByDepartment' else 'hrCoefficientByDepartment2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$CoefficientByDepartmentImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$CoefficientByDepartmentImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrhsbp, hrnv"/>
+    <table value="hrhsbp" alias="a"/>
+    <listTable value="#r"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_bp" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_bp not in (select ma_bp from hrbp)" updateValue="None" errorCode="00001"/>
+    <field name="ma_nv" column="B" isPrimaryKey="true" allowNulls="false" reference="1" check="ma_nv not in (select ma_nv from hrnv)" insertValue="None" updateValue="None" errorCode="00001"/>
+    <field name="he_so" column="D" type="Decimal"/>
+    <field name="ngay_hl" column="E" isPrimaryKey="true" allowNulls="false" type="DateTime" updateValue="None"/>
+
+    <field name="stt_rec" column="None" updateValue="None"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật hệ số theo bộ phận" e="Coefficient by Department"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_bp" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="ma_nv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="he_so" width="16">
+        <text v="Hệ số" e="Coefficient"/>
+      </field>
+      <field name="ngay_hl" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày hiệu lực" e="Effective Date"/>
+      </field>
+
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @field varchar(32)
+declare @user int, @admin bit, @sys varchar(32), @joinUnit bit, @joinDept bit, @r int
+select @admin = @@admin, @user = @@userID, @sys = '@@sysDatabaseName', @key = '', @joinUnit = 0, @joinDept = 0
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+
+-- Key
+if @admin = 0 begin
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+  select @q = 'delete @@table from @@table a where not exists(select 1 from hrbp e where a.ma_bp = e.ma_bp' + case when @key = '' then '' else ' and (' + @key + ')' end + ')'
+  exec sp_executesql @q
+
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'hrCoefficientByDepartment', 'Edit') = 0 select @type = '0'
+  end
+end
+
+-- Gather
+select top 0 stt_rec, ma_bp, ngay_hl, he_so into #r from hrhsbp
+select @q = 'insert into #r select e.stt_rec, a.ma_bp, a.ngay_hl, a.he_so'
+select @q = @q + ' from @@table a join hrnv e on a.ma_nv = e.ma_nv' + case when @key = '' then '' else ' where (' + @key + ')' end
+exec sp_executesql @q
+
+-- Delete
+if @type = '0' delete #r from #r a where exists(select 1 from hrhsbp b where a.stt_rec = b.stt_rec and a.ma_bp = b.ma_bp and a.ngay_hl = b.ngay_hl)
+select a.stt_rec, a.ma_bp, a.ngay_hl, a.he_so into #k from #r a join hrhsbp b on a.stt_rec = b.stt_rec and a.ma_bp = b.ma_bp and a.ngay_hl = b.ngay_hl
+delete #r from #r a where exists(select 1 from #k b where a.stt_rec = b.stt_rec and a.ma_bp = b.ma_bp and a.ngay_hl = b.ngay_hl)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  update hrhsbp set @@list from hrhsbp a join #k b on a.stt_rec = b.stt_rec and a.ma_bp = b.ma_bp and a.ngay_hl = b.ngay_hl
+end
+]]>
+    </text>
+  </processing>
+
+</import>

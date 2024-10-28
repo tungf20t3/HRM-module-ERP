@@ -1,0 +1,41 @@
+﻿<![CDATA[
+function set$Grid$ImportResult(z) {
+  var g = z.grid, f = z.form, w = g.get_element().parentForm, result = z.result, row = g._rowCount, first = true;
+  var c0 = g._getColumnOrder('ma_nv'), c2 = g._getColumnOrder('xep_loai');
+  var fields = 'ma_nv, ten, stt_rec_nv, ten_bp%l, ten_vtr%l, diem, xep_loai, ten_loai%l, dat_yn, chung_chi, ngay_cap, ngay_hl, ngay_hh, ghi_chu';
+
+  for (var i = 0; i < result.length; i++) {
+    var ins = true, row = g._rowCount, importItems = result[i];
+    if (first && row > 0) if (g.blankMemvar(row)) {ins = false; first = false;}
+    if (ins) g._appendRow(null, true);
+    row = g._rowCount;
+    var o = g._getItem(row, c0);
+    o.row = row;
+    insert$Import$Items(g, fields, row, importItems);
+
+    var employeeID = g._getItemValue(row, c0), employeeName = g._getItemValue(row, c0 + 1), b0 = (employeeName != '' || employeeID == '');
+    var subjectTypeID = g._getItemValue(row, c2), subjectTypeName = g._getItemValue(row, c2 + 1), b2 = (subjectTypeName != '' || subjectTypeID == '');
+
+    g.setItemGridBehavior(o, [
+        ['ma_nv', employeeID, [employeeName, b0], true],
+        ['xep_loai', subjectTypeID, [subjectTypeName, b2], true]
+    ]);
+  }
+  g._focusWhenTabChanged();
+  f._busy = false;
+  parent.$func.hideWait(f.get_id());
+  ]]>&ImportDetailCloseForm;<![CDATA[
+  z.parentNode.removeChild(z);
+}
+function insert$Import$Items(g, fields, row, value) {
+  var field = fields.split(',');
+  for (var i = 0; i < field.length; i++) {
+    var column = g._getColumnOrder(parent.$func.trim(field[i]));
+    if (column > 0) {
+      var f = g._fields[column - 1], v = value[i];
+      if (f.ItemStyle == 'AutoComplete' && v && !$func.trim(v)) v = '';
+      g._setItemValue(row, column, v);
+    }
+  }
+}
+]]>

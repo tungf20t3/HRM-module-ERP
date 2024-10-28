@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY WIDetailFields SYSTEM "Include\WIDetailFields.txt">
+  <!ENTITY WIDetailFieldsCompact SYSTEM "Include\WIDetailFieldsCompact.txt">
+  <!ENTITY CheckImportUserDefinedFields SYSTEM "..\..\Include\Command\CheckImportUserDefinedFields.txt">
+  <!ENTITY SiteKey SYSTEM "..\..\Include\Command\SiteKey.txt">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "declare @filename varchar(128)
+if @@language = 'v' select @filename = case when @compactMode = '0' then 'WIDetail.xlsx' else 'WIDetail3.xlsx' end
+else select @filename = case when @compactMode = '0' then 'WIDetail2.xlsx' else 'WIDetail4.xlsx' end
+">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$WIDetailImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$WIDetailImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+    <baseTable value="d38$000000"/>
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        <![CDATA[
+declare @compactMode char(1)
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') select @compactMode = '1' else select @compactMode = '0'
+]]>&ExportImportTemplateQuery;<![CDATA[
+if @compactMode = '1' select '1' as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[ else select '0' as view_index]]>&ExportImportTemplateQueryReturnFileName;<![CDATA[
+]]>
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        &WIDetailFieldsCompact;
+      </fields>
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    &WIDetailFields;
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Phiếu xuất kho thực tế" e="Goods Issue"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_vt" width ="16">
+        <text v="Mã hàng" e="Item Code"/>
+      </field>
+      <field name="ten_vt" width ="32" afterField="ma_vt">
+        <text v="Tên mặt hàng" e="Item Description"/>
+      </field>
+      <field name="dvt" width ="16">
+        <text v="Đvt" e="UOM"/>
+      </field>
+      <field name="ma_kho" width ="16">
+        <text v="Mã kho" e="Site"/>
+      </field>
+      <field name="ma_vi_tri" width ="16">
+        <text v="Mã vị trí" e="Location"/>
+      </field>
+      <field name="ma_lo" width ="16">
+        <text v="Mã lô" e="Lot"/>
+      </field>
+      <field name="so_luong" width ="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="gia_nt" width ="16">
+        <text v="Giá" e="Price"/>
+      </field>
+      <field name="tien_nt" width ="16">
+        <text v="Tiền" e="Amount"/>
+      </field>
+      <field name="ma_nx" width ="16">
+        <text v="Mã nx" e="Reason Code"/>
+      </field>
+      <field name="ma_vv" width ="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_bp" width ="16">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="so_lsx" width ="16">
+        <text v="Lsx" e="MO"/>
+      </field>
+      <field name="ma_sp" width ="16">
+        <text v="Sản phẩm" e="Product"/>
+      </field>
+      <field name="ma_hd" width ="16">
+        <text v="Hợp đồng" e="Contract"/>
+      </field>
+      <field name="ma_phi" width ="16">
+        <text v="Phí" e="Expense"/>
+      </field>
+      <field name="ma_ku" width ="16">
+        <text v="Khế ước" e="Loan Contract"/>
+      </field>
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @user int, @admin bit, @language char(1), @sys varchar(32), @m int, @$stock$View$Type char(1)
+select @m = character_maximum_length from information_schema.columns where table_name = 'phlsx' and column_name = 'so_lsx'
+select @$stock$View$Type = rtrim(val) from options where name = 'm_instock_view2'
+select @$stock$View$Type = isnull(@$stock$View$Type, '1')
+select @admin = @@admin, @user = @@userID, @language = @@language, @sys = '@@sysDatabaseName'
+select @message = case @language when 'v' then N'Dữ liệu trong tệp không có hoặc không hợp lệ.' else N'The content of the data file is empty or invalid.' end
+
+update @@table set so_lsx = space(@m - len(rtrim(so_lsx))) + rtrim(so_lsx)
+
+create table #r (ma_vt varchar(32), ten_vt nvarchar(512), dvt nvarchar(32), he_so numeric(19, 4), ma_kho varchar(32), ma_vi_tri varchar(32),
+  ma_lo varchar(32), ton13 numeric(19, 4), so_luong numeric(19, 4), px_gia_dd bit, gia_nt numeric(19, 4), tien_nt numeric(19, 4),
+  ma_nx varchar(32), tk_du varchar(32), tk_vt varchar(32), ma_vv varchar(32), ma_bp varchar(32), so_lsx varchar(32), ma_sp varchar(32),
+  ma_hd varchar(32), ma_phi varchar(32), ma_ku varchar(32), gia_ton int, vi_tri_yn bit, lo_yn bit, nhieu_dvt bit, ref varchar(32), stt int)
+
+select @q = 'insert into #r(ma_vt, ten_vt, dvt, he_so, ma_kho, ma_vi_tri, ma_lo, ton13, so_luong, px_gia_dd, gia_nt, tien_nt, ma_nx, tk_du, tk_vt,'
+select @q = @q + 'ma_vv, ma_bp, so_lsx, ma_sp, ma_hd, ma_phi, ma_ku, gia_ton, vi_tri_yn, lo_yn, nhieu_dvt, ref, stt)'
+select @q = @q + ' select a.ma_vt, b.ten_vt%l, case when isnull(a.dvt, '''') <> '''' then a.dvt else b.dvt end as dvt, 1 as he_so,'
+select @q = @q + 'case when isnull(a.ma_kho, '''') <> '''' then a.ma_kho else b.ma_kho end as ma_kho,'
+select @q = @q + 'case when isnull(a.ma_vi_tri, '''') <> '''' then a.ma_vi_tri else b.ma_vi_tri end as ma_vi_tri,'
+select @q = @q + 'a.ma_lo, 0, so_luong, 1, gia_nt, tien_nt, a.ma_nx,'
+select @q = @q + 'd.tk, b.tk_vt, ma_vv, ma_bp, so_lsx, ma_sp, ma_hd,'
+select @q = @q + 'ma_phi, ma_ku, b.gia_ton, cast(0 as bit) as vi_tri_yn, b.lo_yn, b.nhieu_dvt, '''', stt '
+select @q = @q + 'from @@table a left join dmvt b on a.ma_vt = b.ma_vt left join dmkho c on b.ma_kho = c.ma_kho left join dmnx d on a.ma_nx = d.ma_nx'
+exec sp_executesql @q
+
+update #r set he_so = b.he_so from #r a join vdmvtqddvt b on (a.ma_vt = b.ma_vt or b.ma_vt = '*') and a.dvt = b.dvt where a.nhieu_dvt = 1
+update #r set vi_tri_yn = 1 from #r a join dmvitri b on a.ma_kho = b.ma_kho
+
+select top 0 ma_kho, ma_vi_tri, ma_vt, ma_lo, so_luong as ton13 into #xcd from cdvt93
+
+if @$stock$View$Type = '1' begin
+  insert into #xcd select ma_kho, '', ma_vt, '', sum(ton13) from cdvt213 a where exists (select 1 from #r b where a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or b.ma_kho = '')) group by ma_kho, ma_vt
+  insert into #xcd select ma_kho, '', ma_vt, '', sum(so_luong) from cdvt93 a where exists (select 1 from #r b where a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or b.ma_kho = '')) group by ma_kho, ma_vt
+
+  update #r set ton13 = b.ton13 from #r a join (select ma_kho, ma_vt, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt) b on a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or a.ma_kho = '')
+end
+else if @$stock$View$Type = '2' begin
+  insert into #xcd select ma_kho, ma_vi_tri, ma_vt, '', sum(ton13) from cdvitri213 a where exists (select 1 from #r b where a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or b.ma_kho = '') and ((a.ma_vi_tri = b.ma_vi_tri and b.ma_kho <> '') or b.ma_vi_tri = '')) group by ma_kho, ma_vi_tri, ma_vt
+  insert into #xcd select ma_kho, ma_vi_tri, ma_vt, '', sum(so_luong) from cdvt93 a where exists (select 1 from #r b where a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or b.ma_kho = '') and ((a.ma_vi_tri = b.ma_vi_tri and b.ma_kho <> '') or b.ma_vi_tri = '')) group by ma_kho, ma_vi_tri, ma_vt
+
+  update #r set ton13 = b.ton13 from #r a join (select ma_kho, ma_vi_tri, ma_vt, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vi_tri, ma_vt) b on a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or a.ma_kho = '') and ((a.ma_vi_tri = b.ma_vi_tri and a.ma_kho <> '') or a.ma_vi_tri = '')
+end
+else if @$stock$View$Type = '3' begin
+  insert into #xcd select ma_kho, '', ma_vt, ma_lo, sum(ton13) from cdklo213 a where exists (select 1 from #r b where a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or b.ma_kho = '') and (a.ma_lo = b.ma_lo or b.ma_lo = '')) group by ma_kho, ma_vt, ma_lo
+  insert into #xcd select ma_kho, '', ma_vt, ma_lo, sum(so_luong) from cdvt93 a where exists (select 1 from #r b where a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or b.ma_kho = '') and (a.ma_lo = b.ma_lo or b.ma_lo = '')) group by ma_kho, ma_vt, ma_lo
+
+  update #r set ton13 = b.ton13 from #r a join (select ma_kho, ma_vt, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_lo) b on a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or a.ma_kho = '') and (a.ma_lo = b.ma_lo or a.ma_lo = '')
+end
+else if @$stock$View$Type = '4' begin
+  insert into #xcd select ma_kho, ma_vi_tri, ma_vt, ma_lo, sum(ton13) from cdlo213 a where exists (select 1 from #r b where a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or b.ma_kho = '') and ((a.ma_vi_tri = b.ma_vi_tri and b.ma_kho <> '') or b.ma_vi_tri = '') and (a.ma_lo = b.ma_lo or b.ma_lo = '')) group by ma_kho, ma_vt, ma_vi_tri, ma_lo
+  insert into #xcd select ma_kho, ma_vi_tri, ma_vt, ma_lo, sum(so_luong) from cdvt93 a where exists (select 1 from #r b where a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or b.ma_kho = '') and ((a.ma_vi_tri = b.ma_vi_tri and b.ma_kho <> '') or b.ma_vi_tri = '') and (a.ma_lo = b.ma_lo or b.ma_lo = '')) group by ma_kho, ma_vt, ma_vi_tri, ma_lo
+
+  update #r set ton13 = b.ton13 from #r a join (select ma_kho, ma_vi_tri, ma_vt, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vi_tri, ma_vt, ma_lo) b on a.ma_vt = b.ma_vt and (a.ma_kho = b.ma_kho or a.ma_kho = '') and ((a.ma_vi_tri = b.ma_vi_tri and b.ma_kho <> '') or a.ma_vi_tri = '') and (a.ma_lo = b.ma_lo or a.ma_lo = '')
+end
+
+update #r set tk_vt = c.tk_dl from #r a join dmkho b on a.ma_kho = b.ma_kho ]]>&SiteKey;<![CDATA[ join dmvt c on a.ma_vt = c.ma_vt where b.dai_ly_yn = 1 and b.ma_dvcs = @ma_dvcs and c.tk_dl <> ''
+
+if not exists(select 1 from #r where dvt <> '') update #r set ref = ref + '1'
+  else update #r set ref = ref + case when a.dvt = '' or b.dvt is not null or c.dvt is not null then '1' else '0' end from #r a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt
+
+if not exists(select 1 from #r where ma_kho <> '') update #r set ref = ref + '1'
+  else update #r set ref = ref + case when a.ma_kho = '' or b.ma_kho is not null then '1' else '0' end from #r a left join dmkho b on a.ma_kho = b.ma_kho and b.ma_dvcs = @ma_dvcs]]>&SiteKey;<![CDATA[
+
+if not exists(select 1 from #r where ma_vi_tri <> '') update #r set ref = ref + '1'
+ else update #r set ref = ref + case when a.ma_vi_tri = '' or b.ma_vi_tri is not null then '1' else '0' end from #r a left join dmvitri b on a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri
+if not exists(select 1 from #r where ma_lo <> '') update #r set ref = ref + '1'
+  else update #r set ref = ref + case when a.ma_lo = '' or b.ma_lo is not null then '1' else '0' end from #r a left join dmlo b on a.ma_vt = b.ma_vt and a.ma_lo = b.ma_lo
+
+if not exists(select 1 from #r where ma_nx <> '') update #r set ref = ref + '1'
+  else update #r set ref = ref + case when a.ma_nx = '' or b.ma_nx is not null then '1' else '0' end from #r a left join dmnx b on a.ma_nx = b.ma_nx
+
+]]>&CheckImportUserDefinedFields;<![CDATA[
+
+select '' as message, 'this.frameElement.result = @@result;parent.set$Grid$ImportResult(this.frameElement);' as script
+select ma_vt, ten_vt, rtrim(dvt) as dvt, he_so, rtrim(ma_kho) as ma_kho, rtrim(ma_vi_tri) as ma_vi_tri, ma_lo,
+    ton13 / case when isnull(he_so, 0) <> 0 then he_so else 1 end, so_luong, px_gia_dd, gia_nt, tien_nt, ma_nx, rtrim(tk_du) as tk_du,
+    rtrim(tk_vt) as tk_vt, ma_vv, ma_bp, so_lsx, ma_sp, ma_hd, ma_phi, ma_ku, gia_ton, vi_tri_yn, lo_yn, nhieu_dvt, ref
+  from #r
+  order by stt
+
+return
+]]>
+    </text>
+  </processing>
+
+</import>

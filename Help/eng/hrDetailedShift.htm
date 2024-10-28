@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Detailed Shift</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Detailed Shift</p>
+<p id="td2">Definition screen</p>
+<p id="pic"><img src="eng\hrDetailedShift.png"/></p>
+
+<p id="td2">Field descriptions</p>
+
+<p class="node">	Maximum Idle Time</p>
+<p class="node_d">
+In case an employee has a working shift started on previous day and ended today, maximum idle time will be used to determine 
+time out of the previous working shift. The actual time out can only be later than one in detailed shift a period of time equal 
+to the maximum idle time. Otherwise, it will be shown in "Employees with Inaccurate Time In/Out" report.</p>
+
+<p class="node">Detailed Shift</p>
+<p class="node_d">Detailed shift is used in case there are many times of scanning card in a shift or there is a break at the middle of shift.</p>
+
+<p class="e">For example:<br/>
+Regular workday begins at 8:00 and ends at 17:00 and there is an-hour break for lunch. In this case, you have to define 2 detailed 
+shifts for this shift.</p>
+
+<p class="node">(Time In/Out) Next Day</p>
+<p class="node_d">	This option is selected in case a shift begins on one day and ends on the next day; or a detail of this shift is 
+in the next day.<br/>
+When getting timekeeping data, the system will recognize that the time in/out on one day of a detailed shift with check on the 
+"Next Day" option will be timekeeping data of the previous day.<br/>
+In case of time in/out adjusting, the "Next Day" option is checked at "Employee Time In/Out Adjusting" function 
+because the system cannot edit the manually input information.
+At that time, the date input is the previous date and check on "Next Day" option.</p>
+
+<p class="node">	Minimum Minutes/ Maximum Hours </p>
+<p class="node_d">Minimum minutes and maximum hours of detailed shift defined in “Detailed Shift” and “Employee overtime register”.<br/>
+
+- If the calculated “hours” (regular or overtime working) plus “added minutes” is greater than “Maximum Hours”, it will be equal 
+to “Maximum Hours”;<br/>
+- If the calculated “hours” (regular or overtime working) is less than “Minimum Minutes”, it will be 0 and not be added “Late in, 
+early out” minutes or “Added minutes” of this detailed shift.<br/>
+The minimum minutes and maximum hours in working shift schedule have higher priority than ones detailed shift. This is used for:<br/>
++ overtime register with detailed shift: regular and overtime working day;<br/>
++ overtime register without detailed shift: overtime working day.</p>
+
+
+<p class="node">Late In/ Early Out</p>
+<p class="node_d"> 
+If the actual late in minutes is less than "Late In" minutes defined in this field, the system will consider as not late in 
+and vice versa. <br/>
+If the actual early out minutes is less than "Early Out" minutes defined in this field, the system will consider as not early out and 
+vice versa. </p>
+
+<p class="note">Note: <br/>
+Late in/early out minutes is only used to determine if an employee is late in/early out or not. 
+The working hours will be calculated by actual time (minus the late in/early out minutes).</p>
+
+<p class="node">Added Minutes</p>
+<p class="node_d">This field is used for shifts with the duration shorter than actual one so that these shifts will recorded with 
+full hours.</p>
+<p class="e">For example:<br/>
+As usual, the number of working hours on Saturday is 4. Once all employees are allowed 1-hour early out. 
+The Saturday shift (detailed shift) must be defined from 7am to 11am with the "Added Minutes" as 60.</p>
+
+<p class="node">	Workday</p>
+<p class="node_d">Workday sign of detailed shift; extracted from Workday Sign List.<br/>
+The workday signs with category as "Overtime" (*) will be shown in both 1 – “Regular” and 2 – Overtime working shifts.
+</p>
+
+<p class="note">(*) The fact that a workday sign is overtime or not depends on "Workday Type" of that workday sign
+(refer to "Category" option in Workday Type List).</p>
+
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

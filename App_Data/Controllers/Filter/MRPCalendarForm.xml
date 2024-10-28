@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir id="0" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tạo ngày nghỉ tự động" e="Auto Generate Nonworking Day"></title>
+  <fields>
+    <field name="ngay_bd" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Ngày bắt đầu" e="Start Date"></header>
+    </field>
+    <field name="t2" type="Boolean" clientDefault="Default">
+      <header v="Thứ hai" e="Monday"/>
+      <footer v="&lt;div id=&quot;hidden_line2&quot; class=&quot;Break&quot;/&gt;" e="&lt;div id=&quot;hidden_line2&quot; class=&quot;Break&quot;/&gt;"></footer>
+      <clientScript><![CDATA[onchange="onChange$Nonworking$CheckValue(this, 2);"]]></clientScript>
+    </field>
+    <field name="t3" type="Boolean" clientDefault="Default">
+      <header v="Thứ ba" e="Tuesday"/>
+      <clientScript><![CDATA[onchange="onChange$Nonworking$CheckValue(this, 3);"]]></clientScript>
+    </field>
+    <field name="t4" type="Boolean" clientDefault="Default">
+      <header v="Thứ tư" e="Wednesday"/>
+      <clientScript><![CDATA[onchange="onChange$Nonworking$CheckValue(this, 4);"]]></clientScript>
+    </field>
+    <field name="t5" type="Boolean" clientDefault="Default">
+      <header v="Thứ năm" e="Thursday"/>
+      <clientScript><![CDATA[onchange="onChange$Nonworking$CheckValue(this, 5);"]]></clientScript>
+    </field>
+    <field name="t6" type="Boolean" clientDefault="Default">
+      <header v="Thứ sáu" e="Friday"/>
+      <clientScript><![CDATA[onchange="onChange$Nonworking$CheckValue(this, 6);"]]></clientScript>
+    </field>
+    <field name="t7" type="Boolean" clientDefault="1">
+      <header v="Thứ bảy" e="Saturday"/>
+      <clientScript><![CDATA[onchange="onChange$Nonworking$CheckValue(this, 7);"]]></clientScript>
+    </field>
+    <field name="t1" type="Boolean" clientDefault="1">
+      <header v="Chủ nhật" e="Sunday"/>
+      <clientScript><![CDATA[onchange="onChange$Nonworking$CheckValue(this, 1);"]]></clientScript>
+    </field>
+    <field name="t0" clientDefault="1,7">
+      <header v="" e=""/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0">
+      <header v="" e=""/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 25, 75, 330, 0"/>
+      <item value="110-1: [ngay_bd].Label, [ngay_bd], [t0]"/>
+      <item value="1000: [t2].Description"/>
+      <item value="11--1: [t2].Label, [t2], [nam]"/>
+      <item value="11: [t3].Label, [t3]"/>
+      <item value="11: [t4].Label, [t4]"/>
+      <item value="11: [t5].Label, [t5]"/>
+      <item value="11: [t6].Label, [t6]"/>
+      <item value="11: [t7].Label, [t7]"/>
+      <item value="11: [t1].Label, [t1]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[select 'active$MRPCalendar$Form(this);' as message
+return]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[declare @s varchar(32)
+select @s = case when rtrim(@t0) <> '' then @t0 else '9' end
+exec rs_MRPAutoGenerateCalendar @s, @nam, @ngay_bd, @@userID]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[select 'close$MRPCalendar$Form(this);' as message
+return]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$MRPCalendar$Form(f) {
+  f.add_onResponseComplete(on$MRPCalendar$Form$ResponseComplete);
+  if(!f._$k) f._$k = [1, 7];
+  var d = new Date();
+  d.setMonth(0);
+  d.setDate(1);
+  d.setYear(f.grid._$year);
+  f.setItemValue('ngay_bd', d);
+  f.setItemValue('nam', f.grid._$year);
+}
+function close$MRPCalendar$Form(sender) {try {sender.remove_onResponseComplete(on$MRPCalendar$Form$ResponseComplete);} catch (ex) {}}
+function on$MRPCalendar$Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    default:
+      break;
+  }
+}
+function onChange$Nonworking$CheckValue(o, v) {
+  var f = o.parentForm, i = Array.indexOf(f._$k, v);
+  if (i == -1) Array.add(f._$k, v);
+    else Array.removeAt(f._$k, i);
+  f.setItemValue('t0', f._$k.join(','));
+}
+]]>
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.Break{margin:1px 0 1px 8px;padding:0;height:1px;overflow:hidden;display:block;background-color:white;border-top:1px solid #CED3DE;}
+.LabelDescription{color:#73A6DE;}
+]]>
+    </text>
+  </css>
+</dir>

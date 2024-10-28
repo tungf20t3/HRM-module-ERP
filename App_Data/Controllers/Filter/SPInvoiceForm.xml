@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY % DetailTax SYSTEM "..\Include\DetailTax.ent">
+  %DetailTax;
+
+  <!ENTITY Identity "SPInvoice">
+  <!ENTITY DetailTable "d81">
+  <!ENTITY c11 "Mã khách">
+  <!ENTITY c12 "Customer">
+  <!ENTITY c21 "Số hóa đơn">
+  <!ENTITY c22 "Invoice Number">
+  <!ENTITY c31 "Ngày hóa đơn">
+  <!ENTITY c32 "Invoice Date">
+
+  <!ENTITY % VoucherGoodsType SYSTEM "..\Include\VoucherGoodsType.ent">
+  %VoucherGoodsType;
+]>
+
+<dir table="m81$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Hóa đơn bán hàng" e="Sales Invoice"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d81')._controlBehavior, z = f.grid, w = z.get_element().parentForm, l = g._getColumnOrder('chon'), f1 = 'so_luong0, stt_rec, stt_rec0, so_ct, line_nbr', f2 = 'so_luong, stt_rec_hd, stt_rec0hd, hd_so, hd_ln, tk_du';
+  var first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]), x = (w.getItemValue('loai_ct') == '1');
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = z._getColumnOrder('dvt'), l2 = g._getColumnOrder('nhieu_dvt');
+  var l3 = z._getColumnOrder('ma_vi_tri'), l4 = g._getColumnOrder('vi_tri_yn'), l5 = z._getColumnOrder('ma_lo'), l6 = g._getColumnOrder('lo_yn');
+  var k0 = g._getColumnOrder('so_luong0'), k1 = g._getColumnOrder('so_luong');
+  var fields = 'ma_vt, ten_vt%l, dvt, ma_kho, ma_vi_tri, ma_lo, tk_vt, tk_dt, tk_gghb, kieu_dt, kieu_gg, ]]>&XMLHiddenFields;<![CDATA[, he_so, gia_ton ]]>&DetailTaxFollowCopyFields;<![CDATA[';
+  var start = null;
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l)) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      if (!start) start = row;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      if (g._getItemValue(r, k0) > g._getItemValue(r, k1)) g._setItemValue(r, k0, g._getItemValue(r, k1));
+      if (g._getItemValue(r, k0) < 0) g._setItemValue(r, k0, 0);
+      insert$Retrieve$Items(g, r, z, row, fields, x ? f1 + ', tk_gghb' : f1 + ', tk_dt', f2);
+      if (v) z.executeExpression(o, [z.$a.tien_nt2, z.$a.tien2 ]]>&DetailTaxFollowValidDetail;<![CDATA[]);
+
+      $func.setObjectWhen(z._getItem(row, l1), g._getItemValue(r, l2));
+      $func.setObjectWhen(z._getItem(row, l3), g._getItemValue(r, l4));
+      $func.setObjectWhen(z._getItem(row, l5), g._getItemValue(r, l6));
+      ]]>&VoucherGoodsTypeGridExecuteCommandFlow;<![CDATA[
+    }
+  }
+  z.executeAggregate([z.$a.t_tien_nt2, z.$a.t_tien2]);
+  if (v) {
+    on$GridVoucherDetail$AmountChange(null, z, w);
+    on$GridVoucherDetail$TaxChange(null, z, w);
+  }
+  onChange$Voucher$TransactionType(w, !x, start);
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

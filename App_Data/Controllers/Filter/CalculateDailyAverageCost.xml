@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY CommandCheckLockedDate SYSTEM "..\Include\Command\PeriodLockedDate4Site.txt">
+  <!ENTITY XMLCheckProcess SYSTEM "..\Include\XML\CheckProcess.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tính giá trung bình di động theo ngày" e="Calculate Daily Average Cost"></title>
+  <fields>
+    <field name="ky1" type="Decimal" dataFormatString="#0" allowNulls="false" align="right" aliasName="Period" defaultValue="(new Date()).getMonth()+1">
+      <header v="Từ kỳ" e="From Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ky2" type="Decimal" dataFormatString="#0" allowNulls="false" align="right" aliasName="Period" defaultValue="(new Date()).getMonth()+1">
+      <header v="Đến kỳ" e="To Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_kho">
+      <header v="Mã kho" e="Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1) and status = '1'" check="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)" information="ma_kho$dmkho.ten_kho%l"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nh" defaultValue="''" filterSource="Optional">
+      <header v="Nhóm kho" e="Site Group"></header>
+      <items style="AutoComplete" controller="SiteGroup" reference="ten_nh%l" key="ma_nh in (select ma_nh from dmkho where isnull(ma_nh, '') &lt;&gt; ''and ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)) and status = '1'" check="ma_nh in (select ma_nh from dmkho where isnull(ma_nh, '') &lt;&gt; ''and ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1))" information="ma_nh$dmnhkho.ten_nh%l"/>
+    </field>
+    <field name="ten_nh%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt">
+      <header v="Mã vật tư" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1" information="ma_vt$dmvt.ten_vt%l" new="Default"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="loai_vt">
+      <header v="Loại vật tư" e="Item Type"></header>
+      <items style="AutoComplete" controller="ItemType" reference="ten_loai_vt%l" key="status = '1'" check="1 = 1" information="ma_loai_vt$dmloaivt.ten_loai_vt%l"/>
+    </field>
+    <field name="ten_loai_vt%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vt1">
+      <header v="Nhóm vật tư 1" e="Item Group 1"></header>
+      <footer v="Nhóm vật tư" e="Item Group"></footer>
+      <items style="AutoComplete" controller="ItemGroup" reference="ten_nh_vt1%l" key="loai_nh = 1 and status = '1'" check="loai_nh = 1" information="ma_nh$dmnhvt.ten_nh%l"/>
+    </field>
+    <field name="ten_nh_vt1%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vt2">
+      <header v="Nhóm vật tư 2" e="Item Group 2"></header>
+      <items style="AutoComplete" controller="ItemGroup" reference="ten_nh_vt2%l" key="loai_nh = 2 and status = '1'" check="loai_nh = 2" information="ma_nh$dmnhvt.ten_nh%l"/>
+    </field>
+    <field name="ten_nh_vt2%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vt3">
+      <header v="Nhóm vật tư 3" e="Item Group 3"></header>
+      <items style="AutoComplete" controller="ItemGroup" reference="ten_nh_vt3%l" key="loai_nh = 3 and status = '1'" check="loai_nh = 3" information="ma_nh$dmnhvt.ten_nh%l"/>
+    </field>
+    <field name="tao_px" dataFormatString="0, 1" clientDefault="1" align="right">
+      <header v="Phiếu xuất chênh lệch" e="Create Issue"></header>
+      <footer v="0 - Không tạo, 1 - Tạo khi không còn tồn kho" e="0 - None, 1 - When No Inventory"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="tk_cl" allowNulls="false">
+      <header v="Tài khoản chênh lệch" e="Difference Account"></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk_cl%l" key="loai_tk = 1 and status = '1'" check="loai_tk = 1" information="tk$dmtk.ten_tk%l" new="Default" row="1"/>
+    </field>
+    <field name="ten_tk_cl%l" clientDefault="Default" readOnly="true" hidden="false" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="kieu_cn" allowNulls="false" clientDefault="1">
+      <header v="Kiểu cập nhật" e="Update Types"></header>
+      <clientScript>&OnSelectionOutline;</clientScript>
+      <items style="DropDownList">
+        <item value="0">
+          <text v="Tính giá rồi cập nhật vào thẻ kho" e="Calculate and Update Stock Card"/>
+        </item>
+        <item value="1">
+          <text v="Tính giá rồi cập nhật vào thẻ kho, sổ cái" e="Calculate, Update Stock Card and GL"/>
+        </item>
+        <item value="2">
+          <text v="Cập nhật giá đã tính vào sổ cái" e="Post to GL"/>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11: [ky1].Label, [ky1]"/>
+      <item value="11: [ky2].Label, [ky2]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="110100: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="110100: [ma_nh].Label, [ma_nh], [ten_nh%l]"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="110100: [loai_vt].Label, [loai_vt], [ten_loai_vt%l]"/>
+      <item value="11011: [nh_vt1].Description, [nh_vt1], [nh_vt2], [nh_vt3]"/>
+      <item value="111000: [tao_px].Label, [tao_px], [tao_px].Description"/>
+      <item value="110100: [tk_cl].Label, [tk_cl], [ten_tk_cl%l]"/>
+      <item value="11000: [kieu_cn].Label, [kieu_cn]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000), @inputSite nvarchar(256), @inputSiteGroup nvarchar(256), @differentAccount nvarchar(256)
+select @inputSite = rtrim(val) from options where name = 'm_gia_vt'
+select @inputSiteGroup = rtrim(val) from options where name = 'm_gia_nh_kho'
+select @differentAccount = rtrim(val) from options where name = 'm_tk_cl_vt'
+select @message = 'this._inputSite=' + case when @inputSite = '2' then 'true' else 'false' end  + ';this._inputSiteGroup=' + case when @inputSiteGroup = '1' then 'true' else 'false' end + ';this._differentAccount=''' + rtrim(@differentAccount) + ''';active$VoucherFilter$(this);'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLCheckProcess;
+
+    <command event="Inserting">
+      <text>
+        &CommandCheckLockedDate;
+        <![CDATA[
+if @tao_px <> '0' and exists(select 1 from dmtk where tk = @tk_cl and loai_tk = 0) begin
+  select 'tk_cl' as field, case when @@language = 'v' then N'Tài khoản chênh lệch phải là tài khoản chi tiết.' else N'Imbalance account must be subaccount.' end as message
+  return
+end
+declare @siteType tinyint, @priceType tinyint, @dateFrom smalldatetime, @dateTo smalldatetime
+select @dateFrom = dbo.ff_GetStartDateOfCycle(@ky1, @nam), @dateTo = dbo.ff_GetEndDateOfCycle(@ky2, @nam)
+select @siteType = cast(rtrim(val) as tinyint) from options where name = 'm_gia_vt'
+select @priceType = cast(rtrim(val) as tinyint) from options where name = 'm_gia_tb_nt'
+
+if not exists(select 1 from dmstt where @dateTo between ngay_gh1 and ngay_gh2) begin
+  select '' as message
+  return
+end
+
+exec fs_CaclDAvgPrice @dateFrom, @dateTo, @ma_kho, @ma_vt, @nh_vt1, @nh_vt2, @nh_vt3, @loai_vt, @tao_px, @tk_cl, @kieu_cn, @siteType, 'PXF', 4, 'PND,PNF', 'PXA,PXB,PXC', 'HDA,HDF,E01', 'PNF', 'HDF', @priceType, @@userID, @ma_nh
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$VoucherFilter$(f) {setFormDefaultValue(f);}
+function setFormDefaultValue(f) {
+  f.setItemValue('tk_cl',f._differentAccount);
+  setObjectFormHidden(f, 'ma_kho', f._inputSite);
+  setObjectFormHidden(f, 'ma_nh', f._inputSiteGroup);
+  var o = f.getItem('ma_nh');
+  o.field.AllowNulls = (!f._inputSiteGroup);
+  if (f._inputSiteGroup) {
+    var grandNode = o.parentNode.parentNode;
+    Sys.UI.DomElement.addCssClass(grandNode, 'Required');
+    Sys.UI.DomElement.addCssClass(grandNode, f._id);
+  }
+}
+function setObjectFormHidden(f, c, b) {
+  var o = f.getItem(c);
+  if (b) {if (!f._controlFocus) f._controlFocus = o;}
+  else $common.setVisible(o.parentNode.parentNode.parentNode, false);
+}
+]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

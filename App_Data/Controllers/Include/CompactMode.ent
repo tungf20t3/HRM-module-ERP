@@ -1,0 +1,157 @@
+﻿<!ENTITY % Conditional.CompactMode SYSTEM "..\Include\CompactMode.txt">
+
+<![%Conditional.CompactMode;[
+  <!ENTITY Operation.And " and ">
+
+  <!ENTITY UnitListFormShowing SYSTEM "..\Include\Command\UnitListFormShowing.txt">
+  <!ENTITY ReportFormAccumulationFields "">
+  <!ENTITY ReportFormExpenseFields "">
+  <!ENTITY FieldsFilter "kind = 0">
+  <!ENTITY FieldsFilter.Edition "edition = 0">
+
+
+
+  <!ENTITY PaymentContractDirFields "">
+  <!ENTITY PaymentContractDirCommandInserting "">
+  <!ENTITY PaymentContractDirCommandInserted "">
+  <!ENTITY PaymentContractDirCommandUpdatingUpdatePayment "">
+  <!ENTITY PaymentContractDirCommandUpdatingDeletePayment "">
+  <!ENTITY PaymentContractDirCommandUpdated "">
+  <!ENTITY PaymentContractDirCommandDeleting "">
+  <!ENTITY PaymentContractDirExecuteCommandDeclare "">
+  <!ENTITY PaymentContractDirExecuteCommandGather "">
+  <!ENTITY PaymentContractDirView SYSTEM "..\Include\XML\PaymentContractDirViewCompact.txt">
+  <!ENTITY PaymentContractDirHeight "208">
+  <!ENTITY PaymentContractDirTabChanged "f.focusWhenTabChanged(['ngay_hd', 'nh_hd1']);">
+
+
+
+  <!ENTITY XMLWHReferenceFields "">
+  <!ENTITY XMLWHReferenceView "">
+  <!ENTITY XMLIRReferenceFields "">
+  <!ENTITY XMLIRReferenceView "">
+
+  <!ENTITY XMLMRReferenceFields "">
+  <!ENTITY XMLMRReferenceView "">
+
+
+
+  <!ENTITY XMLGridToolbarPSDetail SYSTEM "..\Include\XML\Grid.Toolbar.PSDetail.e">
+  <!ENTITY XMLGridToolbarSRDetail SYSTEM "..\Include\XML\Grid.Toolbar.SRDetail.e">
+
+  <!ENTITY ScriptGridShowFlowSRDetail "g.showForm('SRInvoiceFilter');">
+
+
+
+  <!ENTITY ScriptWhenMREmptyField "">
+
+  <!ENTITY Irregular.UOM "'&#92;'`~!@#$&#37;^&amp;*(),;&quot;&lt;&gt;&#63;&#92;&#92;,_'">
+
+  <!ENTITY Import.Operation.And "">
+  <!ENTITY Import.SalesPriceDirFields "">
+  <!ENTITY Import.SalesPriceCheckFields "">
+  <!ENTITY Import.SalesPriceError "">
+
+  <!ENTITY XMLGridFieldWidthAdvancedCalculation "0">
+  <!ENTITY XMLGridFieldHiddenAdvancedCalculation "true">
+  <!ENTITY XMLGridToolbarAdvancedCalculation "">
+
+
+  <!ENTITY CircularTypeField SYSTEM "..\Include\XML\Filter.Circular.a">
+  <!ENTITY CircularKey "g._key = (v == '1' ? '&circularForm200;' : '&circularForm133;');">
+  <!ENTITY CircularForm "select @form = case when @chon_tt = '1' then '&circularForm200;' else '&circularForm133;' end">
+  <!ENTITY CircularTable "select @table = 'dmvv'">
+  <!ENTITY CircularHiddenForm "g._hiddenForms = [{Form: [0, 1, 2, 3, ,4, 5, 6, 7, 8], Value: true}];">
+  <!ENTITY CircularScript SYSTEM "..\Include\Javascript\Circular.RemoveItem.a">
+]]>
+
+<!ENTITY Operation.And "">
+
+<!ENTITY UnitListFormShowing "">
+<!ENTITY ReportFormAccumulationFields SYSTEM "..\Include\XML\ReportFormAccumulation.xml">
+<!ENTITY ReportFormExpenseFields SYSTEM "..\Include\XML\ReportFormExpense.xml">
+<!ENTITY FieldsFilter "">
+<!ENTITY FieldsFilter.Edition "">
+
+
+<!ENTITY PaymentContractDirFields SYSTEM "..\Include\XML\PaymentContractDirFields.txt">
+<!ENTITY PaymentContractDirCommandInserting "update @ctdmhd set ma_hd = @ma_hd">
+<!ENTITY PaymentContractDirCommandInserted "insert into ctdmhd select * from @ctdmhd">
+<!ENTITY PaymentContractDirCommandUpdatingUpdatePayment "if $ctdmhd.NewValue = $ctdmhd.OldValue begin update ctdmhd set ma_hd = @ma_hd where ma_hd = $ma_hd.OldValue end">
+<!ENTITY PaymentContractDirCommandUpdatingDeletePayment "<![CDATA[update @ctdmhd set ma_hd = @ma_hd if $ctdmhd.NewValue <> $ctdmhd.OldValue delete ctdmhd where ma_hd = $ma_hd.OldValue]]>">
+<!ENTITY PaymentContractDirCommandUpdated "<![CDATA[if $ctdmhd.NewValue <> $ctdmhd.OldValue insert into ctdmhd select * from @ctdmhd]]>">
+<!ENTITY PaymentContractDirCommandDeleting "delete ctdmhd where ma_hd = @ma_hd">
+<!ENTITY PaymentContractDirExecuteCommandDeclare "var g = f.getItem('ctdmhd')._controlBehavior;">
+<!ENTITY PaymentContractDirExecuteCommandGather "g.setSequenceNumber('line_nbr');">
+<!ENTITY PaymentContractDirView SYSTEM "..\Include\XML\PaymentContractDirView.txt">
+<!ENTITY PaymentContractDirHeight "232">
+<!ENTITY PaymentContractDirTabChanged "f.focusWhenTabChanged(['loai_hd', 'ctdmhd'&UnitTab;, 'nh_hd1']);">
+
+<!ENTITY XMLWHReferenceFields SYSTEM "..\Include\XML\WHReferenceFields.txt">
+<!ENTITY XMLWHReferenceView SYSTEM "..\Include\XML\WHReferenceView.txt">
+<!ENTITY XMLIRReferenceFields SYSTEM "..\Include\XML\IRReferenceFields.txt">
+<!ENTITY XMLIRReferenceView SYSTEM "..\Include\XML\IRReferenceViews.txt">
+
+<!ENTITY XMLMRReferenceFields SYSTEM "..\Include\XML\MRReferenceFields.txt">
+<!ENTITY XMLMRReferenceView SYSTEM "..\Include\XML\MRReferenceView.txt">
+
+
+
+
+<!ENTITY XMLGridToolbarPSDetail SYSTEM "..\Include\XML\Grid.Toolbar.PSDetail.f">
+<!ENTITY XMLGridToolbarSRDetail SYSTEM "..\Include\XML\Grid.Toolbar.SRDetail.f">
+<!ENTITY ScriptGridShowFlowSRDetail "
+switch (e.type.Value) {
+  case '10':
+    if (v) break;
+    g.showForm('SRInvoiceFilter');
+    break;
+  case '30':
+    g.showForm('SRIssueFilter');
+    break;
+  case '50':
+    if (!f._$inStockType) break;
+    g.showForm('SRPhysicalFilter');
+    break;
+}">
+
+<!ENTITY ScriptWhenMREmptyField "fields += (fields != '' ? ', ' : '') + 'stt_rec_yc, stt_rec0yc';">
+
+<!ENTITY Irregular.UOM "null">
+
+<!ENTITY Import.Operation.And " and ">
+<!ENTITY Import.SalesPriceDirFields "a.nh_kh9 = b.nh_kh9">
+<!ENTITY Import.SalesPriceCheckFields "
+if @$mode = 1 begin
+  &StartErrorCount;
+  &InsertErrorTable; select 'nh_kh9', stt, '00001' from @@table where (nh_kh9 = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('G', xtype) &gt; 0)) or (nh_kh9 &lt;&gt; '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('G', xtype) &gt; 0))
+  &EndErrorCount;
+end else begin
+  select @field = 'nh_kh9', @r = min(stt) from @@table where (nh_kh9 = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('G', xtype) &gt; 0)) or (nh_kh9 &lt;&gt; '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('G', xtype) &gt; 0))
+">
+<!ENTITY Import.SalesPriceError "
+  if @r is not null begin
+    select '' as message, @field as field, @r as record
+    return
+  end
+end">
+
+<!ENTITY XMLGridFieldWidthAdvancedCalculation "100">
+<!ENTITY XMLGridFieldHiddenAdvancedCalculation "false">
+<!ENTITY XMLGridToolbarAdvancedCalculation SYSTEM "..\Include\XML\Grid.Toolbar.AdvancedCalculation.f">
+
+
+
+<!ENTITY CircularTypeField SYSTEM "..\Include\XML\Filter.Circular.b">
+<!ENTITY CircularKey "g._key = (v == '1' ? '&defaultForm;' : (v == '2' ? '&circularForm195;' : (v == '3' ? '&circularForm200;' : '&circularForm133;')));">
+<!ENTITY CircularForm "select @form = case when @chon_tt = '1' then '&defaultForm;' when @chon_tt = '2' then '&circularForm195;' when @chon_tt = '3' then '&circularForm200;' else '&circularForm133;' end">
+<!ENTITY CircularTable "select @table = case when @chon_tt in ('1', '2') then 'dtdtvv' else 'dmvv' end">
+<!ENTITY CircularHiddenForm "
+  g._hiddenForms = [
+    {Form: [0, 1, 5, 6], Value: (q == '2') || (q == '3') || (q == '4')},
+    {Form: [2, 3, 7, 8], Value: (q == '1') || (q == '3') || (q == '4')},
+    {Form: [4], Value: (q == '3') || (q == '4')},
+    {Form: [9, 10, 11, 12, 13], Value: (q == '1') || (q == '2')}
+  ];
+  ">
+<!ENTITY CircularScript SYSTEM "..\Include\Javascript\Circular.RemoveItem.b">

@@ -1,0 +1,25 @@
+﻿<![%Conditional.HandleVoucherNumber;[
+
+  <!ENTITY HandleVoucherNumberMapExecute "
+&HandleVoucherBookProcess;
+
+&HandleVoucherNumberProcess;
+">
+
+  <!ENTITY % Conditional.CRP SYSTEM "..\Include\MPS.txt">
+  <![%Conditional.CRP;[
+    <!ENTITY HandleVoucherNumberType ", @$voucherNumberType = 5">
+  ]]>
+  <!ENTITY HandleVoucherNumberType "">
+
+  <!ENTITY HandleVoucherNumberMapContext "
+&HandleVoucherBookContext;
+    select @$grandTable = '@@table', @$insertGrandField = @$insertGrandField + ', ma_ct', @$insertGrandValue = @$insertGrandValue + ', ''''' &HandleVoucherNumberType;
+">
+  <!ENTITY HandleVoucherNumber.UseInsertion "0">
+  <!ENTITY HandleVoucherNumber.LogGrandTable "">
+]]>
+
+<!ENTITY HandleVoucherNumberParameterSetting "set @$grandTable = '@@table'">
+<!ENTITY HandleVoucherNumberParameter "&CRPExtension;">
+<!ENTITY HandleVoucherNumberMapExecute SYSTEM "..\Include\Command\HandleVoucherNumber.txt">

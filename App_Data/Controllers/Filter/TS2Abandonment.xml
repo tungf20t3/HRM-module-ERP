@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="tpbdc" code="stt_rec" order="ngay_ct, so_ct, ma_dc, stt_rec" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc số liệu" e="Indicator Filter"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Chứng từ từ ngày" e="Voucher Date From"></header>
+      <footer v="Ngày chứng từ" e="Voucher Date"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="toDate" defaultValue="new Date()">
+      <header v="Chứng từ đến ngày" e="Voucher Date to"></header>
+    </field>
+    <field name="ngay_pb1" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Thôi phân bổ từ ngày" e="Abandonment Date From"></header>
+      <footer v="Ngày thôi phân bổ" e="Abandonment Date"></footer>
+    </field>
+    <field name="ngay_pb2" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Thôi phân bổ đến ngày" e="Abandonment Date to"></header>
+    </field>
+    <field name="ma_dc">
+      <header v="Công cụ dụng cụ" e="Tool &amp; Supply"></header>
+      <items style="AutoComplete" controller="TS2Tran" reference="ten_dc%l" key="status='1'" check="1=1"/>
+    </field>
+    <field name="ten_dc%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="1101: [ngay_pb1].Description, [ngay_pb1], [ngay_pb2]"/>
+      <item value="11010: [ma_dc].Label, [ma_dc], [ten_dc%l]"/>
+      <item value="11010: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(sender) {sender.add_onResponseComplete(on$Filter$ResponseComplete);}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array();
+      Array.add(k, {Name: 'ma_dc', Opr: 'like', Value: f.getItemValue('ma_dc') + '%', Type: 'String', Ignore: false});
+      if (f.getItemValue('ngay_ct1')) Array.add(k, {Name: 'ngay_ct', Opr: '>=', Value: f.getItemValue('ngay_ct1'), Type: 'DateTime', Ignore: false});
+      if (f.getItemValue('ngay_ct2')) Array.add(k, {Name: 'ngay_ct', Opr: '<=', Value: f.getItemValue('ngay_ct2'), Type: 'DateTime', Ignore: false});
+      if (f.getItemValue('ngay_pb1')) Array.add(k, {Name: 'ngay_hl_tu', Opr: '>=', Value: f.getItemValue('ngay_pb1'), Type: 'DateTime', Ignore: false});
+      if (f.getItemValue('ngay_pb2')) Array.add(k, {Name: 'ngay_hl_tu', Opr: '<=', Value: f.getItemValue('ngay_pb2'), Type: 'DateTime', Ignore: false});
+      Array.add(k, {Name: 'ma_dvcs', Opr: 'like', Value: f.getItemValue('ma_dvcs') + '%', Type: 'String', Ignore: false});
+      g.set_externalKey(k);
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+</dir>

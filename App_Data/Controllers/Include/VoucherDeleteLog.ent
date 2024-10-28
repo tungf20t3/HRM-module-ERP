@@ -1,0 +1,75 @@
+﻿<!ENTITY % Conditional.VoucherDeleteLog SYSTEM "..\Include\VoucherDeleteLog.txt">
+
+<![%Conditional.VoucherDeleteLog;[
+  <!ENTITY UsedVoucherLog "1">
+  <!ENTITY VoucherLogKey " and 1 = 0">
+  <!ENTITY VoucherLogActionKey " and @@action &lt;&gt; 'Delete'">
+  <!ENTITY VoucherLogActionKeyString " and '@@action' &lt;&gt; ''Delete''">
+  <!ENTITY VoucherLogStatusFilter ", -">
+  <!ENTITY VoucherLogBeginComment "/*">
+  <!ENTITY VoucherLogEndComment "*/">
+  <!ENTITY VoucherLogImportKey " where b.status &lt;&gt; '*'">
+  <!ENTITY VoucherLogImportExtendKey " and b.status &lt;&gt; '*'">
+  <!ENTITY VoucherLogStatusKey " and e.status &lt;&gt; '*'">
+  <!ENTITY VoucherLogStatusKeyLookup " and status &lt;&gt; '*'">
+  <!ENTITY VoucherLogStatusKeyGeneralLookup "status &lt;&gt; '*'">
+
+  <!ENTITY VoucherLogUpdateStatus "
+update @@prime$partition$current set status = '*', user_id2 = @@userID, datetime2 = getdate() where stt_rec = @stt_rec
+update @@inquiry$partition$current set status = '*' where stt_rec = @stt_rec
+update @@master set status = '*' where stt_rec = @stt_rec
+">
+
+  <!ENTITY VoucherLogHandleStatus "
+var or$ = f.getItem('status'), vr, ir;
+if (!f._$handleStatusRemove) {
+  for (ir = or$.options.length - 1; ir &gt;= 0; ir--) {
+    vr = or$.options[ir];
+    if (vr.value == '*') {
+      f._$handleStatusRemove = [vr];
+      break;
+    }
+  }
+}
+
+if (f._action != 'View') {
+  if (or$.value == '*') or$.value = f.grid._dvHandle;
+  for (ir = or$.options.length - 1; ir &gt;= 0; ir--) if (or$.options[ir].value == '*') {
+    or$.remove(ir);
+    f._$wasRemovedDeletion = true;
+    break;
+  }
+} else f._$wasRemovedDeletion = null;">
+
+  <!ENTITY VoucherLogHandleStatusExplore "
+if (f._$handleStatusRemove &amp;&amp; f._$wasRemovedDeletion) {
+  f.getItem('status').options.add(f._$handleStatusRemove[0]);
+  f._$wasRemovedDeletion = null;
+}
+">
+
+  <!ENTITY VoucherLogStatusField SYSTEM "..\Include\XML\VoucherLogStatusField.txt">
+  <!ENTITY VoucherPOrderMonthField SYSTEM "..\Include\XML\VoucherPOrderMonthField.txt">
+  <!ENTITY VoucherPOrderWeekField SYSTEM "..\Include\XML\VoucherPOrderWeekField.txt">
+  <!ENTITY VoucherLogStatusDescription.v ", &lt;span style=&quot;color:#008200;&quot;&gt;[-]&lt;/span&gt; - Các chứng từ đã xóa">
+  <!ENTITY VoucherLogStatusDescription.e ", &lt;span style=&quot;color:#008200;&quot;&gt;[-]&lt;/span&gt; - Deleted">
+]]>
+
+<!ENTITY UsedVoucherLog "0">
+<!ENTITY VoucherLogKey "">
+<!ENTITY VoucherLogActionKey "">
+<!ENTITY VoucherLogActionKeyString "">
+<!ENTITY VoucherLogStatusFilter "">
+<!ENTITY VoucherLogBeginComment "">
+<!ENTITY VoucherLogEndComment "">
+<!ENTITY VoucherLogImportKey "">
+<!ENTITY VoucherLogImportExtendKey "">
+<!ENTITY VoucherLogStatusKey "">
+<!ENTITY VoucherLogStatusKeyLookup "">
+<!ENTITY VoucherLogStatusKeyGeneralLookup "">
+<!ENTITY VoucherLogUpdateStatus "">
+<!ENTITY VoucherLogHandleStatus "">
+<!ENTITY VoucherLogHandleStatusExplore "">
+<!ENTITY VoucherLogStatusField "">
+<!ENTITY VoucherLogStatusDescription.v "">
+<!ENTITY VoucherLogStatusDescription.e "">

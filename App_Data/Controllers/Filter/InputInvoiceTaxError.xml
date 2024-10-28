@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Từ/đến ngày" e="Date from/to"></footer>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+    <field name="user_name" allowNulls="false">
+      <header v="Tên đăng nhập" e="User Name"></header>
+      <items style="AutoComplete" controller="AccountTax" reference="note" key="unit_code = @@unit" check="unit_code = @@unit"/>
+    </field>
+    <field name="note" readOnly="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="keys" hidden="true" readOnly="true" filterSource="Infinite">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="1101--: [tu_ngay].Description, [tu_ngay], [den_ngay]"/>
+      <item value="1100101: [user_name].Label, [user_name], [note], [keys]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @tax_code varchar(32), @k nvarchar(32), @key nvarchar(4000), @q nvarchar(4000)
+select @tax_code = isnull(tax_code, '') from @@sysDatabaseName..tktchddt where user_name = @user_name
+select @k = val from options where name = 'm_tax_error_count'
+select @key = 'error_count >= ' + @k
+if @tax_code <> '' set @key = @key + ' and tax_code = ''' + replace(rtrim(@tax_code), '''', '') + ''''
+set @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+
+select top 0 cast(0 as bit) as tag, tax_code, ngay_hd, so_hd, mau_so, ky_hieu, mst, error_log into #dt from t15$000000
+
+select @q = 'insert into #dt select cast(0 as bit) as tag, rtrim(tax_code) as tax_code, ngay_hd, rtrim(so_hd) as so_hd, rtrim(mau_so) as mau_so, rtrim(ky_hieu) as ky_hieu, rtrim(mst) as mst, rtrim(error_log) as error_log from t15$%Partition where %[' + @key + ']%'
+exec AI_ERP$Partition$Execute @q, null, 'ngay_hd', @tu_ngay, @den_ngay, @@userID, @@admin
+
+select * from #dt order by ngay_hd, so_hd, mst, mau_so, ky_hieu
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(h,a){var b=a.object,d=a.type.Context,g=a.type.Result,c=b.grid;switch(d){case"Checking":var e=b.getItem("tu_ngay").value,f=b.getItem("den_ngay").value;c._alterTitle=[null,[["%d1",e,true],["%d2",f,true]]];if(c._$k)c._$k=[]}}]]>
+    </text>
+  </script>
+</dir>

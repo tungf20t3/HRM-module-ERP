@@ -1,0 +1,206 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY Delta24 "0">
+  <!ENTITY LineCounter "10">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_bp0" allowNulls="false">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+      <items style="AutoComplete" controller="BIPurchasingOrganization.Right" reference="ten_bp0%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vung" dataFormatString="@upperCaseFormat" onDemand="true">
+      <header v="Mã vùng" e="Plant"></header>
+      <items style="AutoComplete" controller="BIPlant.Right" reference="ten_vung%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vung%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày báo giá từ" e="Quotation Date from"></header>
+      <footer v="Ngày báo giá từ/đến" e="Quotation Date from/to"></footer>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày báo giá đến" e="Quotation Date to"></header>
+    </field>
+    <field name="ngay_so_sanh" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" defaultValue="new Date()">
+      <header v="Ngày so sánh" e="Comparision Date"></header>
+    </field>
+    <field name="tap_theo_doi" dataFormatString="@upperCaseFormat" categoryIndex="1">
+      <header v="Số tập hợp báo giá" e="Collection No."></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_theo_doi" dataFormatString="@upperCaseFormat" categoryIndex="1">
+      <header v="Số theo dõi" e="Tracking No."></header>
+      <items style="Mask"></items>
+    </field>
+
+    <field name="ma_vt" dataFormatString="@upperCaseFormat" categoryIndex="1">
+      <header v="Mã hàng" e="Item Code"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="loai_dvt" dataFormatString="1, 2" clientDefault="1" align="right" categoryIndex="1">
+      <header v="Loại đvt" e="UOM Type"></header>
+      <footer v="1 - Theo đvt đặt hàng, 2 - Theo đvt chuẩn" e="1 - By Order UOM, 2 - By Standard UOM"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="loai_gia" dataFormatString="1, 2" clientDefault="1" align="right" categoryIndex="1">
+      <header v="Loại giá so sánh" e="Comparative Price"></header>
+      <footer v="1 - Giá thực, 2 - Giá gốc" e="1 - Net Price, 2 - Gross Price"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="loai_tc" dataFormatString="1, 2, 3" clientDefault="1" align="right" categoryIndex="1">
+      <header v="Loại tham chiếu" e="Type of Reference"></header>
+      <footer v="1 - Theo giá nhỏ nhất, 2 - Theo giá lớn nhất, 3 - Theo giá trung bình" e="1 - By Lowest Price, 2 - By Highest Price, 3 - By Average Price"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="tc_bg" dataFormatString="1, 0" clientDefault="1" align="right" categoryIndex="1">
+      <header v="Xét báo giá từ chối" e="Rejected Quotation"></header>
+      <footer v="0 - Không, 1 - Có" e="0 - No, 1 - Yes"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_nh0" categoryIndex="1">
+      <header v="Nhóm mua" e="Purchasing Group"></header>
+      <items style="AutoComplete" controller="BIPurchasingGroup" reference="ten_nh0%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_nh0%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="kieu_bc" dataFormatString="0, 1, 2" clientDefault="0" align="right" categoryIndex="1">
+      <header v="Kiểu báo cáo" e="Report Type"></header>
+      <footer v="1 - Nhóm theo nhóm mua, 2 - Chi tiết theo nhóm mua, 0 - Không xử lý" e="1 - Group by Purchasing Group, 2 - Detail by Purchasing Group, 0 - No Action"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="maxLength" type="Int16" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="110100: [ma_bp0].Label, [ma_bp0], [ten_bp0%l]"/>
+      <item value="110100: [ma_vung].Label, [ma_vung], [ten_vung%l]"/>
+      <item value="1101--: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="110--: [ngay_so_sanh].Label, [ngay_so_sanh]"/>
+      <item value="110--: [tap_theo_doi].Label, [tap_theo_doi]"/>
+      <item value="110--: [so_theo_doi].Label, [so_theo_doi]"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+
+      <item value="111000: [loai_dvt].Label, [loai_dvt], [loai_dvt].Description"/>
+      <item value="111000: [loai_gia].Label, [loai_gia], [loai_gia].Description"/>
+      <item value="111000: [loai_tc].Label, [loai_tc], [loai_tc].Description"/>
+      <item value="111000: [tc_bg].Label, [tc_bg], [tc_bg].Description"/>
+      <item value="110100: [ma_nh0].Label, [ma_nh0], [ten_nh0%l]"/>
+      <item value="111000: [kieu_bc].Label, [kieu_bc], [kieu_bc].Description"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @ngay_tu as date_from, @ngay_den as date_to, rtrim(ma_bp) as ma_bp, ten_bp, ten_bp2 from bidmbp0 where ma_bp = @ma_bp0
+exec bs_rptBIQuotationComparison @ma_bp0, @ma_vung, @ngay_tu, @ngay_den, @ngay_so_sanh, @tap_theo_doi, @so_theo_doi, @ma_vt, @loai_dvt, @loai_gia, @loai_tc, @tc_bg, @ma_nh0, @kieu_bc, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  if (f._convection) f._convection = null;
+  else {
+    if (!f._extensions) f.setItemValues('ngay_so_sanh', [new Date()]);
+  }
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function onChange$Process(a){a.parentForm.setReferenceKeyFilter("ma_ct")}function on$Filter$ResponseComplete(h,c){var a=c.object,d=c.type.Context,g=c.type.Result;switch(d){case"Checking":var b=a.grid,e=a.getItem("ngay_tu").value,f=a.getItem("ngay_den").value;b._dateCompare=a.getItemValue("ngay_so_sanh");b._purchasingOrg=a.getItemValue("ma_bp0");b._purchasingOrgName=a.getItemValue("ten_bp0%l");b._alterTitle=[null,[["%d1",e,true],["%d2",f,true]]]}}function onchange$Filter$QuantityType(c){var a=c.parentForm,b=a.getItemValue("loai_sl")=="5";setItemReadOnly(a,"so_luong1",b,true);setItemReadOnly(a,"so_luong2",b,true)}function setItemReadOnly(d,c,b,e){var a=d.getItem(c);a.disabled=!b;a.a&&$common.setVisible(a.a,b);!b&&d.setItemValues(c,0);!e}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

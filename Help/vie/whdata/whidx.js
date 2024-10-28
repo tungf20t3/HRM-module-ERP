@@ -1,0 +1,2 @@
+﻿//	WebHelp 5.10.001
+function fileMapping(n,t,i,r){this.sBK=n,this.sEK=t,this.sFileName=i,this.aKs=null,this.nNum=r,this.oUsedItems=null}function iFM(n,t,i,r){var u=gaFileMapping.length;gaFileMapping[u]=new fileMapping(n,t,i,r),gaFileMapping[u].nTotal=u==0?r:r+gaFileMapping[u-1].nTotal}function window_OnLoad(){parent&&parent!=this&&parent.projReady&&parent.projReady(gaFileMapping)}var gaFileMapping=[];window.onload=window_OnLoad;

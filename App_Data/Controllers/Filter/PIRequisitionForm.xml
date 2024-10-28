@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "PIRequisition">
+  <!ENTITY DetailTable "d91">
+  <!ENTITY c21 "Số phiếu nhu cầu">
+  <!ENTITY c22 "Requisition Number">
+  <!ENTITY c31 "Ngày phiếu nc">
+  <!ENTITY c32 "Requisition Date">
+
+]>
+
+<dir table="m91$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Phiếu nhu cầu" e="Requisition"></title>
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_ct" dataFormatString="@upperCaseFormat" align="right">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="&c31;" e="&c32;"></header>
+    </field>
+    <field name="&DetailTable;" external="true" clientDefault="0" defaultValue="0" rows="232" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="&Identity;Grid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+
+  </fields>
+
+  <views>
+    <view id="Dir" height="292" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="1101000000-101: [ngay_ct].Label, [ngay_ct], [stt_rec], [so_ct].Label, [so_ct]"/>
+
+      <item value="1: [&DetailTable;]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  f.setReadOnlyFields('so_ct, ngay_ct');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid;
+  f._denyFocus = true;
+  f.setItemValues('stt_rec, so_ct, ngay_ct', [g._voucher$Retrieve$ID, g._voucher$Retrieve$Number, g._voucher$Retrieve$Date]);
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      set$]]>&Identity;<![CDATA[Form$FlowScript(f);
+      break;
+    default:
+      break;
+  }
+}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+]]>
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d91')._controlBehavior, z = f.grid, w = z.get_element().parentForm;
+  var first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]);
+  var l0 = z._getColumnOrder('ma_vt'), l1 = g._getColumnOrder('so_luong0');
+  var l2 = z._getColumnOrder('dvt'), l3 = g._getColumnOrder('nhieu_dvt'), f1 = 'so_luong0, ngay_yc, stt_rec, stt_rec0', f2 = 'so_luong, ngay_giao, stt_rec_nc, stt_rec0nc';
+  var externalFields = '', fields = 'ma_vt, ten_vt%l, dvt, he_so, ]]>&XMLHiddenFields;<![CDATA[';
+  if (v) fields += ', gia_nt';
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l1) != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, z._rowCount, fields, f1, f2);
+      
+      if (v) {z.executeExpression(o, [z.$a.gia, z.$a.tien_nt, z.$a.tien_tg]);}
+      $func.setObjectWhen(z._getItem(row, l2), g._getItemValue(r, l3));
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong]);
+  if (v) {
+    z.executeAggregate([z.$a.t_tien_nt, z.$a.t_tien]);
+    w.executeExpression([z.$a.t_tt_nt, z.$a.t_tt]);
+  }
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

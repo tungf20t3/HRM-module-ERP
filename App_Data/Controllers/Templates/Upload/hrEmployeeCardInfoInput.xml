@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Controller "hrEmployeeCardInfoInput">
+  <!ENTITY PrimeFieldImport "stt_rec">
+  <!ENTITY TypeImport "2">
+  <!ENTITY TableDestinationImport "hrttchamcong">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrEmployeeCardInfoInput' else 'hrEmployeeCardInfoInput2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="5"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$EmployeeCardInfoInputImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$EmployeeCardInfoInputImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrttchamcong, hrnv"/>
+    <table value="hrttchamcong" alias="a"/>
+    <listTable value="#r"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="A" isPrimaryKey="true" allowNulls="false" reference="1" upperCase="true" check="ma_nv not in (select ma_nv from hrnv)" errorCode="00001"/>
+    <field name="ngay_tu" column="C" isPrimaryKey="true" allowNulls="false" type="DateTime" updateValue="None"/>
+    <field name="so_the" column="D" allowNulls="false" upperCase="true"/>
+    <field name="ca" column="E" upperCase="true" check="ca &lt;&gt; '' and ca not in (select ma_ca from hrdmca)" errorCode="00001"/>
+    <field name="cong" column="F" upperCase="true" check="cong &lt;&gt; '' and cong not in (select ma_cong from hrdmcong)" errorCode="00001"/>
+    <field name="so_gio" column="G" type="Decimal"/>
+
+    <field name="stt_rec" column="None" updateValue="None" resource="master"/>
+    <field name="stt_rec0" column="None" insertValue="replace(str(stt, 3), ' ', '0')" updateValue="None"/>
+    <field name="line_nbr" column="None" type="Int" insertValue="stt" updateValue="None"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật thông tin chấm công nhân viên" e="Employee Card Info Input"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_nv" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width ="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="ngay_tu" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày hiệu lực" e="Effective Date"/>
+      </field>
+      <field name="so_the" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số thẻ" e="Card Number"/>
+      </field>
+      <field name="ca" width ="16">
+        <text v="Ca ngầm định" e="Default Shift"/>
+      </field>
+      <field name="cong" width ="16">
+        <text v="Công ngầm định" e="Default Workday"/>
+      </field>
+      <field name="so_gio" width ="16">
+        <text v="Số giờ" e="Hours"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @field varchar(32), @datetime0 datetime
+declare @user int, @admin bit, @language char(1), @sys varchar(32), @joinUnit bit, @joinDept bit, @r int, @count int
+select @admin = @@admin, @user = @@userID, @language = @@language, @sys = '@@sysDatabaseName', @datetime0 = getdate(), @key = '', @joinUnit = 0, @joinDept = 0
+
+-- Check
+]]>&Checking;<![CDATA[
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Key
+if @admin = 0 begin
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+  select @key = case when @key = '' then '' else ' where (' + @key + ')' end
+end
+
+-- Gather
+select top 0 stt_rec, stt_rec0, ngay_tu, so_the, ca, cong, so_gio, line_nbr as stt into #r from hrttchamcong
+select @q = 'insert into #r select e.stt_rec, '''', a.ngay_tu, a.so_the, a.ca, a.cong, a.so_gio, 0'
+select @q = @q + ' from @@table a join hrnv e on a.ma_nv = e.ma_nv' + @key
+exec sp_executesql @q
+
+if @type = '0' delete #r from #r a where exists(select 1 from hrttchamcong b where a.stt_rec = b.stt_rec and a.ngay_tu = b.ngay_tu)
+select b.stt_rec, b.stt_rec0, a.ngay_tu, a.so_the, a.ca, a.cong, a.so_gio into #k
+  from #r a join hrttchamcong b on a.stt_rec = b.stt_rec and a.ngay_tu = b.ngay_tu
+delete #r from #r a where exists(select 1 from #k b where a.stt_rec = b.stt_rec and a.ngay_tu = b.ngay_tu)
+if @type = '1' ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+-- Insert
+select @count = count(*) from #r
+if @count > 0 begin
+  select top 0 stt_rec, stt_rec0 into #stt from #r
+  select top 0 stt_rec, ngay_tu, identity(int, 1, 1) as stt into #o1 from #r
+
+  insert into #stt select b.stt_rec, max(b.stt_rec0)
+    from #r a join hrttchamcong b on a.stt_rec = b.stt_rec group by b.stt_rec
+
+  insert into #o1(stt_rec, ngay_tu)
+    select stt_rec, ngay_tu
+      from (select stt_rec, ngay_tu as ngay_tu from #r
+         union select distinct stt_rec, null from #r) a order by stt_rec, ngay_tu
+
+  select stt, stt_rec into #o2 from #o1 where ngay_tu is null
+
+  update #r set stt = b.stt + cast(isnull(c.stt_rec0, 0) as int) from #r a
+    left join (select c.stt - d.stt as stt, c.stt_rec, c.ngay_tu from #o1 c join #o2 d on c.stt_rec = d.stt_rec) b on a.stt_rec = b.stt_rec and a.ngay_tu = b.ngay_tu
+    left join #stt c on a.stt_rec = c.stt_rec
+
+  -- Insert
+  ]]>&Inserting;<![CDATA[
+  ]]>&ListWhenBeforeImportUpdateLog.EmployeeCardInfoInput.Insert;<![CDATA[
+end
+
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog.EmployeeCardInfoInput.Update;<![CDATA[
+  update hrttchamcong set @@list from hrttchamcong a join #k b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0
+end
+]]>
+    </text>
+  </processing>
+
+</import>

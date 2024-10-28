@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLCheckProcess SYSTEM "..\Include\XML\CheckProcess.xml">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\Circular\A1080\ReportCircularTypeField.xml">
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ky1" allowNulls="false" type="Decimal" dataFormatString="#0">
+      <header v="Từ tháng" e="From Month"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ky2" allowNulls="false" type="Decimal" dataFormatString="#0">
+      <header v="Đến tháng" e="To Month"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" allowNulls="false" type="Decimal" dataFormatString="###0">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="bo_sung" type="Decimal" dataFormatString="#0">
+      <header v="Bổ sung lần" e="Addition times"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    &ReportCircularTypeField;
+
+    <field name="mau_bc">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11: [ky1].Label, [ky1]"/>
+      <item value="11: [ky2].Label, [ky2]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="11: [bo_sung].Label, [bo_sung]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000: [chon_tt].Label, [chon_tt]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'initForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    &XMLCheckProcess;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @$taxAuthorityCode varchar(32)
+exec rs_GetTaxAuthority @ma_dvcs, @@userID, @@admin, @$taxAuthorityCode out
+
+select dbo.ff_GetStartDateOfCycle(@ky1, @nam) as date_from, dbo.ff_GetEndDateOfCycle(@ky2, @nam) as date_to, @ky1 as ky1, @ky2 as ky2, @nam as nam, @bo_sung as bo_sung, 'TT80_CQTQL' + @$taxAuthorityCode as ma_cqt
+exec rs_rptEnvironmentalProtectionTaxDeclaration @ky1, @ky2, @nam, @chon_tt, @ma_dvcs, 'HDA, HDF', @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");var b=a.getItem("ky1");if(!a.getItemValue("ky2")){b.value=a.getItem("ky2").value=(new Date).getMonth()+1;a.getItem("nam").value=(new Date).getFullYear()}a.live(b)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(j,b){var a=b.object,e=b.type.Context,i=b.type.Result;switch(e){case"Checking":var c=a.grid,f=a.getItem("ky1").value,g=a.getItem("ky2").value,h=a.getItem("nam").value,d=a.getItemValue("chon_tt");c._alterTitle=[null,[["%m1",f,true],["%m2",g,true],["%y",h,true]]];c._hiddenForms=[{Form:[0,1,2],Value:d=="5"},{Form:[3,4,5],Value:d!="5"}];c._hiddenFields=[{Fields:"ty_le",Value:d==2}]}}function initForm(c){for(var b=c.getItem("chon_tt").options,a=b.length-2;a>=0;a--)a!=1&&b.remove(a)}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

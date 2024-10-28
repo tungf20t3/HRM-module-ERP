@@ -1,0 +1,173 @@
+﻿<!ENTITY % Conditional.DetailTax SYSTEM "..\..\Include\DetailTax.txt">
+
+<![%Conditional.DetailTax;[
+
+  <!ENTITY DetailTaxMasterField "'ma_thue', 'tk_thue_co', 'ma_kh2'">
+  <!ENTITY DetailTaxReponseItemIndex "{'ma_thue': 20, 'thue_suat': 21, 'tk_thue': 23, 'tk_cn': 24}">
+  <!ENTITY DetailTaxAllowNulls "true">
+  <!ENTITY DetailTaxDefaultValue "$defaultTax = [f._defaultTaxCode, f._defaultTaxRate, f._defaultTaxAccount, f._defaultTaxType];">
+  <!ENTITY DetailTaxDefaultValueInMessage "select @message = @message + 'var f = this.get_element().parentForm; &DetailTaxDefaultValue;'">
+
+  <!ENTITY DetailTaxFormViewAccountLine "[tk_thue_no].Footer, [tk_thue_no], [tk_thue_co]">
+  <!ENTITY DetailTaxCurrencyCreate "
+var $ag = $dt.aGridFields.split(':');
+$dt.aGridFields = $ag[0] + ',thue_nt' + ':' + $ag[1] + ',thue';
+
+$dt.aTotalFields.push(['t_thue_nt', '[thue_nt]', '[km_yn] == 0']
+, ['t_thue', '[thue]', '[km_yn] == 0']
+, ['t_thue_km_nt', '[thue_nt]', '(([km_yn] == 2) || ([km_yn] == 3))']
+, ['t_thue_km', '[thue]', '(([km_yn] == 2) || ([km_yn] == 3))']);
+
+$dt.aExpression = ['[t_tt_nt]:=[t_tien_nt2]+[t_thue_nt]', '[t_tt]:=[t_tien2]+[t_thue]'];
+$dt.aExpression.push('[t_tien_km_nt]:=[t_km_nt]+[t_thue_km_nt]', '[t_tien_km]:=[t_km]+[t_thue_km]');
+">
+  <!ENTITY DetailTaxFormDefaultValue "">
+  <!ENTITY DetailTaxFormTabFocus "'tk_thue_no'">
+
+  <!ENTITY DetailTaxFomula "
+    'dtf_thue_nt': '[thue_nt]:=([tien_nt2] - [ck_nt])*[thue_suat]/100',
+    'dtf_thue_tl': '[thue]:=([tien2] - [ck])*[thue_suat]/100',
+
+    'dtf_t_thue_nt': ['t_thue_nt', 'thue_nt', '[km_yn] == 0'],
+    'dtf_t_thue': ['t_thue', 'thue', '[km_yn] == 0'],
+
+    'dtf_t_thue_km_nt': ['t_thue_km_nt', 'thue_nt', '(([km_yn] == 1) || ([km_yn] == 2) || ([km_yn] == 3))'],
+    'dtf_t_thue_km': ['t_thue_km', 'thue', '(([km_yn] == 1) || ([km_yn] == 2) || ([km_yn] == 3))'],
+
+    'dtf_thue_tg': '[thue]:=[thue_nt]*[$ty_gia]',
+">
+  <!ENTITY DetailTaxResponseCompleteTaxRate "
+  g._setItemValue(g._activeRow, g._getColumnOrder('tk_thue_yn'), false);
+  g._setItemValue(g._activeRow, g._getColumnOrder('ma_kh2_yn'), false);
+  g.validExpression(o, [g.$a.dtf_thue_nt, g.$a.dtf_thue_tl], [g.$a.dtf_t_thue_nt, g.$a.dtf_t_thue], [g.$a.t_tt_nt, g.$a.t_tt]);
+  g.validExpression(o, null, [g.$a.dtf_t_thue_km_nt, g.$a.dtf_t_thue_km], [g.$a.t_tien_km_nt, g.$a.t_tien_km]);
+">
+  <!ENTITY DetailTaxOnchange "
+     case 'thue_nt':
+      g.validExpression(o, [g.$a.dtf_thue_tg], [g.$a.dtf_t_thue_nt, g.$a.dtf_t_thue], [g.$a.t_tt_nt, g.$a.t_tt]);
+      g.validExpression(o, null, [g.$a.dtf_t_thue_km_nt, g.$a.dtf_t_thue_km], [g.$a.t_tien_km_nt, g.$a.t_tien_km]);
+      break;
+    case 'thue':
+      g.validExpression(o, null, [g.$a.dtf_t_thue, g.$a.dtf_t_thue_km], [g.$a.t_tt]);
+      g.validExpression(o, null, [g.$a.dtf_t_thue_km], [g.$a.t_tien_km]);
+      break;
+">
+  <!ENTITY DetailTaxValidSalesPrice "
+  g.validExpression(o, [g.$a.tien2_sl, g.$a.ck_tl, g.$a.dtf_thue_tl], [g.$a.t_tien2, g.$a.t_tc_tien2, g.$a.t_ck, g.$a.t_km, g.$a.dtf_t_thue], [g.$a.t_tt], 'tien2');
+  f.validExpression(o, null, [g.$a.dtf_t_thue_km], [g.$a.t_tien_km]);
+">
+  <!ENTITY DetailTaxValidSalesAmount "
+  g.validExpression(o, [g.$a.ck_tl, g.$a.dtf_thue_tl], [g.$a.t_tien2, g.$a.t_tc_tien2, g.$a.t_ck, g.$a.t_km, g.$a.dtf_t_thue], [g.$a.t_tt], 'ck');
+  f.validExpression(o, null, [g.$a.dtf_t_thue_km], [g.$a.t_tien_km]);
+">
+  <!ENTITY DetailTaxValidDiscount "
+  g.validExpression(o, [g.$a.dtf_thue_tl], [g.$a.t_tien2, g.$a.t_ck, g.$a.dtf_t_thue], [g.$a.t_tt]);
+">
+  <!ENTITY DetailTaxValidRowChange "
+  g.executeAggregate([g.$a.t_so_luong, g.$a.t_tien_nt, g.$a.t_tien, g.$a.t_tien_nt2, g.$a.t_tien2, g.$a.t_tc_tien_nt2, g.$a.t_tc_tien2, g.$a.t_ck_nt, g.$a.t_ck, g.$a.t_km_ct_nt, g.$a.t_km_ct, g.$a.t_km_nt, g.$a.t_km&EnvironmentTaxDetailChangeQuatityTotal;, g.$a.dtf_t_thue_nt, g.$a.dtf_t_thue, g.$a.dtf_t_thue_km_nt, g.$a.dtf_t_thue_km]);
+  f.executeExpression([g.$a.t_tt_nt, g.$a.t_tt, g.$a.t_tien_km_nt, g.$a.t_tien_km]);
+">
+  <!ENTITY DetailTaxValidTaxChange "
+  if (o)
+    g.validExpression(o, [g.$a.dtf_thue_nt, g.$a.dtf_thue_tl], [g.$a.dtf_t_thue_nt, g.$a.dtf_t_thue], [g.$a.t_tt_nt, g.$a.t_tt]);
+  else
+    g.validExpression(o, null, [g.$a.dtf_t_thue_nt, g.$a.dtf_t_thue], [g.$a.t_tt_nt, g.$a.t_tt]);
+
+  g.validExpression(o, null, [g.$a.dtf_t_thue_km_nt, g.$a.dtf_t_thue_km], [g.$a.t_tien_km_nt, g.$a.t_tien_km]);
+">
+  <!ENTITY DetailTaxValidPromotionChange "
+  if (o) {
+    var g = o.grid, r = g._activeRow, l1 = g._getColumnOrder('tk_thue_yn'), l2 = g._getColumnOrder('ma_kh2_yn'), v0 = (g._getItemValue(r, g._getColumnOrder('km_yn')) == '1'), v1 = (g._getItemValue(r, g._getColumnOrder('ma_thue')) != ''), v2 = (g._getItemValue(r, g._getColumnOrder('tk_cn')) == 1);
+    if (v0) {
+      g._setItemValue(r, l1, false);
+      g._setItemValue(r, l2, false);
+    } else {
+      g._setItemValue(r, l1, v1);
+      g._setItemValue(r, l2, v2);
+    }
+  }
+  f.executeExpression([g.$a.t_tien_km_nt, g.$a.t_tien_km]);
+">
+  <!ENTITY DetailTaxExecuteCommandCheck "
+    &DetailTaxExecuteCommandCheckAuthority;
+    if (!(g.validRowExpression('ma_thue', '&VoucherGoodsTypeCheckKey;([km_yn] == 1) || ([ma_thue] != &quot;&quot;)'))) break;
+    if (!(g.validRowExpression('tk_thue', '&VoucherGoodsTypeCheckKey;([km_yn] == 1) || ([tk_thue] != &quot;&quot;)'))) break;
+">
+
+
+  <!ENTITY DetailTaxPostInventoryUpdateField ", tk_thue_co = b.tk_thue">
+  <!ENTITY DetailTaxAfterUpdatePromotion ", ma_thue = '', thue_suat = 0, tk_thue = '', ma_kh2 = ''">
+  <!ENTITY DetailTaxAfterUpdateMasterTax ", ma_thue = '', thue_suat = 0, tk_thue_co = '', ma_kh2 = ''">
+
+  <!ENTITY DetailTaxResponseComplete "
+    case 'GetTaxRate':
+      var r = result[0].Value;
+      if (g._getItemValue(o.row, g._getColumnOrder('thue_suat')) != r) {
+        g.setItemGridBehavior(o, [['thue_suat', result[0].Value, '', null]]);
+        &DetailTaxResponseCompleteTaxRate;
+      }
+      g.setItemGridBehavior(o, [['tk_thue', result[1].Value, '', null], ['tk_cn', result[2].Value, '', null]]);
+      g._setItemValue(g._activeRow, g._getColumnOrder('tk_thue_yn'), true);
+      g._setItemValue(g._activeRow, g._getColumnOrder('ma_kh2_yn'), !(g._getItemValue(g._activeRow, g._getColumnOrder('tk_cn')) == '1'));
+      g.live(o, 'tk_thue');
+      break;
+    case 'TaxAccount':
+      g.setItemGridBehavior(o, [['tk_cn', result[0].Value, '', null]]);
+      if (g._getItemValue(g._activeRow, g._getColumnOrder('km_yn')) == '1') {
+        g._setItemValue(g._activeRow, g._getColumnOrder('ma_kh2_yn'), false);
+      } else {
+        g._setItemValue(g._activeRow, g._getColumnOrder('ma_kh2_yn'), result[0].Value);
+      }
+      break;
+">
+]]>
+
+
+
+<!ENTITY DetailTaxFormViewAccountLine "[tk_thue_no].Label, [tk_thue_no], [tk_thue_co]">
+<!ENTITY DetailTaxCurrencyCreate "$dt.aExpression = ['[t_thue_nt]:=([t_tien_nt2]&VoucherGoodsTypeFomulaTaxReduction.ForeignCurrency;)*[thue_suat]/100','[t_thue]:=([t_tien2]&VoucherGoodsTypeFomulaTaxReduction.BaseCurrency;)*[thue_suat]/100','[t_tt_nt]:=[t_tien_nt2]+[t_thue_nt]','[t_tt]:=[t_tien2]+[t_thue]','[t_thue_km_nt]:=[t_km_ct_nt]*[thue_suat]/100','[t_thue_km]:=[t_km_ct]*[thue_suat]/100','[t_tien_km_nt]:=[t_km_nt]+[t_thue_km_nt]','[t_tien_km]:=[t_km]+[t_thue_km]'];">
+<!ENTITY DetailTaxFormDefaultValue "
+  if (f._action == 'New') {
+    if ($func.trim(f.getItemValue('ma_thue')) == '' &amp;&amp; f._defaultTaxCode) {
+      f.setItemValue('ma_thue', f._defaultTaxCode);
+      f.setItemValue('thue_suat', f._defaultTaxRate);
+      f.setItemValue('tk_thue_co', f._defaultTaxAccount);
+      f.setItemValue('thue_cn', f._defaultTaxType);
+    }
+  }
+">
+<!ENTITY DetailTaxFormTabFocus "'ma_thue'">
+
+<!ENTITY DetailTaxFomula "">
+<!ENTITY DetailTaxResponseCompleteTaxRate "">
+<!ENTITY DetailTaxOnchange "">
+<!ENTITY DetailTaxValidSalesPrice "
+  g.validExpression(o, [g.$a.tien2_sl, g.$a.ck_tl], [g.$a.t_tien2, g.$a.t_tc_tien2, g.$a.t_ck, g.$a.t_km], [g.$a.t_thue, g.$a.t_tt], 'tien2');
+  f.executeExpression([g.$a.t_thue_km, g.$a.t_tien_km]);
+">
+<!ENTITY DetailTaxValidSalesAmount "
+  g.validExpression(o, [g.$a.ck_tl], [g.$a.t_tien2, g.$a.t_tc_tien2, g.$a.t_ck, g.$a.t_km], [g.$a.t_thue, g.$a.t_tt], 'ck');
+  f.executeExpression([g.$a.t_thue_km, g.$a.t_tien_km]);
+">
+<!ENTITY DetailTaxValidDiscount "
+  g.executeAggregate([g.$a.t_tien2, g.$a.t_ck]);
+  f.executeExpression([g.$a.t_thue, g.$a.t_tt]);
+">
+<!ENTITY DetailTaxValidRowChange "
+  g.executeAggregate([g.$a.t_so_luong, g.$a.t_tien_nt, g.$a.t_tien, g.$a.t_tien_nt2, g.$a.t_tien2, g.$a.t_tc_tien_nt2, g.$a.t_tc_tien2, g.$a.t_ck_nt, g.$a.t_ck, g.$a.t_km_ct_nt, g.$a.t_km_ct, g.$a.t_km_nt, g.$a.t_km&EnvironmentTaxDetailChangeQuatityTotal;]);
+  f.executeExpression([g.$a.t_thue_nt, g.$a.t_thue, g.$a.t_tt_nt, g.$a.t_tt]);
+  f.executeExpression([g.$a.t_thue_km_nt, g.$a.t_thue_km, g.$a.t_tien_km_nt, g.$a.t_tien_km]);
+">
+<!ENTITY DetailTaxValidTaxChange "
+  f.executeExpression([g.$a.t_thue_nt, g.$a.t_thue, g.$a.t_tt_nt, g.$a.t_tt]);
+">
+<!ENTITY DetailTaxValidPromotionChange "
+  f.executeExpression([g.$a.t_thue_km_nt, g.$a.t_thue_km, g.$a.t_tien_km_nt, g.$a.t_tien_km]);
+">
+<!ENTITY DetailTaxExecuteCommandCheck "">
+
+<!ENTITY DetailTaxPostInventoryUpdateField "">
+<!ENTITY DetailTaxAfterUpdatePromotion "">
+<!ENTITY DetailTaxAfterUpdateMasterTax "">
+
+<!ENTITY DetailTaxResponseComplete "">

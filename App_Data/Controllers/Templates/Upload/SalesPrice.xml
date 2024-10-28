@@ -1,0 +1,221 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY And "&#13;">
+
+  <!ENTITY SalesPriceFields SYSTEM "Include\SalesPriceFields.txt">
+  <!ENTITY SalesPriceFieldsCompact SYSTEM "Include\SalesPriceFieldsCompact.txt">
+
+  <!ENTITY % CompactMode SYSTEM "..\..\Include\CompactMode.ent">
+  %CompactMode;
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.SalesPrice;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile ", case when @@language = 'V' then case when exists(select 1 from options where name = 'm_compact_mode' and val = '1') then 'SalesPrice3' else 'SalesPrice' end else case when exists(select 1 from options where name = 'm_compact_mode' and val = '1') then 'SalesPrice4' else 'SalesPrice2' end end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$SalesPriceImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$SalesPriceImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmgia2"/>
+    <table value="dmgia2" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &Tiny.External.Import.Command;
+        <![CDATA[
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') select '1' as view_index]]>&ExportImportTemplateQuery;<![CDATA[ else select '0' as view_index]]>&ExportImportTemplateQuery;<![CDATA[
+]]>
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        &SalesPriceFieldsCompact;
+      </fields>
+
+      &Tiny.External.Import.View.SalesPrice;
+
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    &SalesPriceFields;
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật giá bán" e="Sales Price List"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="loai_gia" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại giá bán" e="Sales Pricing Type"/>
+      </field>
+      <field name="ma_vt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã hàng" e="Item Code"/>
+      </field>
+      <field name="dvt" width="16">
+        <text v="Đvt" e="UOM"/>
+      </field>
+      <field name="ma_kho" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã kho" e="Site"/>
+      </field>
+      <field name="ma_kh" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Khách hàng" e="Customer"/>
+      </field>
+      <field name="nh_kh1" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Nhóm khách hàng 1" e="Customer Group 1"/>
+      </field>
+      <field name="nh_kh2" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Nhóm khách hàng 2" e="Customer Group 2"/>
+      </field>
+      <field name="nh_kh3" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Nhóm khách hàng 3" e="Customer Group 3"/>
+      </field>
+      <field name="nh_kh9" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Nhóm khách tính giá" e="Customer Price Class"/>
+      </field>
+      <field name="ngay_ban" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày bắt đầu hiệu lực" e="Effective Date"/>
+      </field>
+      <field name="ma_nt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại tiền tệ" e="Currency"/>
+      </field>
+      <field name="gia_nt2" width="16">
+        <text v="Giá bán" e="Sales Price"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin <> 1 and @type = 1 begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'SalesPrice', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @field varchar(32), @r int, @baseCurrency varchar(32)
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> đã có hoặc lồng nhau.' else 'The value of cell <span class="Highlight">%invalidCell</span> is invalid or already exists.' end
+select @baseCurrency = rtrim(val) from options where name = 'm_ma_nt0'
+
+create index i on @@table (ma_vt, ngay_ban, ma_nt)
+
+-- Update
+update @@table set ma_nt = case when ma_nt <> '' then ma_nt else @baseCurrency end
+
+if @type = '0' delete @@table from @@table a join dmgia2 b on a.loai_gia = b.loai_gia and a.ma_vt = b.ma_vt and a.ngay_ban = b.ngay_ban and a.ma_nt = b.ma_nt and a.ma_kho = b.ma_kho and a.ma_kh = b.ma_kh and a.nh_kh1 = b.nh_kh1 and a.nh_kh2 = b.nh_kh2 and a.nh_kh3 = b.nh_kh3 ]]>&Import.Operation.And;&Import.SalesPriceDirFields;<![CDATA[
+
+-- Checking
+]]>&Checking;<![CDATA[
+--
+select dvt, he_so into #dmqddvt from dmqddvt where ma_vt = '*'
+update @@table set dvt = b.dvt, he_so = 1 from @@table a join dmvt b on a.ma_vt = b.ma_vt where b.nhieu_dvt = 0
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'dvt', stt, '00001' from @@table a join dmvt b on a.ma_vt = b.ma_vt and b.nhieu_dvt = 1 where a.dvt not in (select dvt from #dmqddvt) and not exists(select 1 from dmqddvt c where c.ma_vt = a.ma_vt and c.dvt = a.dvt)
+  ]]>&w1;<![CDATA['dvt']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[ group by a.stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'dvt', @r = min(stt)
+    from @@table a join dmvt b on a.ma_vt = b.ma_vt and b.nhieu_dvt = 1
+    where a.dvt not in (select dvt from #dmqddvt) and not exists(select 1 from dmqddvt c where c.ma_vt = a.ma_vt and c.dvt = a.dvt)
+  ]]>&Error;<![CDATA[
+end
+
+update @@table set he_so = isnull(c.he_so, 1) from @@table a join dmvt b on a.ma_vt = b.ma_vt and b.nhieu_dvt = 1 join #dmqddvt c on a.dvt = c.dvt
+update @@table set he_so = isnull(c.he_so, 1) from @@table a join dmvt b on a.ma_vt = b.ma_vt and b.nhieu_dvt = 1 join dmqddvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt
+update @@table set gia_qd_nt2 = case when he_so = 0 then 0 else round(gia_nt2 / he_so, 9) end
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_kho', stt, '00002' from @@table where (ma_kho = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('S', xtype) > 0)) or (ma_kho <> '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('S', xtype) > 0))
+  ]]>&w1;<![CDATA['ma_kho']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_kho', @r = min(stt) from @@table where (ma_kho = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('S', xtype) > 0)) or (ma_kho <> '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('S', xtype) > 0))]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_kh', stt, '00002' from @@table where (ma_kh = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('C', xtype) > 0)) or (ma_kh <> '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('C', xtype) > 0))
+  ]]>&w1;<![CDATA['ma_kh']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_kh', @r = min(stt) from @@table where (ma_kh = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('C', xtype) > 0)) or (ma_kh <> '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('C', xtype) > 0))]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'nh_kh1', stt, '00002' from @@table where (nh_kh1 = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('D', xtype) > 0)) or (nh_kh1 <> '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('D', xtype) > 0))
+  ]]>&w1;<![CDATA['nh_kh1']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'nh_kh1', @r = min(stt) from @@table where (nh_kh1 = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('D', xtype) > 0)) or (nh_kh1 <> '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('D', xtype) > 0))]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'nh_kh2', stt, '00002' from @@table where (nh_kh2 = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('E', xtype) > 0)) or (nh_kh2 <> '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('E', xtype) > 0))
+  ]]>&w1;<![CDATA['nh_kh2']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'nh_kh2', @r = min(stt) from @@table where (nh_kh2 = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('E', xtype) > 0)) or (nh_kh2 <> '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('E', xtype) > 0))]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'nh_kh3', stt, '00002' from @@table where (nh_kh3 = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('F', xtype) > 0)) or (nh_kh3 <> '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('F', xtype) > 0))
+  ]]>&w1;<![CDATA['nh_kh3']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'nh_kh3', @r = min(stt) from @@table where (nh_kh3 = '' and loai_gia in (select loai_gia from dmloaigia2 where charindex('F', xtype) > 0)) or (nh_kh3 <> '' and loai_gia not in (select loai_gia from dmloaigia2 where charindex('F', xtype) > 0))]]>&Error;<![CDATA[
+end
+]]>&Import.SalesPriceCheckFields;&Import.SalesPriceError;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+
+select a.* into #k from @@table a join dmgia2 b on a.loai_gia = b.loai_gia and a.ma_vt = b.ma_vt and a.ngay_ban = b.ngay_ban and a.ma_nt = b.ma_nt and a.ma_kho = b.ma_kho and a.ma_kh = b.ma_kh and a.nh_kh1 = b.nh_kh1 and a.nh_kh2 = b.nh_kh2 and a.nh_kh3 = b.nh_kh3 ]]>&Import.Operation.And;&Import.SalesPriceDirFields;<![CDATA[
+delete @@table from @@table a join #k b on a.loai_gia = b.loai_gia and a.ma_vt = b.ma_vt and a.ngay_ban = b.ngay_ban and a.ma_nt = b.ma_nt and a.ma_kho = b.ma_kho and a.ma_kh = b.ma_kh and a.nh_kh1 = b.nh_kh1 and a.nh_kh2 = b.nh_kh2 and a.nh_kh3 = b.nh_kh3 ]]>&Import.Operation.And;&Import.SalesPriceDirFields;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  update dmgia2 set @@list from dmgia2 a join #k b on a.loai_gia = b.loai_gia and a.ma_vt = b.ma_vt and a.ngay_ban = b.ngay_ban and a.ma_nt = b.ma_nt and a.ma_kho = b.ma_kho and a.ma_kh = b.ma_kh and a.nh_kh1 = b.nh_kh1 and a.nh_kh2 = b.nh_kh2 and a.nh_kh3 = b.nh_kh3 ]]>&Import.Operation.And;&Import.SalesPriceDirFields;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+</import>

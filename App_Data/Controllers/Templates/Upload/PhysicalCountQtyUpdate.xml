@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY SiteRight "
+exec AI_ERP$System$CheckImportSiteRights '@@table', 'ma_kho', 'stt', @user, @admin, @r output, default, @$mode, @$errorCount output
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  &Error;
+end">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'PhysicalCountQtyUpdate' else 'PhysicalCountQtyUpdate2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$PhysicalCountQtyUpdateImport$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$PhysicalCountQtyUpdateImport$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="kktt$0000, kkyc"/>
+    <table value="kktt$0000" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    <denyFields value="stt_rec, ngay_ct, he_so, sl_qd, sl_qd1, sl_qd2, sl_qd3"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_kho" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_kho not in (select ma_kho from dmkho)&And;ma_kho not in (select ma_kho from kkycct where stt_rec = @stt_rec)" errorCode="00001&And;00002"/>
+    <field name="ma_vi_tri" column="B" isPrimaryKey="true" upperCase="true" updateValue="None" check="@@table.ma_vi_tri &lt;&gt; '' and not exists(select 1 from dmvitri b where b.ma_vi_tri = @@table.ma_vi_tri and b.ma_kho = @@table.ma_kho)" errorCode="00001"/>
+    <field name="ma_vt" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_vt not in (select ma_vt from dmvt)" errorCode="00001"/>
+    <field name="dvt" column="E" isPrimaryKey="true" updateValue="None"/>
+    <field name="ma_lo" column="F" isPrimaryKey="true" upperCase="true" updateValue="None" check="@@table.ma_lo &lt;&gt; '' and not exists(select 1 from dmlo b where b.ma_vt = @@table.ma_vt and b.ma_lo = @@table.ma_lo)" errorCode="00001"/>
+    <field name="so_luong1" column="G" type="Decimal"/>
+    <field name="so_luong2" column="H" type="Decimal"/>
+    <field name="so_luong3" column="I" type="Decimal"/>
+    <field name="so_luong" column="J" type="Decimal"/>
+    <field name="ghi_chu" column="K"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Lấy số liệu kiểm kê" e="Physical Count Quantity Update"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_kho" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã kho" e="Site"/>
+      </field>
+      <field name="ma_vi_tri" width ="16">
+        <text v="Mã vị trí" e="Location"/>
+      </field>
+      <field name="ma_vt" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã vật tư" e="Item"/>
+      </field>
+      <field name="ten_vt" width ="32" afterField="ma_vt" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên vật tư" e="Description"/>
+      </field>
+      <field name="dvt" width ="12">
+        <text v="Đvt" e="UOM"/>
+      </field>
+      <field name="ma_lo" width ="16">
+        <text v="Mã lô" e="Lot"/>
+      </field>
+      <field name="so_luong1" width ="16">
+        <text v="Sl chất lượng tốt" e="Good Quality"/>
+      </field>
+      <field name="so_luong2" width ="16">
+        <text v="Sl kém phẩm chất" e="Bad Quality"/>
+      </field>
+      <field name="so_luong3" width ="16">
+        <text v="Sl mất phẩm chất" e="Deteriorating Quality"/>
+      </field>
+      <field name="so_luong" width ="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="ghi_chu" width ="32">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @fields nvarchar(4000), @field varchar(32), @user int, @admin bit, @r int, @y int, @d smalldatetime, @qRound tinyint
+select @qRound = cast(val as tinyint) from options where lower(name) = 'm_round_sl'
+select @admin = @@admin, @user = @@userID
+select @fields = 'stt_rec, ngay_ct, ma_kho, ma_vi_tri, ma_lo, ma_vt, dvt, so_luong, so_luong1, so_luong2, so_luong3, ghi_chu, datetime0, datetime2, user_id0, user_id2'
+select @d = ngay_ct from kkyc where stt_rec = @stt_rec
+select @y = year(max(value)) from (select @d as value union all select ngay_gh1 from dmstt) a
+
+-- Check
+select @field = 'ma_kho'
+if @admin = 0 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'PhysicalCountQtyUpdate', 'Edit') = 0 select @type = '0'
+  end
+  --
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from @@table a where not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1))
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(stt) from @@table a where not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1))]]>&Error;<![CDATA[
+  end
+  ]]>&SiteRight;<![CDATA[
+end
+
+]]>&Checking;<![CDATA[
+
+-- Update
+update @@table set dvt = case when a.dvt <> '' then a.dvt else b.dvt end from @@table a left join dmvt b on a.ma_vt = b.ma_vt
+select @field = 'dvt'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt where b.dvt is null and c.dvt is null
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt where b.dvt is null and c.dvt is null]]>&Error;<![CDATA[
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Gather
+select top 0 a.stt_rec, a.ngay_ct, a.ma_kho, a.ma_vi_tri, a.ma_lo, a.ma_vt, a.dvt, a.so_luong1, a.so_luong2, a.so_luong3, a.so_luong,
+  a.he_so, b.nhieu_dvt, a.sl_qd, a.sl_qd1, a.sl_qd2, a.sl_qd3, a.ghi_chu into #r from kktt$0000 a, dmvt b
+
+insert into #r select @stt_rec, @d, a.ma_kho, a.ma_vi_tri, a.ma_lo, a.ma_vt, a.dvt, a.so_luong1, a.so_luong2, a.so_luong3, a.so_luong, 1 as he_so, b.nhieu_dvt, 0, 0, 0, 0, a.ghi_chu from @@table a left join dmvt b on a.ma_vt = b.ma_vt
+update #r set he_so = b.he_so from #r a join vdmvtqddvt b on (a.ma_vt = b.ma_vt or b.ma_vt = '*') and a.dvt = b.dvt where a.nhieu_dvt = 1
+update #r set sl_qd = round((so_luong * he_so), @qRound), sl_qd1 = round((so_luong1 * he_so), @qRound), sl_qd2 = round((so_luong2 * he_so), @qRound), sl_qd3 = round((so_luong3 * he_so), @qRound)
+select top 0 * into #k from #r
+
+-- Delete
+if @type = '0' begin
+  select @q = 'delete #r from #r a where exists(select 1 from kktt$' + rtrim(@y) + ' b where a.stt_rec = b.stt_rec and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo and a.ma_vt = b.ma_vt and a.dvt = b.dvt)'
+  exec sp_executesql @q
+end
+select @q = 'insert into #k select a.stt_rec, a.ngay_ct, a.ma_kho, a.ma_vi_tri, a.ma_lo, a.ma_vt, a.dvt, a.so_luong1, a.so_luong2, a.so_luong3, a.so_luong, a.he_so, a.nhieu_dvt, a.sl_qd, a.sl_qd1, a.sl_qd2, a.sl_qd3, a.ghi_chu from #r a join kktt$' + rtrim(@y) + ' b on a.stt_rec = b.stt_rec and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo and a.ma_vt = b.ma_vt and a.dvt = b.dvt'
+exec sp_executesql @q
+delete #r from #r a where exists(select 1 from #k b where a.stt_rec = b.stt_rec and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo and a.ma_vt = b.ma_vt and a.dvt = b.dvt)
+
+-- Insert
+select @q = 'insert into kktt$' + rtrim(@y) + ' (@@sources, @@denyFields' + case when '@@remainFields' <> '' then ',' else '' + '@@remainFields' end + ') select @@fields, stt_rec, ngay_ct, he_so, sl_qd, sl_qd1, sl_qd2, sl_qd3' + case when '@@remainFields' <> '' then ',' else '' + '@@remainFields' end + ' from #r'
+exec sp_executesql @q
+
+-- Update
+if @type = '1' begin
+  select @q = 'update kktt$' + rtrim(@y) + ' set @@list, sl_qd = b.sl_qd, sl_qd1 = b.sl_qd1, sl_qd2 = b.sl_qd2, sl_qd3 = b.sl_qd3'
+  select @q = @q + ' from kktt$' + rtrim(@y) + ' a join #k b on a.stt_rec = b.stt_rec and a.ma_kho = b.ma_kho and a.ma_vi_tri = b.ma_vi_tri and a.ma_lo = b.ma_lo and a.ma_vt = b.ma_vt and a.dvt = b.dvt'
+  exec sp_executesql @q
+end
+]]>
+    </text>
+  </processing>
+</import>

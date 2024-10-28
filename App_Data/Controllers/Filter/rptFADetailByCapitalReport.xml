@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptPivotFilter SYSTEM "..\Include\Javascript\PivotFilter.txt">
+
+  <!ENTITY LineCounter "7">
+  <!ENTITY Delta14 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <header v="Kỳ" e="Period"></header>
+      <footer v="Kỳ/năm" e="Period/Year"></footer>
+      <items style="Numeric"></items>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="dau_ky" dataFormatString="1, 2" clientDefault="2" align="right">
+      <header v="Đầu kỳ/cuối kỳ" e="Opening/Closing"></header>
+      <footer v="1 - Đầu kỳ, 2 - Cuối kỳ" e="1 - Opening, 2 - Closing"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_loai" categoryIndex="1">
+      <header v="Loại tài sản" e="Asset Type"></header>
+      <items style="AutoComplete" controller="FAType" reference="ten_loai%l" key="status ='1'">
+      </items>
+    </field>
+    <field name="ten_loai%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" categoryIndex="1">
+      <header v="Bộ phận sử dụng" e="Using Department"></header>
+      <items style="AutoComplete" controller="FADepartment" reference="ten_bp%l" key="status ='1'">
+      </items>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom_1" categoryIndex="1">
+      <header v="Nhóm tài sản 1" e="Asset Group 1"></header>
+      <items style="AutoComplete" controller="FAGroup" reference="ten_nh_1%l" key="status ='1' and loai_nh = 1" check="loai_nh = 1"></items>
+    </field>
+    <field name="ten_nh_1%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom_2" categoryIndex="1">
+      <header v="Nhóm tài sản 2" e="Asset Group 2"></header>
+      <items style="AutoComplete" controller="FAGroup" reference="ten_nh_2%l" key="status ='1' and loai_nh = 2" check="loai_nh = 2"></items>
+    </field>
+    <field name="ten_nh_2%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom_3" categoryIndex="1">
+      <header v="Nhóm tài sản 3" e="Asset Group 3"></header>
+      <items style="AutoComplete" controller="FAGroup" reference="ten_nh_3%l" key="status ='1' and loai_nh = 3" check="loai_nh = 3"></items>
+    </field>
+    <field name="ten_nh_3%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="111--: [ky].Description, [ky], [nam]"/>
+      <item value="1110000: [dau_ky].Label, [dau_ky], [dau_ky].Description"/>
+      <item value="11001000: [ma_loai].Label, [ma_loai], [ten_loai%l]"/>
+      <item value="11001000: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="11001000: [nhom_1].Label, [nhom_1], [ten_nh_1%l]"/>
+      <item value="11001000: [nhom_2].Label, [nhom_2], [ten_nh_2%l]"/>
+      <item value="11001000: [nhom_3].Label, [nhom_3], [ten_nh_3%l]"/>
+      <item value="110000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110000-: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 40, 30, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @subTitle nvarchar(33)
+set @subTitle = case when @dau_ky = '1' then case when @@language = 'V' then N'Đầu kỳ' else 'Opening' end else case when @@language = 'V' then N'Cuối kỳ' else 'Closing' end end
+select case when @ky < 10 then '0' + cast(@ky as nvarchar(2)) else cast(@0 as nvarchar(2)) end  as ky, cast(@nam as nvarchar(5)) as nam, @subTitle as subTitle
+
+exec rs_rptFADetailByCapitalReport @ky, @nam, @dau_ky, @ma_loai, @ma_bp, @nhom_1, @nhom_2, @nhom_3, @ma_dvcs, @mau_bc, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptPivotFilter;
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  if (!f.getItemValue('ky')) setDefault$Period(f);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(j,d){var a=d.object,e=d.type.Context,i=d.type.Result;switch(e){case"Checking":var b=a.grid,f=a.getItem("ky").value,g=a.getItem("nam").value,h=a.getItem("dau_ky").value,c=h==1?a._language=="v"?"Đầu kỳ":"Opening Period":a._language=="v"?"Cuối kỳ":"Closing Period";b._alterTitle=[null,[["%c",c,true],["%d1",f,true],["%d2",g,true]]];var c=a.getItemValue("mau_bc");if(!b._v)b._v=c;if(b._v!=c){remove$GridReport$Filter(b);b._v=c}}}function setDefault$Period(a){a.getItem("ky").value=(new Date).getMonth()+1;a.getItem("nam").value=(new Date).getFullYear();a.live(a.getItem("ky"))}]]>
+
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

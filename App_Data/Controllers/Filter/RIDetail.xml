@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY f "ma_ct in ('HDA', 'HD1', 'HD2', 'HD7', 'PXC', 'PXD')">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+]>
+
+<dir table="ctpbhdtt" code="" order="" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn hóa đơn" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Hóa đơn từ ngày" e="Date From"></header>
+    </field>
+    <field name="ma_ct" allowNulls="false">
+      <header v="Mã chứng từ" e="Voucher Code"></header>
+      <items style="AutoComplete" controller="Voucher" reference="ten_ct%l" key="&f; and status = '1'" check="&f;"/>
+    </field>
+    <field name="ten_ct%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_ct" align="right" maxLength="-100" filterSource="voucherNumber" allowNulls="false">
+      <header v="Số hóa đơn" e="Invoice Number"></header>
+      <items style="AutoComplete" controller="RIInvoiceLookup" reference="stt_rec_ct"/>
+    </field>
+    <field name="stt_rec_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_kh" readOnly="true" defaultValue="''" hidden="true" allowNulls="false">
+      <header v="Mã khách" e="Customer"></header>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" readOnly="true" hidden="true" allowNulls="false">
+      <header v="Ngày chứng từ" e="Voucher Date"></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec_ht" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="110--1: [ngay_ct1].Label, [ngay_ct1], [ngay_ct2]"/>
+      <item value="110101: [ma_ct].Label, [ma_ct], [ten_ct%l], [ma_kh]"/>
+      <item value="110111: [so_ct].Label, [so_ct], [stt_rec_ct], [ma_dvcs], [stt_rec_ht]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$RITranAllocationFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$RITranAllocationFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$RITranAllocationFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @vcID varchar(32), @vcNumber varchar(32), @vcCustomerID varchar(32), @vcCode varchar(32), @rangeFrom smalldatetime, @rangeTo smalldatetime, @dateFrom smalldatetime, @dateTo smalldatetime, @$none nvarchar(512)
+declare @c varchar(64), @m varchar(64), @e varchar(64), @q nvarchar(4000), @p char(6), @u varchar(33), @t nvarchar(33), @$invalid nvarchar(512)
+
+select @u = case when @ma_dvcs <> '' then @ma_dvcs else @@unit end,
+  @dateFrom = @ngay_ct1, @dateTo = @ngay_ct2, @t = ' and a.status in (''1'', ''2'')', @e = 'hddt00$',
+  @$none = case when @@language = 'v' then N'Không có hóa đơn theo điều kiện đang lọc hoặc hóa đơn không hợp lệ.' else N'No data matching filter condition or invalid invoice.' end,
+  @$invalid = case when @@language = 'v' then N'Hóa đơn gốc không đúng.' else N'The original invoice is invalid.' end
+
+select @rangeFrom = ngay_gh1, @rangeTo = ngay_gh2 from dmstt
+if @dateFrom < @rangeFrom select @dateFrom = @rangeFrom
+if @dateTo > @rangeTo select @dateTo = @rangeTo
+
+if @ma_ct = 'HDA' select @c = 'c81$000000', @m = 'm81$'
+  else if @ma_ct = 'HD1' select @c = 'c21$000000', @m = 'm21$'
+  else if @ma_ct = 'HD2' select @c = 'c22$000000', @m = 'm22$'
+  else if @ma_ct = 'HD7' select @c = 'hdtt', @m = 'hdtt', @t = ' and a.status = ''1'''
+  else if @ma_ct = 'PXC' select @c = 'c86$000000', @m = 'm86$', @t = ' and a.status in (''2'', ''3'')'
+  else if @ma_ct = 'PXD' select @c = 'm26$000000', @m = 'm26$000000'
+
+select @q = 'select @x = convert(char(6), ngay_ct, 112) from ' + @c + ' where ' + case when @stt_rec_ct <> '' then 'stt_rec = ''' + replace(@stt_rec_ct, '''', '''''') + '''' else 'ltrim(so_ct) = ''' + replace(ltrim(rtrim(@so_ct)), '''', '''''') + '''' end
+exec sp_executesql @q, N'@x char(6) output', @x = @p output
+select @e = @e + @p, @m = @m + case when @ma_ct in ('HDA', 'HD1', 'HD2', 'PXC') then @p else '' end
+
+select top 0 a.stt_rec_hd, a.ma_ct_hd, a.so_ct as so_ct_hd, a.so_seri as so_seri_hd, a.ngay_ct as ngay_ct_hd, a.ma_kh as ma_kh_hd, b.so_ct_hddt as so_hd_goc, b.mau_hddt as mau_hd_goc, b.so_seri_hddt as ky_hieu_hd_goc into #r from hdtt a, hddt00$000000 b, v04$000000 c
+
+select @q = '
+insert into #r
+  select a.stt_rec, a.ma_ct, a.so_ct, a.so_seri, a.ngay_ct, ltrim(rtrim(a.ma_kh)), b.so_ct_hddt, b.mau_hddt, b.so_seri_hddt
+    from ' + @m + ' a left join ' + @e + ' b on a.stt_rec = b.stt_rec
+    where a.ma_kh = @ma_kh and a.ma_ct = @ma_ct and a.ma_dvcs = @u' + @t + case when @stt_rec_ct <> '' then ' and a.stt_rec = @stt_rec_ct' else ' and ltrim(a.so_ct) = ltrim(rtrim(@so_ct))' end + case when @ma_ct = 'HD7' and @stt_rec_ht <> '' then ' and a.stt_rec <> @stt_rec_ht' else '' end
+exec sp_executesql @q
+  , N'@so_ct varchar(32), @stt_rec_ct varchar(32), @stt_rec_ht varchar(32), @ma_kh varchar(32), @ma_ct varchar(32), @u varchar(32)'
+  , @so_ct, @stt_rec_ct, @stt_rec_ht, @ma_kh, @ma_ct, @u
+
+if not exists(select 1 from #r) begin
+  select 'so_ct' as field, @$none as message
+  return
+end else begin
+  if exists(select 1 from hdtt a where exists(select 1 from #r b where a.stt_rec_hd = b.stt_rec_hd and (@stt_rec_ht = '' or (stt_rec <> @stt_rec_ht)))) begin
+    select 'so_ct' as field, @$invalid as message
+    return
+  end
+
+  select top 1 '' as field, '' as message, 'on$RITranFilter$QueryComplete(this, ''' + stt_rec_hd + ''', ''' + ma_ct_hd + ''', ''' + ltrim(rtrim(so_ct_hd)) + ''', ''' + ltrim(rtrim(so_seri_hd)) + ''', ''' + convert(char(8), ngay_ct_hd, 112) + ''', ''' + ma_kh_hd + ''', ''' + ltrim(rtrim(so_hd_goc)) + ''', ''' + ltrim(rtrim(mau_hd_goc)) + ''', ''' + ltrim(rtrim(ky_hieu_hd_goc)) + ''');' as script from #r
+  return
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$RITranAllocationFilter$(f) {f.getItem('so_ct')._idle = ]]>&IdleLookupFilter;<![CDATA[;}
+function active$RITranAllocationFilter$(a){a._looking=a.getItem("so_ct")._controlBehavior;a._looking.add_loading(on$RITranAllocationFilter$Before$Loading);var b=a.grid.get_element().parentForm;a.setItemValues("ngay_ct2, ma_kh, ma_dvcs, stt_rec_ht",[b.getItemValue("ngay_ct"),b.getItemValue("ma_kh"),b.getItemValue("ma_dvcs"),b.getItemValue("stt_rec")])}function close$RITranAllocationFilter$(a){try{a._looking.remove_loading(on$RITranAllocationFilter$Before$Loading)}catch(b){}}function on$RITranAllocationFilter$Before$Loading(c,d){var b=c._element.parentForm;if(!b.validFields("ngay_ct1, ngay_ct2, ma_ct, ma_kh"))d.type.cancelEvent=true;else{a=[{Name:"ngay_ct1",Type:"DateTime",Value:b.getItemValue("ngay_ct1")},{Name:"ngay_ct2",Type:"DateTime",Value:b.getItemValue("ngay_ct2")},{Name:"ma_ct",Type:"String",Value:b.getItemValue("ma_ct")},{Name:"ma_kh",Type:"String",Value:b.getItemValue("ma_kh")},{Name:"ma_dvcs",Type:"String",Value:b.getItemValue("ma_dvcs")},{Name:"stt_rec_ht",Type:"String",Value:b.getItemValue("stt_rec_ht")}];c.set_memvars(a)}}function on$RITranFilter$QueryComplete(a,b,c,e,f,d,g,h,i,j){Array.add(a._memvars,{Name:"vcID",OldValue:null,NewValue:b,Modified:true,Items:[]});Array.add(a._memvars,{Name:"vcCode",OldValue:null,NewValue:c,Modified:true,Items:[]});Array.add(a._memvars,{Name:"vcDate",OldValue:null,NewValue:d,Modified:true,Items:[]});var k=a.grid.get_element().parentForm;k.setItemValues("stt_rec_hd, ma_ct_hd, so_ct_hd, so_seri_hd, ngay_ct_hd, ma_kh_hd, so_hd_goc, mau_hd_goc, ky_hieu_hd_goc",[b,c,e,f,$func.formatStringToDate(d),g,h,i,j])}]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

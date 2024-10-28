@@ -1,0 +1,109 @@
+﻿<!ENTITY % Conditional.DetailTax SYSTEM "..\..\Include\DetailTax.txt">
+
+<![%Conditional.DetailTax;[
+  <!ENTITY DetailTaxMasterField "'ma_thue', 'tk_thue', 'ma_kh2'">
+  <!ENTITY DetailTaxReponseItemIndex "{'ma_thue': 9, 'thue_suat': 10, 'tk_thue': (u ? 16 : 17), 'tk_cn': (u ? 18 : 19)}">
+  <!ENTITY DetailTaxAllowNulls "false">
+  <!ENTITY DetailTaxDefaultValue "var $VType = f.getItemValue('loai_ct'); $defaultTax = [f._defaultTaxCode, f._defaultTaxRate, ($VType == '1' ? f._defaultTaxDrAccount : f._defaultTaxCrAccount), ($VType == '1' ? f._defaultTaxDrType : f._defaultTaxCrType)];">
+  <!ENTITY DetailTaxDefaultValueInMessage "select @message = @message + 'var f = this.get_element().parentForm, $VType = f.getItemValue(''loai_ct''); $defaultTax = [f._defaultTaxCode, f._defaultTaxRate, ($VType == ''1'' ? f._defaultTaxDrAccount : f._defaultTaxCrAccount), ($VType == ''1'' ? f._defaultTaxDrType : f._defaultTaxCrType)];'">
+
+  <!ENTITY DetailTaxFormViewAccountLine "[tk_thue_no].Footer, [tk_thue_no], [tk_thue]">
+  <!ENTITY DetailTaxCurrencyCreate "
+var $ag = $dt.aGridFields.split(':');
+$dt.aGridFields = $ag[0] + ',thue_nt' + ':' + $ag[1] + ',thue';
+
+$dt.aTotalFields.push(['t_thue_nt', '[thue_nt]'], ['t_thue', '[thue]']);
+
+$dt.aExpression = ['[t_tt_nt]:=[t_tien_nt2]+[t_thue_nt]', '[t_tt]:=[t_tien2]+[t_thue]'];
+">
+  <!ENTITY DetailTaxFormDefaultValue "">
+  <!ENTITY DetailTaxFormTabFocus "'tk_thue_no'">
+  <!ENTITY DetailTaxResponseCompleteTransaction "">
+
+  <!ENTITY DetailTaxFomula "
+    'dtf_thue_nt': '[thue_nt]:=[tien_nt2]*[thue_suat]/100',
+    'dtf_thue_tl': '[thue]:=[tien2]*[thue_suat]/100',
+
+    'dtf_t_thue_nt': ['t_thue_nt', 'thue_nt'],
+    'dtf_t_thue': ['t_thue', 'thue'],
+
+    'dtf_thue_tg': '[thue]:=[thue_nt]*[$ty_gia]',
+">
+  <!ENTITY DetailTaxResponseCompleteTaxRate "
+  g.validExpression(o, [g.$a.dtf_thue_nt, g.$a.dtf_thue_tl], [g.$a.dtf_t_thue_nt, g.$a.dtf_t_thue], [g.$a.t_tt_nt, g.$a.t_tt]);
+">
+  <!ENTITY DetailTaxOnchange "
+     case 'thue_nt':
+      g.validExpression(o, [g.$a.dtf_thue_tg], [g.$a.dtf_t_thue_nt, g.$a.dtf_t_thue], [g.$a.t_tt_nt, g.$a.t_tt]);
+      break;
+    case 'thue':
+      g.validExpression(o, null, [g.$a.dtf_t_thue], [g.$a.t_tt]);
+      break;
+">
+  <!ENTITY DetailTaxValidSalesPrice "
+  g.validExpression(o, [g.$a.tien2, g.$a.dtf_thue_tl], [g.$a.t_tien2, g.$a.dtf_t_thue], [g.$a.t_tt], 'tien2');
+">
+  <!ENTITY DetailTaxValidSalesAmount "
+  g.validExpression(o, [g.$a.dtf_thue_tl], [g.$a.t_tien2, g.$a.dtf_t_thue], [g.$a.t_tt]);
+">
+  <!ENTITY DetailTaxValidRowChange "
+  g.executeAggregate([g.$a.t_tien_nt2, g.$a.t_tien2, g.$a.dtf_t_thue_nt, g.$a.dtf_t_thue]);
+  f.executeExpression([g.$a.t_tt_nt, g.$a.t_tt]);
+">
+  <!ENTITY DetailTaxValidTaxChange "
+  if (o)
+    g.validExpression(o, [g.$a.dtf_thue_nt, g.$a.dtf_thue_tl], [g.$a.dtf_t_thue_nt, g.$a.dtf_t_thue], [g.$a.t_tt_nt, g.$a.t_tt]);
+  else
+    g.validExpression(o, null, [g.$a.dtf_t_thue_nt, g.$a.dtf_t_thue], [g.$a.t_tt_nt, g.$a.t_tt]);
+">
+
+  <!ENTITY DetailTaxPostInventoryUpdateField ", tk_thue_co = b.tk_thue">
+  <!ENTITY DetailTaxAfterUpdateMaster "update @@prime$partition$current set ma_thue = '', thue_suat = 0, tk_thue = '', ma_kh2 = '' where stt_rec = @stt_rec">
+]]>
+
+
+
+<!ENTITY DetailTaxFormViewAccountLine "[tk_thue].Label, [tk_thue_no], [tk_thue]">
+<!ENTITY DetailTaxCurrencyCreate "
+$dt.aExpression = ['[t_thue_nt]:=[t_tien_nt2]*[thue_suat]/100', '[t_thue]:=[t_tien2]*[thue_suat]/100', '[t_tt_nt]:=[t_tien_nt2]+[t_thue_nt]', '[t_tt]:=[t_tien2]+[t_thue]'];
+">
+<!ENTITY DetailTaxFormDefaultValue "
+  if (f._action == 'New') {
+    if ($func.trim(f.getItemValue('ma_thue')) == '' &amp;&amp; f._defaultTaxCode) {
+      f.setItemValue('ma_thue', f._defaultTaxCode);
+      f.setItemValue('thue_suat', f._defaultTaxRate);
+      if f.getItemValue('loai_ct') == '1' {
+        f.setItemValue('tk_thue', f._defaultTaxDrAccount);
+        f.setItemValue('thue_cn', f._defaultTaxDrType);
+      } else {
+        f.setItemValue('tk_thue', f._defaultTaxCrAccount);
+        f.setItemValue('thue_cn', f._defaultTaxCrType);
+      }
+    }
+  }
+">
+<!ENTITY DetailTaxFormTabFocus "'ma_thue'">
+<!ENTITY DetailTaxResponseCompleteTransaction "
+  f.setItemControlBehavior('tk_thue', result[1].Value, null, true);
+  f.setItemValue('thue_cn', result[2].Value);
+">
+
+<!ENTITY DetailTaxFomula "">
+<!ENTITY DetailTaxResponseCompleteTaxRate "">
+<!ENTITY DetailTaxOnchange "">
+<!ENTITY DetailTaxValidSalesPrice "
+  g.validExpression(o, [g.$a.tien2], [g.$a.t_tien2], [g.$a.t_thue, g.$a.t_tt], 'tien2');
+">
+<!ENTITY DetailTaxValidSalesAmount "
+  g.validExpression(o, null, [g.$a.t_tien2], [g.$a.t_thue, g.$a.t_tt]);
+">
+<!ENTITY DetailTaxValidRowChange "
+  g.executeAggregate([g.$a.t_tien_nt2, g.$a.t_tien2]);
+  f.executeExpression([g.$a.t_thue_nt, g.$a.t_thue, g.$a.t_tt_nt, g.$a.t_tt]);
+">
+<!ENTITY DetailTaxValidTaxChange "
+  f.executeExpression([g.$a.t_thue_nt, g.$a.t_thue, g.$a.t_tt_nt, g.$a.t_tt]);
+">
+
+<!ENTITY DetailTaxPostInventoryUpdateField "">
+<!ENTITY DetailTaxAfterUpdateMaster "">

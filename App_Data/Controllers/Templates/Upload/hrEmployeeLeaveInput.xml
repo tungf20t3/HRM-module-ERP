@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrEmployeeLeaveInput' else 'hrEmployeeLeaveInput2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$EmployeeLeaveInputImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$EmployeeLeaveInputImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrnghi, hrnv"/>
+    <table value="hrnghi" alias="a"/>
+    <listTable value="#r"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" isPrimaryKey="true" column="A" allowNulls="false" reference="1" updateValue="None" check="ma_nv not in (select ma_nv from hrnv)" errorCode="00001"/>
+    <field name="ngay_tu" isPrimaryKey="true" column="C" allowNulls="false" updateValue="None" type="DateTime"/>
+    <field name="ngay_den" column="D" type="DateTime" allowNulls="false"/>
+    <field name="loai_nghi" isPrimaryKey="true" column="E" allowNulls="false" upperCase="true" check="loai_nghi not in (select ma_loai from hrdmloainghi where tinh_chat = '2')" errorCode="00001"/>
+    <field name="ma_ca" column="F" allowNulls="false" check="ma_ca not in (select ma_ca from hrdmca)" errorCode="00001"/>
+    <field name="ma_cong" column="G" allowNulls="false" check="ma_cong not in (select ma_cong from hrdmcong)" errorCode="00001"/>
+    <field name="so_gio" column="H" type="Decimal" allowNulls="false"/>
+    <field name="muc_do" column="I" defaultValue="2" check="muc_do &lt;&gt; '' and muc_do not in('2', '1', '*')" errorCode="00002"/>
+    <field name="ghi_chu" column="J"/>
+
+    <field name="stt_rec" column="None" updateValue="None"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật thông tin nhân viên nghỉ, vắng mặt" e="Employee Leave Input"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_nv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="ngay_tu" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Từ ngày" e="Date from"/>
+      </field>
+      <field name="ngay_den" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đến ngày" e="Date to"/>
+      </field>
+      <field name="loai_nghi" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại nghỉ" e="Leave Type"/>
+      </field>
+      <field name="ma_ca" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ca" e="Shift"/>
+      </field>
+      <field name="ma_cong" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Công" e="Workday"/>
+      </field>
+      <field name="so_gio" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số giờ" e="Hours"/>
+      </field>
+      <field name="muc_do" width="16">
+        <text v="Mức độ ưu tiên" e="Priority"/>
+      </field>
+      <field name="ghi_chu" width="32">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @field varchar(32)
+declare @user int, @admin bit, @sys varchar(32), @joinUnit bit, @joinDept bit, @r int, @count int
+
+select @admin = @@admin, @user = @@userID, @sys = '@@sysDatabaseName', @key = '', @joinUnit = 0, @joinDept = 0
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select @field = 'ngay_tu'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from @@table where ngay_den < ngay_tu
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ngay_den < ngay_tu]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00002' from @@table a join @@table b on a.ma_nv = b.ma_nv and a.loai_nghi = b.loai_nghi and ((a.ngay_tu <= b.ngay_den and a.ngay_den >= b.ngay_tu) or (b.ngay_tu <= a.ngay_tu and b.ngay_den >= a.ngay_den)) and a.stt <> b.stt
+  where 1=1]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[ group by a.stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(a.stt) from @@table a join @@table b on a.ma_nv = b.ma_nv and a.loai_nghi = b.loai_nghi and ((a.ngay_tu <= b.ngay_den and a.ngay_den >= b.ngay_tu) or (b.ngay_tu <= a.ngay_tu and b.ngay_den >= a.ngay_den)) and a.stt <> b.stt ]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00002' from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrnghi b on c.stt_rec = b.stt_rec and a.loai_nghi = b.loai_nghi and a.ngay_tu <> b.ngay_tu and ((a.ngay_tu <= b.ngay_den and a.ngay_den >= b.ngay_tu) or (b.ngay_tu <= a.ngay_tu and b.ngay_den >= a.ngay_den))
+  where 1=1]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[ group by a.stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(a.stt) from @@table a join hrnv c on a.ma_nv = c.ma_nv join hrnghi b on c.stt_rec = b.stt_rec and a.loai_nghi = b.loai_nghi and a.ngay_tu <> b.ngay_tu and ((a.ngay_tu <= b.ngay_den and a.ngay_den >= b.ngay_tu) or (b.ngay_tu <= a.ngay_tu and b.ngay_den >= a.ngay_den)) ]]>&Error;<![CDATA[
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Key
+if @admin = 0 begin
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'hrEmployeeLeaveInput', 'Edit') = 0 select @type = 0
+  end
+
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+  select @key = case when @key = '' then '' else ' where (' + @key + ')' end
+end
+
+-- Gather
+select top 0 stt_rec, ngay_tu, ngay_den, loai_nghi, ma_ca, ma_cong, so_gio, muc_do, ghi_chu, cast(0 as int) as stt into #r from hrnghi
+
+select @q = 'insert into #r select e.stt_rec, a.ngay_tu, a.ngay_den, a.loai_nghi, a.ma_ca, a.ma_cong, a.so_gio, a.muc_do, a.ghi_chu, 0'
+select @q = @q + ' from @@table a join hrnv e on a.ma_nv = e.ma_nv' + @key
+exec sp_executesql @q
+
+-- Delete
+if @type = '0' delete #r from #r a where exists(select 1 from hrnghi b where a.stt_rec = b.stt_rec and a.loai_nghi = b.loai_nghi and a.ngay_tu = b.ngay_tu)
+select b.stt_rec, a.ngay_tu, a.ngay_den, a.loai_nghi, a.ma_ca, a.ma_cong, a.so_gio, a.muc_do, a.ghi_chu into #k
+  from #r a join hrnghi b on a.stt_rec = b.stt_rec and a.loai_nghi = b.loai_nghi and a.ngay_tu = b.ngay_tu
+delete #r from #r a where exists(select 1 from #k b where a.stt_rec = b.stt_rec and a.loai_nghi = b.loai_nghi and a.ngay_tu = b.ngay_tu)
+
+-- Insert
+select @count = count(*) from #r
+if @count > 0 begin
+-- Insert
+]]>&Inserting;<![CDATA[
+end
+-- Update
+if @type = '1' begin update hrnghi set @@list from hrnghi a join #k b on a.stt_rec = b.stt_rec and a.loai_nghi = b.loai_nghi and a.ngay_tu = b.ngay_tu end
+]]>
+    </text>
+  </processing>
+
+</import>

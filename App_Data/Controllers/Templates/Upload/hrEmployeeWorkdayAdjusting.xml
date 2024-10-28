@@ -1,0 +1,218 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY TimeInOutError "
+if @r is not null begin
+  select replace(@message, '&#37;r', @@delta + @r) as message
+  return
+end
+">
+
+  <!ENTITY WarningFieldV "ngày">
+  <!ENTITY WarningFieldE "the date">
+  <!ENTITY LockedDateFieldCheck "ngay">
+  <!ENTITY LockedDateJoin ", @@table b">
+  <!ENTITY LockedDateKey "a.ngay_ks >= b.ngay">
+  <!ENTITY CheckLockedBeforeImport SYSTEM "..\..\Include\Command\HRMCheckLockedBeforeImport.txt">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrEmployeeWorkdayAdjusting' else 'hrEmployeeWorkdayAdjusting2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$EmployeeWorkdayAdjustingImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$EmployeeWorkdayAdjustingImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrdccong, hrnv"/>
+    <table value="hrdccong" alias="a"/>
+    <listTable value="#r"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="A" isPrimaryKey="true" allowNulls="false" reference="1" updateValue="None" check="ma_nv not in (select ma_nv from hrnv)" errorCode="00001"/>
+    <field name="ma_bp" column="C" allowNulls="false" upperCase="true" check="ma_bp not in (select ma_bp from hrbp)" updateValue="None" errorCode="00001"/>
+    <field name="ngay" column="D" isPrimaryKey="true" allowNulls="false" type="DateTime" updateValue="None"/>
+    <field name="ma_ca" column="E" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_ca not in (select ma_ca from hrdmca)" updateValue="None" errorCode="00001"/>
+    <field name="ma_ca_ct" column="F" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ma_cong" column="G" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_cong not in (select ma_cong from hrdmcong)" updateValue="None" errorCode="00001"/>
+    <field name="gio_tu" column="H" isPrimaryKey="true" allowNulls="false" check="isdate(gio_tu) = 0 or charindex(':', gio_tu) = 0" updateValue="None" errorCode="00002"/>
+    <field name="hs_tu" column="I" type="Boolean"/>
+    <field name="gio_den" column="J" allowNulls="false" check="isdate(gio_den) = 0 or charindex(':', gio_den) = 0" errorCode="00002"/>
+    <field name="hs_den" column="K" type="Boolean"/>
+    <field name="so_gio" column="L" allowNulls="false" type="Decimal"/>
+    <field name="tg_di_muon" column="M" type="Decimal"/>
+    <field name="tg_ve_som" column="N" type="Decimal"/>
+    <field name="ma_ly_do" column="O" upperCase="true" check="ma_ly_do &lt;&gt; '' and ma_ly_do not in (select ma_ly_do from hrdmldtca)" errorCode="00001"/>
+    <field name="ghi_chu" column="P"/>
+
+    <field name="stt_rec" column="" updateValue="None"/>
+    <field name="tg_tu" column="None" type="DateTime" insertValue="cast(convert(varchar(8), a.ngay, 112) + ' ' + a.gio_tu as datetime) + case when a.hs_tu = 1 then 1 else 0 end" updateValue="None"/>
+    <field name="tg_den" column="None" type="DateTime" insertValue="cast(convert(varchar(8), a.ngay, 112) + ' ' + a.gio_den as datetime) + case when a.hs_den = 1 then 1 else 0 end" updateValue="cast(convert(varchar(8), b.ngay, 112) + ' ' + b.gio_den as datetime) + case when b.hs_den = 1 then 1 else 0 end"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Điều chỉnh công làm việc cho nhân viên" e="Employee Workday Adjusting"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_nv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="ma_bp" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="ngay" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày" e="Date"/>
+      </field>
+      <field name="ma_ca" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ca" e="Shift"/>
+      </field>
+      <field name="ma_ca_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Chi tiết ca" e="Detailed Shift"/>
+      </field>
+      <field name="ma_cong" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Công" e="Workday"/>
+      </field>
+      <field name="gio_tu" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Giờ vào" e="Time In"/>
+      </field>
+      <field name="hs_tu" width="16">
+        <text v="Vào hôm sau" e="In Next Day"/>
+      </field>
+      <field name="gio_den" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Giờ ra" e="Time Out"/>
+      </field>
+      <field name="hs_den" width="16">
+        <text v="Ra hôm sau" e="Out Next Day"/>
+      </field>
+      <field name="so_gio" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số giờ" e="Hours"/>
+      </field>
+      <field name="tg_di_muon" width="16">
+        <text v="Số phút đi muộn" e="Late In"/>
+      </field>
+      <field name="tg_ve_som" width="16">
+        <text v="Số phút về sớm" e="Early Out"/>
+      </field>
+      <field name="ma_ly_do" width="16">
+        <text v="Lý do tăng ca" e="Overtime Reason"/>
+      </field>
+      <field name="ghi_chu" width="32">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @message nvarchar(4000), @join nvarchar(1023), @field varchar(32)
+declare @user int, @admin bit, @sys varchar(32), @joinUnit bit, @joinDept bit, @r int
+select @admin = @@admin, @user = @@userID, @sys = '@@sysDatabaseName', @key = ''
+select @message = case when @@language = 'V' then N'Giá trị tại cột <span class="Highlight">Giờ vào</span> phải nhỏ hơn cột <span class="Highlight">Giờ ra</span>, dòng <span class="Highlight">%r</span>.' else N'Invalid value in column <span class="Highlight">Time in</span> must be less than column <span class="Highlight">Time out</span>, row <span class="Highlight">%r</span>.' end
+
+update @@table set gio_tu = '0' + gio_tu where len(gio_tu) < 5
+update @@table set gio_den = '0' + gio_den where len(gio_den) < 5
+
+-- Checking
+]]>&CheckLockedBeforeImport;&Checking;<![CDATA[
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_nv', stt, '00002' from @@table a where not exists (select 1 from hrnv b where a.ma_nv = b.ma_nv and (@admin = 1 or b.bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @user)))
+  ]]>&w1;<![CDATA['ma_nv']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_nv', @r = min(stt) from @@table a where not exists (select 1 from hrnv b where a.ma_nv = b.ma_nv and (@admin = 1 or b.bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @user)))]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'gio_tu', stt, '00002' from @@table where dateadd(day, case when hs_tu = 0 then 0 else 1 end, convert(datetime, gio_tu, 114)) >= dateadd(day, case when hs_den = 0 then 0 else 1 end, convert(datetime, gio_den, 114))
+  ]]>&w1;<![CDATA['gio_tu']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'gio_tu', @r = min(stt) from @@table where dateadd(day, case when hs_tu = 0 then 0 else 1 end, convert(datetime, gio_tu, 114)) >= dateadd(day, case when hs_den = 0 then 0 else 1 end, convert(datetime, gio_den, 114))]]>&TimeInOutError;<![CDATA[
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Key
+if @admin = 0 begin
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'hrEmployeeWorkdayAdjusting', 'Edit') = 0 select @type = 0
+  end
+  select @key = @key + case when @key <> '' then ' and ' else '' end + ' a.ma_bp in (select c.ma_bp from hrbp c, @@sysDatabaseName..hrquyenbp d where dbo.ff_Inlist(c.bp_ref, d.r_access2) = 1 and d.user_id = @@userID)'
+
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+  select @key = case when @key = '' then '' else ' where (' + @key + ')' end
+end
+
+-- Gather
+select top 0 stt_rec, ngay, ma_ca, ma_ca_ct, ma_cong, gio_tu, gio_den, hs_tu, hs_den, so_gio, tg_tu, tg_den, ma_bp, tg_di_muon, tg_ve_som, ma_tang_ca, ma_ly_do, ghi_chu into #r from hrdccong
+
+select @q = 'insert into #r select e.stt_rec, a.ngay, a.ma_ca, a.ma_ca_ct, a.ma_cong, a.gio_tu, a.gio_den, a.hs_tu, a.hs_den, a.so_gio,'
+select @q = @q + ''''', '''', a.ma_bp, a.tg_di_muon, a.tg_ve_som, '''', a.ma_ly_do, a.ghi_chu'
+select @q = @q + ' from @@table a join hrnv e on a.ma_nv = e.ma_nv' + @key
+exec sp_executesql @q
+
+-- Delete
+if @type = '0' delete #r from #r a where exists(select 1 from hrdccong b where a.stt_rec = b.stt_rec and a.ngay = b.ngay and a.ma_ca = b.ma_ca and a.ma_ca_ct = b.ma_ca_ct and a.ma_cong = b.ma_cong and a.gio_tu = b.gio_tu)
+select b.stt_rec, a.ngay, a.ma_ca, a.ma_ca_ct, a.ma_cong, a.gio_tu, a.gio_den, a.hs_tu, a.hs_den, a.so_gio, a.tg_tu, a.tg_den, a.ma_bp, a.tg_di_muon, a.tg_ve_som, a.ma_tang_ca, a.ma_ly_do, a.ghi_chu into #k
+  from #r a join hrdccong b on a.stt_rec = b.stt_rec and a.ngay = b.ngay and a.ma_ca = b.ma_ca and a.ma_ca_ct = b.ma_ca_ct and a.ma_cong = b.ma_cong and a.gio_tu = b.gio_tu
+delete #r from #r a where exists(select 1 from #k b where a.stt_rec = b.stt_rec and a.ngay = b.ngay and a.ma_ca = b.ma_ca and a.ma_ca_ct = b.ma_ca_ct and a.ma_cong = b.ma_cong and a.gio_tu = b.gio_tu)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin update hrdccong set @@list from hrdccong a join #k b on a.stt_rec = b.stt_rec and a.ngay = b.ngay and a.ma_ca = b.ma_ca and a.ma_ca_ct = b.ma_ca_ct and a.ma_cong = b.ma_cong and a.gio_tu = b.gio_tu end
+]]>
+    </text>
+  </processing>
+
+</import>

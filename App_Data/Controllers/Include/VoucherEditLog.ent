@@ -1,0 +1,27 @@
+﻿<!ENTITY % Conditional.VoucherEditLog SYSTEM "..\Include\VoucherEditLog.txt">
+
+<![%Conditional.VoucherEditLog;[
+  <!ENTITY EditLog "1">
+  <!ENTITY VoucherWhenBeforeUpdateLog "exec AI_ERP$App$Voucher$EditLog @stt_rec, @@id, '$partition$previous', '1'">
+  <!ENTITY VoucherWhenBeforeUpdateLogITTran "
+if @so_buoc &lt;&gt; 1 begin
+  declare @$id$log varchar(32)
+  select @$id$log = (left(@stt_rec, 10) + 'PNF')
+  exec AI_ERP$App$Voucher$EditLog @$id$log, 'PNF', '$partition$previous', '1'
+end
+">
+  <!ENTITY VoucherWhenBeforeUpdateLogWTTran "
+if @so_buoc &lt;&gt; 1 begin
+  declare @$id$log varchar(32)
+  select @$id$log = (left(@stt_rec, 10) + 'PNI')
+  exec AI_ERP$App$Voucher$EditLog @$id$log, 'PNI', '$partition$previous', '1'
+end
+">
+  <!ENTITY VoucherApproveLog "0">
+]]>
+
+<!ENTITY EditLog "0">
+<!ENTITY VoucherWhenBeforeUpdateLog "">
+<!ENTITY VoucherWhenBeforeUpdateLogITTran "">
+<!ENTITY VoucherWhenBeforeUpdateLogWTTran "">
+<!ENTITY VoucherApproveLog "1">

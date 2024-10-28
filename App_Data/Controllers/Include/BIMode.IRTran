@@ -1,0 +1,76 @@
+﻿<!ENTITY % Conditional.BIMode SYSTEM "..\Include\BIMode.txt">
+
+<![%Conditional.BIMode;[
+
+  <!ENTITY BI.IRTran.Retrieve.Fields ", loai_hang, ma_vung, so_luong1, so_luong2, loai_dt, ct_dt_pb, ma_bp0, ma_nh0">
+  <!ENTITY BI.IRTran.Retrieve.Declare.Fields ", loai_hang, ma_vung, so_luong as so_luong1, so_luong as so_luong2, loai_dt, ct_dt_pb, ma_bp0, ma_nh0">
+  <!ENTITY BI.IRTran.Retrieve.Select.Fields ", loai_hang, ma_vung, case when sai_can_duoi = 0 then 0 else ((so_luong * he_so) - ((so_luong * he_so * sai_can_duoi)/100)) end, case when sai_can_tren = 0 then 0 else ((so_luong * he_so) + ((so_luong * he_so * sai_can_tren)/100)) end, loai_dt, ct_dt_pb, ma_bp0, ma_nh0">
+
+  <!ENTITY BI.IRTran.Retrieve.GetValue.PO ", t = w.getItemValue('loai_ct')">
+  <!ENTITY BI.IRTran.Retrieve.SetValue.PO "f.setItemValue('loai_ct', t);">
+  <!ENTITY BI.IRTran.Retrieve.AddValue.PO ", {Name: 'loai_ct', Type: 'String', Value: t}">
+
+  <!ENTITY BI.IRTran.Retrieve.Grid.Load "left join m94$$partition$current m on a.stt_rec = m.stt_rec">
+
+  <!ENTITY BI.IRTran.Retrieve.Grid.Check "(!type &amp;&amp; !g._tracked)">
+
+  <!ENTITY BI.IRTran.Form.Flow.Filter "' + case when @loai_ct = '3' then '1' else '2' end + '">
+  <!ENTITY BI.IRTran.Form.Flow.Grid.Alias.Credit "case when p.ma_vung is null then rtrim(c.tk_dc) else case when exists(select top 1 ma_kho from dmkho where dmkho.ma_kho = a.ma_kho and dmkho.dai_ly_yn = 1) then b.tk_dl else b.tk_vt end end">
+  <!ENTITY BI.IRTran.Form.Flow.Grid.Alias.Reason "case when p.ma_vung is null then rtrim(c.ma_nx) else case when exists(select top 1 ma_kho from dmkho where dmkho.ma_kho = a.ma_kho and dmkho.dai_ly_yn = 1) then d.ma_nx else e.ma_nx end end">
+  <!ENTITY BI.IRTran.Form.Flow.Grid "
+left join (select ma_vung from bidmvung where ma_dvcs = @unitCode) p on a.ma_vung_cu = p.ma_vung
+left join dmnx d on b.tk_dl = d.tk left join dmnx e on b.tk_vt = d.tk
+">
+
+  <!ENTITY BI.IRTran.Form.MultiFlow.Form "queryFilterString += c + h.getItemValue('loai_ct');">
+  <!ENTITY BI.IRTran.Form.MultiFlow.Form.Fields "rtrim(c.ma_dvcs) as ma_dvcs, rtrim(a.ma_vung_cu) as ma_vung_cu, ">
+  <!ENTITY BI.IRTran.Form.MultiFlow.Form.Response "update #d set tk_du = case when p.ma_vung is null then rtrim(b.tk_dc) else rtrim(tk_vt) end from #d a left join dmkh b on a.ma_kh = b.ma_kh left join bidmvung p on a.ma_dvcs = p.ma_dvcs and a.ma_vung_cu = p.ma_vung">
+  <!ENTITY BI.IRTran.Form.MultiFlow.Grid "select @queryWhereClause = @queryWhereClause + ' and m.loai_ct in (' + case when @loai_ct = '3' then '''1''' else '''2''' end + ')'">
+
+  <!ENTITY BI.IRTran.DetailTableSource "
+#IF $d74.NewValue = $d74.OldValue #THEN
+  (select * from d74$$partition$previous where stt_rec = @stt_rec)
+#ELSE
+  @d74
+#END
+">
+  <!ENTITY BI.IRTran.Form.Check "
+declare @q$IR nvarchar(4000), @p$IR varchar(6), @e$IRErr bit
+
+select distinct a.stt_rec_nm as stt_rec into #d74 from &BI.IRTran.DetailTableSource; a where a.stt_rec_nm &lt;&gt; ''
+select distinct a.stt_rec_nm as stt_rec, convert(varchar(6), b.ngay_ct, 112) as p into #c74 from &BI.IRTran.DetailTableSource; a left join c96$000000 b on a.stt_rec_nm = b.stt_rec where a.stt_rec_nm &lt;&gt; ''
+select distinct p into #p74 from #c74
+if exists(select 1 from #p74) begin
+  select @p$IR = min(p) from #p74
+  while @p$IR is not null begin
+    select @q$IR = 'if exists(select 1 from #d74 a join m96$' + @p$IR + ' b on a.stt_rec = b.stt_rec where (@loai_ct = ''3'' and b.loai_ct &lt;&gt; ''1'') or (@loai_ct in (''2'', ''9'') and b.loai_ct &lt;&gt; ''2'')) select @e$IRErr = 1'
+    exec sp_executesql @q$IR, N'@e$IRErr bit out, @loai_ct varchar(2)', @e$IRErr out, @loai_ct
+    if isnull(@e$IRErr, 0) = 1 begin
+      select 'ma_gd' as fields, case when @@language = 'V' then N'Dữ liệu trong chi tiết không phù hợp với mã giao dịch.' else N'Detail data does not match transaction.' end as message
+      return
+    end
+    select @p$IR = min(p) from #p74 where p > @p$IR
+  end
+end
+">
+]]>
+
+
+<!ENTITY BI.IRTran.Retrieve.Fields "">
+<!ENTITY BI.IRTran.Retrieve.Declare.Fields "">
+<!ENTITY BI.IRTran.Retrieve.Select.Fields "">
+<!ENTITY BI.IRTran.Retrieve.GetValue.PO "">
+<!ENTITY BI.IRTran.Retrieve.SetValue.PO "">
+<!ENTITY BI.IRTran.Retrieve.AddValue.PO "">
+
+<!ENTITY BI.IRTran.Retrieve.Grid.Load "">
+<!ENTITY BI.IRTran.Retrieve.Grid.Check "!type">
+<!ENTITY BI.IRTran.Form.Flow.Filter "1">
+<!ENTITY BI.IRTran.Form.Flow.Grid.Alias.Credit "c">
+<!ENTITY BI.IRTran.Form.Flow.Grid.Alias.Reason "c">
+<!ENTITY BI.IRTran.Form.Flow.Grid "">
+<!ENTITY BI.IRTran.Form.MultiFlow.Form "">
+<!ENTITY BI.IRTran.Form.MultiFlow.Form.Fields "">
+<!ENTITY BI.IRTran.Form.MultiFlow.Form.Response "">
+<!ENTITY BI.IRTran.Form.MultiFlow.Grid "select @queryWhereClause = @queryWhereClause + ' and m.loai_ct = ''1'''">
+<!ENTITY BI.IRTran.Form.Check "">

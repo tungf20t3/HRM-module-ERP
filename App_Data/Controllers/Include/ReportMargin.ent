@@ -1,0 +1,87 @@
+﻿<!ENTITY % Conditional.ReportMargin SYSTEM "..\Include\ReportMargin.txt">
+<!ENTITY % Conditional.ReportSign SYSTEM "..\Include\Sign.txt">
+<!ENTITY % Conditional.Tiny.External SYSTEM "..\Include\Tiny.External.txt">
+<!ENTITY % Conditional.Tiny.Currency SYSTEM "..\Include\Tiny.Currency.txt">
+
+<![%Conditional.ReportMargin;[
+  <!ENTITY ReportMarginField SYSTEM "..\Include\XML\ReportMarginField.txt">
+  <!ENTITY ReportMarginFieldExtend SYSTEM "..\Include\XML\ReportMarginFieldExtend.txt">
+  <!ENTITY ReportMarginView SYSTEM "..\Include\XML\ReportMarginView.xml">
+  <!ENTITY ReportMarginViewExtend SYSTEM "..\Include\XML\ReportMarginViewExtend.xml">
+
+  <!ENTITY ReportMarginQuery "select @$rpt_margin_left as rptMarginLeft">
+  <!ENTITY ReportMarginProcessing "select @rpt_margin_left as rptMarginLeft">
+  <!ENTITY ReportMarginProcessingField ", @rpt_margin_left as rptMarginLeft">
+  <!ENTITY ReportMarginQuery "select @$rpt_margin_left as rptMarginLeft">
+
+  <![%Conditional.ReportSign;[
+    <!ENTITY Control.LineMinimume "1">
+    <!ENTITY Delta12 "0">
+    <!ENTITY Delta22 "0">
+  ]]>
+  <!ENTITY Delta12 "1">
+  <!ENTITY Delta22 "1">
+]]>
+
+<![%Conditional.ReportSign;[
+  <!ENTITY ReportSign.Filter.CategoryIndex "8">
+  <!ENTITY ReportMarginViewValue "11000">
+
+  <!ENTITY ReportSign.Filter.Query ", replace(cast(char(255) + isnull(convert(varchar(8), @ngay_ky, 112), '') + char(252) + @nguoi_lap + char(252) + lower(replace(newid(),'-','')) + char(255) as nvarchar(4000)), ' ', char(251)) as queryParameter">
+  <!ENTITY ReportSign.Report.Query ", replace(cast(char(255) + isnull(convert(varchar(8), @$ngay_ky, 112), '') + char(252) + @$nguoi_lap + char(252) + lower(replace(newid(),'-','')) + char(255) as nvarchar(4000)), ' ', char(251)) as queryParameter">
+
+  <!ENTITY ReportSign.Filter.Fields SYSTEM "..\Include\XML\ReportSign.Filter.Fields.txt">
+  <!ENTITY ReportSign.Filter.Views SYSTEM "..\Include\XML\ReportSign.Filter.Views.xml">
+  <!ENTITY ReportSign.Filter.Categories SYSTEM "..\Include\XML\ReportSign.Filter.Categories.xml">
+
+  <!ENTITY ReportSign.Filter.Initialize "
+select @message = @message + case when exists(select 1 from options where name = 'r_show_date_sign_report' and val = '1') then 'this._$d = 1;' else '' end
+if exists(select 1 from options where name = 'r_show_creator_report' and val = '1') select @message = @message + 'this._$u = 1;this._$uName = ''' + replace(rtrim(val), '''', '\''') + ''';' from options where name = case when @@language = 'V' then 'r_ten_nguoilap' else 'r_ten_nguoilap2' end
+if exists(select 1 from options where name = 'r_show_creator_report' and val = '2') select @message = @message + 'this._$u = 1;this._$uName = ''' + replace(rtrim(case when @@language = 'V' then comment else comment2 end), '''', '\''') + ''';' from vsysuserinfo where id = @@userID
+">
+  <!ENTITY ReportSign.Filter.Active "
+if (f._$d &amp;&amp; !f._extensions) f.setItemValue('ngay_ky', new Date());
+if (f._$u &amp;&amp; !f._extensions) f.setItemValue('nguoi_lap', f._$uName);
+">
+  <!ENTITY Delta12 "0">
+  <!ENTITY Delta22 "0">
+]]>
+
+<![%Conditional.Tiny.External;[
+  <!ENTITY Delta14 "-1">
+]]>
+
+<![%Conditional.Tiny.Currency;[
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+]]>
+
+
+
+<!ENTITY ReportMarginField "">
+<!ENTITY ReportMarginFieldExtend "">
+<!ENTITY ReportMarginView "">
+<!ENTITY ReportMarginViewExtend "">
+<!ENTITY ReportMarginQuery "">
+<!ENTITY ReportMarginProcessing "">
+<!ENTITY ReportMarginProcessingField "">
+<!ENTITY ReportMarginQuery "">
+
+<!ENTITY ReportSign.Filter.e "0">
+<!ENTITY ReportSign.Filter.CategoryIndex "1">
+<!ENTITY ReportMarginViewValue "110000">
+<!ENTITY ReportSign.Filter.Query "">
+<!ENTITY ReportSign.Report.Query "">
+<!ENTITY ReportSign.Filter.Fields "">
+<!ENTITY ReportSign.Filter.Views "">
+<!ENTITY ReportSign.Filter.Categories "">
+<!ENTITY ReportSign.Filter.Initialize "">
+<!ENTITY ReportSign.Filter.Active "">
+
+<!ENTITY LineCounter "3">
+<!ENTITY ExtensionCounter "1">
+
+<!ENTITY Control.LineMinimume "0">
+
+<!ENTITY Delta13 "-1">
+<!ENTITY Delta23 "-1">

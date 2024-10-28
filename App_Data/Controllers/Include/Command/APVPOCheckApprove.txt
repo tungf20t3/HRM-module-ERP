@@ -1,0 +1,17 @@
+﻿<![CDATA[
+declare @keydvcs varchar(32)
+select @keydvcs = case when @ma_dvcs = '' then @@unit else rtrim(@ma_dvcs) end
+declare @keyCategoryPO nvarchar(4000)
+select @keyCategoryPO = case when @ma_dvcs = '' then @@unit else rtrim(@ma_dvcs) end + char(253) + ]]>&APVPOCategoryParameter;<![CDATA[ + rtrim(@ma_kh) + char(253) + rtrim(@ma_nt) + char(253) + rtrim(@t_tien_nt)
+exec AI_ERP$APV$PU$GetApprovalCategory ']]>&APVApprovalType;<![CDATA[', @keyCategoryPO, @kieu_duyet output
+declare @role varchar(32), @m1 nvarchar(4000), @categoryApprove varchar(32)
+if @status = ']]>&APVStatusApprove;<![CDATA[' begin
+  if @u_status in ('', '0') select @u_status = ']]>&APVStatusOpen;<![CDATA['
+  exec AI_ERP$App$GetApprovalRole ']]>&APVApprovalType;<![CDATA[', @@id, @@userID, '', @ma_nt, @t_tien_nt, @u_status, @@language, @kieu_duyet, @categoryApprove output, @role output
+  if @role = '' or exists(select 1 from ]]>&APVHisTable;<![CDATA[ where reset = 0 and stt_rec = @stt_rec and user_id4 = @@userID group by stt_rec, user_id4 having count(*) % 2 = 1)  begin
+    select @m1 = case when @@language = 'V' then N'Bạn chưa có hoặc chưa được phân quyền thực hiện chức năng duyệt.' else 'You do not have permission to perform this action, please contact your administrator.' end
+    select @m1 as message
+    return
+  end
+end
+]]>

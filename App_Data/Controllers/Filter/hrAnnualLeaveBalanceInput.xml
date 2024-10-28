@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="vhrphepnam" code="nam, stt_rec" order="nam, stt_rec" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="nam" isPrimaryKey="true" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="bo_phan" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+      <clientScript><![CDATA[onchange="onchange$EmployeeTimeInOutAdjusting$Deparment(this);"]]></clientScript>
+    </field>
+    <field name="ten_bp%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" onDemand="true">
+      <header v="Mã nhân viên" e="Employee ID"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="vi_tri" onDemand="true">
+      <header v="Vị trí công việc" e="Position"></header>
+      <items style="AutoComplete" controller="hrPosition" reference="ten_vtr%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vtr%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bac_quan_ly" onDemand="true">
+      <header v="Bậc quản lý" e="Job Grade"></header>
+      <items style="AutoComplete" controller="hrManagerLevel" reference="ten_bac%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bac%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="182">
+      <item value="120, 30, 10, 60, 100, 100, 130, 0, 0"/>
+      <item value="110----11: [nam].Label, [nam], [stt_rec], [bp_ref]"/>
+      <item value="110010000: [bo_phan].Label, [bo_phan], [ten_bp%l]"/>
+      <item value="110010000: [ma_nv].Label, [ma_nv], [ten]"/>
+      <item value="110010000: [vi_tri].Label, [vi_tri], [ten_vtr%l]"/>
+      <item value="110010000: [bac_quan_ly].Label, [bac_quan_ly], [ten_bac%l]"/>
+    </view>
+  </views>
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @ngay_ks varchar(8)
+select @ngay_ks = convert(varchar(8), ngay_ks, 112) from dmstt
+select 'this._lockedDate = ''' + @ngay_ks + ''';active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(f) {
+	f.add_onResponseComplete(on$Filter$ResponseComplete);
+	f.getItem('nam').value = (new Date()).getFullYear();
+  f.live(f.getItem('nam'));
+}
+function close$VoucherFilter$(f) {try {f.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function onchange$EmployeeTimeInOutAdjusting$Deparment(o) {o.parentForm.request('Reference', 'Reference', ['bo_phan']);}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Reference':
+      f.setItemControlBehavior('bp_ref', result[0].Value, true);
+      break;
+    case 'Checking':
+      var g = f.grid, k = [], y = g._year = f.getItemValue('nam'), v = (f._lockedDate >= y + '0101');
+      g._denyNew = g._denyEdit = g._denyDelete = v;
+      if (v) g._denyMessage = ((f._language == 'v') ? 'Đã khóa số liệu, kiểm tra lại ngày khóa sổ.' : 'Data is locked, you must modify system locked date.');
+      
+      Array.add(k, {Name: 'nam', Opr: '=', Value: y, Type: 'Numeric', Ignore: false});
+      if (f.getItemValue('bo_phan')) Array.add(k, {Name: 'bp_ref', Opr: 'like', Value: $func.trim(f.getItemValue('bp_ref')) + '%', Type: 'String', Ignore: false});
+      if (f.getItemValue('ma_nv')) Array.add(k, {Name: 'ma_nv', Opr: '=', Value: f.getItemValue('ma_nv'), Type: 'String', Ignore: false});
+      if (f.getItemValue('vi_tri')) Array.add(k, {Name: 'vi_tri', Opr: '=', Value: f.getItemValue('vi_tri'), Type: 'String', Ignore: false});
+      if (f.getItemValue('bac_quan_ly')) Array.add(k, {Name: 'bac_quan_ly', Opr: '=', Value: f.getItemValue('bac_quan_ly'), Type: 'String', Ignore: false});
+      
+			g._alterTitle = [null, [['%y', y, true]]];
+      g.set_externalKey(k);
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+  <response>
+    <action id="Reference">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrbp where ma_bp = @bo_phan) begin
+  select bp_ref from hrbp where ma_bp = @bo_phan
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

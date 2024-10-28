@@ -1,0 +1,49 @@
+﻿<action id="EditDeliveryDay">
+      <text>
+        <![CDATA[
+declare @q nvarchar(4000), @table varchar(32), @detail varchar(32), @authorize int, @controller varchar(128), @ma_bp0 varchar(32), @ma_nh0 varchar(32), @ma_dvcs varchar(32), @ownerID int, @fullEdit bit
+select @q = '', @controller = case when @ma_ct = 'PO1' then 'BIPOTran' when @ma_ct = 'PO2' then 'BIPITran' else 'BISATran' end
+select top 1 @table = c$, @detail = d$ from dmct9 where ma_ct = @ma_ct
+
+select @q = 'select top 1 @ma_bp0 = ma_bp0, @ma_nh0 = ma_nh0, @ma_dvcs = ma_dvcs, @ownerID = user_id0 from ' + @table + '000000 where stt_rec = @stt_rec'
+exec sp_executesql @q, N'@stt_rec varchar(32), @ma_bp0 varchar(32) output, @ma_nh0 varchar(32) output, @ma_dvcs varchar(32) output, @ownerID int output', @stt_rec, @ma_bp0 out, @ma_nh0 out, @ma_dvcs out, @ownerID out
+
+-- Check Authorize
+if @@admin <> 1 begin
+  select @authorize = @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, @controller, 'Edit')
+  if @authorize = 0 or not exists(select 1 from bisyspurorgrights where user_id = @@userID and ma_bp0 = @ma_bp0 and r_edit = 1) begin
+    select '' as result, '$NotAuthorized' as messeage
+    return
+  end
+  if not exists(select 1 from sysunitrights where user_id = @@userID and ma_dvcs = @ma_dvcs and r_edit = 1) begin
+    select '' as result, '$NotAuthorized' as messeage
+    return
+  end
+
+  if @ownerID <> @@userID begin
+    exec @@sysDatabaseName.dbo.AI_ERP$System$GetShareAccess @ma_ct, @@userID, @@admin, 1, @fullEdit output
+    if (@fullEdit = 0) begin
+      select '' as result, '$NotAuthorized' as message
+      return
+    end
+  end
+
+  if @ma_nh0 <> '' and exists(select 1 from bisyspurgrouprights where user_id = @@userID) and not exists(select 1 from bisyspurgrouprights where user_id = @@userID and ma_nh0 = @ma_nh0) begin
+    select '' as result, '$NotAuthorized' as message
+    return
+  end
+end
+
+--
+select @q = '
+if not exists (select 1 from ' + @table + '000000 where stt_rec = @stt_rec) begin
+  return
+end
+select a.stt_rec, a.stt_rec0, a.ngay_ct, a.ngay_giao, a.ma_vt, b.ten_vt%l from ' + @detail + convert(char(6), @ngay_ct, 112) + ' a left join dmvt b on a.ma_vt = b.ma_vt
+  where a.stt_rec = @stt_rec and stt_rec0 = @stt_rec0
+'
+exec sp_executesql @q, N'@stt_rec varchar(32), @stt_rec0 varchar(32)', @stt_rec, @stt_rec0
+return
+]]>
+      </text>
+    </action>

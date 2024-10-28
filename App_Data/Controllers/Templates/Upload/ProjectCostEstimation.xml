@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'ProjectCostEstimation' else 'ProjectCostEstimation2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$ProjectCostEstimationImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$ProjectCostEstimationImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+    <baseTable value="dtdtvv"/>
+    <table value="dtdtvv" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="nam" column="B" isPrimaryKey="true" type="Decimal" updateValue="None" check="exists (select 1 from dmstt b where year(b.ngay_ks) >= @@table.nam)" errorCode="00002"/>
+    <field name="ma_vv" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="not exists (select 1 from dmvv b where @@table.ma_vv = b.ma_vv)" errorCode="00001"/>
+    <field name="tien" column="E" type="Decimal"/>
+    <field name="tien_nt" column="F" type="Decimal"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật dự toán theo công trình" e="Project Cost Estimation"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_dvcs" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="nam" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Năm" e="Year"/>
+      </field>
+      <field name="ma_vv" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Công trình" e="Project"/>
+      </field>
+      <field name="ten_vv" width ="32" afterField="ma_vv" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên công trình" e="Project Name"/>
+      </field>
+      <field name="tien" width ="16">
+        <text v="Tiền" e="Amount"/>
+      </field>
+      <field name="tien_nt" width ="16">
+        <text v="Tiền ngoại tệ" e="FC Amount"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @field varchar(32), @user int, @admin bit, @r int
+select @admin = @@admin, @user = @@userID
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+select @field = 'ma_dvcs'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table where ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')]]>&Error;<![CDATA[
+end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table a where exists (select 1 from dmdvcsks b where year(b.ngay_ks) >= a.nam and a.ma_dvcs = b.ma_dvcs)
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table a where exists (select 1 from dmdvcsks b where year(b.ngay_ks) >= a.nam and a.ma_dvcs = b.ma_dvcs)]]>&Error;<![CDATA[
+end
+if @admin <> 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'ProjectCostEstimation', 'Edit') = 0 select @type = '0'
+  end
+
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00001' from @@table a where not exists(select 1 from dtdtvv b where a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and b.nam = a.nam) and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(a.stt) from @@table a where not exists(select 1 from dtdtvv b where a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and b.nam = a.nam)
+      and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)]]>&Error;<![CDATA[
+  end
+  if @type = '1' begin
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00001' from @@table a where exists(select 1 from dtdtvv b where a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and b.nam = a.nam) and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(stt) from @@table a where exists(select 1 from dtdtvv b where a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and b.nam = a.nam)
+        and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)]]>&Error;<![CDATA[
+    end
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+
+if @type = '0' delete @@table from @@table a where exists(select 1 from dtdtvv b where a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and b.nam = a.nam)
+
+select a.* into #k from @@table a join dtdtvv b on a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and b.nam = a.nam
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.ma_vv = b.ma_vv and a.nam = b.nam)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ end
+]]>
+    </text>
+  </processing>
+</import>

@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu từ" e="Counting Date from"></header>
+      <footer v="Ngày yêu cầu từ/đến" e="Counting Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu đến" e="Counting Date to"></header>
+    </field>
+    <field name="so_ct" align="right" allowNulls="false" categoryIndex="1">
+      <header v="Số yêu cầu" e="Voucher No."></header>
+      <items style="AutoComplete" controller="StocktakingRequisition" key="(ngay_ct between @d1 and @d2)" check="(ngay_ct between @d1 and @d2)"/>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="110: [so_ct].Label, [so_ct]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$StockVarianceReportforConsolidate$(this);' as message from dmstt
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @vcID varchar(33)
+select @vcID = stt_rec from kkyc where so_ct = @so_ct
+exec rs_rptStockVarianceReportforConsolidate @vcID, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$none nvarchar(512), @vcDate smalldatetime, @isLocked tinyint
+select @vcDate = ngay_ct from kkyc with(index(so_ct)) where so_ct = @so_ct and ngay_ct between @ngay_ct1 and @ngay_ct2
+if @vcDate is null begin
+  select @$none = case when @@language = 'v' then N'Không có yêu cầu kiểm kê theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+  select 'so_ct' as field, isnull(@$none, '') as message
+end else begin
+  select @isLocked = case when @vcDate <= ngay_ks_kk then 1 else 0 end from dmstt
+  select '' as field, '' as message, 'on$Filter$Retrieve$QueryComplete(this, ' + str(@isLocked) + ');' as script
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f._looking.add_loading(onclick$StockVarianceReportforConsolidate$Before$Loading);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function init$StockVarianceReportforConsolidate$(a){a.getItem("so_ct")._idle=true}function close$VoucherFilter$(a){try{a._looking.remove_loading(on$StockVarianceReportforConsolidate$Before$Loading)}catch(b){}try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(f,b){var c=b.object,d=b.type.Context,e=b.type.Result;switch(d){case"Checking":var a=c.grid;a._voucherNum=c.getItemValue("so_ct").toUpperCase();a._alterTitle=[null,[["%s",a._voucherNum,true]]];a._arrValue=[]}}function onclick$StockVarianceReportforConsolidate$Before$Loading(c,f){var b=c._element.parentForm;if(!b.validFields("ngay_ct1")||!b.validFields("ngay_ct2"))f.type.cancelEvent=true;else{var g=b.grid,h=g.get_element().parentForm,d=b.getItemValue("ngay_ct1"),e=b.getItemValue("ngay_ct2");a=[{Name:"d1",Type:"DateTime",Value:d},{Name:"d2",Type:"DateTime",Value:e}];c.set_memvars(a)}}function on$Filter$Retrieve$QueryComplete(a,c){var b=a.grid;b._denySave=c;if(c==1)b._denyMessage=a._language=="v"?"Đã khóa số liệu, kiểm tra lại ngày khóa số liệu kiểm kê.":"Check the Stocktaking data closing date."}]]>
+    </text>
+  </script>
+</dir>

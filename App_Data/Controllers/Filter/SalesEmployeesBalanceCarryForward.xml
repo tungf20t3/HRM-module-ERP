@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY CommandCheckLockedDate SYSTEM "..\Include\Command\TransferLockedDateUnit.txt">
+  <!ENTITY BalanceCarriedForward SYSTEM "..\Include\Command\BalanceCarriedForward.txt">
+  <!ENTITY Calc "
+declare @salesEmplyeeColumn varchar(32)
+select @salesEmplyeeColumn = rtrim(field) from syspostfields where id = '01'
+if isnull(@salesEmplyeeColumn, '') &lt;&gt; '' begin
+  exec rs_SalesEmployeesBalanceCarryForward @nam, @ma_dvcs, @salesEmplyeeColumn, @@userID, @@admin
+end
+">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Kết chuyển số dư công nợ theo nhân viên bán hàng sang năm sau" e="Sales Employees Balance Carry Forward"></title>&BalanceCarriedForward;
+</dir>

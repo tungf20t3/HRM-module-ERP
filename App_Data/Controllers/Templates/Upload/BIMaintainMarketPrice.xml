@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select @message as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Enter "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Controller "BIMaintainMarketPrice">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BIMaintainMarketPriceImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BIMaintainMarketPriceImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="bigiatt"/>
+    <table value="bigiatt" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C001">
+      <header v="Ngày hiệu lực chưa nhập hoặc giá trị không hợp lệ." e="Effective Date must not be blank or has invalid value." />
+    </var>
+    <var id="C002">
+      <header v="Ngày hiệu lực đến phải lớn hơn hoặc bằng trường ngày hiệu lực từ." e="Effective date to must be larger than or equal to effective date from" />
+    </var>
+    <var id="C003">
+      <header v="Mã hàng chưa khai báo đánh giá nhà cung cấp." e="Item has not been configured for vendor evaluation."/>
+    </var>
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_bp0" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_bp0 not in (select ma_bp from bidmbp0)&Enter;not exists(select 1 from bisyspurorgrights b where @@table.ma_bp0 = b.ma_bp0 and b.user_id = @@userID and b.r_new = 1)" condition="&Enter;if @@admin &lt;&gt; 1 begin" tag="&Enter;end" errorCode="00001&Enter;00002"/>
+    <field name="ma_vt" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_vt not in (select ma_vt from dmvt)" errorCode="00001"/>
+    <field name="dvt" column="."/>
+    <field name="gia_nt" column="." type="Decimal"/>
+    <field name="ngay_hl_tu" isPrimaryKey="true" type="DateTime" column="." updateValue="None" allowNulls="false"/>
+    <field name="ngay_hl_den" type="DateTime" column="."/>
+    <field name="ghi_chu" column="."/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật giá thị trường" e="Maintain Market Price"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_bp0" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị mua" e="Purchasing Org."/>
+      </field>
+      <field name="ma_vt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã hàng" e="Item"/>
+      </field>
+      <field name="ten_vt" width ="32" afterField="ma_vt" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên mặt hàng" e="Item Name"/>
+      </field>
+
+      <field name="gia_nt" width="16">
+        <text v="Đơn giá" e="Net Price"/>
+      </field>
+      <field name="ngay_hl_tu" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày hiệu lực từ" e="Effective Date from"/>
+      </field>
+      <field name="ngay_hl_den" width="16">
+        <text v="Ngày hiệu lực đến" e="Effective Date to"/>
+      </field>
+
+      <field name="ghi_chu" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, ']]>&Controller;<![CDATA[', 'Edit') = 0 select @type = '0'
+end
+
+declare @field varchar(32), @r int, @duplicate nvarchar(512), @message nvarchar(512), @invalidDate nvarchar(512), @itemNotConfig nvarchar(4000)
+select @duplicate = case when @@language = 'v' then N'Ngày hiệu lực chưa nhập hoặc giá trị không hợp lệ tại dòng <span class="Highlight">%s</span>.' else 'Effective Date must not be blank or has invalid value at row <span class="Highlight">%s</span>.' end
+select @invalidDate = case when @@language = 'v' then N'Ngày hiệu lực đến phải lớn hơn hoặc bằng trường ngày hiệu lực từ tại dòng <span class="Highlight">%s</span>.' else '"Effective date to must be larger than or equal to effective date from at row <span class="Highlight">%s</span>.' end
+select @itemNotConfig = case @@language when 'v' then N'Mã hàng tại ô <span class="Highlight">%invalidCell</span> chưa khai báo đánh giá nhà cung cấp.' else 'The item of cell <span class="Highlight">%invalidCell</span> has not been configured for vendor evaluation.' end
+
+if @type = '0' delete @@table from @@table a join bigiatt b on a.ma_bp0 = b.ma_bp0 and a.ma_vt = b.ma_vt and a.ngay_hl_tu = b.ngay_hl_tu
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+-- Gather
+select a.* into #k from @@table a join bigiatt b on a.ma_bp0 = b.ma_bp0 and a.ma_vt = b.ma_vt and a.ngay_hl_tu = b.ngay_hl_tu
+
+select @field = 'ma_bp0'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from #k where ma_bp0 not in (select distinct ma_bp0 from bisyspurorgrights where user_id = @@userID and r_edit = 1)
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from #k where ma_bp0 not in (select distinct ma_bp0 from bisyspurorgrights where user_id = @@userID and r_edit = 1)]]>&Error;<![CDATA[
+end
+
+select distinct ma_vt, dvt into #dvt from #table
+update a set dvt = rtrim(b.val) from #dvt a join bidmvtts b on a.ma_vt = b.ma_vt where a.dvt = '' and b.name = 'dvt'
+if exists(select 1 from #dvt where dvt = '') begin
+  declare @dvt varchar(33)
+  select top 1 @dvt = rtrim(val) from bidmts where name = 'dvt' and controller = 'Item'
+  if @dvt is not null update #dvt set dvt = @dvt where dvt = ''
+  update a set dvt = rtrim(b.dvt) from #dvt a join dmvt b on a.ma_vt = b.ma_vt where a.dvt = ''
+end
+update #table set dvt = b.dvt from #table a join #dvt b on a.ma_vt = b.ma_vt
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_hl_den', stt, 'C002' from @@table where (ngay_hl_den is not null and ngay_hl_den < ngay_hl_tu)
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_hl_tu', b.stt, 'C001' from @@table a join @@table b on a.stt < b.stt and a.ma_bp0 = b.ma_bp0 and a.ma_vt = b.ma_vt and (a.ngay_hl_den is not null and b.ngay_hl_tu <= a.ngay_hl_den) and (b.ngay_hl_den is not null and b.ngay_hl_den >= a.ngay_hl_tu)
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_hl_tu', stt, 'C001' from @@table a join bigiatt b on a.ma_bp0 = b.ma_bp0 and a.ma_vt = b.ma_vt and (a.ngay_hl_den is not null and b.ngay_hl_tu <= a.ngay_hl_den) and (b.ngay_hl_den is not null and b.ngay_hl_den >= a.ngay_hl_tu)
+    where not(@type = '1' and a.ma_bp0 = b.ma_bp0 and a.ma_vt = b.ma_vt and a.ngay_hl_tu = b.ngay_hl_tu)
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_vt', stt, 'C003' from @@table a where not exists(select 1 from bidmvttsbp0 b where a.ma_vt = b.ma_vt and a.ma_bp0 = b.ma_bp0 and b.name = 'danh_gia_ncc' and b.val = '1') and not exists(select 1 from bidmvtts b where a.ma_vt = b.ma_vt and b.name = 'danh_gia_ncc' and b.val = '1')
+  ]]>&w1;<![CDATA['ma_vt']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C003']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where (ngay_hl_den is not null and ngay_hl_den < ngay_hl_tu)
+  if @r is not null begin
+    select replace(@invalidDate, '%s', @r) as message
+    return
+  end
+
+  select @r = min(b.stt) from @@table a join @@table b on a.stt < b.stt and a.ma_bp0 = b.ma_bp0 and a.ma_vt = b.ma_vt and (a.ngay_hl_den is not null and b.ngay_hl_tu <= a.ngay_hl_den) and (b.ngay_hl_den is not null and b.ngay_hl_den >= a.ngay_hl_tu)
+  if @r is not null begin
+    select replace(@duplicate, '%s', @r) as message
+    return
+  end
+
+  select @r = min(stt) from @@table a join bigiatt b on a.ma_bp0 = b.ma_bp0 and a.ma_vt = b.ma_vt and (a.ngay_hl_den is not null and b.ngay_hl_tu <= a.ngay_hl_den) and (b.ngay_hl_den is not null and b.ngay_hl_den >= a.ngay_hl_tu)
+    where not(@type = '1' and a.ma_bp0 = b.ma_bp0 and a.ma_vt = b.ma_vt and a.ngay_hl_tu = b.ngay_hl_tu)
+  if @r is not null begin
+    select replace(@duplicate, '%s', @r) as message
+    return
+  end
+
+  select @field = 'ma_vt', @message = @itemNotConfig, @r = min(stt) from @@table a where not exists(select 1 from bidmvttsbp0 b where a.ma_vt = b.ma_vt and a.ma_bp0 = b.ma_bp0 and b.name = 'danh_gia_ncc' and b.val = '1') and not exists(select 1 from bidmvtts b where a.ma_vt = b.ma_vt and b.name = 'danh_gia_ncc' and b.val = '1')]]>&Error;<![CDATA[
+end
+
+-- Do not delete following line
+-- #OverwriteChecking
+
+]]>&EndErrorMode;<![CDATA[
+
+if @type = '1' delete @@table from @@table a where exists(select 1 from #k b where a.ma_bp0 = b.ma_bp0 and a.ma_vt = b.ma_vt and a.ngay_hl_tu = b.ngay_hl_tu)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+</import>

@@ -1,0 +1,25 @@
+﻿<![CDATA[
+function show$Grid$InitFreeField(g, rptFormID) {
+  var toolbarIndex = -1;
+  for (var i = 0; i < g._toolbar.length; i++) {
+    if (g._toolbar[i][0] == 'Print') {
+      toolbarIndex = i;
+      break;
+    }
+  }
+  if (toolbarIndex >= 0) {
+    var targets, toolbarForm = g._toolbar[toolbarIndex][2], formIndex = [];
+    rptFormID = ',' + rptFormID;
+    for (var i = toolbarForm.length -1; i >= 0; i--) {
+      if (toolbarForm[i].Target) {
+        targets = toolbarForm[i].Target.split(',');
+        if (targets.length > 1 && (rptFormID).indexOf(',' + targets[1]) != -1) {
+          toolbarForm.splice(i, 1);
+          rptFormID = rptFormID.replace(',' + targets[1], '');
+        }
+        if (rptFormID == '') break;
+      }
+    }
+  }
+}
+]]>

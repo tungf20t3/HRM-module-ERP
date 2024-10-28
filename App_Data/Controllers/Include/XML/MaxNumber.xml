@@ -1,0 +1,11 @@
+﻿<action id="Suggestion">
+  <text>
+    <![CDATA[
+declare @execute nvarchar(4000), @p varchar(32)
+select @execute = 'select top 1 %s1 from %s2 order by %s1 desc', @p = '%[^0-9_A-Za-z]%'
+if patindex(@p, @suggestionCode) > 0 or patindex(@p, @suggestionTable) > 0 return
+select @execute = replace(replace(replace(@execute, '%s1', @suggestionCode), '%s2', @suggestionTable), '%s3', replace(rtrim(@suggestionValue), '''', ''''''))
+exec sp_executesql @execute
+]]>
+  </text>
+</action>

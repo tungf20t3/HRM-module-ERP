@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="mrctyc" code="ngay_ct" order="ngay_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Sửa kế hoạch đặt hàng" e="Edit Planned Order"></title>
+
+  <fields>
+    <field name="xac_nhan" dataFormatString="0, 1" clientDefault="1" align="right" categoryIndex="3" >
+      <header v="Xác nhận" e="Status"></header>
+      <footer v="1 - Đặt hàng, 0 - Không" e="1 - Firm, 0 - Un-firm"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="sl_dh" type="Decimal" dataFormatString="@quantityInputFormat">
+      <header v="Số lượng đơn hàng" e="Order Q'ty"></header>
+      <items style="Numeric"/>
+      <clientScript><![CDATA[onchange="onchange$Form$Quantity(this);"]]></clientScript>
+    </field>
+    <field name="dvt">
+      <header v="Đvt" e="UOM"></header>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Ngày nhận hàng" e="Due Date"></header>
+    </field>
+    <field name="sl_da_yc" type="Decimal" dataFormatString="@quantityInputFormat">
+      <header v="Đã phân bổ" e="Allocated Q'ty"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="sl_nhap" type="Decimal" dataFormatString="@quantityInputFormat">
+      <header v="Số lượng còn lại" e="Remain Q'ty"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="stt_rec" hidden ="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" hidden ="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="tg_th" hidden ="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 330"/>
+      <item value="1110: [xac_nhan].Label, [xac_nhan], [xac_nhan].Description, [ma_vt]"/>
+      <item value="110: [sl_dh].Label, [sl_dh]"/>
+      <item value="110: [dvt].Label, [dvt]"/>
+      <item value="110: [ngay_ct].Label, [ngay_ct]"/>
+      <item value="110: [sl_da_yc].Label, [sl_da_yc]"/>
+      <item value="110: [sl_nhap].Label, [sl_nhap]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$Form$(this)' as  message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @round int, @he_so numeric(19, 5), @ten_dh nvarchar(128), @ten_dh2 nvarchar(128), @ma_nguon char(2), @d smalldatetime, @$sl_nhap numeric(19, 4), @$sl_dh numeric(19, 4), @$sl_da_yc numeric(19, 4)
+select @round = cast(val as int) from options where name = 'm_round_sl'
+select @he_so = he_so from dmqddvt where ma_vt = @ma_vt and dvt = @dvt
+if (@he_so is null or @he_so = 0) select @he_so = 1
+select @ma_nguon = case when @xac_nhan = '1' then 'FP' else 'PL' end, @d = dbo.mf_GetNetBackwardDate(@ngay_ct, @tg_th), @$sl_nhap = round(@sl_nhap * @he_so, @round), @$sl_dh = round(@sl_dh * @he_so, @round), @$sl_da_yc = round(@sl_da_yc * @he_so, @round)
+
+select @ten_dh = case when @@language = 'v' then  rtrim(ten_nguon) else rtrim(ten_nguon2) end from mrdmnguon where ma_nguon = @ma_nguon
+select @ten_dh2 = case when @@language = 'v' then  rtrim(ten_nguon) else rtrim(ten_nguon2) end from mrdmnguon where ma_nguon = 'PR'
+
+update mrctyc set xac_nhan = @xac_nhan, nguon = @ma_nguon, sl_dh = @$sl_dh, sl_nhap = @$sl_nhap, ngay_ct = @ngay_ct, ngay_dat = @d, user_id2 = @@userID, datetime2 = getdate() where stt_rec = @stt_rec
+update mrctdh set xac_nhan = @xac_nhan, dat_hang = @$sl_dh, ngay_nhan = @ngay_ct, ngay_dat = @d, user_id2 = @@userID, datetime2 = getdate() where stt_rec = @stt_rec
+
+select '' as field, '' as message, 'on$Filter$Retrieve$QueryComplete(this,''' + isnull(rtrim(replace(replace(@ten_dh, '\', '\\'), '''', '\''')), '') +  ''',''' + isnull(rtrim(replace(replace(@ten_dh2, '\', '\\'), '''', '\''')), '') + ''',''' + @ma_nguon + ''', ' + rtrim(@$sl_dh) + ',' + rtrim(@$sl_nhap) + ',' + rtrim(@$sl_da_yc) + ',''' + convert(char(8), @ngay_ct, 112) + ''',''' + convert(char(8), @d, 112) + ''');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$Form$(f) {
+  g = f.grid; w = g.get_element().parentForm; z = w.getItem('d1')._controlBehavior; 
+  f.setReadOnlyFields('dvt, sl_da_yc, sl_nhap');
+  f.setItemValues('ma_vt, dvt, tg_th, sl_dh, sl_da_yc, sl_nhap, ngay_ct, stt_rec', [w.getItemValue('ma_vt'), w.getItemValue('dvt'), w.getItemValue('tg_th'), z._sl_dh, z._sl_da_yc, z._sl_nhap, z._ngay_ct, z._stt_rec]);
+}
+function close$Form$(f) {try {f.remove_onResponseComplete(on$Form$ResponseComplete);} catch (ex) {}}
+function onchange$Form$Quantity(o) {
+  var f = o.parentForm;
+  f.setItemValue('sl_nhap', f.getItemValue('sl_dh') - f.getItemValue('sl_da_yc'));
+}
+function on$Filter$Retrieve$QueryComplete(f, t, u, v, a, b, c, d, e) {
+  var g = f.grid, w = g.get_element().parentForm, z = w.getItem('d1')._controlBehavior;
+  g._name = t;
+  g._name2 = u;
+  g._type = v;
+  g._remainQuanlity = a;
+  g._orderQuanlity = b;
+  g._allocateQuanlity = c;
+  g._voucherDate = $func.formatStringToDate(d);
+  g._releaseDate = $func.formatStringToDate(e);
+  g._formScript = 'on$Update$MRPDetail(z)';
+}
+]]>
+    </text>
+  </script>
+</dir>

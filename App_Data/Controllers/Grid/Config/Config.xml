@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE config [
+  <!ENTITY % Tiny.Currency SYSTEM "..\..\Include\Tiny.Currency.ent">
+  %Tiny.Currency;
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+]>
+
+<config xmlns="urn:schemas-ai-erp:data-pattern">
+  <query events="Showing, Script, Rendering, Loading" reference="&Tiny.External.ConfigDynamicEventsReference;">
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000)
+set @message = ''
+
+if 1 in(]]>&Tiny.Currency.ConfigEvent;<![CDATA[,]]>&Tiny.External.ConfigEvent;<![CDATA[) begin
+  declare @$gridFieldAction nvarchar(4000)
+  exec @@sysDatabaseName..AI_ERP$GenerateEvents$GridFieldAction @@controller, @@event, '1=0]]>&Tiny.Currency.ConfigCondition;&Tiny.External.ConfigCondition;<![CDATA[', '@@appDatabaseName', @$gridFieldAction out
+  set @message = @message + @$gridFieldAction
+end
+
+select @message as message
+]]>
+    </text>
+  </query>
+
+</config>

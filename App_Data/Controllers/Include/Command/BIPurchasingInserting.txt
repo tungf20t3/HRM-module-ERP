@@ -1,0 +1,8 @@
+﻿      <![CDATA[
+if @@admin = 0 begin
+  if exists (select ma_vung from @]]>&BIPurchasingTable;<![CDATA[ where ma_vung not in(select ma_vung from bidmvung where (not exists(select 1 from bisysplantrights where user_id = @@userID) or ma_vung in (select ma_vung from bisysplantrights where user_id = @@userID)))) begin
+    select ']]>&BIPurchasingTable;<![CDATA[' as field, case when @@language = 'v' then N'Tồn tại mã vùng trong các mã vùng vừa cập nhật không hợp lệ, không thể lưu được.' else N'Some plant code codes are invalid or you are not authorized to execute this function.' end as message
+    return
+  end
+end
+]]>

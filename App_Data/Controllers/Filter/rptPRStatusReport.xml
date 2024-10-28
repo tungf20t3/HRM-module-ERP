@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY LineCounter "7">
+  <!ENTITY ExtensionCounter "2">
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+
+  <!ENTITY BI.Report.Filter.Categories.Index "1">
+  <!ENTITY % BIMode.Report SYSTEM "..\Include\BIMode.Report">
+  %BIMode.Report;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu từ" e="PR Date from"></header>
+      <footer v="Ngày yêu cầu từ/đến" e="PR Date from/to"></footer>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu đến" e="PR Date to"></header>
+    </field>
+    <field name="so_nc1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Chứng từ từ số" e="PR No. from"></header>
+      <footer v="Số chứng từ từ/đến số" e="PR No. from/to"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_nc2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Chứng từ đến số" e="PR No. to"></header>
+      <items style="Mask"></items>
+    </field>
+
+    &BI.Report.Filter.Plant.Fields;
+
+    <field name="ma_bp" categoryIndex="1">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="Department" reference="ten_bp%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" categoryIndex="1">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="status" clientDefault="*" categoryIndex="1">
+      <header v="Trạng thái" e="Status"></header>
+      <items style="DropDownList">
+        <item value="*">
+          <text v="Tất cả" e="All"/>
+        </item>
+        <item value="0">
+          <text v="Lập chứng từ" e="No Action"/>
+        </item>
+        <item value="1">
+          <text v="Chờ duyệt" e="Open"/>
+        </item>
+        <item value="2">
+          <text v="Đã duyệt" e="Approved"/>
+        </item>
+        <item value="3">
+          <text v="Đã đặt hàng" e="Ordered"/>
+        </item>
+        <item value="4">
+          <text v="Hoàn thành" e="Completed"/>
+        </item>
+        <item value="5">
+          <text v="Đóng" e="Closed"/>
+        </item>
+        <item value="9">
+          <text v="Đang duyệt" e="Pending"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="maxLength" readOnly="true" hidden="true" maxLength="-100" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_gd" categoryIndex="1">
+      <header v="Ds mã giao dịch" e="Transaction Code List"/>
+    </field>
+    <field name="ds_ma_ct" hidden="true" readOnly="true" clientDefault="PR1" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="1101: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="1101--1: [so_nc1].Description, [so_nc1], [so_nc2], [maxLength]"/>
+
+      &BI.Report.Filter.Plant.Views;
+
+      <item value="110100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11000: [status].Label, [status]"/>
+
+      <item value="11000-1: [ma_gd].Label, [ma_gd], [ds_ma_ct]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 20, 80, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @k varchar(32)
+select case when @status = '0' then case when @@language = 'V' then cast(N'Lập chứng từ' as nvarchar(511)) else cast(N'No Action' as nvarchar(511)) end
+     when @status = '1' then case when @@language = 'V' then cast(N'Chờ duyệt' as nvarchar(511)) else cast(N'Open' as nvarchar(511)) end
+     when @status = '2' then case when @@language = 'V' then cast(N'Đã duyệt' as nvarchar(511)) else cast(N'Approved' as nvarchar(511)) end
+     when @status = '3' then case when @@language = 'V' then cast(N'Đã đặt hàng' as nvarchar(511)) else cast(N'Ordered' as nvarchar(511)) end
+     when @status = '4' then case when @@language = 'V' then cast(N'Hoàn thành' as nvarchar(511)) else cast(N'Completed' as nvarchar(511)) end
+     when @status = '5' then case when @@language = 'V' then cast(N'Đóng' as nvarchar(511)) else cast(N'Closed' as nvarchar(511)) end
+     when @status = '9' then case when @@language = 'V' then cast(N'Đang duyệt' as nvarchar(511)) else cast(N'Pending' as nvarchar(511)) end
+     else case when @@language = 'V' then cast(N'Tất cả' as nvarchar(511)) else cast(N'All' as nvarchar(511)) end end as status
+if @status = '*' set @k = '0, 1, 2, 3, 4, 5, 9' else set @k = @status
+exec rs_rptPRStatusReport @ngay_tu, @ngay_den, @so_nc1, @so_nc2, @ma_bp, @ma_vt, @k, @maxLength, @ma_gd, @ds_ma_ct, @ma_dvcs, @@language, @@userID, @@admin]]>&BI.Report.Plant.Parameter;<![CDATA[
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  var o = f.getItem('maxLength');
+  o.value = o.maxLength;
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(h,d){var c=d.object,e=d.type.Context,g=d.type.Result;switch(e){case"Checking":var f=c.grid,i=c.getItemValue("mau_bc"),a=c.getItemValue("status"),b=c._language=="v";if(a=="0")b?a="Lập chứng từ":a="No Action";else if(a=="1")b?a="Chờ duyệt":a="Open";else if(a=="2")b?a="Đã duyệt":a="Approved";else if(a=="3")b?a="Đã đặt hàng":a="Ordered";else if(a=="4")b?a="Hoàn thành":a="Completed";else if(a=="5")b?a="Đóng":a="Closed";else if(a=="9")b?a="Đang duyệt":a="Pending";else if(a=="*")b?a="Tất cả":a="All";f._alterTitle=[null,[["%s",a,true]]]}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

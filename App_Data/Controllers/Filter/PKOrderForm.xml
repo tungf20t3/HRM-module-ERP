@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "PKOrder">
+  <!ENTITY DetailTable "d95">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Supplier">
+  <!ENTITY c21 "Số đơn hàng">
+  <!ENTITY c22 "Order Number">
+  <!ENTITY c31 "Ngày đơn hàng">
+  <!ENTITY c32 "Order Date">
+
+  <!ENTITY % BIMode.PKTran SYSTEM "..\Include\BIMode.PKTran">
+  %BIMode.PKTran;
+
+  <!ENTITY % BIMode.PKTran.Flow SYSTEM "..\Include\BIMode.PKTran.Flow">
+  %BIMode.PKTran.Flow;
+]>
+
+<dir table="m95$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Đơn hàng nhập khẩu" e="Import Purchase Order"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d95')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, stt_rec, stt_rec0, so_ct, line_nbr', f2 = 'so_luong, stt_rec_dh, stt_rec0dh, dh_so, dh_ln';
+  var append = false, first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]);
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = z._getColumnOrder('dvt'), l2 = g._getColumnOrder('nhieu_dvt'), l3 = g._getColumnOrder('so_luong0'), l4 = g._getColumnOrder('so_luong');
+  var fields = 'ma_vt, ten_vt%l, dvt, ]]>&XMLHiddenFields;&BI.FlowOA.Fields;<![CDATA[, he_so, ma_vt0, ma_thue_nk, thue_suat_nk, ma_thue_ttdb, thue_suat_ttdb, ma_thue, thue_suat';
+  ]]>&BI.PKTran.Retrieve.Order.Flow.Fields.EnvironmentTax;<![CDATA[
+  if (v) {
+    f1 += ', gia_nt';
+    f2 += ', gia_nt0';
+  }
+
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l3) != 0) {
+      append = true;
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+      ]]>&BI.PKTran.Retrieve.Order.Flow.Grid.ExecuteExpression;<![CDATA[
+      if (v) z.executeExpression(o, [z.$a.gia0_tg, z.$a.tien_nt0, z.$a.tien0, z.$a.tien_nt, z.$a.tien, z.$a.nk_nt, z.$a.nk, z.$a.ttdb_nt, z.$a.ttdb, z.$a.thue_nt, z.$a.thue]);
+      $func.setObjectWhen(z._getItem(row, l1), g._getItemValue(r, l2));
+    }
+  }
+  if (append) {
+    z.executeAggregate([z.$a.t_so_luong, z.$a.t_tien_nt0, z.$a.t_tien0, z.$a.t_tien_nt, z.$a.t_tien, z.$a.t_nk_nt, z.$a.t_nk, z.$a.t_ttdb_nt, z.$a.t_ttdb]]>&BI.PKTran.Retrieve.Order.Flow.Grid.ExecuteAggregate;<![CDATA[]);
+    w.executeExpression([]]>&BI.PKTran.Retrieve.Order.Flow.Form.ExecuteExpression;<![CDATA[z.$a.t_tt_nt, z.$a.t_tt]);
+    if (w.getItemValue('t_cp_nt')) w._is$Allocated = 0;
+  }
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

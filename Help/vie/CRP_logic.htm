@@ -1,0 +1,360 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="v20MRPCalendar.doc" />
+<title>Lập luận chung về hoạch định công suất</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+</p>
+<p id="td1">Lý thuyết chung</p>
+<p id="p1">
+Hệ thống hoạch định công suất (CRP) sẽ giúp doanh nghiệp trả lời các câu hỏi sau:</p>
+<ul class="lo_0">
+- Cần bao nhiêu công suất (giờ máy) cho từng nguồn lực dựa trên kế hoạch sản xuất hiện thời?<br/>
+- Khả năng nguồn lực hiện thời có thể đáp ứng được kế hoạch sản xuất hay không?<br/>
+- Với các thông tin hiện thời về các nguồn lực của doanh nghiệp thì để tính toán nhu cầu công suất thì sử dụng phương pháp 
+tính nào là hợp lý?<br/>
+- Với quy trình sản xuất hiện tại, kế hoạch sản xuất đã có thì thời điểm bắt đầu sử dụng công suất tại các nguồn lực là khi nào?<br/>
+- Nhu cầu công suất cho từng kỳ là bao nhiêu?<br/>
+- Trong kỳ sẽ sản xuất những đơn hàng nào?<br/>
+- Cần phải tăng công suất cho những kỳ nào?<br/>
+- Công suất có thể đáp ưng tối đa của nguồn lực là bao nhiêu?<br/>
+- Trong điều kiện sử dụng hết công suất nguồn lực thì có đáp ứng được kế hoạch sản xuất hay không?
+</ul>
+<p id="p1">Những vấn đề trên nếu tổng hợp thành một hệ thống tính toán thủ công sẽ quá lớn đối với công tác hoạch định sản xuất của doanh nghiệp.</p>
+<!--p id="td1">Quy trình tổng quát</p>
+  <p id="pic"><img src="vie/crp_logic1.png"></img></p-->
+<p id="td1">Hoạch định năng lực sản xuất (RCCP)</p>
+<p id="td2">Đầu vào</p>
+<ul class="lo_1">
+- Kế hoạch sản xuất từ phân hệ "Lập kế hoạch sản xuất".<br/>
+- Các thông tin liên quan đến nguồn lực, thời gian sử dụng nguồn lực. Sử dụng 1 trong 3 dạng thông tin sau:
+</ul>
+<ul class="lo_1">
+- Định mức thời gian sản xuất sản phẩm, hệ số phân bổ cho các nguồn lực; (Với phương pháp hệ số)<br/>
+- Định mức sử dụng nguồn lực, thời gian thực hiện sản xuất theo số lượng sản xuất; (Với phương pháp định mức)<br/>
+- Định mức sử dụng nguồn lực, thời gian thực hiện sản xuất cố định. (Với phương pháp hồ sơ nguồn lực)
+</ul>
+<ul class="lo_1">
+- Các biến số công suất có khả năng làm tăng hoặc giảm năng lực sản xuất của nguồn lực.
+</ul>
+<p id="td2">Hoạch định</p>
+<ul class="lo_1">
+- Tính tổng nhu cầu công suất của từng đơn hàng kế hoạch (kế hoạch sản xuất).<br/>
+- Phân bổ nhu cầu công suất cho từng nguồn lực dựa vào tỷ lệ phân bổ, định mức sử dụng nguồn lực.<br/>
+- Xác định ngày bắt đầu sử dụng nguồn lực tại các nguồn lực dựa vào ngày hoàn thành của đơn hàng, từ đó dịch chuyển về trước 
+theo nhu cầu công suất và khả năng đáp ứng theo từng ngày.<br/>
+- Phân bổ nhu cầu công suất theo từng kỳ.</ul>
+<p id="td2">Đầu ra</p>
+<ul class="lo_1">
+- Truy vấn xem chi tiết nhu cầu công suất của từng đơn hàng trong từng kỳ.<br/>
+- Biểu đồ công suất theo từng nguồn lực.<br/>
+- Báo cáo nhu cầu công suất của nguồn lực.<br/>
+- Báo cáo các kỳ nhu cầu công suất nguồn lực vượt mức.</ul>
+ 
+<p id="td2">Mô tả xử lý</p>
+<p id="td3">Các giả định chung</p>
+<ul class="lo_1">
+-	Ngày bắt đầu phân bổ công suất nhu cầu: phân bổ từ Ngày yêu cầu của "Đơn hàng kế hoạch" tính cả ngày giao hàng (ngày giao hàng cũng sản xuất);<br/>
+-	Khi phân bổ công suất nhu cầu: chỉ phân bổ đến "Ngày hoạch định + 1" là dừng (bổ hết cho ngày này chịu (nếu còn));<br/>
+-	Phân bổ công suất nhu cầu riêng cho từng "Đơn hàng kế hoạch" (không ưu tiên thứ tự chạy cho các "Đơn hàng kế hoạch", kể cả khi công suất tại 1 ngày nào đó bị quá tải).
+</ul>
+<p id="td3">Phương pháp hệ số</p>
+<p id="p3">
+Giả định: <br/>
+Phân bổ cho các nguồn lực luôn bắt đầu từ "Ngày yêu cầu" của "Đơn hàng kế hoạch" (không phân biệt thứ tự các nguồn lực). 
+<br/>
+Nguồn dữ liệu: 
+<br/>
+-	Danh mục vật tư: tạo các BTP/TP cần hoạch định, kiểu hoạch định &lt&gt 0;<br/>
+-	Danh mục nguồn lực chủ yếu: tạo các mã nguồn lực tham gia sản xuất sản phẩm và khai báo công suất đáp ứng (số giờ/1 ngày) (tuỳ vào Đvt);<br/>
+-	Định mức thời gian sản xuất sản phẩm: khai báo thời gian sản xuất 1 sản phẩm hoàn thành (số giờ/1 sản phẩm);<br/>
+Xử lý: </p>
+
+
+<p class="node">Bước 1: Tính "Tổng công suất nhu cầu" cho từng "Đơn hàng kế hoạch"</p>
+<p class="fml">	Tổng công suất nhu cầu = Số lượng "Đơn hàng kế hoạch" * Định mức thời gian sản xuất sản phẩm</p>
+<p class="node">
+-	Bước 2: Tính "Tổng công suất nhu cầu" cho từng nguồn lực (chi tiết theo từng "Đơn hàng kế hoạch")</p>
+<p class="fml">
+Tổng công suất nhu cầu = Tổng công suất nhu cầu của từng "Đơn hàng kế hoạch" * Hệ số phân bổ của nguồn lực cần tính</p>
+<p class="node">
+-	Bước 3: Tính "Tổng công suất đáp ứng" của từng nguồn lực cho từng ngày</p>
+<p class="fml">
+Tổng công suất đáp ứng = "Công suất tiêu chuẩn" (Danh mục nguồn lực chủ yếu)</p>
+<p class="node">
+-	Bước 4: Phân bổ "Tổng công suất nhu cầu" cho từng nguồn lực, chi tiết theo từng "Đơn hàng kế hoạch", bắt đầu từ "Ngày yêu cầu" (ngày giao) trở về trước
+</p>
+<p class="note">
+Lưu ý: <br/>
+- Khi phân bổ công suất nhu cầu cho các ngày thì không tính các ngày nghỉ.<br/>
+- Tham số hệ thống "Phương pháp hoạch định năng lực sản suất" phải chọn là phương pháp hệ số.
+ </p>
+ 
+<p class="e">Ví dụ: <br/>
+- Có 2 "Đơn hàng kế hoạch" sản phẩm G2400-24X100 như minh họa: (Đơn hàng 1) 10.000, ngày giao = 30/03/2020; (2) 1.000, ngày giao = 31/03/2020;<br/>
+- Mặt hàng này sử dụng 2 nguồn lực chính BRKDOWN01 và BRKDOWN02 với thông số "Công suất tiêu chuẩn" tương ứng là 48 và 24 giờ/1 ngày.<br/>
+- Định mức thời gian sản xuất sản phẩm: 0.2 giờ/1 đơn vị sản phẩm;<br/>
+- Hệ số phân bổ nguồn lực: BRKDOWN01: 60%, BRKDOWN02: 40%;<br/>
+- Ngày nghỉ: thứ 7, CN (hàng tuần).<br/>
+<br/>
+Kết quả hoạch định (ngày hoạch định là 10/03/2020):<br/>
+</p>
+
+<p id="pic"><img src="vie/crp_rccp_CPOF02.png"></img></p>
+<p class="e">Nguồn lực BRKDOWN01:<br/>
+-	Đơn hàng kế hoạch (đh1): Công suất nhu cầu = 10.000x0.2x60% = 1200 giờ, ngày giao là 30/03/2020 thuộc kỳ từ 30/3-04/04 tức là sẽ phân bổ vào 1 ngày 30 
+với công suất tiêu chuẩn 1 ngày là 48, suy ra công suất sử dụng là 48 giờ.<br/>
+-	Đơn hàng kế hoạch (đh2): Công suất nhu cầu = 1000x0.2x60%=120 giờ, ngày giao là 31/03/2020 thuộc kỳ từ 30/3-04/04 tức là sẽ phân bổ vào 2 ngày 30 và 31/3 
+với công suất tiêu chuẩn 1 ngày là 48, suy ra công suất sử dụng là 48*2 = 96 giờ.<br/>
+Tổng cộng công suất sử dụng trong kỳ là 48 + 96 = 144 giờ.<br/>
+Kỳ từ 23/03-28/03, đh1 sử dụng tối đa 5 ngày công suất chuẩn tương đương 240 giờ, đh2 sử dụng phần còn lại là 120-96 = 24 giờ.
+Tổng cộng công suất sử dụng trong kỳ là 240 + 24 = 264 giờ.<br/>
+Lập luận tương tự cho các kỳ khác cũng như cho nguồn lực BRKDOWN02.<br/>
+</p>
+<p id="pic"><img src="vie/crp_rccp_CPOF01.png"></img></p>
+<p class="e">Trường hợp kỳ cận thời điểm hoạch định nhưng vẫn chưa phân bổ hết công suất: <br/> 
+Kỳ từ 09/03 đến 14/03 là kỳ cận hoạch định, hệ thống chỉ tính toán tới ngày 11 do ngày hoạch định là 10/03/2020.
+Công suất đáp ứng là 3 ngày là 3*48 = 144 giờ, trong truy vấn công suất nguồn lực, phần công suất 672 giờ chưa được đáp ứng thể hiện trên đường nằm rất cao so với đường đáp ứng.
+Xem "Báo cáo nguồn lực vượt mức" để biết các kỳ có công suất sử dụng cao hơn công suất đáp ứng.
+</p>
+
+<p id="td3">Phương pháp định mức</p>
+<p id="p3">
+Giả định: <br/>
+Tương tự phương pháp hệ số, trong phương pháp này, việc phân bổ cho các nguồn lực luôn bắt đầu từ "Ngày yêu cầu" của "Đơn hàng kế hoạch" (không phân biệt thứ tự các nguồn lực). 
+<br/>
+Nguồn dữ liệu: <br/>
+-	Danh mục vật tư: tạo các BTP/TP cần hoạch định, kiểu hoạch định # 0;<br/>
+-	Danh mục nguồn lực chủ yếu: tạo các mã nguồn lực tham gia sản xuất sản phẩm và khai báo công suất đáp ứng (số giờ/1 ngày) (tuỳ vào Đvt);<br/>
+-	Định mức sử dụng nguồn lực: khai báo thời gian sản xuất 1 sản phẩm hoàn thành ứng với từng nguồn lực (số giờ/1 sản phẩm hoặc số sản phẩm/1 giờ);<br/>
+Xử lý: </p>
+</p>
+<p class="node">Bước 1: Tính "Tổng công suất nhu cầu" cho từng nguồn lực (chi tiết theo từng "Đơn hàng kế hoạch")
+</p>
+<p class="fml">	Tổng công suất nhu cầu = Số lượng sản phẩm của từng "Đơn hàng kế hoạch" * Định mức sử dụng của nguồn lực cần tính
+</p>
+<p class="node">	Bước 2: Tính "Tổng công suất đáp ứng" của từng nguồn lực cho từng ngày
+</p>
+<p class="fml">	Tổng công suất đáp ứng = Công suất tiêu chuẩn" (Danh mục nguồn lực chủ yếu)
+</p>
+<p class="node">Bước 3: Phân bổ "Tổng công suất nhu cầu" cho từng nguồn lực.
+</p>
+<p class="node_d">Phân bổ "Tổng công suất nhu cầu" cho từng nguồn lực, chi tiết theo từng "Đơn hàng kế hoạch", bắt đầu từ "Ngày yêu cầu" (ngày giao) trở về trước
+</p>
+<p class="note">Lưu ý: <br/>
+- Khi phân bổ công suất nhu cầu cho các ngày thì không tính các ngày nghỉ;<br/>
+- Tham số hệ thống "Phương pháp hoạch định năng lực sản suất" phải chọn là phương pháp định mức.
+</p>
+
+<p class="e">Sử dụng lại ví dụ trình bày trong phương pháp hệ số: <br/>
+- Có 2 "Đơn hàng kế hoạch" sản phẩm G2400-24X100 như minh họa: (Đơn hàng 1) 10.000, ngày giao = 30/03/2020; (2) 1.000, ngày giao = 31/03/2020;<br/>
+- Mặt hàng này sử dụng 2 nguồn lực chính BRKDOWN01 và BRKDOWN02 với thông số "Công suất tiêu chuẩn" tương ứng là 48 và 24 giờ/1 ngày.<br/>
+- Định mức sử dụng nguồn lực BRKDOWN01: 0.2 giờ/1 đơn vị sản phẩm, BRKDOWN02 là 0.2 giờ;<br/>
+- Ngày nghỉ: thứ 7, CN (hàng tuần).<br/>
+<br/>
+Kết quả hoạch định (ngày hoạch định là 10/03/2020):<br/>
+</p>
+
+
+<p class="e">Nguồn lực BRKDOWN01:<br/>
+-	Đơn hàng kế hoạch (đh1): Công suất nhu cầu = 10.000x0.2 = 2000 giờ, ngày giao là 30/03/2020 thuộc kỳ từ 30/3-04/04 tức là sẽ phân bổ vào 1 ngày 30 
+với công suất tiêu chuẩn 1 ngày là 48, suy ra công suất sử dụng là 48 giờ.<br/>
+-	Đơn hàng kế hoạch (đh2): Công suất nhu cầu = 1000x0.2 = 200 giờ, ngày giao là 31/03/2020 thuộc kỳ từ 30/3-04/04 tức là sẽ phân bổ vào 2 ngày 30 và 31/3 
+với công suất tiêu chuẩn 1 ngày là 48, suy ra công suất sử dụng là 48*2 = 96 giờ.<br/>
+Tổng cộng công suất sử dụng trong kỳ là 48 + 96 = 144 giờ.<br/>
+
+Kỳ từ 23/03-28/03, đh1 sử dụng tối đa 5 ngày công suất chuẩn tương đương 240 giờ, đh2 sử dụng phần còn lại là 200-96 = 104 giờ.
+Tổng cộng công suất sử dụng trong kỳ là 240 + 104 = 344 giờ.<br/><br/>
+Lập luận tương tự cho các kỳ khác cũng như cho nguồn lực BRKDOWN02.<br/>
+</p>
+
+<p class="e">Trường hợp kỳ cận thời điểm hoạch định nhưng vẫn chưa phân bổ hết công suất: <br/> 
+Kỳ từ 09/03 đến 14/03 là kỳ cận hoạch định, hệ thống chỉ tính toán tới ngày 11 do ngày hoạch định là 10/03/2020.
+Công suất đáp ứng là 3 ngày là 3*48 = 144 giờ, trong truy vấn công suất nguồn lực, phần công suất 672 giờ chưa được đáp ứng thể hiện trên đường nằm rất cao so với đường đáp ứng.
+Xem "Báo cáo nguồn lực vượt mức" để biết các kỳ có công suất sử dụng cao hơn công suất đáp ứng.
+</p>
+<p class="note">Lưu ý: Phương pháp này tương đối giống phương pháp hệ số. Điểm khác biệt là:<br/>
+- Sử dụng định mức thay vì ước tỷ lệ sử dụng các nguồn lực;<br/>
+- Có cộng thêm "Thời gian cài đặt" và "Thời gian bổ sung" trong "Định mức sử dụng nguồn lực", các khoảng thời gian này được bổ sung vào "Tổng nhu cầu công suất".
+</p>
+ 
+<p id="td3">Phương pháp hồ sơ nguồn lực</p>
+
+<p id="p3">
+Giả định: <br/>
+-	Phân bổ công suất nhu cầu lần lượt cho từng nguồn lực theo trình tự từ nguồn lực sau cùng đến nguồn lực trước, 
+bắt đầu từ "Ngày yêu cầu" của "Đơn hàng kế hoạch" (tức sau khi xác định được "Ngày bắt đầu" của nguồn lực sau thì xem ngày này là "Ngày yêu cầu" của nguồn 
+lực trước liền kề để xác định "Ngày bắt đầu" của nguồn lực trước (xử lý tuần tự cho các nguồn lực trước khác);<br/>
+-	Cố định thời gian sản xuất trong n ngày ở từng nguồn lực. 
+Khi phân bổ công suất nhu cầu thì không được phép bổ vượt quá số ngày này.<br/>
+<br/>
+Nguồn dữ liệu: <br/>
+-	Danh mục vật tư: tạo các BTP/TP cần hoạch định, kiểu hoạch định # 0;<br/>
+-	Danh mục nguồn lực chủ yếu: tạo các mã nguồn lực tham gia sản xuất sản phẩm và khai báo công suất đáp ứng (số giờ/1 ngày) (tuỳ vào Đvt);<br/>
+-	Định mức sử dụng nguồn lực: khai báo thời gian sản xuất 1 sản phẩm hoàn thành ứng với từng nguồn lực (số giờ/1 sản phẩm hoặc số sản phẩm/1 giờ) 
+và số ngày giới hạn thời gian sản xuất (khai báo tại trường "Thời gian thực hiện sản xuất");
+<br/>
+Xử lý: 
+</p>
+
+<p class="node">	Bước 1: Tính "Tổng công suất nhu cầu" cho từng nguồn lực (chi tiết theo từng "Đơn hàng kế hoạch")
+</p>
+<p class="fml">Tổng công suất nhu cầu= Số lượng sản phẩm của từng "Đơn hàng kế hoạch" * Định mức sử dụng của nguồn lực cần tính
+</p>
+<p class="node">	Bước 2: Tính "Tổng công suất đáp ứng" của từng nguồn lực cho từng ngày
+</p>
+<p class="fml">	Tổng công suất đáp ứng = Theo số liệu cập nhật tại trường "Công suất tiêu chuẩn" (Danh mục nguồn lực chủ yếu)
+</p>
+<p class="node">	Bước 3: Phân bổ "Tổng công suất nhu cầu" cho từng nguồn lực.
+</p>
+<p class="node_d">	Phân bổ "Tổng công suất nhu cầu" cho từng nguồn lực, chi tiết theo từng "Đơn hàng kế hoạch", bắt đầu từ
+ "Ngày yêu cầu" trở về trước. "Ngày yêu cầu" của từng nguồn lực được xác định dựa vào giả phần "Giả định" nêu trên.
+</p>
+<p class="note">	Lưu ý<br/>
+- Khi phân bổ công suất nhu cầu cho các ngày thì không tính các ngày nghỉ;<br/>
+- Tham số hệ thống "Phương pháp hoạch định năng lực sản suất" phải chọn là phương pháp hồ sơ.
+</p>
+
+<p class="e">Để có sự so sánh giữa các phương pháp, ta tiếp tục sử dụng lại ví dụ trình bày trong các phương pháp hệ số và định mức: <br/>
+- Có 2 "Đơn hàng kế hoạch" sản phẩm G2400-24X100 như minh họa: (Đơn hàng 1) 10.000, ngày giao = 30/03/2020; (2) 1.000, ngày giao = 31/03/2020;<br/>
+- Mặt hàng này sử dụng 2 nguồn lực chính BRKDOWN01 và BRKDOWN02 với thông số "Công suất tiêu chuẩn" tương ứng là 48 và 24 giờ/1 ngày.<br/>
+- Định mức sử dụng nguồn lực BRKDOWN01: 0.2 giờ/1 đơn vị sản phẩm, thời gian sản xuất là 8 ngày;<br/>
+- Định mức sử dụng nguồn lực BRKDOWN02 là 0.3 giờ, thời gian sản xuất là 10 ngày (giả định nguồn lực này sử dụng sau cùng);<br/>
+- Ngày nghỉ: thứ 7, CN (hàng tuần).<br/>
+<br/>
+Kết quả hoạch định (ngày hoạch định là 10/03/2020):<br/>
+</p>
+
+
+<p class="e">Nguồn lực BRKDOWN02:<br/>
+-	Đơn hàng kế hoạch (đh1): Công suất nhu cầu = 10.000x0.3 = 3000 giờ, ngày giao là 30/03/2020 thuộc kỳ từ 30/3-04/04 tức là sẽ phân bổ vào 1 ngày 30 
+với công suất tiêu chuẩn 1 ngày là 48, suy ra công suất sử dụng là 24 giờ.<br/>
+-	Đơn hàng kế hoạch (đh2): Công suất nhu cầu = 1000x0.3 = 300 giờ, ngày giao là 31/03/2020 thuộc kỳ từ 30/3-04/04 tức là sẽ phân bổ vào 2 ngày 30 và 31/3 
+với công suất tiêu chuẩn 1 ngày là 48, suy ra công suất sử dụng là 24*2 = 48 giờ.<br/>
+Tổng cộng công suất sử dụng trong kỳ là 48 + 24 = 72 giờ.<br/>
+
+Kỳ từ 23/03-28/03, đh1 sử dụng tối đa 5 ngày công suất chuẩn tương đương 120 giờ, đh2 sử dụng tương tự 120 giờ.
+Tổng cộng công suất sử dụng trong kỳ là 120 + 120 = 240 giờ.<br/><br/>
+Tất cả công suất còn lại tiếp tục dồn về tuần từ 16/03-21/03 trong tuần này công suất được phân bổ toàn bộ do khai báo thời gian sản xuất là 10 ngày nên không được vượt quá.
+<br/>
+Thời điểm bắt đầu nguồn lực BRKDOWN02 cho đh1 trong kỳ này là 17 và 18 (10 ngày tính từ 30 và 31/03 không tính ngày nghỉ) do đó tuần này chỉ còn 2 ngày sử dụng
+ nguồn lực BRKDOWN02 cho dh1 và 3 ngày cho dh2.
+<br/>
+Tổng cộng công suất sử dụng trong kỳ là 48*2 + 48*3 = 96 + 144 = 240 giờ.<br/><br/>
+Tất cả công suất còn lại tiếp tục dồn về tuần từ 9/03-14/03 và được phân bổ toàn bộ  khai báo thời gian sản xuất là 8 ngày nên không được vượt quá.
+</p>
+
+
+<p id="td1">Hoạch định công suất (CRP)</p>
+<p id="p1">Hoạch định công suất với đối tượng phân tích là các trung tâm công việc thuộc quy trình sản xuất sản phẩm. 
+Đặc điểm đoạch định công suất là tính chất tuần tự sử dụng công suất của các trung tâm công việc.</p>
+<p id="td2">Đầu vào</p>
+ <ul class="lo_1">
+- Kế hoạch sản xuất từ phân hệ "Lập kế hoạch sản xuất". <br/>
+- Khai báo thời gian làm việc của từng ca, số đơn vị công suất được sử dụng tương ứng với từng ca. <br/>
+- Lộ trình, thời gian chi tiết sản xuất sản phẩm, các thành phần ở mỗi công đoạn. <br/>
+- Các biến số công suất có khả năng làm tăng hoặc giảm khả năng sản xuất của trung tâm công việc.
+</ul>
+<p id="td2">Hoạch định</p>
+ <ul class="lo_1">
+- Căn cứ vào từng loại công đoạn để xác định nhu cầu công suất của từng công đoạn trong lộ trình sản xuất sản phẩm.
+ <br/>
+- Tính nhu cầu công suất của từng đơn hàng kế hoạch (kế hoạch sản xuất) chi tiết theo từng 
+trung tâm công việc mà sản phẩm đi qua.
+ <br/>
+- Tính ra ngày bắt đầu sử dụng công suất tại các trung tâm công việc dựa vào ngày hoàn thành của đơn hàng, dịch lùi 
+về trước theo nhu cầu công suất và khả năng đáp ứng theo từng ngày.
+ <br/>
+- Phân bổ nhu cầu công suất theo từng kỳ.</ul>
+<p id="td2">Đầu ra </p>
+ <ul class="lo_1">
+- Truy vấn xem chi tiết nhu cầu công suất của từng đơn hàng trong từng kỳ.
+ <br/>
+- Biểu đồ công suất theo từng trung tâm công việc.
+ <br/>
+- Báo cáo nhu cầu công suất của trung tâm công việc.
+ <br/>
+- Báo cáo các kỳ nhu cầu công suất trung tâm công việc vượt mức.</ul>
+
+<p id="td2">Mô tả xử lý</p>
+<p id="p3">Giả định: <br/>
+-	Phân bổ công suất nhu cầu lần lượt cho từng trung tâm công việc theo trình tự từ trung tâm công việc sau đến trung tâm công việc trước, 
+bắt đầu từ "Ngày yêu cầu" của "Đơn hàng kế hoạch" (tức sau khi xác định được "Ngày bắt đầu" của trung tâm công việc sau thì xem ngày này là 
+"Ngày yêu cầu" của trung tâm công việc trước liền kề để xác định "Ngày bắt đầu" của trung tâm công việc trước (xử lý tuần tự cho các trung tâm công việc trước khác);
+<br/>
+-	Đối với công đoạn có "Loại công đoạn" = 3 - Thuê ngoài thì khi tính số ngày trừ lùi (để xác định Ngày yêu cầu cho trung tâm công việc thuộc công đoạn trước) sẽ lấy số giờ thuê ngoài chia cho 24.
+<br/>
+Nguồn dữ liệu: <br/>
+-	Danh mục vật tư: tạo các BTP/TP cần hoạch định, kiểu hoạch định # 0, khai báo mã lộ trình;<br/>
+-	Danh mục trung tâm công việc: tạo các mã trung tâm công việc tham gia sản xuất sản phẩm và khai báo  các thông tin phục vụ tính toán "Công suất đáp ứng";<br/>
+-	Cập nhật quy trình sản xuất: khai báo các công đoạn sản xuất ứng với từng trung tâm công việc và năng suất sản xuất sản phẩm ở từng trung tâm công việc . 
+(lưu ý: nếu là công đoạn thuê ngoài thì để trắng trung tâm công việc)
+<br/>
+Xử lý: </p>
+
+<p class="node">	Bước 1: Tính "Tổng công suất nhu cầu" cho từng trung tâm công việc (chi tiết theo từng "Đơn hàng kế hoạch")
+</p>
+<p class="fml">	Tổng công suất nhu cầu = Số lượng trên "Đơn hàng kế hoạch" * Năng suất (định mức sử dụng) của trung tâm công việc cần tính
+</p>
+<p class="node">	Bước 2: Tính "Tổng công suất đáp ứng" của từng trung tâm công việc cho từng ngày
+</p>
+<p class="fml">	Tổng công suất đáp ứng = [(Số giờ ca 1 * Nhân công ca 1) + (Số giờ ca 2 * Nhân công ca 2) + (Số giờ ca 3 * Nhân công ca 3)] * Hiệu suất * Hệ số sử dụng
+</p>
+<p class="node">	Bước 3: Phân bổ "Tổng công suất nhu cầu" cho từng trung tâm công việc.
+</p>
+<p class="node_d">	Phân bổ "Tổng công suất nhu cầu" cho từng trung tâm công việc, chi tiết theo từng "Đơn hàng kế hoạch", bắt đầu từ "Ngày yêu cầu" trở về trước.
+ "Ngày yêu cầu" của từng trung tâm công việc được xác định dựa vào phần "Giả định" nêu trên.
+</p>
+<p class="note">	Lưu ý: khi phân bổ công suất nhu cầu cho các ngày thì không tính các ngày nghỉ.
+</p>
+
+<p id="pic"><img src="vie/crp_01.png"></img></p>
+
+<p class="e">Sử dụng lại ví dụ trình bày trong phần hoạch định công suất thô: <br/>
+- Có 2 "Đơn hàng kế hoạch" sản phẩm G2400-24X100 như minh họa: (Đơn hàng 1) 2.000, ngày giao = 30/03/2020; (2) 1.000, ngày giao = 31/03/2020;<br/>
+- Mặt hàng này sử dụng quy trình sản xuất tại 2 trung tâm công việc CAB00 và CAB01 với thông số "Công suất đáp ứng" tương ứng là 120 giờ/1 ngày.<br/>
+- Ngày nghỉ: thứ 7, CN (hàng tuần).<br/>
+<br/>
+Kết quả hoạch định (ngày hoạch định là 10/03/2020):<br/>
+</p>
+<p id="pic"><img src="vie/crp_01a.png"></img></p>
+<p class="e">
+Trung tâm công việc CAB01:<br/>
+- Đơn hàng kế hoạch (đh1): Công suất nhu cầu = 2.000x0.2 = 400 giờ, ngày giao là 30/03/2020 thuộc kỳ từ 30/3-04/04 tức là sẽ phân bổ vào 1 ngày 30 
+ với công suất tiêu chuẩn 1 ngày là 24 giờ trong điều kiện hiệu suất 80%, suy ra công suất sử dụng là 19.2 giờ.<br/>
+- Đơn hàng kế hoạch (đh2): Công suất nhu cầu = 1.000x0.2 = 200 giờ, ngày giao là 31/03/2020 thuộc kỳ từ 30/3-04/04 tức là sẽ phân bổ vào 2 ngày 30 và 31/3 
+với công suất tiêu chuẩn 1 ngày là 48 giờ trong điều kiện hiệu suất 80%, suy ra công suất sử dụng là 38.4 giờ.<br/>
+Tổng cộng công suất sử dụng trong kỳ là 38.4 + 19.2 = 57.6 giờ.<br/>
+Các kỳ trước liền kề được phân bổ theo thuật toán tương tự như trong hoạch định công suất thô nhưng không phụ thuộc
+</p>
+<p id="pic"><img src="vie/crp_02.png"></img></p>
+<p class="e">
+Trung tâm công việc CAB00:  <br/>
+Tổng nhu cầu của đơn hàng 2 tại trung tâm công việc CAB01 là 200 giờ, với công suất đáp ứng chuẩn sẽ thực hiện trong 10 ngày, suy ra thời điểm bắt đầu sẽ là ngày 17/03. 
+Như vậy trong kỳ từ 16-21/03 còn 2 ngày (ngày 16 và 17) thực hiện tại trung tâm công việc CAB00 là 24*2*80% = 38.4 giờ.<br/>
+Phần còn lại tiếp tục phân bổ cho kỳ trước liền kề. Trong tình huống này, kỳ trước liền kề là kỳ cận hoạch định (từ 9-14/03), nên toàn bộ như cầu công suất sẽ thuộc kỳ này. 
+</p>
+<p class="note">	Lưu ý: <br/>
+Khai báo năng suất trong quy trình sản xuất được hiểu là năng suất của thành phẩm tại công đoạn hoặc trung tâm công việc.
+</p>
+
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>
+
+ 
+

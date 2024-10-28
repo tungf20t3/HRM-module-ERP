@@ -1,0 +1,43 @@
+﻿  <command event="Showing">
+    <text>
+      <![CDATA[
+declare @$control char(5), @message nvarchar(4000), @$unitName nvarchar(1023), @$costUnit char(1), @objectUnit char(1), @$costMO char(1), @$costDept char(1)
+select @$costUnit = rtrim(val) from options where name = 'm_gt_dvcs'
+select @objectUnit = case when exists(select 1 from options where name = 'm_dtgt_dvcs' and val = '1') then '1' else '0' end
+
+select @$costMO = rtrim(val) from options where name = 'x_dt_lsx'
+select @$costDept = rtrim(val) from options where name = 'x_dt_bp'
+
+if @objectUnit = '1' begin
+  select @$costDept = x_dt_bp, @$costMO = x_dt_lsx from dmdvcskb where ma_dvcs =  @@unit and status = '1' and (x_dt_bp <> 0 or x_dt_lsx <> 0 or x_dt_sp <> 0)
+  select @$costDept = isnull(@$costDept, 0), @$costMO = isnull(@$costMO, 0)
+end
+
+select @$unitName = replace(replace(isnull(case when @@language = 'V' then ten_dvcs else ten_dvcs2 end, ''), '\', '\\'), '''', '\''') from dmdvcs where ma_dvcs = @@unit
+
+select @message = 'var f = this;f._unitCode=''' + @@unit + ''';f._unitName=''' + rtrim(@$unitName) + ''';f._objectUnit = ' + @objectUnit + ';f._costUnit = ' + @$costUnit + ';f._costMO = ' + @$costMO + ';f._costDept = ' + @$costDept + ';']]>&Control;<![CDATA[
+
+if substring(@$control, 1, 1) = 1 and @$costUnit <> 1 select @message = @message + 'setObjectFilterHidden(f, ''ma_dvcs'', false);'
+if substring(@$control, 2, 1) = 1 begin
+  if @objectUnit = '0' begin
+    if @$costDept = '0' select @message = @message + 'setObjectFilterHidden(f, ''ma_bp'', false);'
+  end
+  else select @message = @message + 'setItemReadOnly(f, ''ma_bp'', ' + case when @$costDept = '1' then 'true' else 'false' end + ', false);'
+end
+if substring(@$control, 3, 1) = 1 begin
+  if @objectUnit = '0' begin
+    if @$costMO = '0' select @message = @message + 'setObjectFilterHidden(f, ''so_lsx'', false);'
+  end
+  else select @message = @message + 'setItemReadOnly(f, ''so_lsx'', ' + case when @$costMO = '1' then 'true' else 'false' end + ', false);'
+end
+if substring(@$control, 5, 1) = 1 begin
+  select @message = @message + 'f_lockedDate = ''' + convert(varchar(10), ngay_ks, 111) + ''';' from dmstt
+  if @$costUnit = 1 select @message = @message + 'f_lockedUnit = ''' + convert(varchar(10), ngay_ks, 111) + ''';' from dmdvcsks where ma_dvcs = @@unit and ngay_ks is not null
+end
+if @objectUnit = '1' select @message = @message + 'f.setItemValues(''ma_dvcs, ten_dvcs%l'', [f._unitCode, f._unitName]);'
+
+select @message as message
+return
+]]>
+    </text>
+  </command>

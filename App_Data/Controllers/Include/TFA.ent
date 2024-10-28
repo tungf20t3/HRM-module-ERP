@@ -1,0 +1,136 @@
+﻿<!ENTITY % Conditional.TFA SYSTEM "..\Include\TFA.txt">
+
+<![%Conditional.TFA;[
+  <!ENTITY TFAFields SYSTEM "..\Include\XML\TFAFields.txt">
+  <!ENTITY TFAView SYSTEM "..\Include\XML\TFAView.txt">
+  <!ENTITY TFACategory SYSTEM "..\Include\XML\TFACategory.xml">
+  <!ENTITY TFAOnChange SYSTEM "..\Include\Javascript\TFAOnChange.txt">
+
+  <!ENTITY TFAUpdate "
+  if @@admin = 1 begin
+    declare @deviceid varchar(128), @secretCode varchar(32), @tfa_yn_old int, @tfa_type_old int, @secret_length_old int, @tfa_day_old int
+    select @deviceid = isnull(device_id, ''), @secretCode = isnull(secret_code, ''), @tfa_yn_old = tfa_yn, @tfa_type_old = tfa_type, @secret_length_old = secret_length, @tfa_day_old = tfa_day from userinfo8 where id = @id
+
+    if @tfa_yn_old != @$tfa_yn or @tfa_type_old != @$tfa_type or @secret_length_old != @$secret_length or @tfa_day_old &gt; @$tfa_day
+      delete usercode where id = @id
+
+    delete userinfo8 where id = @id
+    insert into userinfo8(id, device_id, tfa_yn, secret_code, tfa_type, secret_length, tfa_day, datetime0) select @id, @deviceid, @$tfa_yn, @secretCode, @$tfa_type, @$secret_length, @$tfa_day, getdate()
+  end
+">
+
+  <!ENTITY TFATab " 'tfa_yn',">
+  <!ENTITY TFALoading "
+    declare @tfa as bit, @tfaType int, @tfaLength int, @tfaDay int, @tfaEmail nvarchar(256)
+select @tfa = tfa_yn, @tfaType = tfa_type, @tfaLength = secret_length, @tfaDay = tfa_day from userinfo8 where id in (select id from @@table where name = @name)
+select @tfaEmail = e_mail from userinfo2 where name = @name
+select @tfa = isnull(@tfa, 0), @tfaType = isnull(@tfaType, 1), @tfaLength = isnull(@tfaLength, 6), @tfaDay = isnull(@tfaDay, 1), @tfaEmail = isnull(@tfaEmail, '')
+">
+
+  <!ENTITY TFALoadingValue "this._tfa = ' + rtrim(@tfa) + ';this._tfaType = ' + rtrim(@tfaType) + ';this._tfaLength = ' + rtrim(@tfaLength) + ';this._tfaDay = ' + rtrim(@tfaDay) + ';this._tfaEmail = ''' + rtrim(@tfaEmail) + ''';">
+
+  <!ENTITY TFALoadingScript "
+if (f._action != 'New') {
+  f.setItemValue('tfa_yn', f._tfa);
+  f.setItemValue('tfa_type', f._tfaType);
+  f.setItemValue('secret_length', f._tfaLength);
+  f.setItemValue('tfa_day', f._tfaDay);
+}
+onChangeTFA(f.getItem('tfa_type'), false);
+
+if (f._isAdmin == 0) {
+  f.getItem('tfa_yn').disabled = true;
+  f.getItem('tfa_type').disabled = true;
+  f.getItem('secret_length').disabled = true;
+  f.getItem('tfa_day').disabled = true;
+  $get('SendCode').style.display = 'none';
+}">
+
+  <!ENTITY TFAScript "
+function onChangeTFA(o, force) {
+  var f = o.parentForm, name = o.field.Name;
+  window.setTimeout(String.format('onChangeTFAType(\'{0}\', \'{1}\', {2});', f._id, name, force ? 1 : 0), 20);
+}
+
+function onChangeTFAType(id, name, force) {
+  var f = $find(id), type = f.getItem('tfa_type').value, tfa = f.getItem('tfa_yn').value, email = f.getItemValue('e_mail');
+  var v = (tfa == 0), vtype = (type == '1'), t1 = f.getItem('secret_length'), t2 = f._findButton('Ok'), t3 = f.getItem('cpass'), t4 = f.getItem('tfa_day');
+  if (name == 'tfa_type') { if (force) setItemLive(t4, t2, !vtype); }
+  if (name == 'tfa_yn') {
+    if (!t3.live) t1.live = true;
+    if (force &amp;&amp; !t3.live) setItemLive(t1, t2, !v);
+  }
+
+  f.getItem('tfa_type').disabled = (tfa == 0);
+  f.getItem('secret_length').disabled = (tfa == 0);
+
+  if (tfa == 0) {
+    f.getItem('tfa_day').disabled = true;
+    $get('SendCode').style.display = 'none';
+  } else {
+    f.getItem('tfa_day').disabled = !(type == 2)
+    $get('SendCode').style.display = ((type == 2 &amp;&amp; tfa == 1 &amp;&amp; f._action != 'New' &amp;&amp; $func.trim(email) == $func.trim(f._tfaEmail)) ? 'block' : 'none')
+    $get('SendCode').parentForm = f;
+  }
+}
+
+function tfa$SendCode$(o) {
+  var f = o.parentForm;
+  f.request('SendCode', 'SendCode', [['name', 'String', f.getItemValue('name')]])
+}
+function setItemLive(t1, t2, type) {
+  if (type) {if (t2.live) {t1.disabled = false; t1.focus();}}
+    else {if (t1.live) {t2.disabled = false; t2.focus();}}
+}
+    ">
+
+  <!ENTITY TFACss "
+.SendCode:hover{text-decoration:underline}
+.SendCode{cursor:pointer;position:relative;width:64px!important;color:#3171c6;font-family:verdana;font-size:11px;}">
+
+  <!ENTITY TFAResponseScript "
+    case 'SendCode':
+      var msg = (f._language == 'v' ? 'Thông tin không hợp lệ.' : 'Invalid Information.');
+      if (result[0].Value == 1) msg = (f._language == 'v' ? 'Chương trình đã thực hiện xong.' : 'The process completed successfully.');
+      $message.show(msg, String.format('$find(\'{0}\').getItem(\'tfa_yn\').focus();', f.get_id()));
+      break;">
+
+  <!ENTITY TFAResponseCommand "
+if @@admin = 1 begin
+  declare @id int
+  select @id = id from userinfo2 where name = @name
+  if isnull(@id, 0) = 0 select N'$NotAuthorized' as message
+  else begin
+    if exists(select 1 from userinfo8 where id = @id and tfa_yn = 1 and tfa_type = 2) begin
+      delete usercode where id = @id
+      select 1 as value
+    end else select 0 as value
+  end
+end else begin
+  select N'$NotAuthorized' as message
+end
+return">
+
+  <!ENTITY TFACheckEmailCommand "
+if @@action = 'Edit' begin
+  declare @oldEmailAddress nvarchar(256)
+  select @oldEmailAddress = e_mail from userinfo2 where id = @id
+  if @e_mail != @oldEmailAddress delete usercode where id = @id
+end">
+]]>
+
+<!ENTITY TFAFields "">
+<!ENTITY TFAView "">
+<!ENTITY TFACategory "">
+<!ENTITY TFAUpdate "">
+<!ENTITY TFATab "">
+<!ENTITY TFALoading "">
+<!ENTITY TFALoadingValue "">
+<!ENTITY TFALoadingScript "">
+<!ENTITY TFAScript "">
+<!ENTITY TFACss "">
+<!ENTITY TFAResponseScript "">
+<!ENTITY TFAResponseCommand "">
+<!ENTITY TFAEmailValid "">
+<!ENTITY TFAOnChange "">
+<!ENTITY TFACheckEmailCommand "">

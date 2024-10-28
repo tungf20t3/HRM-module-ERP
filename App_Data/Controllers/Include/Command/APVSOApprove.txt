@@ -1,0 +1,12 @@
+﻿<![CDATA[
+update @@prime$partition$current set kieu_duyet = @kieu_duyet where stt_rec = @stt_rec
+if @status = ']]>&APVStatusNoAction;<![CDATA[' or @status = ']]>&APVStatusOpen;<![CDATA[' update @@prime$partition$current set u_status = (select u_status from sodmttcttg where loai_duyet = ']]>&APVApprovalType;<![CDATA[' and s_status = @status) where stt_rec = @stt_rec
+if @status = ']]>&APVStatusApprove;<![CDATA[' exec AI_ERP$APV$SO$PostAuthorize ']]>&APVApprovalType;<![CDATA[', '1', @@userID, @stt_rec, @@sysDatabaseName, @@language, @role, 0, @kieu_duyet, ]]>&NotifyPushFlag;<![CDATA[, ]]>&VoucherApproveLog;<![CDATA[
+declare @$status varchar(32), @$u_status varchar(32), @$u_status0 varchar(32), @$user_id3 int, @$userName3 varchar(32)
+select @$status = '', @$u_status = '', @$u_status0 = '', @$userName3 = ''
+select @$status = rtrim(a.status), @$u_status = rtrim(a.u_status), @$u_status0 = rtrim(a.u_status0), @$user_id3 = a.user_id3 from @@prime$partition$current a left join sodmttcttg b on b.loai_duyet = ']]>&APVApprovalType;<![CDATA[' and a.u_status = b.u_status where a.stt_rec = @stt_rec 
+select @$userName3 = rtrim(name) from vsysuserinfo where id = @$user_id3
+if exists (select 1 from options where name = 'd_001' and val = '1') begin
+  if @status ]]>&lt;&gt;<![CDATA[']]>&APVStatusOpen;<![CDATA[' delete dvxlduyet where stt_rec = @stt_rec
+end
+]]>

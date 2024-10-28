@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir table="dmphanhe" code="loai_phan_he,ma_phan_he" order="stt" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc dữ liệu" e="Filter Data"></title>
+  <fields>
+    <field name="ma_phan_he" onDemand="true">
+      <header v="Mã phân hệ" e="Module"></header>
+      <items style="AutoComplete" controller="Module" reference="ten_phan_he%l" key="loai_phan_he = '2' and wedition &lt;&gt; '9' and status = '1'" check="loai_phan_he = '2' and wedition &lt;&gt; '9'"/>
+    </field>
+    <field name="ten_phan_he%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 330"/>
+      <item value="111: [ma_phan_he].Label, [ma_phan_he], [ten_phan_he%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+select '' as field, '' as message, 'remove$GridReport$Filter(this.grid);' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,b){var c=b.object,e=b.type.Context,f=b.type.Result;switch(e){case"Checking":var a=c.grid,d=[];a._module=c.getItemValue("ma_phan_he");ref=$func.trim(c.getItem("ten_phan_he%l").value);if($func.trim(a._module)!=""){Array.add(d,{Name:"ma_phan_he",Opr:"=",Value:a._module,Type:"String",Ignore:false});a._alterTitle=[null,[["%s1",a._module.toString(),true],["%s2",ref,true]]]}else a._alterTitle=[null,[["%s1","*",true],["%s2","*",true]]];a.set_externalKey(d);a._hiddenFields=[{Fields:"ma_phan_he",Value:!($func.trim(a._module)=="")}];remove$GridReport$Filter(a)}}]]>
+    </text>
+  </script>
+</dir>

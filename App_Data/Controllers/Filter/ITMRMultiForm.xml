@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "ITMRMultiForm">
+  <!ENTITY ParentController "ITTran">
+  <!ENTITY GridController "ITMRMultiGrid">
+  <!ENTITY Tag "">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+  <!ENTITY FlowMultiGeneralTable "c87$000000">
+
+  <!ENTITY OtherCopyField "ma_vi_tri,ma_lo,tk_vt,nhieu_dvt,he_so,ton13,lo_yn,vi_tri_yn&FlowMultiUserDefinedFieldsCopy;">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn phiếu yêu cầu lĩnh vật tư" e="Select Material Requisition"></title>
+  <fields>
+    &FlowMultiFormField;
+  </fields>
+
+  <views>
+    &FlowMultiFormView;
+  </views>
+
+  <commands>
+    &FlowMultiFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function show$]]>&Identity;<![CDATA[$(f) {
+  var z = f.grid, h = z.get_element().parentForm, queryFilterString = '', c = String.fromCharCode(253);
+  queryFilterString = h.getItemValue('ma_dvcs');
+  queryFilterString += c + z._filter$Fields[0];
+  var d = h.getItemValue('ngay_ct').z;
+  queryFilterString += c + d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2);
+
+  show$FlowMulti$Form(f, queryFilterString, ']]>&Identity;<![CDATA[DataGridPanel', ']]>&ParentController;<![CDATA[', ']]>&GridController;<![CDATA[', ']]>&OtherCopyField;<![CDATA[');
+}
+
+function active$]]>&Identity;<![CDATA[$(f) {
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  active$FlowMulti$Form(f);
+}
+
+function close$]]>&Identity;<![CDATA[$(f) {
+  close$FlowMulti$Form(f);
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+}
+
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = getGrid$FlowMulti$(f);
+      var c = String.fromCharCode(255), k1 = g._getColumnOrder('stt_rec') - 1, k2 = g._getColumnOrder('stt_rec0') - 1;
+      f._$k = '';
+      for(var i = 0; i < g._$k.length; i++) {
+        f._$k += (f._$k != '' ? ',' : '') + g._$k[i][k1] + c + g._$k[i][k2];
+      }
+      if (f._$k == '') f.grid._formScript = 'show$FlowMulti$RetrieveGrid(this)';
+      else {
+        f._checked = false;
+        f.request('GetOtherField', 'GetOtherField', [['k', 'Infinite', f._$k]]);
+      }
+      break;
+    case 'GetOtherField':
+      var g = getGrid$FlowMulti$(f), a = [];
+      for (var i = 0; i < result.length; i++) {
+        a[i] = g._$k[i].concat(result[i].slice(2));
+      }
+      on$]]>&Identity;<![CDATA[$TransferData(f, g, a);
+      break;
+    default:
+      break;
+  }
+}
+function on$]]>&Identity;<![CDATA[$TransferData(f, g, a) {
+  var z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, line_nbr, stt_rec, stt_rec0', f2 = 'so_luong, line_nbr, stt_rec_yc, stt_rec0yc';
+  var m = w.getItemValue('ma_kho');
+  var first = true, qf = f._$queryFilterString.split(String.fromCharCode(253));
+  var l0 = z._getColumnOrder('ma_vt'), l1 = getColumnOrderTagRow(g, 'so_luong0'), l2 = z._getColumnOrder('dvt'), l3 = getColumnOrderTagRow(g, 'nhieu_dvt');
+  var first = true, l6 = getColumnOrderTagRow(g, 'ma_kho'), l7 = z._getColumnOrder('ma_vi_tri'), siteOutID = w.getItemValue('ma_kho');
+
+  var la, lb, lc = getColumnOrderTagRow(g, 'ton13'), ld, lx, lz, lt, lf = z._getColumnOrder('ton13'), status = null, round;
+  if (w._row.length > 0) status = w._row[w.getItem('status').field.Index];
+  var adj = (w._action == 'Edit' && status != '0');
+  if (adj) {
+    var f$ = z._fields;
+    la = getColumnOrderTagRow(g, 'ma_vt'), lb = getColumnOrderTagRow(g, 'ma_kho'), ld = getColumnOrderTagRow(g, 'he_so');
+    lx = $func.findField('ma_vt', f$).Index, lz = $func.findField('so_luong', f$).Index, lt = $func.findField('he_so', f$).Index;
+    round = $func.scaleLength(g._getColumnFormat(l1));
+  }
+  var fields = 'ma_vt, ten_vt%l, dvt, he_so, ma_vi_tri, ma_lo, lo_yn, tk_vt]]>&FlowMultiUserDefinedFieldsCopy;<![CDATA[';
+
+  for (var r = 0; r < a.length; r++) {
+    if (a[r][l1] != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      var o = z._getItem(row, l0);
+      o.row = row;
+
+      insert$RetrieveTagRow$Items(g, a, r, z, row, fields, f1, f2);
+      $func.setObjectWhen(z._getItem(row, l2), a[r][l3]);
+      if (a[r][l6] != siteOutID) {z._setItemValue(row, l7, '');}
+
+      var currentStock = a[r][lc];
+      if (currentStock == null) currentStock = 0;
+      if (adj) {
+        var currentItem = a[r][la], currentSite = a[r][lb], currentRatio = a[r][ld], total = 0;
+        if (currentRatio != 0) {
+          for (var i = 0; i < z._rows.length; i++) {
+            if ((z._rows[i][lx] == currentItem) && (m == currentSite)) {
+              var quantity = 0;
+              if (z._rows[i][lz] != null) quantity = z._rows[i][lz] * z._rows[i][lt];
+              total += quantity;
+            }
+          }
+          currentStock += Math.round(total / currentRatio, round);
+        }
+      }
+      z._setItemValue(row, lf, currentStock);
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong]);
+  z._focusWhenTabChanged();
+  f.cancelDialog();
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetOtherField">
+      <text>
+        &FlowMultiTagRowRequest;<![CDATA[
+declare @p char(6), @r nvarchar(4000), @q nvarchar(4000)
+select top 0 tr.id, rtrim(a.ma_vt) as ma_vt, rtrim(a.ma_kho) as ma_kho, rtrim(a.ma_vi_tri) as ma_vi_tri,rtrim(a.ma_lo) as ma_lo, rtrim(b.tk_vt) as tk_vt,
+  b.nhieu_dvt,he_so, a.so_luong as ton13,b.lo_yn,0 as vi_tri_yn
+]]>&FlowMultiUserDefinedFieldsQuery;<![CDATA[
+into #d from #tagRow tr cross join d87$000000 a cross join dmvt b
+
+set @r = '
+insert into #d
+  select tr.id, rtrim(a.ma_vt) as ma_vt, rtrim(a.ma_kho) as ma_kho, rtrim(a.ma_vi_tri) as ma_vi_tri,rtrim(a.ma_lo) as ma_lo, rtrim(b.tk_vt) as tk_vt,
+    b.nhieu_dvt,he_so,0 ,b.lo_yn,case when exists(select top 1 ma_kho from dmvitri where dmvitri.ma_kho = a.ma_kho) then 1 else 0 end as vi_tri_yn
+]]>&FlowMultiUserDefinedFieldsQuery;<![CDATA[
+  from (select id, stt_rec, stt_rec0 from #tagRow where p = ''%Partition'') tr
+    join d87$%Partition a on tr.stt_rec = a.stt_rec and tr.stt_rec0 = a.stt_rec0
+    left join dmvt b on a.ma_vt = b.ma_vt
+'
+
+select distinct p into #p from #tagRow
+select @p = min(p) from #p
+while @p is not null begin
+  set @q = replace(@r, '%Partition', @p)
+  exec sp_executesql @q
+  select @p = min(p) from #p where p > @p
+end
+]]>&FlowMultiUpdateCurrentStock;<![CDATA[
+update #d set ton13 = ton13 / case when he_so <> 0 then he_so else 1 end
+
+select '' as array$, id, ]]>&OtherCopyField;<![CDATA[ from #d ]]>&FlowMultiOrderBy;<![CDATA[
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

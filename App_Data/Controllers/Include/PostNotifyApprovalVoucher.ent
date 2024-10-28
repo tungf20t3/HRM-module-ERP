@@ -1,0 +1,33 @@
+﻿<!ENTITY % NotifyPush SYSTEM "..\Include\NotifyPush.ent">
+%NotifyPush;
+
+<!ENTITY ExtenderInvoke ", @invoke as invoke">
+
+<!ENTITY PostNotify "
+if exists(select 1 from @@sysDatabaseName..notifygroup where code = '&PostNotifyGroup;' and status = '1') begin
+  if exists(select 1 from #mail) begin
+    &NotifyPushDeclare;
+    create table #notifyContent(title nvarchar(128), title2 nvarchar(128), content ntext, content2 ntext, ref_code varchar(32), s1 varchar(32), e$ nvarchar(4000), type tinyint, popup_title nvarchar(1024), popup_title2 nvarchar(1024), popup_content nvarchar(1024), popup_content2 nvarchar(1024))
+    &PostNotifyCreate;
+    if exists(select 1 from #mail where xtype = 2) begin
+      exec AI_ERP$Notify$Post '&PostNotifyGroup;', null, null, null, null, null, null, null, '#notifyContent',
+          'title, title2, subtitle, subtitle2, content, content2, ref_code, s1, e$, popup_title, popup_title2, popup_content, popup_content2', 'title, title2, @subtitle, @subtitle2, content, content2, ref_code, s1, e$, popup_title, popup_title2, popup_content, popup_content2', 'isnull(type, 0) = 0',
+          null, '#mail', 'userID', 'xtype = 2', @@userID, '@@sysDatabaseName', @$notifyCode out
+      update @@sysDatabaseName..notifyuser set s1 = ma_nhan, s2 = ma_huy from @@sysDatabaseName..notifyuser a join dmxn b on a.user_id = b.user_id
+        where a.code = @$notifyCode and b.stt_rec = @stt_rec
+      &NotifyPushSetInvoke;
+    end
+    if exists(select 1 from #mail where xtype = 1) begin
+      exec AI_ERP$Notify$Post '12', null, null, null, null, null, null, null, '#notifyContent',
+          'title, title2, subtitle, subtitle2, content, content2, ref_code, s1, e$, popup_title, popup_title2, popup_content, popup_content2', 'title, title2, @subtitle, @subtitle2, content, content2, ref_code, s1, e$, popup_title, popup_title2, popup_content, popup_content2', 'isnull(type, 0) = 12',
+          null, '#mail', 'userID', 'xtype = 1', @@userID, '@@sysDatabaseName', @$notifyCode out
+      &NotifyPushSetInvoke;
+    end
+  end
+end
+
+declare @invokeRemind nvarchar(4000)
+select @invokeRemind = ''
+exec AI_ERP$APV$Remind$GetMail @stt_rec, '@@sysDatabaseName', @invokeRemind output
+if @invokeRemind &lt;&gt; '' set @invoke = isnull(@invoke, '') + case when isnull(@invoke, '') &lt;&gt; '' then '&amp;' + char(255) + ';' else '' end + @invokeRemind
+">

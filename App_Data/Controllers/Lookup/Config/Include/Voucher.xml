@@ -1,0 +1,555 @@
+﻿<controller name="GLTran" type="Dir" group="Voucher" description="General Voucher">
+  <request>
+    <controller name="GLDetail" field="&Account.Code;"/>
+    <controller name="GLTax" field="&Customer.Code;&Account.Delimiter;&Account.Tax.Debit;"/>
+  </request>
+</controller>
+<controller name="GLTranImportForm" type="Filter" group="Voucher" description="Services Purchase Invoice">
+  <request field="&Customer.Code;"/>
+</controller>
+<controller name="JRTran" type="Dir" group="Voucher" description="Misc. Receivable Transaction, AR-AP Interface">
+  <request >
+    <controller name="JRDetail" field="&Account.Code;"/>
+    <controller name="JRTax" field="&Customer.Code;&Account.Delimiter;&Account.Tax.Debit;"/>
+  </request>
+</controller>
+<controller name="JRTranImportForm" type="Filter" group="Voucher" description="Services Purchase Invoice">
+  <request field="&Customer.Code;"/>
+</controller>
+<controller name="JPTran" type="Dir" group="Voucher" description="Misc. Payable Transaction, AP-AR Interface">
+  <request>
+    <controller name="JPDetail" field="&Account.Code;"/>
+    <controller name="JPTax" field="&Customer.Code;&Account.Delimiter;&Account.Tax.Debit;"/>
+  </request>
+</controller>
+<controller name="JPTranImportForm" type="Filter" group="Voucher" description="Services Purchase Invoice">
+  <request field="&Customer.Code;"/>
+</controller>
+
+
+
+
+
+<controller name="CBTran" type="Dir" group="Voucher" description="Bank Credit Advice">
+  <request field="&Customer.Code;"/>
+</controller>
+<controller name="CPTran" type="Dir" group="Voucher" description="Bank Debit Advice">
+  <request field="&Customer.Code;">
+    <controller name="CPDetail" field="&Customer.Code;&Account.Delimiter;&Account.Tax;"/>
+    <controller name="CPTax" field="&Customer.Code;&Account.Delimiter;&Account.Tax.Debit;"/>
+    <controller name="CPDeductible" field="&Account.Code;"/>
+  </request>
+</controller>
+<controller name="CPTranImportForm" type="Filter" group="Voucher" description="Services Purchase Invoice">
+  <request field="&Customer.Code;"/>
+</controller>
+<controller name="CRTran" type="Dir" group="Voucher" description="Cash Receipt">
+  <request field="&Customer.Code;"/>
+</controller>
+<controller name="CDTran" type="Dir" group="Voucher" description="Cash Disbursement">
+  <request field="&Customer.Code;">
+    <controller name="CDDetail" field="&Customer.Code;&Account.Delimiter;&Account.Tax;"/>
+    <controller name="CDTax" field="&Customer.Code;&Account.Delimiter;&Account.Tax.Debit;"/>
+    <controller name="CDDeductible" field="&Account.Code;"/>
+  </request>
+</controller>
+<controller name="CDTranImportForm" type="Filter" group="Voucher" description="Services Purchase Invoice">
+  <request field="&Customer.Code;"/>
+</controller>
+<controller name="CITran" type="Dir" group="Voucher" description="Credit/Debit Memo">
+  <request field="&Customer.Code;"/>
+</controller>
+<controller name="CKTran" type="Dir" group="Voucher" description="Credit/Debit Memo">
+  <request field="&Customer.Code;"/>
+</controller>
+
+
+
+
+
+<controller name="SVTran" type="Dir" group="Voucher" description="Sales Invoice">
+  <request field="&Customer.Code;&Account.Delimiter;&Account.Code;&Account.Delimiter;&Account.Tax.Credit;">
+    <controller name="SVDetail" field="&Item.Code;&TaxDetail.Delimiter;&TaxDetail.Account;"/>
+  </request>
+  <handle>
+    <controller name="SVDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="ARTran" type="Dir" group="Voucher" description="Service Invoice">
+  <request field="&Customer.Code;&Account.Delimiter;&Account.Code;">
+    <controller name="ARDetail" field="&Account.Tax;"/>
+  </request>
+</controller>
+<controller name="SPTran" type="Dir" group="Voucher" description="Sales Price Adjustment Invoice">
+  <request field="&Customer.Code;&Account.Delimiter;&Account.Code;&Account.Delimiter;&Account.Tax;">
+    <controller name="SPDetail" field="&Item.Code;&TaxDetail.Delimiter;&TaxDetail.Account;"/>
+  </request>
+  <handle>
+    <controller name="SPDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="SDTran" type="Dir" group="Voucher" description="Discount Invoice">
+  <request field="&Customer.Code;&Account.Delimiter;&Account.Code;">
+    <controller name="SDDetail" field="&Account.Tax;"/>
+    <controller name="SDAllocation" field="&Account.Debit;"/>
+  </request>
+  <handle>
+    <controller name="SDDetail" filter="&Account.Debit;"/>
+  </handle>
+</controller>
+<controller name="VATran" type="Dir" group="Voucher" description="Service Price Adjustment Invoice">
+  <request field="&Customer.Code;&Account.Delimiter;&Account.Code;">
+    <controller name="VADetail" field="&Account.Tax;"/>
+    <controller name="SDAllocation" field="&Account.Debit;"/>
+  </request>
+  <handle>
+    <controller name="VADetail" filter="&Account.Debit;"/>
+  </handle>
+</controller>
+<controller name="GRTran" type="Dir" group="Voucher" description="Services Sale Return Invoice">
+  <request field="&Customer.Code;&Account.Delimiter;&Account.Code;">
+    <controller name="GRDetail" field="&Account.Tax;"/>
+  </request>
+</controller>
+<controller name="GRTranImportForm" type="Filter" group="Voucher" description="Services Purchase Invoice">
+  <request field="&Customer.Code;"/>
+</controller>
+
+<controller name="SRTran" type="Dir" group="Voucher" description="Sales Return">
+  <request field="&Customer.Code;&Account.Delimiter;&Account.Code;&Account.Delimiter;&Account.Tax.Debit;">
+    <controller name="SRDetail" field="&Item.Code;&TaxDetail.Delimiter;&TaxDetail.Account;"/>
+  </request>
+  <handle>
+    <controller name="SRDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="SRTranImportForm" type="Filter" group="Voucher" description="Domestic Purchase Invoice">
+  <request field="&Customer.Code;">
+    <controller name="SRTranImportGrid" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="SRTranImportGrid" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="RDTran" type="Dir" group="Voucher" description="Offset Unapplied Transaction">
+  <request field="&Customer.Code;"/>
+</controller>
+
+<controller name="AITran" type="Dir" group="Voucher" description="Adjustment Invoice">
+  <request field="&Customer.Code;">
+    <controller name="AIDetail" field="&TaxDetail.Account;"/>
+  </request>
+</controller>
+<controller name="AdjustmentIssueTran" type="Dir" group="Voucher" description="Adjustment Invoice">
+  <request field="&Customer.Code;">
+    <controller name="AdjustmentIssueDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="AdjustmentIssueDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+
+
+
+
+
+<controller name="PVTran" type="Dir" group="Voucher" description="Domestic Purchase Invoice">
+  <request field="&Customer.Code;">
+    <controller name="PVDetail" field="&Item.Code;"/>
+    <controller name="PVTax" field="&Customer.Code;&Account.Delimiter;&Account.Tax.Debit;"/>
+  </request>
+  <handle>
+    <controller name="PVDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="PVTranImportForm" type="Filter" group="Voucher" description="Domestic Purchase Invoice">
+  <request field="&Customer.Code;">
+    <controller name="PVTranImportGrid" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="PVTranImportGrid" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="PMTran" type="Dir" group="Voucher" description="Import Purchase Invoice">
+  <request field="&Customer.Code;">
+    <controller name="PMDetail" field="&Item.Code;"/>
+    <controller name="PMTax" field="&Customer.Code;&Account.Delimiter;&Account.Reference;"/>
+  </request>
+  <handle>
+    <controller name="PMDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="APTran" type="Dir" group="Voucher" description="Service Purchase Invoice">
+  <request field="&Customer.Code;">
+    <controller name="APTax" field="&Customer.Code;&Account.Delimiter;&Account.Tax.Debit;"/>
+  </request>
+</controller>
+<controller name="APTranImportForm" type="Filter" group="Voucher" description="Services Purchase Invoice">
+  <request field="&Customer.Code;"/>
+</controller>
+
+<controller name="PGTran" type="Dir" group="Voucher" description="Purchase Receipt - Direct Issue Invoice">
+  <request field="&Customer.Code;">
+    <controller name="PGDetail" field="&Item.Code;"/>
+    <controller name="PGTax" field="&Customer.Code;&Account.Delimiter;&Account.Tax.Debit;"/>
+  </request>
+  <handle>
+    <controller name="PGDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="PGTranImportForm" type="Filter" group="Voucher" description="Domestic Purchase Invoice">
+  <request field="&Customer.Code;">
+    <controller name="PGTranImportGrid" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="PGTranImportGrid" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="PFTran" type="Dir" group="Voucher" description="Purchase Expense Transaction">
+  <request field="&Customer.Code;">
+    <controller name="PFTax" field="&Customer.Code;&Account.Delimiter;&Account.Tax.Debit;"/>
+  </request>
+</controller>
+<controller name="PFTranImportForm" type="Filter" group="Voucher" description="Services Purchase Invoice">
+  <request field="&Customer.Code;"/>
+</controller>
+
+<controller name="ASTran" type="Dir" group="Voucher" description="Payment of Advanced Amount">
+  <request field="&Customer.Code;">
+    <controller name="ASDetail" field="&Account.Debit;&Account.Delimiter;&Customer.Code;&Account.Delimiter;&Account.Tax;"/>
+    <controller name="PFTax" field="&Customer.Code;&Account.Delimiter;&Account.Tax.Debit;"/>
+  </request>
+</controller>
+<controller name="ASTranImportForm" type="Filter" group="Voucher" description="Services Purchase Invoice">
+  <request field="&Customer.Code;"/>
+</controller>
+
+<controller name="PATran" type="Dir" group="Voucher" description="Purchase Adjustment Transaction">
+  <request field="&Customer.Code;">
+    <controller name="PADetail" field="&Item.Code;"/>
+    <controller name="PATax" field="&Customer.Code;&Account.Delimiter;&Account.Tax.Debit;"/>
+  </request>
+  <handle>
+    <controller name="PADetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="PATranImportForm" type="Filter" group="Voucher" description="Domestic Purchase Invoice">
+  <request field="&Customer.Code;">
+    <controller name="PATranImportGrid" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="PATranImportGrid" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="PSTran" type="Dir" group="Voucher" description="Return to Supplier">
+  <request field="&Customer.Code;&Account.Delimiter;&Account.Tax;">
+    <controller name="PSDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="PSDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="PXTran" type="Dir" group="Voucher" description="Service Return to Supplier">
+  <request field="&Customer.Code;&Account.Delimiter;&Account.Tax;"/>
+</controller>
+<controller name="DDTran" type="Dir" group="Voucher" description="Offset Unapplied Transaction">
+  <request field="&Customer.Code;"/>
+</controller>
+
+
+
+
+
+<controller name="SQTran" type="Dir" group="Voucher" description="Quotation Entry">
+  <request field="&Customer.Code;">
+    <controller name="SQDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="SQDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="SOTran" type="Dir" group="Voucher" description="Sales Order">
+  <request field="&Customer.Code;">
+    <controller name="SODetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="SODetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="SITran" type="Dir" group="Voucher" description="Pick List">
+  <request field="&Customer.Code;">
+    <controller name="SIDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="SIDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="SI2Tran" type="Dir" group="Voucher" description="Issuing Order">
+  <request field="&Customer.Code;">
+    <controller name="SI2Detail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="SI2Detail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="STTran" type="Dir" group="Voucher" description="Delivery Note">
+  <request field="&Customer.Code;">
+    <controller name="STDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="STDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+
+
+
+
+
+<controller name="PRTran" type="Dir" group="Voucher" description="Purchase Requisition">
+  <request>
+    <controller name="PRDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="PRDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="PQTran" type="Dir" group="Voucher" description="Request for Quotation">
+  <request field="&Customer.Code;">
+    <controller name="PQDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="PQDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+
+<controller name="POTran" type="Dir" group="Voucher" description="Domestic Purchase Order">
+  <request field="&Customer.Code;">
+    <controller name="PODetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="PODetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="PITran" type="Dir" group="Voucher" description="Import Purchase Order">
+  <request field="&Customer.Code;">
+    <controller name="PIDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="PIDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+
+<controller name="PKTran" type="Dir" group="Voucher" description="Customs Declaration Sheet">
+  <request field="&Customer.Code;">
+    <controller name="PKDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="PKDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="PDTran" type="Dir" group="Voucher" description="Purchase Receipt">
+  <request field="&Customer.Code;">
+    <controller name="PDDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="PDDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+
+<controller name="PTTran" type="Dir" group="Voucher" description="QA Transaction"/>
+
+
+
+
+
+<controller name="IRTran" type="Dir" group="Voucher" description="Receipt">
+  <request field="&Customer.Code;">
+    <controller name="IRDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="IRDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+
+<controller name="MRTran" type="Dir" group="Voucher" description="Material Requisition">
+  <request>
+    <controller name="MRDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="MRDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+
+<controller name="ISTran" type="Dir" group="Voucher" description="Issue">
+  <request field="&Customer.Code;">
+    <controller name="ISDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="ISDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="ITTran" type="Dir" group="Voucher" description="Stock Transfer">
+  <request>
+    <controller name="ITDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="ITDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+
+<controller name="IPTran" type="Dir" group="Voucher" description="Stock Transfer in"/>
+
+<controller name="WHTran" type="Dir" group="Voucher" description="Goods Receipt">
+  <request field="&Customer.Code;">
+    <controller name="WHDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="WHDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="WITran" type="Dir" group="Voucher" description="Goods Issue">
+  <request field="&Customer.Code;">
+    <controller name="WIDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="WIDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="WTTran" type="Dir" group="Voucher" description="Goods Transfer">
+  <request>
+    <controller name="WTDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="WTDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="WKTran" type="Dir" group="Voucher" description="Goods Return from Customer">
+  <request field="&Customer.Code;">
+    <controller name="WKDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="WKDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+<controller name="WSTran" type="Dir" group="Voucher" description="Return Goods to Supplier">
+  <request field="&Customer.Code;">
+    <controller name="WSDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="WSDetail" filter="&Item.Code;"/>
+  </handle>
+
+
+
+  <controller name="BIPQTran" type="Dir" group="Voucher" description="Quotation">
+    <request field="&Customer.Code;">
+      <controller name="BIPQDetail" field="&Item.Code;"/>
+    </request>
+    <handle>
+      <controller name="BIPQDetail" filter="&Item.Code;"/>
+    </handle>
+  </controller>
+
+  <controller name="BIOATran" type="Dir" group="Voucher" description="Outline Agreement">
+    <request field="&Customer.Code;">
+      <controller name="BIOADetail" field="&Item.Code;"/>
+    </request>
+    <handle>
+      <controller name="BIOADetail" filter="&Item.Code;"/>
+    </handle>
+  </controller>
+  <controller name="BISATran" type="Dir" group="Voucher" description="Schedule Agreement">
+    <request field="&Customer.Code;">
+      <controller name="BISADetail" field="&Item.Code;"/>
+    </request>
+    <handle>
+      <controller name="BISADetail" filter="&Item.Code;"/>
+    </handle>
+  </controller>
+
+  <controller name="BIPOTran" type="Dir" group="Voucher" description="Domestic Purchase Order">
+    <request field="&Customer.Code;">
+      <controller name="BIPODetail" field="&Item.Code;"/>
+    </request>
+    <handle>
+      <controller name="BIPODetail" filter="&Item.Code;"/>
+    </handle>
+  </controller>
+  <controller name="BIPITran" type="Dir" group="Voucher" description="Import Purchase Order">
+    <request field="&Customer.Code;">
+      <controller name="BIPIDetail" field="&Item.Code;"/>
+    </request>
+    <handle>
+      <controller name="BIPIDetail" filter="&Item.Code;"/>
+    </handle>
+  </controller>
+</controller>
+
+<controller name="WQTran" type="Dir" group="Voucher" description="Goods Transfer in"/>
+
+
+
+
+
+<controller name="MOTran" type="Dir" group="Voucher" description="Manufacturing Order">
+  <request>
+    <controller name="MODetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="MODetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+
+
+
+
+
+<controller name="FATran" type="Dir" group="Voucher" description="Fixed Asset"/>
+<controller name="TSTran" type="Dir" group="Voucher" description="Tool &#38; Supply"/>
+<controller name="TS2Tran" type="Dir" group="Voucher" description="Tool &#38; Supply"/>
+
+
+
+
+
+<controller name="DTTran" type="Dir" group="Voucher" description="Customer Payment Request">
+  <request field="&Customer.Code;"/>
+</controller>
+<controller name="DCTran" type="Dir" group="Voucher" description="Supplier Payment Request">
+  <request field="&Customer.Code;"/>
+</controller>
+
+
+
+
+
+<controller name="WPTran" type="Dir" group="Voucher" description="Write-off">
+  <request field="&Customer.Code;"/>
+</controller>
+
+<controller name="WRTran" type="Dir" group="Voucher" description="Write-off">
+  <request field="&Customer.Code;"/>
+</controller>
+
+<controller name="RITran" type="Dir" group="Voucher" description="Replacement Invoice">
+  <request field="&Customer.Code;">
+    <controller name="RIDetail" field="&Item.Code;"/>
+  </request>
+  <handle>
+    <controller name="RIDetail" filter="&Item.Code;"/>
+  </handle>
+</controller>
+
+
+
+
+
+<controller name="BISLTran" type="Dir" group="Voucher" description="Source List"/>
+<controller name="BIQATran" type="Dir" group="Voucher" description="Quota Arrangement"/>
+
+
+
+
+
+<controller name="InputInvoice" type="Dir" group="Voucher" description="Domestic Purchase Invoice"/>
+<controller name="InputInvoiceGeneralImportForm" type="Filter" group="Voucher" description="Domestic Purchase Invoice"/>

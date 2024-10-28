@@ -1,0 +1,322 @@
+﻿<![%Conditional.BIMode;[
+  <!ENTITY CommandWhenVoucherBeforeEdit SYSTEM "..\Include\Command\BIWhenVoucherBeforeEdit.txt">
+  <!ENTITY CommandWhenVoucherBeforeDelete SYSTEM "..\Include\Command\BIWhenVoucherBeforeDelete.txt">
+  <!ENTITY BI.PQTran.Fields.Filter.Master SYSTEM "..\Include\XML\BI.PQTran.Fields.Filter.Master.txt">
+  <!ENTITY BI.PQTran.Views.Filter.Master SYSTEM "..\Include\XML\BI.PQTran.Views.Filter.Master.xml">
+
+  <!ENTITY BI.PQTran.Fields.Filter.Detail SYSTEM "..\Include\XML\BI.PQTran.Fields.Filter.Detail.txt">
+  <!ENTITY BI.PQTran.Views.Filter.Detail SYSTEM "..\Include\XML\BI.PQTran.Views.Filter.Detail.xml">
+
+  <!ENTITY BI.PQTran.Fields.Grid SYSTEM "..\Include\XML\BI.PQTran.Fields.Grid.txt">
+  <!ENTITY BI.PQTran.Views.Grid SYSTEM "..\Include\XML\BI.PQTran.Views.Grid.xml">
+  <!ENTITY BI.PQTran.Script.Grid SYSTEM "..\Include\XML\BI.PQTran.Script.Grid.txt">
+  <!ENTITY BI.PQTran.Toolbar.Grid SYSTEM "..\Include\XML\BI.PQTran.Toolbar.Grid.txt">
+  <!ENTITY BI.PQTran.Toolbar.Grid.Css SYSTEM "..\Include\XML\BI.PQTran.Toolbar.Grid.Css.txt">
+
+
+  <!ENTITY BI.PQTran.Dir.CheckWhenVoucherBeforeEdit "
+#IF @@view = 0 #THEN
+  #IF @@action = 'Edit' #THEN
+    #IF @@admin &lt;&gt; 1 #THEN
+      if exists(select 1 from bisysplantrights where user_id = @@userID) and exists(select 1 from d92$$partition$current a where stt_rec = @stt_rec and ma_vung &lt;&gt; '' and ma_vung not in (select ma_vung from bisysplantrights b where b.user_id = @@userID)) begin
+        select @message as script, '$NotAuthorized' as message
+        return
+      end
+    #END
+  #END
+#END
+">
+  <!ENTITY BI.PQTran.Dir.CheckWhenVoucherBeforeDelete "
+#IF @@admin &lt;&gt; 1 #THEN
+  if exists(select 1 from bisysplantrights where user_id = @@userID) and exists(select 1 from d92$$partition$current a where stt_rec = @stt_rec and ma_vung &lt;&gt; '' and ma_vung not in (select ma_vung from bisysplantrights b where b.user_id = @@userID)) begin
+    select @$denyAccess as message
+    return
+  end
+#END
+">
+
+  <!ENTITY BI.PQTran.Fields.Dir SYSTEM "..\Include\XML\BI.PQTran.Fields.Dir.txt">
+  <!ENTITY BI.PQTran.Views.Dir SYSTEM "..\Include\XML\BI.PQTran.Views.Dir.xml">
+
+  <!ENTITY BI.PQTran.Views.Dir.Unit SYSTEM "..\Include\XML\BI.PQTRan.Views.Dir.Unit.xml">
+
+  <!ENTITY BI.PQTran.Fields.Dir.Collection SYSTEM "..\Include\XML\BI.PQTran.Fields.Dir.Collection.txt">
+  <!ENTITY BI.PQTran.Views.Dir.Collection SYSTEM "..\Include\XML\BI.PQTRan.Views.Dir.Collection.xml">
+
+  <!ENTITY BI.PQTran.Fields.Filter.Collection SYSTEM "..\Include\XML\BI.PQTran.Fields.Filter.Collection.txt">
+  <!ENTITY BI.PQTran.Views.Filter.Collection SYSTEM "..\Include\XML\BI.PQTRan.Views.Filter.Collection.xml">
+
+  <!ENTITY BI.PQTran.Categories.Dir SYSTEM "..\Include\XML\BI.PQTran.Categories.Dir.xml">
+  <!ENTITY BI.PQTran.Categories.Filter SYSTEM "..\Include\XML\BI.PQTran.Categories.Filter.xml">
+  <!ENTITY BI.PQTran.Script.Loading SYSTEM "..\Include\Command\BI.PQTran.Script.Dir.Loading.txt">
+
+  <!ENTITY BI.PQTran.Script.Grid.HiddenField "g._$PODefaultForm.HiddenField = ['ma_vung'];">
+  <!ENTITY BI.PQTran.Dir.Height "278">
+  <!ENTITY BI.PQTran.Filter.Height "112">
+  <!ENTITY BI.PQTran.Detail.Height "218">
+  <!ENTITY BI.PQTran.Dir.TabChange ", 'ma_nh0'">
+  <!ENTITY BI.PQTran.Filter.TabChange ", 'ma_bp0'">
+
+  <!ENTITY BI.PQTran.Filter.Status ", 2, 3, 4, 5, 9">
+
+  <!ENTITY BI.PQTran.Dir.AfterUpdate.Parameter ", 'ma_bp0, ma_nh0', 2">
+  <!ENTITY BI.PQTran.Command.Loading.Grid "
+&BI.Command.Loading.Grid;
+">
+  <!ENTITY BI.PQTran.Command.Closing.Grid "select 'dispose$Grid(this);' as message;return;">
+  <!ENTITY BI.PQTran.Command.Loading ", @unitName nvarchar(1023)
+select @unitName = case when @@language = 'v' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit">
+
+  <!ENTITY BI.Command.Loading.Grid.FieldHidden "select @message = @message + 'this._field$Hidden = true;load$Grid(this);'">
+
+  <!ENTITY BI.Command.Checking.DeliveryDate SYSTEM "..\Include\Javascript\BI.Command.Checking.DeliveryDate.txt">
+
+  <!ENTITY BI.PQDetail.Request.Load.Array ", 'ma_vung'">
+  <!ENTITY BI.PQDetail.Response.Item "exec AI_ERP$BI$ImportPurchase$Item @unitCode, @ma_vt, default, default, default, default, default, default, default, @ma_vung">
+
+  <!ENTITY BI.PQDetail.Fields.Grid SYSTEM "..\Include\XML\BI.PQDetail.Fields.Grid.txt">
+  <!ENTITY BI.PQDetail.Views.Grid SYSTEM "..\Include\XML\BI.PQDetail.Views.Grid.xml">
+
+  <!ENTITY BI.PQDetail.ExecuteCommand.AfterCloneRow "
+      g.setItemFieldValue('so_theo_doi', e.type.Value, '');
+      g.setItemFieldValue('ma_vt_ncc', e.type.Value, '');
+      g.setItemFieldValue('stt_rec_nc', e.type.Value, '');
+      g.setItemFieldValue('stt_rec0nc', e.type.Value, '');
+">
+  <!ENTITY BI.PQDetail.ExecuteCommand.Retrieve "
+case 'Retrieve':
+  if (f._action == 'View') break;
+  g.showForm('PQRequisitionFilter');
+  break;
+">
+
+  <!ENTITY BI.PQDetail.Script.Response.Item "
+g.setItemGridBehavior(o, [['dvt', result[2].Value, '', true],
+  ['he_so', result[3].Value, null, null]
+);
+">
+
+  <!ENTITY BI.PQDetail.ExecuteCommand.Copying "
+case 'Copying':
+  set$Voucher$EmptyExternalField(g, 'ngay_giao, ma_vung, ma_kho, so_theo_doi, ma_vt_ncc, stt_rec_nc, stt_rec0nc');
+  break;
+">
+
+  <!ENTITY BI.PQDetail.OnChange.Plant "
+function onChange$GridVoucherDetail$Plant(o) {set$Voucher$$EmptySite(o.grid, 'ma_kho');}
+function set$Voucher$$EmptySite(g, c) {
+  var o = g._activeCell, l = g._getColumnOrder(c);
+  if (l == g._activeColumn) {
+    if (o._controlBehavior) {
+      var fields = g._fields, field = g._fields[l - 1], r = o.row, id = g.get_id();
+      if (field.ItemKeyFilter) o._controlBehavior.set_completionKeyFilter($func.completionFilter(o, fields, field.ItemKeyFilter, r, id));
+      if (field.ItemCheckFilter) o._controlBehavior.set_completionCheckFilter($func.completionFilter(o, fields, field.ItemCheckFilter, r, id));
+    }
+  }
+  for (var i = 0; i &lt; g._rowCount; i++) {
+    o = g._getItem(i + 1, l);
+    if (!o.row) o.value = '';
+      else {
+        o.row = i + 1;
+        g.setItemGridBehavior(o, [[c, '', '']]);
+      }
+  }
+}
+">
+
+  <!ENTITY BI.PQDetail.Query.Loading "left join bidmvung c on a.ma_vung = c.ma_vung left join dmkho d on a.ma_kho = d.ma_kho">
+
+  <!ENTITY BI.PQDetail.Toolbar.Retrieve SYSTEM "..\Include\XML\BI.PQDetail.Toolbar.Retrieve.txt">
+
+
+
+  <!ENTITY APVController "PQApproval">
+  <!ENTITY APVApprovalType "01245">
+  <!ENTITY APVDetailTable "d92">
+  <!ENTITY APVHisTable "a92$000000">
+  <!ENTITY APVCheckCategory "case when @ma_dvcs = '' then @@unit else rtrim(@ma_dvcs) end + char(253) + rtrim(@ma_bp0) + char(253) + rtrim(@ma_nh0) + char(253) + rtrim(@ma_kh)">
+  <!ENTITY APVStatusNoAction "0">
+  <!ENTITY APVStatusOpen "1">
+  <!ENTITY APVStatusApprove "2">
+  <!ENTITY APVStatusClose "5">
+  <!ENTITY APVStatusPending "9">
+  <!ENTITY APVCategoryIndex "8">
+  <!ENTITY APVVisibleStatusNum "3">
+  <!ENTITY APVHiddenStatusNum "3">
+  <!ENTITY APVFieldTabChange ", 'nguoi_duyet'">
+  <!ENTITY APVXMLFields SYSTEM "..\Include\XML\APVPUXMLFields.txt">
+  <!ENTITY APVXMLViews SYSTEM "..\Include\XML\APVXMLViews.txt">
+  <!ENTITY APVXMLCategoryIndex SYSTEM "..\Include\XML\APVXMLCategoryIndex.txt">
+  <!ENTITY APVInitExternalFieldsDeclare SYSTEM "..\Include\Command\APVInitExternalFieldsDeclare.txt">
+  <!ENTITY APVInitExternalFieldsSeparate ", ">
+  <!ENTITY APVInitExternalFieldsSelect SYSTEM "..\Include\Command\APVInitExternalFieldsSelect.txt">
+  <!ENTITY APVCheckApprove SYSTEM "..\Include\Command\APVPUCheckApprove.txt">
+  <!ENTITY APVApprove SYSTEM "..\Include\Command\APVPUApprove.txt">
+  <!ENTITY APVMailApproveInsert SYSTEM "..\Include\Command\APVPUMailApproveInsert.txt">
+  <!ENTITY APVMailApproveUpdate SYSTEM "..\Include\Command\APVPUMailApproveUpdate.txt">
+  <!ENTITY APVDelete SYSTEM "..\Include\Command\APVDelete.txt">
+  <!ENTITY APVWhenVoucherCopying SYSTEM "..\Include\Javascript\APVWhenVoucherCopying.txt">
+  <!ENTITY APVSetVoucherDefaultValue SYSTEM "..\Include\Javascript\APVSetVoucherDefaultValue.txt">
+  <!ENTITY APVSetReadOnlyFields SYSTEM "..\Include\Javascript\APVSetReadOnlyFields.txt">
+  <!ENTITY APVHandleStatus SYSTEM "..\Include\Javascript\APVHandleStatus.txt">
+  <!ENTITY APVAddStatus SYSTEM "..\Include\Javascript\APVAddStatus.txt">
+  <!ENTITY APVFunctionScript SYSTEM "..\Include\Javascript\APVFunctionScript.txt">
+
+  <!ENTITY APVHistoryExecute SYSTEM "..\Include\Javascript\APVHistoryExecute.txt">
+  <!ENTITY APVHistoryResponse SYSTEM "..\Include\Javascript\APVHistoryResponse.txt">
+  <!ENTITY APVHistoryToolbar SYSTEM "..\Include\XML\APVHistoryToolbar.xml">
+  <!ENTITY APVHistoryCss SYSTEM "..\Include\XML\APVHistoryCss.txt">
+  <!ENTITY APVHistoryGetData SYSTEM "..\Include\XML\APVPUHistoryGetData.xml">
+
+  <!ENTITY % PostNotifyApproval SYSTEM "..\Include\PostNotifyApprovalVoucher.ent">
+  %PostNotifyApproval;
+  <!ENTITY PostNotifyGroup "21">
+  <!ENTITY PostNotifyCreate "exec bs_CreateNotifyPQTran @stt_rec, 'm92$$partition$current', 'd92$$partition$current', '#notifyContent'">
+
+  <!ENTITY % Conditional.APVEdit SYSTEM "..\Include\APVEdit.txt">
+
+  <!ENTITY MailPrime "m92$">
+  <!ENTITY MailTemplate "PQCompose">
+  <!ENTITY ComposeResponse SYSTEM "..\Include\XML\ComposeResponse.txt">
+  <!ENTITY ComposeRequest SYSTEM "..\Include\Javascript\ComposeRequest.txt">
+  <!ENTITY ComposeComplete SYSTEM "..\Include\Javascript\ComposeComplete.txt">
+
+  <!ENTITY BI.PQCompose.Script.ResponseComplete SYSTEM "..\Include\Javascript\BI.PQCompose.Script.ResponseComplete.txt">
+  <!ENTITY BI.PQCompose.Script.ExecuteCommand SYSTEM "..\Include\Javascript\BI.PQCompose.Script.ExecuteCommand.txt">
+
+  <!ENTITY BI.PQCompose.Script.GetData SYSTEM "..\Include\XML\BI.PQCompose.Script.GetData.xml">
+
+  <!ENTITY BI.PQCompose.Toolbar SYSTEM "..\Include\XML\BI.PQCompose.Toolbar.xml">
+
+  <!ENTITY BI.PQCompose.Toolbar.Css SYSTEM "..\Include\XML\BI.PQCompose.Toolbar.Css.txt">
+
+  <!ENTITY BI.PQTran.Dir.APVStatusField SYSTEM "..\Include\XML\BI.PQTran.Dir.APVStatusField.txt">
+
+  <!ENTITY XMLWhenVoucherCopying SYSTEM "..\Include\XML\BIMode.WhenStockCopying.xml">
+]]>
+
+<!ENTITY CommandWhenVoucherBeforeEdit SYSTEM "..\Include\Command\WhenVoucherBeforeEdit.txt">
+<!ENTITY CommandWhenVoucherBeforeDelete SYSTEM "..\Include\Command\WhenVoucherBeforeDelete.txt">
+<!ENTITY BI.PQTran.Fields.Filter.Master "">
+<!ENTITY BI.PQTran.Views.Filter.Master "">
+
+<!ENTITY BI.PQTran.Fields.Filter.Detail "">
+<!ENTITY BI.PQTran.Views.Filter.Detail "">
+
+<!ENTITY BI.PQTran.Fields.Grid "">
+<!ENTITY BI.PQTran.Views.Grid "">
+<!ENTITY BI.PQTran.Script.Grid "">
+<!ENTITY BI.PQTran.Toolbar.Grid "">
+<!ENTITY BI.PQTran.Toolbar.Grid.Css "">
+
+<!ENTITY BI.PQTran.Dir.CheckWhenVoucherBeforeEdit "">
+<!ENTITY BI.PQTran.Dir.CheckWhenVoucherBeforeDelete "">
+
+<!ENTITY BI.PQTran.Fields.Dir SYSTEM "..\Include\XML\BI.PQTran.Fields.Dir.Default.txt">
+<!ENTITY BI.PQTran.Views.Dir "">
+<!ENTITY BI.PQTran.Views.Dir.Unit SYSTEM "..\Include\XML\BI.PQTRan.Views.Dir.Unit.Default.xml">
+<!ENTITY BI.PQTran.Fields.Dir.Collection "">
+<!ENTITY BI.PQTran.Views.Dir.Collection "">
+<!ENTITY BI.PQTran.Fields.Filter.Collection "">
+<!ENTITY BI.PQTran.Views.Filter.Collection "">
+
+<!ENTITY BI.PQTran.Categories.Dir "">
+<!ENTITY BI.PQTran.Categories.Filter "">
+<!ENTITY BI.PQTran.Script.Loading "">
+
+<!ENTITY BI.PQTran.Script.Grid.HiddenField "">
+
+<!ENTITY BI.PQTran.Dir.Height "302">
+<!ENTITY BI.PQTran.Filter.Height "40">
+<!ENTITY BI.PQTran.Detail.Height "242">
+<!ENTITY BI.PQTran.Dir.TabChange "">
+<!ENTITY BI.PQTran.Filter.TabChange "">
+<!ENTITY BI.PQTran.Filter.Status "">
+<!ENTITY BI.PQTran.Dir.AfterUpdate.Parameter "">
+
+<!ENTITY BI.PQTran.Command.Loading.Grid "">
+<!ENTITY BI.PQTran.Command.Closing.Grid "">
+<!ENTITY BI.PQTran.Command.Loading "">
+
+<!ENTITY BI.Command.Loading.Grid.FieldHidden "">
+
+<!ENTITY BI.Command.Checking.DeliveryDate "">
+
+<!ENTITY BI.PQDetail.Request.Load.Array "">
+<!ENTITY BI.PQDetail.Response.Item "exec AI_ERP$Voucher$Issue$Item @unitCode, @ma_vt">
+<!ENTITY BI.PQDetail.Fields.Grid "">
+<!ENTITY BI.PQDetail.Views.Grid "">
+<!ENTITY BI.PQDetail.ExecuteCommand.AfterCloneRow "">
+<!ENTITY BI.PQDetail.ExecuteCommand.Retrieve "">
+<!ENTITY BI.PQDetail.Script.Response.Item "
+g.setItemGridBehavior(o, [
+  ['dvt', result[3].Value, '', true],
+  ['he_so', result[4].Value, null, null]
+]);
+">
+<!ENTITY BI.PQDetail.ExecuteCommand.Copying "">
+<!ENTITY BI.PQDetail.Query.Loading "">
+<!ENTITY BI.PQDetail.Toolbar.Retrieve  "">
+<!ENTITY BI.PQDetail.OnChange.Plant "">
+
+<!ENTITY APVController "">
+<!ENTITY APVApprovalType "">
+<!ENTITY APVDetailTable "">
+<!ENTITY APVHisTable "">
+<!ENTITY APVCheckCategory "">
+<!ENTITY APVStatusNoAction "">
+<!ENTITY APVStatusOpen "">
+<!ENTITY APVStatusApprove "">
+<!ENTITY APVStatusClose "">
+<!ENTITY APVStatusPending "">
+<!ENTITY APVCategoryIndex "">
+<!ENTITY APVVisibleStatusNum "">
+<!ENTITY APVHiddenStatusNum "">
+<!ENTITY APVFieldTabChange "">
+<!ENTITY APVXMLFields "">
+<!ENTITY APVXMLViews "">
+<!ENTITY APVXMLCategoryIndex "">
+<!ENTITY APVInitExternalFieldsDeclare "">
+<!ENTITY APVInitExternalFieldsSeparate "">
+<!ENTITY APVInitExternalFieldsSelect "">
+<!ENTITY APVCheckApprove "">
+<!ENTITY APVApprove "">
+<!ENTITY APVMailApproveInsert "">
+<!ENTITY APVMailApproveUpdate "">
+<!ENTITY APVDelete "">
+<!ENTITY APVWhenVoucherCopying "">
+<!ENTITY APVSetVoucherDefaultValue "">
+<!ENTITY APVSetReadOnlyFields "">
+<!ENTITY APVHandleStatus "">
+<!ENTITY APVAddStatus "">
+<!ENTITY APVFunctionScript "">
+
+<!ENTITY APVHistoryExecute "">
+<!ENTITY APVHistoryResponse "">
+<!ENTITY APVHistoryToolbar "">
+<!ENTITY APVHistoryCss "">
+<!ENTITY APVHistoryGetData "">
+
+<!ENTITY PostNotifyGroup "">
+<!ENTITY PostNotifyCreate "">
+
+<!ENTITY % Conditional.APVEdit "IGNORE">
+
+
+<!ENTITY MailPrime "">
+<!ENTITY MailTemplate "">
+<!ENTITY ComposeResponse "">
+<!ENTITY ComposeRequest "">
+<!ENTITY ComposeComplete "">
+
+<!ENTITY BI.PQCompose.Script.ResponseComplete "">
+<!ENTITY BI.PQCompose.Script.ExecuteCommand "">
+<!ENTITY BI.PQCompose.Script.GetData "">
+
+<!ENTITY BI.PQCompose.Toolbar "">
+
+<!ENTITY BI.PQCompose.Toolbar.Css "">
+
+<!ENTITY BI.PQTran.Dir.APVStatusField SYSTEM "..\Include\XML\BI.PQTran.Dir.APVStatusField.Default.txt">
+
+<!ENTITY XMLWhenVoucherCopying SYSTEM "..\Include\XML\WhenStockCopying.xml">

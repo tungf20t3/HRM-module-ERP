@@ -1,0 +1,83 @@
+﻿<!ENTITY u1 "update @@table set ma_kho = b.ma_kho from @@table a join dmvt b on a.ma_vt = b.ma_vt where a.ma_kho = ''
+update @@table set ma_dvcs = b.ma_dvcs, id_dvcs = '&#37;#' + dbo.ff_Dec2Seq(c.id) + '#&#37;' from @@table a join dmkho b on a.ma_kho = b.ma_kho join dmdvcs c on b.ma_dvcs = c.ma_dvcs
+update @@table set id_dvcs = '&#37;' where id_dvcs is null">
+<!ENTITY u2 "update @@table set id_dvcs = '&#37;#' + dbo.ff_Dec2Seq(b.id) + '#&#37;' from @@table a join dmdvcs b on a.ma_dvcs = b.ma_dvcs">
+<!ENTITY u3 "update @@table set id_dvcs = '&#37;#' + dbo.ff_Dec2Seq(c.id) + '#&#37;' from @@table a join dmkho b on a.ma_kho = b.ma_kho join dmdvcs c on b.ma_dvcs = c.ma_dvcs
+update @@table set id_dvcs = '&#37;' where id_dvcs is null">
+<!ENTITY u4 "update @@table set id_dvcs = '&#37;#' + dbo.ff_Dec2Seq(b.id) + '#&#37;' from @@table a join dmdvcs b on a.ma_dvcs = b.ma_dvcs where a.ma_dvcs &lt;&gt; ''">
+<!ENTITY u5 "declare @idUnit varchar(32)
+select @idUnit = '&#37;#' + dbo.ff_Dec2Seq(id) + '#&#37;' from dmdvcs where ma_dvcs = @ma_dvcs">
+
+<!ENTITY u6 "update @@table set ma_dvcs = b.ma_dvcs, id_dvcs = '&#37;#' + dbo.ff_Dec2Seq(c.id) + '#&#37;' from @@table a join dmts b on a.so_the_ts = b.so_the_ts join dmdvcs c on b.ma_dvcs = c.ma_dvcs
+update @@table set id_dvcs = '&#37;' where id_dvcs is null">
+<!ENTITY u7 "update @@table set ma_dvcs = b.ma_dvcs, id_dvcs = '&#37;#' + dbo.ff_Dec2Seq(c.id) + '#&#37;' from @@table a join dmcc b on a.so_the_ts = b.so_the_ts join dmdvcs c on b.ma_dvcs = c.ma_dvcs
+update @@table set id_dvcs = '&#37;' where id_dvcs is null">
+<!ENTITY u8 "update @@table set ma_dvcs = b.ma_dvcs, id_dvcs = '&#37;#' + dbo.ff_Dec2Seq(c.id) + '#&#37;' from @@table a join dmccdc b on a.ma_dc = b.ma_dc join dmdvcs c on b.ma_dvcs = c.ma_dvcs
+update @@table set id_dvcs = '&#37;' where id_dvcs is null">
+<!ENTITY u9 "update @@table set id_dvcs = '&#37;#' + dbo.ff_Dec2Seq(c.id) + '#&#37;' from @@table a join dmccdc b on a.ma_dc = b.ma_dc join dmdvcs c on b.ma_dvcs = c.ma_dvcs
+update @@table set id_dvcs = '&#37;' where id_dvcs is null">
+
+<!ENTITY v1 "@@source">
+<!ENTITY v2 "&v1; where">
+<!ENTITY v3 "&v1; b where">
+<!ENTITY v4 "a.@@field = b.@@key">
+<!ENTITY v5 "&v1; b on &v4;">
+<!ENTITY v6 "&v5; and (b.ds_dvcs = '''' or b.ds_dvcs like ''' + @idUnit + ''')">
+<!ENTITY v7 "@@source c on a.@@field = c.@@key">
+<!ENTITY v8 "&v7; and (c.ds_dvcs = '''' or c.ds_dvcs like ''' + @idUnit + ''')">
+<!ENTITY v9 "&v4; and (b.ds_dvcs = '' or b.ds_dvcs like @idUnit)">
+<!ENTITY va "@@source g on a.@@field = g.@@key">
+<!ENTITY vb "&va; and (g.ds_dvcs = '''' or g.ds_dvcs like ''' + @idUnit + ''')">
+<!ENTITY vc "(select ma_bp from vxdmbp where truc_tiep = '1' and ma_bp in (select ma_bp from dmbp))">
+<!ENTITY vd "(select b.so_lsx from phlsx b where a.ma_dvcs = b.ma_dvcs or @costUnit = '0')">
+
+<!ENTITY d1 "&v2; (ds_dvcs = '' or ds_dvcs like @@table.id_dvcs)">
+<!ENTITY d2 "&v3; (ds_dvcs = '' or ds_dvcs like @@table.id_dvcs)">
+<!ENTITY d3 "&v2; (ds_dvcs = '' or ds_dvcs like @@table.id_dvcs or (@@table.ma_dvcs = '' @@and @@criteria))">
+<!ENTITY d4 "&v3; (b.ma_dvcs = @@table.ma_dvcs)">
+<!ENTITY d5 "&v3; (@@table.ma_dvcs = '' or b.ma_dvcs = @@table.ma_dvcs)">
+<!ENTITY d6 " and ">
+<!ENTITY d7 "&v2; @@criteria @@and">
+<!ENTITY d8 "&v1; @@where @@criteria">
+<!ENTITY d9 "&v2; (ds_dvcs = '' or ds_dvcs like #detailData.id_dvcs)">
+<!ENTITY da "&v2; (ds_dvcs = '' or ds_dvcs like #taxData.id_dvcs)">
+<!ENTITY db "&v3; (b.ma_dvcs = #detailData.ma_dvcs)">
+<!ENTITY dc "(select ma_bp from vxdmbp where truc_tiep = '1' and ma_bp in (select ma_bp from dmbp) and (ds_dvcs = '' or ds_dvcs like @@table.id_dvcs or (@@table.ma_dvcs = '' @@and @@criteria)))">
+<!ENTITY dd "(select b.so_lsx from phlsx b where @costUnit = '0' or (a.ma_dvcs = b.ma_dvcs and b.ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_access = 1)))">
+<!ENTITY de "
+if @type = '1'
+if @$mode = 1 begin
+  set rowcount @$errorCount;
+  insert into #errorTable(@@errorTableField) select '@@field', stt, '00002' from #k where @@field not in (select @@field from @@source @@where @@criteria) and not exists(select 1 from #errorTable e where e.field = '@@field' and e.row = stt and e.message = '00002')
+  set @$errorCount = @$errorCount - @@rowcount; set rowcount 0; if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  select @field = '@@field', @r = min(stt) from #k where @@field not in (select @@field from @@source @@where @@criteria)
+  if @r is not null begin select '' as message, @field as field, @r as record return end
+end
+">
+<!ENTITY df "
+if @type = '1'
+  if @$mode = 1 begin
+    set rowcount @$errorCount;
+    insert into #errorTable(@@errorTableField) select '@@field', stt, '00002' from #m2 where @@field not in (select @@field from @@source @@where @@criteria) and not exists(select 1 from #errorTable e where e.field = '@@field' and e.row = stt and e.message = '00002')
+    set @$errorCount = @$errorCount - @@rowcount; set rowcount 0; if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+  end else begin
+    select @field = '@@field', @r = min(stt) from #m2 where @@field not in (select @@field from @@source @@where @@criteria) if @r is not null begin select '' as message, @field as field, @r as record return end
+  end
+">
+<!ENTITY dg "&v3; (b.ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_access = 1))">
+
+<!ENTITY ConfigCommonFields SYSTEM ".\Include\CommonFields.txt">
+<!ENTITY ConfigSiteFields SYSTEM ".\Include\SiteFields.txt">
+<!ENTITY ConfigDetailFields SYSTEM ".\Include\DetailFields.txt">
+<!ENTITY ConfigListFields SYSTEM ".\Include\ListFields.txt">
+<!ENTITY ConfigCostingFields SYSTEM ".\Include\CostingFields.txt">
+
+<!ENTITY CheckVoucherUserDefinedFields SYSTEM ".\Include\VoucherUserDefinedFields.txt">
+<!ENTITY CheckDetailUserDefinedFields SYSTEM ".\Include\DetailUserDefinedFields.txt">
+
+<!ENTITY Voucher SYSTEM ".\Include\Voucher.xml">
+<!ENTITY Detail SYSTEM ".\Include\Detail.xml">
+<!ENTITY List SYSTEM ".\Include\List.xml">
+<!ENTITY Unit SYSTEM ".\Include\Unit.xml">
+<!ENTITY Costing SYSTEM ".\Include\Costing.xml">

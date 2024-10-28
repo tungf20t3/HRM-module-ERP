@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+    </field>
+    <field name="ngay2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+    <field name="tc_thue" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Tính chất thuế" e="Tax Property"/>
+      <footer v="1 - Đầu vào, 2 - Đầu ra" e="1 - Input, 2 - Output"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="tk_thue" allowNulls="false">
+      <header v="Tài khoản thuế" e="Tax Account"></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk_thue%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_tk_thue%l" external="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <footer v="Chương trình kiểm tra" e="Checking by Program"></footer>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1=1"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 25, 5, 70, 100, 100, 130, 0"/>
+      <item value="1100: [ngay1].Label, [ngay1]"/>
+      <item value="1100: [ngay2].Label, [ngay2]"/>
+      <item value="1101000: [tc_thue].Label, [tc_thue], [tc_thue].Description"/>
+      <item value="1100100: [tk_thue].Label, [tk_thue], [ten_tk_thue%l]"/>
+      <item value="110000: [ma_dvcs].Label, [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_rptCheckAccountTax @ngay1, @ngay2, @tc_thue, @tk_thue, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+	changeLookupReadonly(f, 'ma_dvcs');
+}
+function close$VoucherFilter$(sender) { try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {} }
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+			var g = f.grid, dFrom = f.getItem('ngay1').value, dTo = f.getItem('ngay2').value, acc = f.getItemValue('tk_thue'), accName = f.getItemValue('ten_tk_thue%l');
+      g._alterTitle = [null, [['%d1', dFrom, true], ['%d2', dTo, true], ['%s', acc + ' - ' + accName, true]]];
+      break;
+	  default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+</dir>

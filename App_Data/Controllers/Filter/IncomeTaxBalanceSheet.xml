@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="glthueqttn28_luu" code="ma_dvcs, ma_so, ky, nam" order="ma_dvcs, ma_so, ky, nam" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="ky" isPrimaryKey="true" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" isPrimaryKey="true" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11: [ky].Label, [ky]"/>
+      <item value="11: [nam].Label, [nam]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  f.getItem('ky').value = (new Date()).getMonth() + 1;
+  f.getItem('nam').value = (new Date()).getFullYear();
+  f.live(f.getItem('ky'));
+}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array();
+      g._period = f.getItemValue('ky');
+      g._year = f.getItemValue('nam');
+      Array.add(k, {Name: 'ky', Opr: '=', Value: g._period, Type: 'Decimal', Ignore: false});
+      Array.add(k, {Name: 'nam', Opr: '=', Value: g._year, Type: 'Decimal', Ignore: false});
+      g.set_externalKey(k);
+      g._alterTitle = [null, [['%s1', g._period.toString(), true], ['%s2', g._year.toString(), true]]];
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+</dir>

@@ -1,0 +1,56 @@
+﻿<![CDATA[
+function show$PanelFullImage(event) {
+  var view = $get('bottomRightView')._parent, g = view.grid, imageKey = g._fullImageKey;
+  if (!g._fullImageKey) return;
+  show$ImageFrame(view._currentID, g._app, g._fullImageKey);
+}
+function show$FormFullImage(event) {
+  var f = this, g = f.grid, view = g._view;
+  var imageKey = g._fullImageKey, viewMode = true;
+  if (f) viewMode = (f._action == 'View');
+  if ((!imageKey) || (!viewMode)) return;
+  show$ImageFrame(view._currentID, g._app, imageKey);
+}
+function show$ImageFrame(id, app, key) {
+  var windowWidth = window.innerWidth || document.documentElement.clientWidth, windowHeight = window.innerHeight || document.documentElement.clientHeight;
+  var imageSource = String.format('../AppHandler/Image.ashx?t=showfull&k={0}&w={1}&h={2}&d={3}&r={4}', id, windowWidth, windowHeight, app, key);
+  var imgBackground = $common.createElementFromTemplate({ nodeName: 'div', properties: { id: String.format('fullImageBackground') }, cssClasses: ['FullImageBackground'] });
+  var imgContainer = $common.createElementFromTemplate({ nodeName: 'div', properties: { id: String.format('fullImageContainer') }, cssClasses: ['FullImageContainer'], events: { click: function (event) { on$ImageFrameClick(event) } } });
+  var imgFrame = $common.createElementFromTemplate({ nodeName: 'div', properties: { id: String.format('fullImageFrame') }, cssClasses: ['FullImageFrame'] });
+  var imgContent = $common.createElementFromTemplate({ nodeName: 'img', properties: { id: String.format('fullImageContent'), src: imageSource, tabIndex: 1 }, cssClasses: ['FullImageContent'], events: { keydown: function (event) { on$ImageViewKeyPress(event) } } });
+  var imgCloseButton = $common.createElementFromTemplate({ nodeName: 'a',  properties: { id: String.format('fullImageCloseButton') }, cssClasses: ['FullImageCloseButton'], events: { click: function (event) { on$ImageFrameClick(event) } } });
+  imgFrame.appendChild(imgCloseButton);
+  imgFrame.appendChild(imgContent);
+  
+  var imgTable = $common.createElementFromTemplate({ nodeName: 'table', properties: {  border:0, cellPadding:0, cellSpacing:0 } });
+  imgTable.style.width = '100%'; imgTable.style.height = '100%';
+  
+  var imgRow = $common.createElementFromTemplate({ nodeName: 'tr'});
+  var imgColumn = $common.createElementFromTemplate({ nodeName: 'td', properties: { align: 'center' }});
+  imgColumn.style.width = '100%'; imgColumn.style.height = '100%'; imgColumn.style.verticalAlign = 'middle';
+  imgColumn.appendChild(imgFrame);
+  imgRow.appendChild(imgColumn);
+  imgTable.appendChild(imgRow);
+  imgContainer.appendChild(imgTable);
+
+  document.body.appendChild(imgBackground);
+  document.body.appendChild(imgContainer);
+  imgContent.focus();
+  
+  if (!$func.isIE) AjaxControlToolkit.Animation.FadeInAnimation.play(imgFrame, 0.25, 40, 0, 1);
+}
+function on$ImageFrameClick(event) {
+  var target = event.target ? event.target : event.srcElement;
+  if (target.tagName.toLowerCase() == 'img') return;
+  close$ImageFrame();
+}
+function on$ImageViewKeyPress(event) {
+  var key = event.keyCode || event.which;
+  if (key === 27) close$ImageFrame();
+}
+function close$ImageFrame() {
+  var imgBackground = $get('fullImageBackground'), imgContainer = $get('fullImageContainer');
+  if (imgContainer) imgContainer.parentNode.removeChild(imgContainer);
+  if (imgBackground) imgBackground.parentNode.removeChild(imgBackground);
+}
+]]>

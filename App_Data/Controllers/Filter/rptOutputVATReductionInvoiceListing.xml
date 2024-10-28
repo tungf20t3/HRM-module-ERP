@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "rptOutputVATReductionInvoiceListing">
+  <!ENTITY TaxAgency "TT80_CQTQL">
+  <!ENTITY TaxTemplate "018MGTGTGT">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\Circular\A1115\ReportCircularTypeField.xml">
+
+  <!ENTITY % DetailTax SYSTEM "..\Include\DetailTax.ent">
+  %DetailTax;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tu_thang" allowNulls="false" type="Decimal" dataFormatString="#0">
+      <header v="Từ tháng" e="From Month"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="den_thang" allowNulls="false" type="Decimal" dataFormatString="#0">
+      <header v="Đến tháng" e="To Month"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v ="Năm" e ="Year"/>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="pp_tinh_thue" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Phương pháp tính thuế" e="Method"></header>
+      <footer v="1 - Khấu trừ, 2 - Trực tiếp" e="1 - Deduction, 2 - Direct"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="tl_tinh_thue" type="Decimal" dataFormatString="#00.00" defaultValue="0">
+      <header v="Tỷ lệ tính thuế" e="Rate"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="bc_theo" dataFormatString="1, 2, 3" clientDefault="1" align="right">
+      <header v="Báo cáo theo" e="Report by"/>
+      <footer v="1 - Hàng hóa, vật tư, 2 - Dịch vụ, 3 - Cả hai" e="1 - Items, 2 - Services, 3 - All"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="nh_vt1">
+      <header v="Nhóm hàng hóa - vt 1" e="Item Group 1"/>
+      <footer v="Nhóm hàng hóa - vt" e="Item Group"></footer>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 1 and status = '1'" check="loai_nh = 1"/>
+    </field>
+    <field name="nh_vt2">
+      <header v="Nhóm hàng hóa - vt 2" e="Item Group 2"/>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 2 and status = '1'" check="loai_nh = 2"/>
+    </field>
+    <field name="nh_vt3">
+      <header v="Nhóm hàng hóa - vt 3" e="Item Group 3"/>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 3 and status = '1'" check="loai_nh = 3"/>
+    </field>
+    <field name="tk_dt">
+      <header v="Tài khoản doanh thu" e="Sales Account"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="tk_gg">
+      <header v="Tài khoản giảm giá" e="Discount Account"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="tk_tl">
+      <header v="Tài khoản trả lại" e="Sales Return Account"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1=1"/>
+    </field>
+
+
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    &ReportCircularTypeField;
+
+    <field name="mau_bc" clientDefault="10">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10"  >
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 30, 30, 100, 100, 130, 0"/>
+      <item value="11: [tu_thang].Label, [tu_thang]"/>
+      <item value="11: [den_thang].Label, [den_thang]"/>
+      <item value="11: [nam].Label, [nam]"/>
+
+      <item value="1110000: [pp_tinh_thue].Label, [pp_tinh_thue], [pp_tinh_thue].Description"/>
+      <item value="1110000: [tl_tinh_thue].Label, [tl_tinh_thue], [tl_tinh_thue].Description"/>
+      <item value="1110000: [bc_theo].Label, [bc_theo], [bc_theo].Description"/>
+
+      <item value="110011: [nh_vt1].Description, [nh_vt1], [nh_vt2], [nh_vt3]"/>
+      <item value="110000: [tk_dt].Label, [tk_dt]"/>
+      <item value="110000: [tk_gg].Label, [tk_gg]"/>
+      <item value="110000: [tk_tl].Label, [tk_tl]"/>
+
+      <item value="110000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110000: [chon_tt].Label, [chon_tt]"/>
+      <item value="110000: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @extension varchar(32), @voucherList varchar(512), @period int, @quarter_yn tinyint, @$taxAuthorityCode varchar(32), @$title$Report nvarchar(4000)
+
+select @$title$Report = case when @@language = 'V' then cname else cname2 end from reports where ccode = case when @chon_tt = '1' then 'RPT121' else 'RPT122' end
+select @extension = rtrim(@pp_tinh_thue) + rtrim(@bc_theo) + ]]>&DetailTaxReductionReport;<![CDATA[, @voucherList = rtrim(parameter) from @@sysDatabaseName..wcommand where sysid = ']]>&Controller;<![CDATA['
+select @period = case when @tu_thang = 1 and @den_thang = 3 then 1 when @tu_thang = 4 and @den_thang = 6 then 2 when @tu_thang = 7 and @den_thang = 9 then 3 when @tu_thang = 10 and @den_thang = 12 then 4 else 0 end
+select @quarter_yn = case when @period <> 0 then 1 else 0 end, @period = case when @period = 0 then @den_thang else @period end, @chon_tt = '1'
+exec rs_GetTaxAuthority @ma_dvcs, @@userID, @@admin, @$taxAuthorityCode out
+
+select @quarter_yn as quarter_yn, @period as period, @tu_thang as ky1, @den_thang as ky2, @nam as nam, @pp_tinh_thue as pp_tinh_thue, ']]>&TaxAgency;<![CDATA[' + rtrim(@$taxAuthorityCode) as ma_cqt, ']]>&TaxTemplate;<![CDATA[' as ma_mau, @$title$Report as titleReport
+exec rs_rptOutputVATReductionInvoiceListing @tu_thang, @den_thang, @nam, @nh_vt1, @nh_vt2, @nh_vt3, @tk_dt, @tk_gg, @tk_tl, @ma_dvcs, @chon_tt, @tl_tinh_thue, @voucherList, @extension, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");changeLookupReadonly(a,"tk_dt");changeLookupReadonly(a,"tk_gg");changeLookupReadonly(a,"tk_tl");var b=a.getItem("tu_thang");if(!a.getItemValue("tu_thang")){b.value=a.getItem("den_thang").value=(new Date).getMonth()+1;a.getItem("nam").value=(new Date).getFullYear()}a.live(b)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(k,b){var a=b.object,e=b.type.Context,j=b.type.Result;switch(e){case"Checking":var c=a.grid,h=a.getItem("mau_bc").value,d=a.getItemValue("pp_tinh_thue");c._hiddenFields=[{Fields:"tien_nt, thue_giam_nt",Value:h=="10"},{Fields:"tl_thue, tl_thue_giam",Value:d=="1"},{Fields:"thue_suat, thue_suat_giam",Value:d=="2"}];var f=a.getItem("tu_thang").value,g=a.getItem("den_thang").value,i=a.getItem("nam").value;c._alterTitle=[null,[["%m1",f,true],["%m2",g,true],["%y",i,true]]];remove$GridReport$Filter(c)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

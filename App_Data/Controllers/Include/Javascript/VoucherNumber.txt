@@ -1,0 +1,101 @@
+﻿<![CDATA[
+objectBehavior$Voucher$Number = {
+  create: function(f, voucherNumber, voucherBook, voucherReference, fieldReference) {
+    var c = f.getItem(voucherNumber), b = f.getItem(voucherBook);
+    var v = f._voucherNumberBehavior = $create(AI_ERP.AjaxControlExtender.VoucherNumber, {id: f._id + '_voucherNumberBehavior', book: b, form: f}, null, null, c);
+    if (voucherReference && fieldReference) {
+      f._voucher$Reference$Lookup = voucherReference;
+      f._field$Referencee$Lookup = fieldReference;
+      f._voucher$NumberLookup = b._controlBehavior;
+      f._voucher$NumberLookup.add_loading(on$voucher$Number$Before$Lookup);
+    }
+    v.init();
+    v.setFormLayout();
+    this._voucherNumberChangedHandler = Function.createDelegate(this, this.onVoucherNumberChanged);
+    v.add_onVoucherNumberChange(this._voucherNumberChangedHandler);
+    if (f._isVoucherBook == 0) v.hideBook();
+  },
+  dispose: function(f) {
+    if (f._voucherNumberBehavior) {
+      if (f._voucher$NumberLookup) {
+        try {f._voucher$NumberLookup.remove_loading(on$voucher$Number$Before$Lookup);} catch (ex) {}
+        f._voucher$NumberLookup = null;
+      }
+      if (this._voucherNumberChangedHandler) {
+        f._voucherNumberBehavior.remove_onVoucherNumberChange(this._voucherNumberChangedHandler);
+        this._voucherNumberChangedHandler = null;
+      }
+      f._voucherNumberBehavior.dispose();
+    }
+  },
+  warning: function(f, msg) {$message.show(msg + String.format('<div style="color:#035ab8;">{0}</div>', (f._language == 'v' ? 'Lưu ý: Hệ thống vẫn lưu dữ liệu vừa cập nhật.' : 'Warnings: Updated data has been saved.')), String.format('$get(\'{0}_updateDlgNew\').focus();', f.get_id()));},
+  onVoucherNumberChanged: function(sender, e) {e.object._book.parentForm.request('GetVoucherNumber', 'GetVoucherNumber', [['voucherBook', 'String', e.type]]);}
+}
+function on$voucher$Number$Before$Lookup(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields(f._voucher$Reference$Lookup)) e.type.cancelEvent = true;
+    else sender.set_memvars([{Name: 'd', Type: 'DateTime', Value: f.getItemValue(f._voucher$Reference$Lookup)}, {Name: 'u', Type: 'String', Value: u = f.getItemValue(f._field$Referencee$Lookup)}]);
+}
+
+function vnr$GetNumber(s) {
+  var v = '', n = 0, i1 = s.indexOf('['), i2 = -1, s1 = '', s2 = '', r = false;
+  if (i1 >= 0) {
+    i2 = s.indexOf(']', i1 + 1);
+    if (i2 > i1) {
+      var t = s.substr(i1 + 1, i2 - i1 - 1);
+      if (!isNaN(parseFloat(t)) && isFinite(t)) {
+        r = true;
+        v = t;
+        n = parseInt(v);
+        s1 = s.substr(0, i1 + 1);
+        s2 = s.substr(i2);
+      }
+    }
+  } else if (s.length > 0) {
+    var a = s.match(/\d+/g);
+    if (a && a.length > 0) {
+      var l = a[0].length, e = 0;
+      for (var i = 1; i < a.length; i++) {
+        if (a[i].length > l) {
+          l = a[i].length;
+          e = i;
+        }
+      }
+      if (l > 0) {
+        v = a[e];
+        n = parseInt(v);
+        i1 = s.indexOf(v);
+        i2 = i1 + v.length;
+        s1 = s.substr(0, i1);
+        s2 = s.substr(i2);
+      }
+    }
+  }
+  return {s: s, v: v, n: n, s1: s1, s2: s2, r: r};
+}
+
+function vnr$SetVoucherNumber(f, type, def, vn0, vn1, vn2) {
+  var vnf = f._voucherNumberBehavior._voucherNumber;
+  if (f._action == 'New' || type == 2) {
+    if (vn0.length > 0)
+      vnf.value = vnr$IncreaseNumber(vn0, vn1, vn2);
+    else
+      vnf.value = $func.increaseNumber(def);
+  }
+}
+
+function vnr$IncreaseNumber(vn0, vn1, vn2) {
+  var n0 = vnr$GetNumber(vn0);
+  var s1 = vn1.substr(n0.s1.length, n0.v.length), s2 = vn2.substr(n0.s1.length, n0.v.length);
+  var r = '', n = n0.n + 1;
+  if (n >= parseInt(s1) && n <= parseInt(s2)) {
+    r = '' + n;
+    var l = (n0.v.length - r.length);
+    for(var i = 0; i < l; i++) {
+      r = '0' + r;
+    }
+    r = n0.s1.substr(0, n0.s1.length - (n0.r ? 1 : 0)) + r + n0.s2.substr((n0.r ? 1 : 0));
+  }
+  return r;
+}
+]]>

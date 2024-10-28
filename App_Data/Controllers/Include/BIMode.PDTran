@@ -1,0 +1,361 @@
+﻿<!ENTITY % Conditional.BIMode SYSTEM "..\Include\BIMode.txt">
+
+<![%Conditional.BIMode;[
+  <!ENTITY BI.PDDetail.Grid.Fields SYSTEM "..\Include\XML\BI.PDDetail.Grid.Fields.txt">
+  <!ENTITY BI.PDDetail.Grid.Views SYSTEM "..\Include\XML\BI.PDDetail.Grid.Views.txt">
+  <!ENTITY BI.PDDetail.Grid.Toolbar SYSTEM "..\Include\XML\BI.PDDetail.Grid.Toolbar.txt">
+
+  <!ENTITY BI.PDDetail.Grid.Retrieve "
+case '05':
+  g.showForm('BIPDSAFilter');
+  break;
+">
+  <!ENTITY BI.Post.History.PO "
+  exec AI_ERP$BI$Voucher$Posting$HistoryPO 'm96$$partition$current', 'd96$$partition$current', @stt_rec, @@id, 'a.stt_rec_dh &lt;&gt; '''' and right(a.stt_rec_dh, 3) = ''PO1''',
+    'tien_nt_x, tien_xuat, tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_nhap = b.tien, tien_nt_n = b.tien_nt', '', &StockType;
+">
+  <!ENTITY BI.Delete.History.PO "delete bih94$000000 where stt_rec = @stt_rec">
+  <!ENTITY BI.Post.History.PI "
+  exec AI_ERP$BI$Voucher$Posting$HistoryPI 'm96$$partition$current', 'd96$$partition$current', @stt_rec, @@id, 'a.stt_rec_dh &lt;&gt; '''' and right(a.stt_rec_dh, 3) = ''PO2''',
+    'tien_nt_x, tien_xuat, tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_nhap = b.tien, tien_nt_n = b.tien_nt', '', &StockType;
+">
+  <!ENTITY BI.Delete.History.PI "delete bih95$000000 where stt_rec = @stt_rec">
+  <!ENTITY BI.Post.History.SA "
+  exec AI_ERP$BI$Voucher$Posting$HistorySA 'm96$$partition$current', 'd96$$partition$current', @stt_rec, @@id, 'a.stt_rec_hd &lt;&gt; ''''',
+    'tien_nt_x, tien_xuat, tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_nhap = b.tien, tien_nt_n = b.tien_nt', '', &StockType;
+">
+  <!ENTITY BI.Delete.History.SA "delete bih06$000000 where stt_rec = @stt_rec">
+  <!ENTITY BI.MasterWhere.PO "">
+  <!ENTITY BI.FilterWhere.PO "'(m$ like ''&#37;#15$3&#37;'' or m$ like ''&#37;#15$4&#37;'')'">
+
+  <!ENTITY BI.PDTran.Approval.PO " &#42; (case when so_luong &gt;= 0 then 1 else -1 end) &#42; (case when po_ht_yn = 1 then 1 else -1 end)">
+  <!ENTITY BI.PDTran.Approval.Before "
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '1', stt_rec_hd, stt_rec0hd, (so_luong * he_so)&BI.PDTran.Approval.PO; from d96$$partition$previous where stt_rec = @stt_rec and stt_rec_hd &lt;&gt; ''
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '1', stt_rec_ttmh, stt_rec0ttmh, (so_luong * he_so)&BI.PDTran.Approval.PO; from d96$$partition$previous where stt_rec = @stt_rec and stt_rec_ttmh &lt;&gt; ''
+">
+  <!ENTITY BI.PDTran.Approval.After "
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '2', stt_rec_hd, stt_rec0hd, (so_luong * he_so)&BI.PDTran.Approval.PO; from d96$$partition$current where stt_rec = @stt_rec and stt_rec_hd &lt;&gt; ''
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '2', stt_rec_ttmh, stt_rec0ttmh, (so_luong * he_so)&BI.PDTran.Approval.PO; from d96$$partition$current where stt_rec = @stt_rec and stt_rec_ttmh &lt;&gt; ''
+">
+  <!ENTITY BI.PDTran.DetailTableSource "
+#IF $d96.NewValue = $d96.OldValue #THEN
+  (select * from d96$$partition$previous where stt_rec = @stt_rec)
+#ELSE
+  @d96
+#END
+">
+  <!ENTITY BI.PDTran.DetailTableSource.Action "
+#IF @@action = 'Edit' #THEN
+  (select * from d96$$partition$previous where stt_rec = @stt_rec)
+#ELSE
+  @d96
+#END
+">
+  <!ENTITY BI.PDTran.Filter.h "160">
+  <!ENTITY BI.PDTran.Filter.Fields SYSTEM "..\Include\XML\BI.PDTran.Filter.Fields.txt">
+  <!ENTITY BI.PDTran.Filter.Views SYSTEM "..\Include\XML\BI.PDTran.Filter.Views.xml">
+
+  <!ENTITY BI.PDTran.PODefaultValue.Script.LoadGrid "g._$PODefaultForm.HiddenField = &#91;'ma_bp0', 'ma_nh0'&#93;;">
+  <!ENTITY BI.PDTran.Grid.Loading "select @message = @message + 'load$&Identity;$Grid(this);'">
+  <!ENTITY BI.PDTran.Grid.Closing "
+select 'dispose$&Identity;$Grid(this);' as message
+return
+">
+  <!ENTITY BI.PDTran.Form.CheckWhenVoucherBeforeEdit "
+#IF @@view = 0 #THEN
+  #IF @@action = 'Edit' #THEN
+    #IF @@admin &lt;&gt; 1 #THEN
+      if exists(select 1 from bisysplantrights where user_id = @@userID) and exists(select 1 from d96$$partition$current a where stt_rec = @stt_rec and ma_vung not in (select ma_vung from bisysplantrights b where b.user_id = @@userID)) begin
+        select @message as script, '$NotAuthorized' as message
+        return
+      end
+    #END
+    if exists(select 1 from @@prime$partition$current where stt_rec = @stt_rec and status &lt;&gt; '0') begin
+      &BI.PDTran.Form.CheckDelivery;
+    end
+    if exists(select 1 from @@prime$partition$current a join bikd00$$partition$current b on a.stt_rec = b.stt_rec_goc where a.stt_rec = @stt_rec and a.status &lt;&gt; '0' and b.datetime0 &lt;&gt; b.datetime2) begin
+      select 'd96' as field, case when @@language = 'v' then N'Tồn tại lô kiểm định thuộc phiếu nhập đã phát sinh, không sửa hoặc xóa được.' else N'There existed an inspection lot which belong to goods receipt has been used, it cannot be edited or deleted.' end as message
+      return
+    end
+  #END
+#END
+">
+  <!ENTITY BI.PDTran.Form.CheckWhenVoucherBeforeDelete "
+#IF @@admin &lt;&gt; 1 #THEN
+  if exists(select 1 from bisysplantrights where user_id = @@userID) and exists(select 1 from d96$$partition$current a where stt_rec = @stt_rec and ma_vung not in (select ma_vung from bisysplantrights b where b.user_id = @@userID)) begin
+    select @$denyAccess as message
+    return
+  end
+#END
+if exists(select 1 from @@prime$partition$previous where stt_rec = @stt_rec and status &lt;&gt; '0') begin
+  &BI.PDTran.Form.CheckDelivery;
+end
+if exists(select 1 from @@prime$partition$previous a join bikd00$$partition$previous b on a.stt_rec = b.stt_rec_goc where a.stt_rec = @stt_rec and a.status &lt;&gt; '0' and b.datetime0 &lt;&gt; b.datetime2) begin
+  select 'd96' as field, case when @@language = 'v' then N'Tồn tại lô kiểm định thuộc phiếu nhập đã phát sinh, không sửa hoặc xóa được.' else N'There existed an inspection lot which belong to goods receipt has been used, it cannot be edited or deleted.' end as message
+  return
+end
+">
+
+  <!ENTITY BI.PDTran.Form.CheckDelivery "
+declare @q$Delivery nvarchar(4000), @e$Delivery$Conflict nvarchar(512), @e$Delivery$Invalid nvarchar(512), @e$Delivery$Line int
+
+select @e$Delivery$Conflict = case when @@language = 'v' then N'Vật tư &lt;span class=&quot;Highlight&quot;&gt;&#37;s&lt;/span&gt; đã được khai báo hoàn thành nhận hàng.' else N'The item &lt;span class=&quot;Highlight&quot;&gt;&#37;s&lt;/span&gt; was marked as received.' end
+select @e$Delivery$Invalid = case when @@language = 'v' then N'Đã có phát sinh liên quan đến vật tư &lt;span class=&quot;Highlight&quot;&gt;&#37;s&lt;/span&gt; của đơn hàng, không sửa hoặc xóa được.' else N'There existed processing against Purchase Order for item &lt;span class=&quot;Highlight&quot;&gt;&#37;s&lt;/span&gt;, it cannot be edited or deleted.' end
+
+select a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_hd, a.stt_rec0hd, min(a.line_nbr) as line_nbr, max(b.datetime2) as datetime2 into #d$Delivery from d96$$partition$current a left join m96$$partition$current b on a.stt_rec = b.stt_rec where a.stt_rec = @stt_rec and (a.stt_rec_dh &lt;&gt; '' or a.stt_rec_hd &lt;&gt; '') group by a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_hd, a.stt_rec0hd
+select top 0 stt_rec_dh, stt_rec0dh, stt_rec_hd, stt_rec0hd, datetime2 into #h$Delivery from #d$Delivery
+
+if exists(select 1 from #d$Delivery where stt_rec_dh &lt;&gt; '') begin
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih94$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec &lt;&gt; b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 &lt; b.datetime2
+  if @e$Delivery$Line is not null begin
+    select 'd96' as field, replace(@e$Delivery$Invalid, '&#37;s', rtrim(ma_vt)) as message from d96$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih95$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec &lt;&gt; b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 &lt; b.datetime2
+  if @e$Delivery$Line is not null begin
+    select 'd96' as field, replace(@e$Delivery$Invalid, '&#37;s', rtrim(ma_vt)) as message from d96$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+end
+if exists(select 1 from #d$Delivery where stt_rec_hd &lt;&gt; '') begin
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih06$000000 b on a.stt_rec_hd = b.stt_rec_hd and a.stt_rec0hd = b.stt_rec0hd where a.stt_rec &lt;&gt; b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 &lt; b.datetime2
+  if @e$Delivery$Line is not null begin
+    select 'd96' as field, replace(@e$Delivery$Invalid, '&#37;s', rtrim(ma_vt)) as message from d96$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+end
+
+if exists(select 1 from #d$Delivery where stt_rec_dh &lt;&gt; '') begin
+  insert into #h$Delivery (stt_rec_dh, stt_rec0dh, datetime2)
+    select h.stt_rec_dh, h.stt_rec0dh, max(h.datetime2)
+      from bih94$000000 h where exists(select 1 from #d$Delivery d where d.stt_rec &lt;&gt; h.stt_rec and d.stt_rec_dh = h.stt_rec_dh and d.stt_rec0dh = h.stt_rec0dh and (h.ma_ct = 'PD1' or (h.ma_ct in ('PXC', 'PXR') and h.tt_yn = 1)) and d.datetime2 > h.datetime2)
+        group by h.stt_rec_dh, h.stt_rec0dh
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join #h$Delivery b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh join bih94$000000 c on a.stt_rec_dh = c.stt_rec_dh and a.stt_rec0dh = c.stt_rec0dh and b.datetime2 = c.datetime2 where c.po_ht_yn = 1
+  if @e$Delivery$Line is not null begin
+    select 'd96' as field, replace(@e$Delivery$Conflict, '&#37;s', rtrim(ma_vt)) as message from d96$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+
+  insert into #h$Delivery (stt_rec_dh, stt_rec0dh, datetime2)
+    select h.stt_rec_dh, h.stt_rec0dh, max(h.datetime2)
+      from bih95$000000 h where exists(select 1 from #d$Delivery d where d.stt_rec &lt;&gt; h.stt_rec and d.stt_rec_dh = h.stt_rec_dh and d.stt_rec0dh = h.stt_rec0dh and (h.ma_ct = 'PD1' or (h.ma_ct in ('PXC', 'PXR') and h.tt_yn = 1)) and d.datetime2 > h.datetime2)
+        group by h.stt_rec_dh, h.stt_rec0dh
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join #h$Delivery b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh join bih95$000000 c on a.stt_rec_dh = c.stt_rec_dh and a.stt_rec0dh = c.stt_rec0dh and b.datetime2 = c.datetime2 where c.po_ht_yn = 1
+  if @e$Delivery$Line is not null begin
+    select 'd96' as field, replace(@e$Delivery$Conflict, '&#37;s', rtrim(ma_vt)) as message from d96$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+end
+
+if exists(select 1 from #d$Delivery where stt_rec_hd &lt;&gt; '') begin
+  insert into #h$Delivery (stt_rec_hd, stt_rec0hd, datetime2)
+    select h.stt_rec_hd, h.stt_rec0hd, max(h.datetime2)
+      from bih06$000000 h where exists(select 1 from #d$Delivery d where d.stt_rec &lt;&gt; h.stt_rec and d.stt_rec_hd = h.stt_rec_hd and d.stt_rec0hd = h.stt_rec0hd and (h.ma_ct = 'PD1' or (h.ma_ct in ('PXC', 'PXR') and h.tt_yn = 1)) and d.datetime2 > h.datetime2)
+        group by h.stt_rec_hd, h.stt_rec0hd
+  select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join #h$Delivery b on a.stt_rec_hd = b.stt_rec_hd and a.stt_rec0hd = b.stt_rec0hd join bih06$000000 c on a.stt_rec_hd = c.stt_rec_hd and a.stt_rec0hd = c.stt_rec0hd and b.datetime2 = c.datetime2 where c.po_ht_yn = 1
+  if @e$Delivery$Line is not null begin
+    select 'd96' as field, replace(@e$Delivery$Conflict, '&#37;s', rtrim(ma_vt)) as message from d96$$partition$current where stt_rec = @stt_rec and line_nbr = @e$Delivery$Line
+    return
+  end
+end
+">
+
+  <!ENTITY BI.PDTran.Form.Render.Add "f.getItem('d96')._controlBehavior.add_onRender(on$Voucher$GridRender);">
+  <!ENTITY BI.PDTran.Form.Render.Remove "try {f.getItem('d96')._controlBehavior.remove_onRender(on$Voucher$GridRender);} catch (ex) {}">
+
+  <!ENTITY BI.PDTran.Form.Check SYSTEM "..\Include\Command\BI.PDTran.Form.Check.txt">
+  <!ENTITY BI.PDTran.Form.Checking.Var ", v2 = (g._getItemValue(row, l2) != '')">
+  <!ENTITY BI.PDTran.Form.Checking.If " || v2">
+  <!ENTITY BI.PDTran.Form.Checking.Trans "
+var c = $func.trim(f.getItemValue('loai_ct'));
+if (f._checked &amp;&amp; v2 &amp;&amp; c != '1') {
+  $func.hideWait(f.get_id());
+  $message.show((v ? 'Dữ liệu trong chi tiết không phù hợp với mã giao dịch.' : 'Detail data does not match transaction.'), String.format('$find(\'{0}\').getItem(\'ma_gd\').focus()', f.get_id()));
+  f._checked = false;
+  break;
+}
+">
+
+  <!ENTITY BI.PDTran.Form.Detail.w "0">
+  <!ENTITY BI.PDTran.Form.Detail.Hidden "true">
+
+  <!ENTITY BI.PDTran.Form.Flow.Plant.Key "
+declare @keyPlant varchar(512)
+exec AI_ERP$BI$GetPlantFilter '', @@userID, @@admin, 'f$', @keyPlant output, 1
+if isnull(@keyPlant, '') &lt;&gt; '' begin
+  select @keyFlow = @keyFlow + ' and ' + replace(replace(@keyPlant, '''&#37;$'' + ', ''), ' + ''$&#37;''', '')
+end
+">
+  <!ENTITY BI.PDTran.Form.Flow.Filter.PO.Master "' + case when @loai_ct = '2' then '4' else '3' end + '">
+  <!ENTITY BI.PDTran.Form.Flow.Filter.PI.Master "3">
+  <!ENTITY BI.PDTran.Form.Flow.Filter.PO.Lookup "
+select @$detailPartition = @$detailPartition + case when @$detailPartition &lt;&gt; '' then char(255) else '' end + 'd94$&#37;Partition',
+  @$detailAlias = @$detailAlias + case when @$detailAlias &lt;&gt; '' then char(255) else '' end + 'd94',
+  @$detailFilter = @$detailFilter + case when @$detailFilter &lt;&gt; '' then char(255) else '' end + '(d94.po_ht_yn = 0)'
+">
+  <!ENTITY BI.PDTran.Form.Flow.Filter.PI.Lookup "
+select @$detailPartition = @$detailPartition + case when @$detailPartition &lt;&gt; '' then char(255) else '' end + 'd95$&#37;Partition',
+  @$detailAlias = @$detailAlias + case when @$detailAlias &lt;&gt; '' then char(255) else '' end + 'd95',
+  @$detailFilter = @$detailFilter + case when @$detailFilter &lt;&gt; '' then char(255) else '' end + '(d95.po_ht_yn = 0)'
+">
+  <!ENTITY BI.PDTran.Form.Flow.CheckBlank "if (first &amp;&amp; row &gt; 0) if (check$GridVoucherDetail$DefaultMemvar(z, row)) {ins = false; first = false;}">
+
+  <!ENTITY BI.PDTran.Form.MultiFlow.Form.PO "queryFilterString += c + h.getItemValue('loai_ct');">
+  <!ENTITY BI.PDTran.Form.MultiFlow.Grid.PO "select @queryWhereClause = @queryWhereClause + ' and m.loai_ct in (' + case when @loai_ct = '1' then '''3''' else '''4''' end + ')'">
+  <!ENTITY BI.PDTran.Form.MultiFlow.Grid.Plant "
+if exists(select 1 from bisysplantrights r where r.user_id = @@userID) begin
+  select @queryWhereClause = @queryWhereClause + ' and exists(select 1 from bisysplantrights r where r.user_id = @@userID and a.ma_vung = r.ma_vung)'
+end
+">
+
+  <!ENTITY BI.PDTran.Form.Detail.Retrieve.Key "if (f.getItemValue('loai_ct') == '2' &amp;&amp; '0530'.indexOf(e.type.Value) &gt; -1) break;">
+  <!ENTITY BI.PDTran.Form.Detail.Item.Request ", 'ma_vung'">
+  <!ENTITY BI.PDTran.Form.Detail.Item.Response ", default, default, @ma_vung">
+
+  <!ENTITY BI.PDTran.Retrieve.Fields ", loai_hang, ma_vung, so_luong1, so_luong2, loai_dt, ct_dt_pb, ma_bp0, ma_nh0, stt_rec_ttmh, stt_rec0ttmh">
+  <!ENTITY BI.PDTran.Retrieve.Fields.SA ", loai_hang, ma_vung, so_luong1, so_luong2, loai_dt, ct_dt_pb, ma_bp0, ma_nh0">
+  <!ENTITY BI.PDTran.Retrieve.Declare.Fields ", loai_hang, rtrim(ma_vung) as ma_vung, so_luong as so_luong1, so_luong as so_luong2, loai_dt, ct_dt_pb, rtrim(ma_bp0) as ma_bp0, rtrim(ma_nh0) as ma_nh0, stt_rec_ttmh, stt_rec0ttmh">
+  <!ENTITY BI.PDTran.Retrieve.Declare.Fields.SA ", loai_hang, rtrim(ma_vung) as ma_vung, so_luong as so_luong1, so_luong as so_luong2, loai_dt, ct_dt_pb, rtrim(ma_bp0) as ma_bp0, rtrim(ma_nh0) as ma_nh0">
+  <!ENTITY BI.PDTran.Retrieve.Select.Fields ", rtrim(loai_hang) as loai_hang, rtrim(ma_vung) as ma_vung, case when sai_can_duoi = 0 then 0 else ((so_luong * he_so) - ((so_luong * he_so * sai_can_duoi)/100)) end, case when sai_can_tren = 0 then 0 else ((so_luong * he_so) + ((so_luong * he_so * sai_can_tren)/100)) end, loai_dt, ct_dt_pb, rtrim(ma_bp0) as ma_bp0, rtrim(ma_nh0) as ma_nh0, stt_rec_ttmh, stt_rec0ttmh">
+  <!ENTITY BI.PDTran.Retrieve.Select.Fields.SA ", loai_hang, rtrim(ma_vung), case when sai_can_duoi = 0 then 0 else ((so_luong * he_so) - ((so_luong * he_so * sai_can_duoi)/100)) end, case when sai_can_tren = 0 then 0 else ((so_luong * he_so) + ((so_luong * he_so * sai_can_tren)/100)) end, loai_dt, ct_dt_pb, rtrim(ma_bp0) as ma_bp0, rtrim(ma_nh0) as ma_nh0">
+  <!ENTITY BI.PDTran.Retrieve.Grid.Fields SYSTEM "..\Include\XML\BI.PDTran.Retrieve.Grid.Fields.txt">
+  <!ENTITY BI.PDTran.Retrieve.Grid.Fields.SA SYSTEM "..\Include\XML\BI.PDTran.Retrieve.Grid.Fields.SA.txt">
+  <!ENTITY BI.PDTran.Retrieve.Grid.Views SYSTEM "..\Include\XML\BI.PDTran.Retrieve.Grid.Views.xml">
+  <!ENTITY BI.PDTran.Retrieve.Grid.Views.SA SYSTEM "..\Include\XML\BI.PDTran.Retrieve.Grid.Views.SA.xml">
+  <!ENTITY BI.PDTran.Retrieve.GetValue.PO ", t = w.getItemValue('loai_ct')">
+  <!ENTITY BI.PDTran.Retrieve.SetValue.PO "f.setItemValue('loai_ct', t);">
+  <!ENTITY BI.PDTran.Retrieve.AddValue.PO ", {Name: 'loai_ct', Type: 'String', Value: t}">
+  <!ENTITY BI.PDTran.Retrieve.Fields.PO ", ma_vung_cu">
+  <!ENTITY BI.PDTran.Retrieve.Select.Fields.PO ", rtrim(ma_vung_cu) as ma_vung_cu">
+  <!ENTITY BI.PDTran.Retrieve.Grid.Fields.PO SYSTEM "..\Include\XML\BI.PDTran.Retrieve.Grid.Fields.PO.txt">
+  <!ENTITY BI.PDTran.Retrieve.Grid.Views.PO SYSTEM "..\Include\XML\BI.PDTran.Retrieve.Grid.Views.PO.xml">
+
+  <!ENTITY BI.PDTran.Retrieve.Grid.Where " and a.po_ht_yn = 0">
+  <!ENTITY BI.PDTran.Retrieve.Grid.Load "left join &BI.PDTran.Flow.Table.Master;$$partition$current m on a.stt_rec = m.stt_rec">
+
+  <!ENTITY BI.PDTran.Inspection.Process "
+declare @$postStock bit
+if (@status &lt;&gt; '0' and exists(select 1 from bikdngct where ma_ct = @@id and (loai_ct = '' or loai_ct = @loai_ct))) or exists(select 1 from
+#IF @@action = 'Edit' #THEN
+  bikd00$$partition$previous
+#ELSE
+  bikd00$$partition$current
+#END
+where stt_rec_goc = @stt_rec) begin
+  exec bs_PostInspection 1, @@id, @stt_rec, '', @@userID, @@admin, '@@sysDatabaseName', default, @$postStock out
+end
+">
+  <!ENTITY BI.PDTran.Inspection.Inventory.Begin "
+if @$postStock &lt;&gt; 1 begin
+">
+  <!ENTITY BI.PDTran.Inspection.Inventory.End "end">
+  <!ENTITY BI.PDTran.Inspection.Delete "
+if '$partition$current' &lt;&gt; '$partition$previous' delete biss90$$partition$previous where stt_rec = @stt_rec
+else delete biss90$$partition$current where stt_rec = @stt_rec
+">
+
+  <!ENTITY BI.PDTran.Inspection.Refresh "
+if @status &lt;&gt; '0' begin
+  declare @$xs nvarchar(4000)
+  select @$xs = isnull(@$xs, '') + case when @$xs is null then '' else char(255) end + rtrim(xstatus) from d96$$partition$current where stt_rec = @0 order by line_nbr
+  select @script = @script + 'set$Voucher$StockStatus(this, ''' + rtrim(isnull(@$xs, '')) + ''');'
+end
+">
+  <!ENTITY BI.PDTran.Inspection.SetValue.Checking "">
+]]>
+
+<!ENTITY BI.PDDetail.Grid.Fields "&SiteField;">
+<!ENTITY BI.PDDetail.Grid.Views SYSTEM "..\Include\Standard\XML\BI.PDDetail.Grid.Views.Standard.txt">
+<!ENTITY BI.PDDetail.Grid.Toolbar "">
+<!ENTITY BI.PDDetail.Grid.Retrieve "">
+
+<!ENTITY BI.Post.History.PO "">
+<!ENTITY BI.Delete.History.PO "">
+<!ENTITY BI.Post.History.PI "">
+<!ENTITY BI.Delete.History.PI "">
+<!ENTITY BI.Post.History.SA "">
+<!ENTITY BI.Delete.History.SA "">
+<!ENTITY BI.MasterWhere.PO "#15$1">
+<!ENTITY BI.FilterWhere.PO "default">
+
+<!ENTITY BI.AccountAssignment.DetailTable "d95">
+
+<!ENTITY BI.PDTran.Approval.PO "">
+<!ENTITY BI.PDTran.Approval.Before "">
+<!ENTITY BI.PDTran.Approval.After "">
+<!ENTITY BI.PDTran.DetailTableSource "">
+<!ENTITY BI.PDTran.DetailTableSource.Action "">
+<!ENTITY BI.PDTran.Filter.h "112">
+<!ENTITY BI.PDTran.Filter.Fields "">
+<!ENTITY BI.PDTran.Filter.Views SYSTEM "..\Include\Standard\XML\BI.PDTran.Filter.Views.Standard.xml">
+
+<!ENTITY BI.PDTran.PODefaultValue.Script.LoadGrid "">
+<!ENTITY BI.PDTran.Grid.Loading "">
+<!ENTITY BI.PDTran.Grid.Closing "">
+
+<!ENTITY BI.PDTran.Form.CheckWhenVoucherBeforeEdit "">
+<!ENTITY BI.PDTran.Form.CheckWhenVoucherBeforeDelete "">
+<!ENTITY BI.PDTran.Form.CheckDelivery "">
+
+<!ENTITY BI.PDTran.Form.Render.Add "">
+<!ENTITY BI.PDTran.Form.Render.Remove "">
+
+<!ENTITY BI.PDTran.Form.Check "">
+<!ENTITY BI.PDTran.Form.Checking.Var "">
+<!ENTITY BI.PDTran.Form.Checking.If "">
+<!ENTITY BI.PDTran.Form.Checking.Trans "">
+
+<!ENTITY BI.PDTran.Form.Detail.w "80">
+<!ENTITY BI.PDTran.Form.Detail.Hidden "false">
+
+<!ENTITY BI.PDTran.Form.Flow.Plant.Key "">
+<!ENTITY BI.PDTran.Form.Flow.Filter.PO.Master "1">
+<!ENTITY BI.PDTran.Form.Flow.Filter.PI.Master "1">
+<!ENTITY BI.PDTran.Form.Flow.Filter.PO.Lookup "">
+<!ENTITY BI.PDTran.Form.Flow.Filter.PI.Lookup "">
+<!ENTITY BI.PDTran.Form.Flow.CheckBlank "if (first &amp;&amp; row &gt; 0) if (z.blankMemvar(row)) {ins = false; first = false;}">
+
+<!ENTITY BI.PDTran.Form.Detail.Retrieve.Key "">
+<!ENTITY BI.PDTran.Form.Detail.Item.Request "">
+<!ENTITY BI.PDTran.Form.Detail.Item.Response "">
+
+<!ENTITY BI.PDTran.Form.MultiFlow.Form.PO "">
+<!ENTITY BI.PDTran.Form.MultiFlow.Grid.PO "select @queryWhereClause = @queryWhereClause + ' and m.loai_ct not in (''2'', ''9'')'">
+<!ENTITY BI.PDTran.Form.MultiFlow.Grid.Plant "">
+
+<!ENTITY BI.PDTran.Retrieve.Fields "">
+<!ENTITY BI.PDTran.Retrieve.Declare.Fields "">
+<!ENTITY BI.PDTran.Retrieve.Select.Fields "">
+<!ENTITY BI.PDTran.Retrieve.Grid.Fields "">
+<!ENTITY BI.PDTran.Retrieve.Grid.Views "">
+<!ENTITY BI.PDTran.Retrieve.GetValue.PO "">
+<!ENTITY BI.PDTran.Retrieve.SetValue.PO "">
+<!ENTITY BI.PDTran.Retrieve.AddValue.PO "">
+<!ENTITY BI.PDTran.Retrieve.Fields.PO "">
+<!ENTITY BI.PDTran.Retrieve.Select.Fields.PO "">
+<!ENTITY BI.PDTran.Retrieve.Grid.Fields.PO "">
+<!ENTITY BI.PDTran.Retrieve.Grid.Views.PO "">
+
+<!ENTITY BI.PDTran.Retrieve.Grid.Where "">
+<!ENTITY BI.PDTran.Retrieve.Grid.Load "">
+
+<!ENTITY BI.PDTran.Inspection.Process "">
+<!ENTITY BI.PDTran.Inspection.Inventory.Begin "">
+<!ENTITY BI.PDTran.Inspection.Inventory.End "">
+<!ENTITY BI.PDTran.Inspection.Delete "">
+<!ENTITY BI.PDTran.Inspection.Refresh "">
+<!ENTITY BI.PDTran.Inspection.SetValue.Checking "
+  else {
+    if (g._getItemValue(row, k) &gt;= g._getItemValue(row, l)) g._setItemValue(row, e, p);
+    else {
+      if (!g._getItemValue(row, d)) g._setItemValue(row, e, p);
+        else g._setItemValue(row, e, q);
+    }
+  }
+">

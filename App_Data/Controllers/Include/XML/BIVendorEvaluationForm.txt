@@ -1,0 +1,269 @@
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_bp0" allowNulls="false" disabled="true">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_kh" allowNulls="false" disabled="true">
+      <header v="Mã ncc" e="Vendor"></header>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_vt" disabled="true">
+      <header v="Mã hàng" e="Item"></header>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" disabled="true">
+      <header v="Ngày phát sinh" e="Scoring Date"></header>
+    </field>
+    <field name="so_tham_chieu" dataFormatString="@upperCaseFormat" align="right" hidden="true">
+      <header v="Số tham chiếu" e="Reference Number"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_tham_chieu" type="DateTime" dataFormatString="@datetimeFormat" hidden="true">
+      <header v="Ngày tham chiếu" e="Reference Date"></header>
+    </field>
+
+    <field name="dien_giai" maxLength="256">
+      <header v="Diễn giải" e="Memo"></header>
+    </field>
+
+    <field name="bid04" allowNulls="false" external="true" allowContain="true" clientDefault="0" defaultValue="0" rows="&BIVendorEvaluation.Grid.Height;" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="BIVendorEvaluationGrid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+
+    <field name="chep_de" type="Boolean" categoryIndex="-1">
+      <header v="Chép đè" e="Overwrite"></header>
+    </field>
+
+    <field name="ma_dvcs" hidden="true" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec_tc" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_ct0" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="xtable" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="&BIVendorEvaluation.Height;" anchor="6" split="10">
+      <item value="100, 100, 100, 100, 253, 100, 0, 0, 0"/>
+      <item value="111000111: [ma_bp0].Label, [ma_bp0], [ten_bp0%l], [ma_dvcs], [stt_rec], [xtable]"/>
+      <item value="1110000011: [ma_kh].Label, [ma_kh], [ten_kh%l], [ngay_ct], [stt_rec_tc]"/>
+      <item value="1110000011: [ma_vt].Label, [ma_vt], [ten_vt%l], [so_tham_chieu], [ngay_tham_chieu]"/>
+      <item value="110000001: [dien_giai].Label, [dien_giai], [ma_ct0]"/>
+
+      <item value="1: [bid04]"/>
+
+      <item value="110000000: [chep_de], [chep_de].Label"/>
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+        <category index="-1" columns="30, 100, 70, 8, 100, 8, 13, 87, 13, 8, 100, 8, 58, 42, 8, 100" anchor="7">
+          <header v="" e=""/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'show$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Declare">
+      <text>
+        <![CDATA[
+declare @$exists nvarchar(512)
+select @$exists = case when @@language = 'v' then N'Tồn tại mã hàng, mã chỉ tiêu đã đánh giá.' else N'There existed a combination of item and criterion has been evaluated.' end
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        &BIMode.Structure.Check;
+        <![CDATA[
+if @@admin <> 1 begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'BIScoreByItem', 'New') = 0 begin
+    select '$NotAuthorized' as message
+    return
+  end
+end
+
+declare @q nvarchar(4000), @tableDetail varchar(32)
+select @tableDetail = @xtable + convert(char(6), @ngay_ct, 112)
+select top 0 stt_rec, stt_rec0, ma_vt, line_nbr into #ctthamchieu from d94$000000
+if @xtable = '' return
+
+select @q = '
+insert into #ctthamchieu select stt_rec, min(stt_rec0), ma_vt, min(line_nbr) from ' + @tableDetail + ' a
+  where stt_rec = @xstt_rec ' + case when @ma_vt <> '' then ' and a.ma_vt = @xma_vt' else '' end + ' and
+    exists(
+      select 1 from dmvt b where a.ma_vt = b.ma_vt and (
+        exists(select 1 from bidmvttsbp0 c where b.ma_vt = c.ma_vt and c.name = ''danh_gia_ncc'' and c.val = ''1'' and c.ma_bp0 = @xma_bp0) or
+        (
+          not exists(select 1 from bidmvttsbp0 d where b.ma_vt = d.ma_vt and d.name = ''danh_gia_ncc'' and d.ma_bp0 = @xma_bp0) and
+          exists(select 1 from bidmvtts e where b.ma_vt = e.ma_vt and e.name = ''danh_gia_ncc'' and e.val = ''1'')
+        )
+      )
+    )
+  group by stt_rec, ma_vt
+'
+exec sp_executesql @q, N'@xstt_rec varchar(13), @xma_bp0 varchar(32), @xma_vt varchar(32)', @stt_rec_tc, @ma_bp0, @ma_vt
+
+/*
+  #data Dữ liệu tổng hợp
+  #bid04 Dữ liệu đã lưu trữ chi tiết
+  #bim04 Dữ liệu đã lưu trữ chung
+  #id Stt_rec của những đánh giá
+*/
+
+declare @size int, @ma_ct char(3), @so_ct char(12), @count int, @wsID varchar(8)
+select top 1 @size = length from syscolumns where name = 'so_ct' and id = object_id('bim04$000000')
+select @ma_ct = 'P04', @so_ct = dbo.ff_PadL('0', @size)
+select @wsID = rtrim(val) from options where name = 'm_ws_id'
+
+select b.stt_rec, b.stt_rec0tc, a.ma_vt, b.user_id0 into #bim04 from #ctthamchieu a join bim04$000000 b on a.ma_vt = b.ma_vt and ma_bp0 = @ma_bp0 and ma_kh = @ma_kh and ngay_ct = @ngay_ct and b.so_tham_chieu = @so_tham_chieu and b.ngay_tham_chieu = @ngay_tham_chieu
+select a.*, stt_rec0tc, b.ma_vt into #bid04 from bid04$000000 a join #bim04 b on a.stt_rec = b.stt_rec
+select a.*, b.stt_rec0 as stt_rec0tc, b.ma_vt, 2 as xorder, @@userID as user_id0, identity(int, 1, 1) as stt into #data from @bid04 a left join #ctthamchieu b on 1=1
+select top 0 stt_rec, cast(null as varchar(3)) as stt_rec0tc, ma_vt, cast(0 as int) as stt, identity(int, 1, 1) as id into #id from #bim04
+
+-- Check
+if @chep_de = 0 begin
+  if exists (select 1 from #bid04 a join @bid04 b on a.ma_chi_tieu = b.ma_chi_tieu) begin
+    select 'dien_giai' as field, @$exists as message
+    return
+  end
+end
+
+insert into #data select a.*, @@userID, 1 as xorder from #bid04 a where not exists(select 1 from #data b where a.ma_vt = b.ma_vt and a.ma_chi_tieu = b.ma_chi_tieu)
+update #data set stt_rec = b.stt_rec, user_id0 = b.user_id0 from #data a join #bim04 b on a.ma_vt = b.ma_vt
+
+select identity(int, 1, 1) as id, cast(stt as int) as stt, ma_vt as c, cast(0 as int) as ln into #ln from #data order by xorder, ma_vt, stt
+exec AI_ERP$App$UpdateLineNumber
+create index i on #ln(stt)
+
+insert into #id(stt_rec, stt_rec0tc, ma_vt, stt) select '', min(stt_rec0tc), a.ma_vt, min(a.stt) from #data a where stt_rec = '' and a.ma_vt <> '' group by a.ma_vt order by a.ma_vt
+select @count = count(*) from #id
+exec AI_ERP$App$UpdateIdentityNumber @wsID, @ma_ct, @count, @@userID
+update #data set stt_rec = b.stt_rec from #data a join #id b on a.ma_vt = b.ma_vt where a.stt_rec = ''
+
+-- Detail
+delete bid04$000000 from bid04$000000 a where exists(select 1 from #data b where a.stt_rec = b.stt_rec)
+insert into bid04$000000
+  select a.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln) as stt_rec0, ma_ct, ma_chi_tieu, trong_so, diem_so, ghi_chu, i.ln
+    from #data a join #ln i on a.stt = i.stt
+
+-- Master
+update bim04$000000 set dien_giai = @dien_giai, datetime2 = getdate(), user_id2 = @@userID from bim04$000000 a where exists(select 1 from #data b where a.stt_rec = b.stt_rec)
+insert bim04$000000(stt_rec, ma_dvcs, ngay_ct, so_ct, ma_ct, ma_bp0, ma_kh, ma_vt, so_tham_chieu, ngay_tham_chieu, stt_rec_tc, stt_rec0tc, dien_giai, status, datetime0, datetime2, user_id0, user_id2)
+    select a.stt_rec, @ma_dvcs, @ngay_ct, @so_ct, @ma_ct, @ma_bp0, @ma_kh, a.ma_vt, @so_tham_chieu, @ngay_tham_chieu, @stt_rec_tc, a.stt_rec0tc, @dien_giai, '1', getdate(), getdate(), @@userID, @@userID
+      from #id a
+
+-- Inquiry
+select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, status, user_id0, c$, m$, d$, ma_bp0 into #bii04 from bii04$000000
+insert into #bii04 select stt_rec, @ngay_ct, @so_ct, @ma_dvcs, 1, min(a.user_id0),
+    rtrim(@ma_bp0) + rtrim(@ma_kh) + rtrim(a.ma_vt) + convert(char(10), @ngay_ct, 112) + a.stt_rec as c$,
+    '#10$' + rtrim(@ma_bp0) + '#15$' + rtrim(@ma_kh) + '#20$' + rtrim(a.ma_vt) as m$, '', @ma_bp0
+  from #data a group by stt_rec, ma_vt
+select @q = dbo.AI_ERP$Function$Update$Inquiry('#bii04', '#data', 'd$', 'ma_chi_tieu', '#10$', 'stt_rec', default, default, default, default, default)
+exec sp_executesql @q
+
+delete bii04$000000 from bii04$000000 a where exists(select 1 from #data b where a.stt_rec = b.stt_rec)
+insert into bii04$000000 (stt_rec, ngay_ct, so_ct, ma_dvcs, status, user_id0, c$, m$, d$, ma_bp0) select * from #bii04
+]]>
+      </text>
+    </command>
+    <command event="Inserted">
+      <text>
+        <![CDATA[
+select '' as field, '' as messeage, 'insert$]]>&Identity;<![CDATA[Filter$QueryComplete(this);' as script
+return
+]]>
+      </text>
+    </command>
+    <command event="Checking">
+      <text>
+        <![CDATA[/* <flatten type="Javascript"> */
+var f = this, g = f.getItem('bid04')._controlBehavior;
+g.setSequenceNumber('line_nbr');
+g.setContinuance('stt_rec0');
+/* </flatten> */
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  f.setReadOnlyFields('ma_kh, so_ct, ngay_ct');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid, d = g._detailInfo;
+  f._denyFocus = true;
+  if (d.ma_vt == '') {$common.setVisible(f.getItem('ma_vt').parentNode.parentNode.parentNode, false);}
+  f.setItemValues('stt_rec, dien_giai, stt_rec_tc, ma_bp0, ten_bp0%l, ma_kh, ten_kh%l, ma_vt, ten_vt%l, ngay_ct, ma_dvcs, stt_rec_tc, so_tham_chieu, ngay_tham_chieu, ma_ct0, xtable',
+    [d.stt_rec, d.dien_giai, d.stt_rec_tc, d.ma_bp0, d.ten_bp0, d.ma_kh, d.ten_kh, d.ma_vt, d.ten_vt, d.ngay_ct, d.ma_dvcs, d.stt_rec_tc, d.so_tham_chieu, d.ngay_tham_chieu, d.ma_ct, d.xtable]);
+  g._gridMemvars = g._memvars;
+}
+function show$]]>&Identity;<![CDATA[Form$(f) {f._controlFocus = f.getItem('dien_giai');}
+function close$]]>&Identity;<![CDATA[Form$(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      break;
+    default:
+      break;
+  }
+}
+function insert$]]>&Identity;<![CDATA[Filter$QueryComplete(f) {
+  var z = f.grid;
+  z._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';
+}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var z = f.grid;
+  z._focusWhenTabChanged();
+}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g) {
+  g._memvars = g._gridMemvars;
+  g._gridMemvars = [];
+}
+]]>
+    </text>
+  </script>

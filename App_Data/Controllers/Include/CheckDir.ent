@@ -1,0 +1,32 @@
+﻿<!ENTITY % Conditional.CheckDir SYSTEM "..\Include\CheckDir.txt">
+
+<![%Conditional.CheckDir;[
+  <!ENTITY CheckDirProcessParentAccount "
+declare @checkDirParentAccount tinyint
+exec @@sysDatabaseName..AI_ERP$Check$Dir &CheckDirParameterParentAccount;, '@@appDatabaseName', @checkDirParentAccount out
+if @checkDirParentAccount = 1 begin
+  &CheckDirQueryParentAccount;
+end
+">
+
+  <!ENTITY CheckDirProcessUpdating "
+declare @checkDirUpdating tinyint
+exec @@sysDatabaseName..AI_ERP$Check$Dir &CheckDirParameterUpdating;, '@@appDatabaseName', @checkDirUpdating out
+if @checkDirUpdating = 1 begin
+  &CheckDirQueryUpdating;
+end
+">
+
+  <!ENTITY CheckDirProcessDeleting "
+declare @checkDirDeleting tinyint
+exec @@sysDatabaseName..AI_ERP$Check$Dir &CheckDirParameterDeleting;, '@@appDatabaseName', @checkDirDeleting out
+if @checkDirDeleting = 1 begin
+  &CheckDirQueryDeleting;
+end
+">
+
+]]>
+
+<!ENTITY CheckDirProcessParentAccount "">
+<!ENTITY CheckDirProcessUpdating "">
+<!ENTITY CheckDirProcessDeleting "">

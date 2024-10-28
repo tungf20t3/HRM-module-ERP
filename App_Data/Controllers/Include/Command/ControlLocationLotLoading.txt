@@ -1,0 +1,9 @@
+﻿<![CDATA[
+if exists(select 1 from options where name = 'm_instock_split' and val = '1') begin
+  declare @$location bit, @$lot bit
+  if ']]>&Code;<![CDATA[' <> '' and object_id('dmctvtrlo') is not null begin
+    exec sp_executesql N'select @location = vi_tri_yn, @lot = lo_yn from dmctvtrlo where ma_ct = '']]>&Code;<![CDATA[''', N'@location bit output, @lot bit output', @location = @$location output, @lot = @$lot output
+  end
+  if @$location is null select @$location = cast(rtrim(val) as bit) from options where name = 'm_kt_td_vitri_yn'
+  if @$lot is null select @$lot = cast(rtrim(val) as bit) from options where name = 'm_kt_td_lo_yn'
+]]>

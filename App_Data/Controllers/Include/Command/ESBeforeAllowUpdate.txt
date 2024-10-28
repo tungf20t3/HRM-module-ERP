@@ -1,0 +1,28 @@
+﻿        <![CDATA[
+declare @usedEI char(1), @$pEI char(13), @$cEI tinyint, @eiAllowEdit char(1)
+select @usedEI = rtrim(val) from options where name = 'm_sd_hddt'
+select @usedEI = isnull(@usedEI, '0'), @eiAllowEdit = '0'
+if @usedEI = '1' begin
+  select @$pEI = 'hddt00$' + convert(char(6), ngay_ct, 112) from @@table where stt_rec = @stt_rec
+  set @q = 'select @$cEI = case when exists(select 1 from ' + @$pEI + ' where stt_rec = ''' + replace(@stt_rec, '''', '''''') + ''' and tinh_trang_hddt <> 0) or exists(select 1 from hddt01 where stt_rec1 = ''' + replace(@stt_rec, '''', '''''') + ''') then 1 else 0 end'
+  exec sp_executesql @q, N'@$cEI tinyint out', @$cEI out
+
+  if @$cEI = 1 begin
+    if exists(select 1 from kthddt where ma_ct = @@id and status = '1') begin
+      declare @ei$ChangeField nvarchar(64), @ei$ChangeFieldMsg nvarchar(4000), @ei$CheckFieldAppend varchar(512)
+      select @ei$CheckFieldAppend = ''
+      ]]>&EICheckTable;<![CDATA[
+      exec AI_ERP$Voucher$CheckFieldChange @stt_rec, @@id, '', @ei$CheckFieldAppend, @@language, @ei$ChangeField out, @ei$ChangeFieldMsg out
+      if @ei$ChangeFieldMsg <> '' begin
+        select @ei$ChangeField as field, @ei$ChangeFieldMsg as message
+        return
+      end
+      set @eiAllowEdit = '1'
+    end else begin 
+      select case when @@language = 'v' then N'Hóa đơn đang chờ xử lý hoặc đã xác thực, không thể sửa được.' else N'Can not edit this voucher, It''s in pending status or has been released.' end as message
+      return
+    end
+  end
+  ]]>&EICustomerConditional;<![CDATA[  
+end
+]]>

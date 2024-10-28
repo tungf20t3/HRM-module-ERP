@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="Query" targetNamespace="urn:schemas-ai-erp:data-query" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-query" xmlns:a="urn:schemas-ai-erp:data-query" xmlns:mstns="urn:schemas-ai-erp:data-query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="query" type="query">
+    <xs:key name="command">
+      <xs:selector xpath="a:commands/a:command" />
+      <xs:field xpath="@event" />
+    </xs:key>
+    <xs:key name="column">
+      <xs:selector xpath="a:columns/a:column" />
+      <xs:field xpath="@dataType" />
+    </xs:key>
+  </xs:element>
+
+  <xs:complexType name="query">
+    <xs:all minOccurs="1" maxOccurs="1">
+      <xs:element name="title" type="title"></xs:element>
+      <xs:element name="filterTitle" type="title"></xs:element>
+      <xs:element name="filterSubTitle" type="title"></xs:element>
+      <xs:element name="previewTitle" type="title"></xs:element>
+      <xs:element name="previewSubTitle" type="title"></xs:element>
+      <xs:element name="format" type="format"></xs:element>
+      <xs:element name="data" type="data"></xs:element>
+      <xs:element name="filter" type="filter"></xs:element>
+      <xs:element name="export" type="export"></xs:element>
+      <xs:element name="commands" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="command" type="commandType">
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="title">
+    <xs:attribute name="v" type="xs:string" use="required"/>
+    <xs:attribute name="e" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="format">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="type" type="formatType"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="formatType">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="commandType">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" minOccurs="1" maxOccurs="1">
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="event" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Initialize"/>
+          <xs:enumeration value="Checking"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="data">
+    <xs:all minOccurs="1" maxOccurs="1">
+      <xs:element name="tables" type="tables"></xs:element>
+      <xs:element name="columns" type="columns"></xs:element>
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="tables">
+    <xs:sequence minOccurs="1" maxOccurs="unbounded">
+      <xs:element name="table" type="table"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="table">
+    <xs:all minOccurs="1" maxOccurs="1">
+      <xs:element name="title" type="title"></xs:element>
+    </xs:all>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="parentID" type="xs:string" use="required"/>
+    <xs:attribute name="type" type="xs:string" use="required"/>
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="controller" type="xs:string"/>
+    <xs:attribute name="key" type="xs:string"/>
+    <xs:attribute name="force" type="xs:boolean"/>
+  </xs:complexType>
+
+  <xs:complexType name="columns">
+    <xs:sequence minOccurs="1" maxOccurs="unbounded">
+      <xs:element name="column" type="column"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="column">
+    <xs:all minOccurs="1" maxOccurs="1">
+      <xs:element name="title" type="title"></xs:element>
+    </xs:all>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="tableID" type="xs:string" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="dataType" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="bigint"/>
+          <xs:enumeration value="bit"/>
+          <xs:enumeration value="decimal"/>
+          <xs:enumeration value="int"/>
+          <xs:enumeration value="money"/>
+          <xs:enumeration value="numeric"/>
+          <xs:enumeration value="smallint"/>
+          <xs:enumeration value="tinyint"/>
+          <xs:enumeration value="float"/>
+          <xs:enumeration value="real"/>
+          <xs:enumeration value="date"/>
+          <xs:enumeration value="datetime2"/>
+          <xs:enumeration value="datetime"/>
+          <xs:enumeration value="smalldatetime"/>
+          <xs:enumeration value="time"/>
+          <xs:enumeration value="char"/>
+          <xs:enumeration value="text"/>
+          <xs:enumeration value="varchar"/>
+          <xs:enumeration value="nchar"/>
+          <xs:enumeration value="ntext"/>
+          <xs:enumeration value="nvarchar"/>
+          <xs:enumeration value="xml"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="width" type="xs:string" use="required"/>
+    <xs:attribute name="dataFormatString" type="xs:string"/>
+    <xs:attribute name="maxLength" type="xs:string"/>
+    <xs:attribute name="reference" type="xs:string"/>
+    <xs:attribute name="order" type="xs:string"/>
+    <xs:attribute name="indent" type="xs:boolean"/>
+  </xs:complexType>
+
+  <xs:complexType name="filter">
+    <xs:sequence minOccurs="1" maxOccurs="unbounded">
+      <xs:element name="operators" type="operators"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="operators">
+    <xs:sequence minOccurs="1" maxOccurs="unbounded">
+      <xs:element name="operator" type="operator"></xs:element>
+    </xs:sequence>
+    <xs:attribute name="type"></xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="operator">
+    <xs:all minOccurs="1" maxOccurs="1">
+      <xs:element name="title" type="title"></xs:element>
+    </xs:all>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="value" type="xs:string" use="required"/>
+    <xs:attribute name="dataType" type="xs:string"/>
+    <xs:attribute name="priority" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="export">
+    <xs:sequence>
+      <xs:element name="style" type="style"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="style">
+    <xs:all maxOccurs="1" minOccurs="1">
+      <xs:element name="text" type="xs:string" minOccurs="1" maxOccurs="1">
+      </xs:element>
+    </xs:all>
+  </xs:complexType>
+</xs:schema>

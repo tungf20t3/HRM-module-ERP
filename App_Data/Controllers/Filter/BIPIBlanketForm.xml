@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY EnvironmentTaxValidTotal.ExecuteExpression.Condition "if (!v) w.executeExpression([z.$a.t_thue_nt, z.$a.t_thue, z.$a.t_tt_nt, z.$a.t_tt]);">
+  <!ENTITY EnvironmentTaxValidTotal ",z.$a.t_bvmt_nt, z.$a.t_bvmt">
+  <!ENTITY % EnvironmentTax SYSTEM "..\Include\BIEnvironmentTax.ent">
+  %EnvironmentTax;
+  <!ENTITY EnvironmentTaxComma ",">
+
+  <!ENTITY Identity "BIPIBlanket">
+  <!ENTITY DetailTable "d95">
+  <!ENTITY c11 "Mã nhà cung cấp">
+  <!ENTITY c12 "Vendor">
+  <!ENTITY c21 "Số đơn hàng">
+  <!ENTITY c22 "Blanket No.">
+  <!ENTITY c31 "Ngày đơn hàng">
+  <!ENTITY c32 "Blanket Date">
+]>
+
+<dir table="m95$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Đơn hàng khung" e="Blanket Order"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d95')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'so_luong0, stt_rec, stt_rec0', f2 = 'so_luong, stt_rec_hd, stt_rec0hd';
+  var append = false, first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]), b = false;
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = g._getColumnOrder('so_luong0');
+  var l2 = z._getColumnOrder('dvt'), l3 = g._getColumnOrder('nhieu_dvt');
+  var l4 = g._getColumnOrder('ct_gia_dk'), l5 = z._getColumnOrder('gia_chuan_nt'), l6 = z._getColumnOrder('gia_nt'), l7 = z._getColumnOrder('gia'), l8 = g._getColumnOrder('stt_rec');
+  var externalFields = '', fields = 'ma_vt, ten_vt%l, dvt, he_so, ngay_giao, ma_vung, ma_kho, ma_thue_nk, thue_suat_nk, ma_thue_ttdb, thue_suat_ttdb, ma_thue, thue_suat, bvmt, bvmt_nt, so_theo_doi, ma_vt0, stt_rec_nc, stt_rec0nc, stt_rec_bg, stt_rec0bg, stt_rec_kh, stt_rec0kh, ma_rb, sai_can_duoi, sai_can_tren, so_tham_chieu, ct_gia_dk, cn_tt_gia, gia_chuan_nt, pp_ck_dv_nt, pp_cp_dv_nt, pp_ck_nt, pp_cp_nt, loai_dt, ct_dt_pb, ten_loai%l, kieu_pb]]>&EnvironmentTaxInheritanceColumns;<![CDATA[, ]]>&XMLHiddenFields;<![CDATA[';
+  var blanketID = '';
+
+  if (v) {fields += ', gia_chuan_nt, gia_nt';}
+
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l1) != 0) {
+      b = true;
+      append = true;
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (check$GridVoucherDetail$DefaultMemvar(z, row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      if (!blanketID) blanketID = g._getItemValue(r, l8);
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+
+      z.setItemGridBehavior(o, [['loai_hang', '1', '', null], ['pp_thay_doi', false, '', null]]);
+
+      var v2 = (g._getItemValue(r, l4) != '');
+      $func.setObjectWhen(z._getItem(row, l2), g._getItemValue(r, l3));
+      $func.setObjectWhen(z._getItem(row, l5), true);
+      $func.setObjectWhen(z._getItem(row, l6), !v2);
+      $func.setObjectWhen(z._getItem(row, l7), !v2);
+
+      ]]>&EnvironmentTaxValidDetail.ExecuteExpression;<![CDATA[
+      if (v) {z.executeExpression(o, [z.$a.gia_tg, z.$a.tien_nt0, z.$a.tien0_tg, z.$a.tien_nt, z.$a.tien_tg, z.$a.nk_nt, z.$a.nk_tg, z.$a.ttdb_nt, z.$a.ttdb_tg, z.$a.thue_nt, z.$a.thue_tg]);}
+    }
+  }
+  if (b) {
+    w.setItemValue('so_hd1', z._voucher$Retrieve$Number);
+    w.setItemValue('ngay_hd1', z._voucher$Retrieve$Date);
+    w.setItemValue('ngay_hl1', k[2] != 'null' ? $func.formatStringToDate(k[2]) : null);
+    w.setItemValue('ngay_hl2', k[3] != 'null' ? $func.formatStringToDate(k[3]) : null);
+    w.setItemValue('status1', k[1]);
+    w.setItemValue('stt_rec_hd', blanketID);
+
+    if (v) on$GridVoucherDetail$RowChange(z, w);
+  }
+  z.executeAggregate([z.$a.t_so_luong]]>&EnvironmentTaxValidTotal;<![CDATA[]);
+  ]]>&EnvironmentTaxValidTotal.ExecuteExpression;<![CDATA[
+  if (append && w.getItemValue('t_cp_nt')) w._is$Allocated = 0;
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

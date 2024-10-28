@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="hrky" code="ky, nam" order="nam, ky" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="nam" type="Decimal" isPrimaryKey="true" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_bp" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 25, 15, 60, 100, 100, 130"/>
+      <item value="110----: [nam].Label, [nam]"/>
+      <item value="1100100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @y1 int, @y2 int
+select @y1 = year(ngay_gh1), @y2 = year(ngay_gh2) from dmstt
+select 'this._y1=' + rtrim(@y1) + ';this._y2=' + rtrim(@y2) + ';active$Filter$SalaryComputingPeriod(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$Filter$SalaryComputingPeriod(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @c varchar(13)
+select @c = (select bp_ref from hrbp where ma_bp = @ma_bp)
+select @c = isnull(@c, '')
+select '' as field, '' as message, 'set$ExternalKeyFilter(this,''' + @c + ''');' as script
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, id = f.get_id(), e = 'nam', v = f._language == 'v', y = f.getItemValue(e);
+if (y < f._y1 || y > f._y2) {
+  f._checked = false;
+  $func.hideWait(f.get_id());
+  $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), f.getItem(e).field.Label), String.format('$find(\'{0}\').getItem(\'{1}\').focus()', f.get_id(), e));
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$Filter$SalaryComputingPeriod(f) {f.add_onResponseComplete(on$Filter$ResponseComplete);}
+function close$Filter$SalaryComputingPeriod(f) {try {f.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = [], y = f.getItemValue('nam');
+      if (f.getItemValue('nam')) Array.add(k, {Name: 'nam', Opr: '=', Value: y, Type: 'Numeric', Ignore: false});
+      g._alterTitle = [null, [['%y', y, true]]];
+			g._year = y;
+      f._$k = k;
+      break;
+    case 'Department':
+      f.setItemControlBehavior('bp_ref', result[0].Value, true);
+      break;
+    default:
+      break;
+  }
+}
+function set$ExternalKeyFilter(f, id) {
+  var g = f.grid;
+  g._department = id;
+  if (g._department) Array.add(f._$k, {Name: 'bp_ref', Opr: 'like', Value: g._department += '%', Type: 'String', Ignore: false});
+  g.set_externalKey(f._$k);
+}
+]]>
+    </text>
+  </script>
+</dir>

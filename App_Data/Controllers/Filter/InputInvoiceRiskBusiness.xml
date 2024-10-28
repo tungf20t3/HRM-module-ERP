@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Từ/đến ngày" e="Date from/to"></footer>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+    <field name="mst" onDemand="true">
+      <header v="Mã số thuế" e="Tax Code"></header>
+      <items style="AutoComplete" controller="RiskBusiness" reference="ten_dn" key="status = 1" check="1 = 1"/>
+    </field>
+    <field name="ten_dn" readOnly="true" defaultValue="''">
+      <header v="Tên người nộp thuế" e="Taxpayer"></header>
+    </field>
+    <field name="type" defaultValue="1">
+      <header v="Loại" e="Type"></header>
+      <items style="DropDownList">
+        <item value="1">
+          <text v="1. Danh sách hóa đơn đầu vào" e="1. Input Invoice List"/>
+        </item>
+        <item value="2">
+          <text v="2. Sổ thuế" e="2. VAT List"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="keys" hidden="true" readOnly="true" filterSource="Infinite">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101--: [tu_ngay].Description, [tu_ngay], [den_ngay]"/>
+      <item value="1100101: [mst].Label, [mst], [ten_dn], [keys]"/>
+      <item value="11000-: [type].Label, [type]"/>
+      <item value="110100: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @key nvarchar(4000), @q nvarchar(4000), @unitKey nvarchar(4000)
+select @unitKey = dbo.AI_ERP$Function$System$GetUnitFilter('a.ma_dvcs', @ma_dvcs, @@userID, @@admin)
+select @key =  case when @type = '1' then 'a.status <> ''*''' else 'a.status not in (''0'', ''*'')' end
+if @unitKey is not null set @key = @key + ' and ' + @unitKey
+if isnull(@mst, '') <> '' set @key = @key + case when @type = '1' then ' and a.mst_cn = ''' else ' and a.ma_so_thue = ''' end + replace(rtrim(@mst), '''', '') + ''''
+set @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+
+select top 0 stt_rec, ma_ct, ma_dvcs, mst_cn, ten_cn, ngay_ct, ngay_ct as ngay_hd, so_ct, ky_hieu, mst_kh, ten_kh into #dt from m15$000000
+
+if @type = '1' select @q = '
+  insert into #dt select a.stt_rec, a.ma_ct, a.ma_dvcs, a.mst_cn, a.ten_cn, null, a.ngay_ct, a.so_ct, a.ky_hieu, a.mst_kh, a.ten_kh
+    from m15$%Partition a with(nolock) join dmdnruiro b with(nolock) on a.mst_cn = b.mst and b.status = ''1''
+    where %[' + @key + ']%
+' else select @q = '
+  insert into #dt select a.stt_rec, a.ma_ct, a.ma_dvcs, a.ma_so_thue, max(a.ten_kh), a.ngay_ct, a.ngay_ct0, dbo.ff_PadL(a.so_ct0, 12), a.so_seri0, '''', ''''
+    from r30$%Partition a with(nolock) join dmdnruiro b with(nolock) on a.ma_so_thue = b.mst and b.status = ''1''
+    where %[' + @key + ']% group by a.stt_rec, a.ma_dvcs, a.ma_ct, a.so_ct0, a.ngay_ct, a.ngay_ct0, a.so_seri0, a.ma_so_thue
+'
+
+exec AI_ERP$Partition$Execute @q, null, 'a.ngay_ct', @tu_ngay, @den_ngay, @@userID, @@admin
+
+select * from #dt order by ngay_ct, ngay_hd, so_ct, ma_dvcs, mst_cn, ky_hieu
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(h,c){var b=c.object,d=c.type.Context,g=c.type.Result,a=b.grid;switch(d){case"Checking":var e=b.getItem("tu_ngay").value,f=b.getItem("den_ngay").value;a._hiddenFields=[{Fields:"ngay_ct",Value:b.getItemValue("type")=="1"}];a._alterTitle=[null,[["%d1",e,true],["%d2",f,true]]];if(a._$k)a._$k=[];remove$GridReport$Filter(a)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

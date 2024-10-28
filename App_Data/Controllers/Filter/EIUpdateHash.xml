@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY l "8">
+
+  <!ENTITY Key "declare @rk varchar(16)
+select @rk = lower(left(replace(newid(), '-', ''), 16))
+update @@sysDatabaseName..userinfo2 set rkey = @rk where id = @@userID">
+]>
+
+<dir table="tkhddt" code="ma_kn" order="ma_kn" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật thông tin tài khoản phát hành hóa đơn" e="Update e-Invoice Account Information"></title>
+
+  <fields>
+    <field name="ma_kn" disabled="true">
+      <header v="Tài khoản kết nối" e="Account"></header>
+    </field>
+    <field name="ten_kn" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="user_hddt" disabled="true">
+      <header v="Tài khoản" e="System User"></header>
+    </field>
+    <field name="pass_hddt0" allowNulls="false" external="true" defaultValue="'*******' + char(255)" maxLength="48">
+      <header v="Mật khẩu hiện tại" e="Current Password"></header>
+      <clientScript><![CDATA[type="password"]]></clientScript>
+    </field>
+    <field name="pass_hddt1" allowNulls="false" external="true" defaultValue="'*******' + char(255)" maxLength="48">
+      <header v="Mật khẩu mới" e="New Password"></header>
+      <clientScript><![CDATA[type="password"]]></clientScript>
+    </field>
+    <field name="pass_hddt2" allowNulls="false" external="true" defaultValue="'*******' + char(255)" maxLength="48">
+      <header v="Nhắc lại mật khẩu" e="Confirm New Password"></header>
+      <clientScript><![CDATA[type="password"]]></clientScript>
+    </field>
+    <field name="aes_pass_hddt0" external="true" defaultValue="''" allowContain="true" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="aes_pass_hddt1" external="true" defaultValue="''" allowContain="true" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="aes_pass_hddt2" external="true" defaultValue="''" allowContain="true" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="1101000: [ma_kn].Label, [ma_kn], [ten_kn]"/>
+      <item value="1100---: [user_hddt].Label, [user_hddt]"/>
+      <item value="1100--1: [pass_hddt0].Label, [pass_hddt0], [aes_pass_hddt0]"/>
+      <item value="1100--1: [pass_hddt1].Label, [pass_hddt1], [aes_pass_hddt1]"/>
+      <item value="1100--1: [pass_hddt2].Label, [pass_hddt2], [aes_pass_hddt2]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        &Key;<![CDATA[
+select 'var t = this;t._key = ''' + @rk + ''';t._url$EInvoice=''~/AppService/AI_ERP.EInvoice.Service.asmx'';t._service$Method=''ExcuteCommand'';loadForm$EIUpdateHash(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'closeForm$EIUpdateHash(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function loadForm$EIUpdateHash(a){var b=a.grid;a.add_onResponseComplete(on$Form$EIUpdateHash$ResponseComplete);a._$init&&a.request("Key","Key",[]);a._$init=true;a.setItemValues("ma_kn, user_hddt, ten_kn",[b._$profile,b._$userName,b._$profileName])}function closeForm$EIUpdateHash(a){try{a.remove_onResponseComplete(on$Form$EIUpdateHash$ResponseComplete)}catch(b){}}function on$Form$EIUpdateHash$ResponseComplete(e,a){var b=a.object,c=a.type.Context,d=a.type.Result;switch(c){case"Checking":check$HashPasswordValue(b);break;case"Key":b._key=d[0].Value}}
+function check$HashPasswordValue(f) {
+  f._checked = false;
+  var g = f.grid, o0 = f.getItem('pass_hddt0'), o1 = f.getItem('pass_hddt1'), o2 = f.getItem('pass_hddt2'), l = f._language == 'v', msg = '';
+  var hidden = '*******' + String.fromCharCode(255);
+  var p0 = o0.value, p1 = o1.value, p2 = o2.value;
+  var salt = $func.left(MD5(localStorage.getItem('k' + String.fromCharCode(0)) + f._key), 16);
+  setPass$FieldValue(f, o0);
+  setPass$FieldValue(f, o1);
+  setPass$FieldValue(f, o2);
+
+  f.setItemValues('aes_pass_hddt0, aes_pass_hddt1, aes_pass_hddt2', [(p0 == '' || p0 == hidden ? '' : AES(salt, salt, $func.trim(MD5(p0)))), (p1 == '' || p1 == hidden ? '' : AES(salt, salt, p1)), (p2 == '' || p2 == hidden ? '' : AES(salt, salt, p2))]);
+
+  var message = [(l ? 'Mật khẩu vừa nhập không hợp lệ.' : 'Your password is too simple. Please retype.'), (l ? 'Kiểm tra lại mật khẩu nhập không đúng.' : 'Your password is invalid. Please retype.')];
+
+  if (p1 != p2) msg = message[1];
+  if (p0.length < ]]>&l;<![CDATA[ || p1.length < ]]>&l;<![CDATA[ || p2.length < ]]>&l;<![CDATA[) msg = message[0];
+  if (msg != '') {
+    $message.show(msg, String.format('revertHashPassword(\'{0}\', \'\', true); $find(\'{0}\').focus(\'{1}\');', f.get_id(), 'pass_hddt0'));
+    return;
+  }
+  request$EIUpdateHash(f, g);
+}
+function setPass$FieldValue(b,a){a.oldValue=a.value;a.value="";checkFieldHashEntry(b,a)}function checkFieldHashEntry(b,a,c){if(c)a=b.getItem(a);var d=c?a.value:a.oldValue;if(b._checked&&!d){b._checked=false;$message.show(String.format($df.getResources(b._language,"Message.RequiredField"),a.field.Label),String.format("revertHashPassword('{0}', '', true); $find('{0}').focus('{1}');",b.get_id(),a.field.Name))}}function revertHashPassword(e,d,g){if(g)f=$find(e);var a=f.getItem("pass_hddt0"),b=f.getItem("pass_hddt1"),c=f.getItem("pass_hddt2");if(a.oldValue)a.value=a.oldValue;if(b.oldValue)b.value=b.oldValue;if(c.oldValue)c.value=c.oldValue;d&&f.focus(d);$func.hideWait(e)}function request$EIUpdateHash(a,b,c){var e=a.get_id();if(!c){busy$FormFilter(a,true);window.setTimeout(function(){request$EIUpdateHash(a,b,true)},2);return}var d=Sys.Serialization.JavaScriptSerializer.serialize({unit:b._$unit,p1:a.getItemValue("aes_pass_hddt0"),p2:a.getItemValue("aes_pass_hddt1")});Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl(a._url$EInvoice,a._baseUrl),a._service$Method,false,{method:140,action:0,query:d},onProcess$UpdateHashCompleted,onProcess$UpdateHashFailed,e)}function onProcess$UpdateHashCompleted(g,e){var c=$find(e),f=c.grid,b,a=f._language=="v";busy$FormFilter(c,false);if(g.Success=="1"){c.cancelDialog();var d=$find(f._$filterFormID);d._$checkHash=1;d.executeDialog(2)}else{var h={PasswordConflict:a?"Mật khẩu không được phép trùng mật khẩu cũ.":"Old password must not be reused.",PasswordInvalid0:a?"Mật khẩu xác nhận không đúng.":"Confirmation password is invalid.",PasswordInvalid1:a?"Mật khẩu vừa nhập không hợp lệ.":"Your password is too simple. Please retype.",PasswordInvalid2:a?"Kiểm tra lại mật khẩu nhập không đúng.":"Your password is invalid. Please retype.",PasswordInvalid3:a?"Mật khẩu tối thiểu phải từ 8 ký tự.":"Password must consist of at least 8 characters.",PasswordInvalid4:a?"Mật khẩu tối thiểu phải từ 8 ký tự và phải có số và chữ":"Password must consist of at least 8 characters in both numbers and letters.",PasswordInvalid5:a?"Mật khẩu tối thiểu phải từ 8 ký tự và phải có số, chữ, chữ hoa.":"Password must consist of at least 8 characters in both numbers and letters with upper-case letter.",PasswordInvalid6:a?"Mật khẩu tối thiểu phải từ 8 ký tự và phải có số, chữ, chữ hoa, kí tự khác ngoài chữ và số.":"Password must consist of at least 8 characters in both numbers and letters with upper-case letter and other characters except numbers and letters."};b=h[g.Reference];if(!b)b=a?"Phát sinh lỗi trong quá trình thực hiện.":"The process was failed.";$message.show(b,String.format("revertHashPassword('{0}', '', true); $find('{0}').focus('{1}');",e,"pass_hddt0"))}}function onProcess$UpdateHashFailed(b,a){busy$FormFilter($find(a),false);$message.showError(b)}function busy$FormFilter(c,a){var b=c._id;c._busy=a;if(a)$func.showWait(b);else $func.hideWait(b);$func.enableButtons(!a)}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Key">
+      <text>
+        &Key;<![CDATA[
+select @rk as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

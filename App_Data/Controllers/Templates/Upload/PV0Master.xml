@@ -1,0 +1,324 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY CheckVoucherRightBeforeProcess SYSTEM "Include\CheckVoucherRightBeforeProcess.txt">
+  <!ENTITY PV0MasterFields SYSTEM "Include\PV0MasterFields.txt">
+  <!ENTITY PV0MasterFieldsCompact SYSTEM "Include\PV0MasterFieldsCompact.txt">
+  <!ENTITY PV0MasterFieldsLocation SYSTEM "Include\PV0MasterFieldsLocation.txt">
+  <!ENTITY PV0MasterFieldsLot SYSTEM "Include\PV0MasterFieldsLot.txt">
+  <!ENTITY ControlLocationLotLoading SYSTEM "..\..\Include\Command\ControlLocationLotLoading.txt">
+  <!ENTITY Detail "37">
+  <!ENTITY Code "PV0">
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY LockedDate "
+if @r is not null begin
+  select replace(@locked, '&#37;s', @@delta + @r) as message
+  return
+end
+">
+  <!ENTITY s1 "Phiếu nhập số &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; ngày &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;&#37;s3&lt;/span&gt;">
+  <!ENTITY s2 "The voucher number &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; dated &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;&#37;s3&lt;/span&gt;">
+  <!ENTITY SiteRight "
+exec AI_ERP$System$CheckImportSiteRights '@@table', 'ma_kho', 'stt', @user, @admin, @r output, default, @$mode, @$errorCount output
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  &Error;
+end">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % VoucherDeleteLog SYSTEM "..\..\Include\VoucherDeleteLog.ent">
+  %VoucherDeleteLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.PV0Tran;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Voucher"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$IRMasterImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$IRMasterImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="m&Detail;$000000, d&Detail;$000000"/>
+    <dependence value="m&Detail;$000000, d&Detail;$000000, i&Detail;$000000, c&Detail;$000000" alias="m, d, i, g"/>
+    <listTable value="#m&Detail;, #d&Detail;, #i&Detail;, #i&Detail;"/>
+    <alias value="master, detail, inquiry, general"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C003">
+      <header v="Đã khóa số liệu, kiểm tra lại ngày chứng từ." e="Data is locked, please check the date of voucher." />
+    </var>
+    <var id="C007">
+      <header v="Trường ngày chưa nhập hoặc giá trị nhập không hợp lệ." e="Field date must not be blank or has invalid value." />
+    </var>
+    &ImportLockedDateVariable;
+  </variable>
+
+  <query>
+    <command>
+      <text>
+        &Tiny.External.Import.Command;
+        <![CDATA[
+if not exists(select 1 from options where name = 'm_instock_split' and val = '1')
+  if exists(select 1 from options where name = 'm_compact_mode' and rtrim(val) = '1') select '1' as view_index else select '0' as view_index
+else begin
+  ]]>&ControlLocationLotLoading;<![CDATA[
+    select case
+      when @$location = 0 and @$Lot = 0 then 1
+      when @$location = 1 and @$Lot = 0 then 2
+      when @$location = 0 and @$Lot = 1 then 3
+      when @$location = 1 and @$Lot = 1 then 0
+    end as view_index
+  end
+end
+]]>
+      </text>
+    </command>
+
+    <views>
+      <fields identity="true" name="stt" index="1">
+        &PV0MasterFieldsCompact;
+      </fields>
+      <fields identity="true" name="stt" index="2">
+        &PV0MasterFieldsLocation;
+      </fields>
+      <fields identity="true" name="stt" index="3">
+        &PV0MasterFieldsLot;
+      </fields>
+
+      &Tiny.External.Import.View.PV0Master;
+    </views>
+  </query>
+
+  <fields identity="true" name="stt">
+    &PV0MasterFields;
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Điều chỉnh số dư tồn kho đầu năm" e="Item Opening Balance Adjustment"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_kh" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã khách" e="Customer"/>
+      </field>
+      <field name="ten_kh" width ="32" afterField="ma_kh" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên khách hàng" e="Customer Name"/>
+      </field>
+      <field name="dien_giai" width ="32">
+        <text v="Diễn giải" e="Memo"/>
+      </field>
+      <field name="ngay_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày" e="Voucher Date"/>
+      </field>
+      <field name="so_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số chứng từ" e="Voucher Number"/>
+      </field>
+
+      <field name="ma_vt" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã hàng" e="Item Code"/>
+      </field>
+      <field name="ten_vt" width ="32" afterField="ma_vt" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên mặt hàng" e="Item Description"/>
+      </field>
+      <field name="dvt" width ="10">
+        <text v="Đvt" e="UOM"/>
+      </field>
+      <field name="ma_kho" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã kho" e="Site"/>
+      </field>
+      <field name="ma_vi_tri" width ="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã vị trí" e="Location"/>
+      </field>
+      <field name="ma_lo" width ="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã lô" e="Lot"/>
+      </field>
+      <field name="so_luong" width ="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="gia_nt" width ="16">
+        <text v="Giá" e="Price"/>
+      </field>
+      <field name="tien_nt" width ="16">
+        <text v="Tiền" e="Amount"/>
+      </field>
+      <field name="ma_nt" width ="16">
+        <text v="Mã nt" e="Currency"/>
+      </field>
+      <field name="ty_gia" width ="16">
+        <text v="Tỷ giá" e="Ex. Rate"/>
+      </field>
+      <field name="dien_giai_i" width ="50">
+        <text v="Diễn giải" e="Description"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      &CheckVoucherRightBeforeProcess;
+      <![CDATA[
+declare @q nvarchar(4000), @locked nvarchar(512), @field varchar(32), @wsID varchar(8), @voucherID varchar(8), @e1 nvarchar(512)
+declare @master varchar(16), @detail varchar(16), @inquiry varchar(16), @general varchar(16), @baseCurrency varchar(8), @datetime0 char(21), @d0 datetime
+declare @user int, @admin bit, @r int, @m int, @y int, @max1 int, @max2 int, @count int, @roundPrice int, @roundAmount int
+
+select @d0 = getdate(), @datetime0 = convert(char(8), @d0, 112) + ' ' + convert(char(12), @d0, 114), @status = left(replace(@status, '''', '') , 1)
+select @admin = @@admin, @user = @@userID, @master = 'm]]>&Detail;<![CDATA[$000000', @detail = 'd]]>&Detail;<![CDATA[$000000', @inquiry = 'i]]>&Detail;<![CDATA[$000000', @voucherID = ']]>&Code;<![CDATA['
+
+select @locked = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày chứng từ tại dòng <span class="Highlight">%s</span>.' else N'Data is locked, please check the date of voucher at row <span class="Highlight">%s</span>.' end
+select @e1 = case when @@language = 'v' then N'Giá trị nhập không hợp lệ, kiểm tra lại ngày chứng từ tại dòng <span class="Highlight">%s</span>.' else 'Invalid value, please check the date of voucher at row <span class="Highlight">%s</span>.' end
+
+select @wsID = rtrim(val) from options where name = 'm_ws_id'
+select @baseCurrency = rtrim(val) from options where name = 'm_ma_nt0'
+select @roundPrice = cast(rtrim(val) as int) from options where name = 'm_round_gia'
+select @roundAmount = cast(rtrim(val) as int) from options where name = 'm_round_tien'
+
+select @max1 = character_maximum_length from information_schema.columns where table_name = @master and column_name = 'so_ct'
+
+-- Update
+update @@table set so_ct = space(@max1 - len(rtrim(ltrim(so_ct)))) + rtrim(ltrim(so_ct)), dvt = case when a.dvt <> '' then a.dvt else b.dvt end,
+    ma_kho = case when a.ma_kho <> '' then a.ma_kho else b.ma_kho end,
+    ma_nt = case when a.ma_nt <> '' then a.ma_nt else @baseCurrency end
+  from @@table a left join dmvt b on a.ma_vt = b.ma_vt
+
+select top 0 ma_dvcs, ngay_ct, so_ct into #unit from m]]>&Detail;<![CDATA[$000000
+insert into #unit select b.ma_dvcs, a.ngay_ct, a.so_ct from @@table a join dmkho b on a.ma_kho = b.ma_kho group by b.ma_dvcs, a.ngay_ct, a.so_ct
+
+-- Checking
+@@checking(1);
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'dvt', stt, '00001' from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt where b.dvt is null and c.dvt is null
+  ]]>&w1;<![CDATA['dvt']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'dvt', @r = min(stt) from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt where b.dvt is null and c.dvt is null]]>&Error;<![CDATA[
+end
+
+-- Locked Date
+]]>&ImportLockedDateCheck;<![CDATA[
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ngay_ct', stt, 'C007' from @@table a, dmstt b where year(a.ngay_ct) <= b.nam_bd
+  ]]>&w1;<![CDATA['ngay_ct']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C007']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table a, dmstt b where year(a.ngay_ct) <= b.nam_bd
+  if @r is not null begin
+    select replace(@e1, '%s', @@delta + @r) as message
+    return
+  end
+end
+select @field = 'ma_kho'
+if @admin <> 1 begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table a where not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1))
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(stt) from @@table a where not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1))]]>&Error;<![CDATA[
+  end
+  ]]>&SiteRight;<![CDATA[
+end
+
+@@checking(2);
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Gather
+select top 0 stt_rec, ngay_ct, so_ct, cast(0 as int) as stt, identity(int, 1, 1) as id into #id from m]]>&Detail;<![CDATA[$000000
+insert into #id(stt_rec, ngay_ct, so_ct, stt) select '', ngay_ct, so_ct, min(stt) from @@table group by ngay_ct, so_ct order by ngay_ct, so_ct
+
+select identity(int, 1, 1) as id, cast(stt as int) as stt, convert(varchar(8), ngay_ct, 112) + so_ct as c, cast(0 as int) as ln into #ln from @@table order by ngay_ct, so_ct, stt
+exec AI_ERP$App$UpdateLineNumber
+create index i on #ln(stt)
+
+select @count = count(*) from #id
+exec AI_ERP$App$UpdateIdentityNumber @wsID, @voucherID, @count, @@userID
+
+select top 0 a.stt_rec, a.stt_rec0, a.line_nbr, a.ngay_ct, a.so_ct, a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo, a.dvt, b.nhieu_dvt, a.he_so, a.so_luong, a.gia_nt, a.gia, a.tien_nt, a.tien, a.dien_giai into #d]]>&Detail;<![CDATA[ from d]]>&Detail;<![CDATA[$000000 a, dmvt b
+insert into #d]]>&Detail;<![CDATA[ select b.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln), i.ln, a.ngay_ct, a.so_ct, a.ma_vt, a.ma_kho, a.ma_vi_tri, a.ma_lo,
+    a.dvt, c.nhieu_dvt, 1, a.so_luong, a.gia_nt, round(a.gia_nt * a.ty_gia, @roundPrice), a.tien_nt, round(a.tien_nt * a.ty_gia, @roundAmount), a.dien_giai_i
+  from @@table a
+    join #id b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct
+    left join dmvt c on a.ma_vt = c.ma_vt
+    join #ln i on a.stt = i.stt
+  order by a.ngay_ct, a.so_ct, a.stt
+
+update #d]]>&Detail;<![CDATA[ set he_so = b.he_so from #d]]>&Detail;<![CDATA[ a join vdmvtqddvt b on (a.ma_vt = b.ma_vt or b.ma_vt = '*') and a.dvt = b.dvt where a.nhieu_dvt = 1
+
+select top 0 stt_rec, status, ma_dvcs, ngay_ct, so_ct, ma_kh, dien_giai, ma_nt, ty_gia, t_so_luong, t_tien_nt, t_tien
+  into #m]]>&Detail;<![CDATA[ from m]]>&Detail;<![CDATA[$000000
+
+insert into #m]]>&Detail;<![CDATA[ select b.stt_rec, @status, c.ma_dvcs, a.ngay_ct, a.so_ct, a.ma_kh, a.dien_giai, a.ma_nt, a.ty_gia, d.t_so_luong, d.t_tien_nt, d.t_tien
+  from @@table a
+    join #id b on a.stt = b.stt
+    join #unit c on a.ngay_ct = c.ngay_ct and a.so_ct = c.so_ct
+    join (select stt_rec, sum(so_luong) as t_so_luong, sum(tien_nt) as t_tien_nt, sum(tien) as t_tien from #d]]>&Detail;<![CDATA[ group by stt_rec) d on b.stt_rec = d.stt_rec
+
+select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, status, user_id0, c$, m$, d$, e$, identity(int, 1, 1) as id into #i]]>&Detail;<![CDATA[ from i]]>&Detail;<![CDATA[$000000
+insert into #i]]>&Detail;<![CDATA[ select stt_rec, ngay_ct, so_ct, ma_dvcs, @status, @user, convert(varchar(12), ngay_ct, 112) + so_ct + stt_rec, '#10$' + rtrim(ma_nt) + '#20$' + rtrim(ma_kh), '', '' from #m]]>&Detail;<![CDATA[
+
+select @q = dbo.AI_ERP$Function$Update$Inquiry('#i]]>&Detail;<![CDATA[', '#d]]>&Detail;<![CDATA[', 'd$', 'ma_kho, ma_vt', '#10$, #20$', 'stt_rec', default, default, 'PV0', 'e$', 1)
+exec sp_executesql @q
+
+-- Insert
+@@inserting(master);
+
+@@inserting(detail);
+
+@@inserting(inquiry);
+
+-- Post
+exec fs_Post$Import$AdjustmentInventory '#m]]>&Detail;<![CDATA[', '#d]]>&Detail;<![CDATA[', @voucherID, @status,
+  'gia_nt0,tien_nt0,gia0,tien0,gia01,gia_nt01,ct_dc,px_gia_dd,gia_nt21,gia21,gia_nt2,gia2,tien_nt2,tien2,cp_nt,cp,thue_suat_nk,nk_nt,nk,cp_thue_yn,thue_suat,thue_nt,thue,ck_nt,ck',
+  'so_seri,ma_khon,tk_gv,tk_dt,tk_thue_nk,ma_tt,tk_thue_no,tk_thue_co,tk_ck,so_dh2,so_dh3,ma_nvbh,stt_rec_dc,so_ct0,so_seri0,stt_rec_pn,stt_rec0pn,stt_rec_px,stt_rec0px,stt_rec_yc,stt_rec0yc', ''
+
+exec fs_PostImport$AfterAdjustmentInventory @status, @datetime0, @user
+
+--FIFO
+declare @t table(line_nbr int, stt_rec varchar(32))
+insert into @t select line_nbr, stt_rec from #d]]>&Detail;<![CDATA[ a join dmvt b on a.ma_vt = b.ma_vt where b.gia_ton = 3
+if exists(select top 1 1 from @t) begin
+  insert into cdntxt(nam, stt_rec_nt, stt_rec0, pn_co_gia, ngay, ma_ct, stt_ctntxt, ngay_ct, so_ct, ma_kho, ma_vi_tri, ma_vt, ma_lo, so_luong, ma_nt, tien, tien_nt, tien_cp, tien_cp_nt,ton_kho01, so_du01, so_du_nt01,ton_kho02, so_du02, so_du_nt02, ton_kho03, so_du03, so_du_nt03, ton_kho04, so_du04, so_du_nt04,ton_kho05, so_du05, so_du_nt05, ton_kho06, so_du06, so_du_nt06, ton_kho07, so_du07, so_du_nt07, ton_kho08,so_du08, so_du_nt08,ton_kho09, so_du09, so_du_nt09, ton_kho10, so_du10, so_du_nt10, ton_kho11, so_du11, so_du_nt11, ton_kho12, so_du12, so_du_nt12,ton_kho13, so_du13, so_du_nt13,  datetime0, datetime2,user_id0, user_id2, status)
+    select year(ngay_ct), stt_rec, stt_rec0, 1, 0, '', 0, ngay_ct, so_ct, a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, so_luong, '', tien, tien_nt, 0, 0,
+      so_luong, tien, tien_nt, so_luong, tien, tien_nt, so_luong, tien, tien_nt, so_luong, tien, tien_nt,
+      so_luong, tien, tien_nt, so_luong, tien, tien_nt, so_luong, tien, tien_nt, so_luong, tien, tien_nt,
+      so_luong, tien, tien_nt, so_luong, tien, tien_nt, so_luong, tien, tien_nt, so_luong, tien, tien_nt,
+      so_luong, tien, tien_nt, @d0, @d0, @@userID, @@userID, 1
+    from #d]]>&Detail;<![CDATA[ a where exists(select 1 from @t b where a.stt_rec = b.stt_rec and a.line_nbr = b.line_nbr)
+end
+]]>
+    </text>
+  </processing>
+
+</import>

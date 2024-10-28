@@ -1,0 +1,14 @@
+﻿delete #t where status = '9'
+delete #t from #t a where menu_id0 = '' and not exists(select 1 from #t where menu_id0 = a.menu_id and bar <> '-')
+
+select a.wmenu_id as menu_id, a.wmenu_id0 as menu_id0, case when @@language = 'V' then rtrim(a.bar) else rtrim(a.bar2) end as bar, a.link, case when icon = '' then a.icon_url else '' end as icon_url, a.icon, a.status, rtrim(a.target) as target, rtrim(a.type_menu) as type_menu
+  into #z from wcommand a join @@appDatabaseName..denyunitright b on patindex('%' + rtrim(a.wmenu_id) + '%', b.r_deny) > 0 where b.ma_dvcs = @@unit
+
+delete #t from #t a join #z b on a.menu_id = b.menu_id
+
+insert into #t select distinct b.menu_id, b.menu_id0, b.bar, b.link, b.icon_url, b.icon, b.status, b.target, b.type_menu from #t a join #z b on a.menu_id0 = b.menu_id where a.bar <> '-' and b.menu_id not in (select menu_id from #t)
+insert into #t select distinct b.menu_id, b.menu_id0, b.bar, b.link, b.icon_url, b.icon, b.status, b.target, b.type_menu from #t a join #z b on a.menu_id0 = b.menu_id where a.bar <> '-' and b.menu_id not in (select menu_id from #t)
+
+drop table #z
+
+exec @@appDatabaseName..AI_ERP$App$Startup

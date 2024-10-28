@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY LineCounter "5">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tu_ngay_dn" type="DateTime" dataFormatString="@datetimeFormat" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày đề nghị từ" e="Date Required from"></header>
+      <footer v="Ngày đề nghị từ/đến" e="Date Required from/to"></footer>
+    </field>
+    <field name="den_ngay_dn" type="DateTime" dataFormatString="@datetimeFormat" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày đề nghị đến" e="Date Required to"></header>
+    </field>
+    <field name="tu_ngay_tt" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Ngày thanh toán từ" e="Payment Date from"></header>
+      <footer v="Ngày thanh toán từ/đến" e="Payment Date from/to"></footer>
+    </field>
+    <field name="den_ngay_tt" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Ngày thanh toán đến" e="Payment Date to"></header>
+    </field>
+    <field name="loai_tt"  dataFormatString="1, 2, *" clientDefault="*" align="right" categoryIndex="1">
+      <header v="Loại thanh toán" e="Payment Type"></header>
+      <footer v="1 - Chuyển khoản, 2 - Tiền mặt, * - Tất cả" e="1 - Transfer, 2 - Cash on Hand, * - All"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_kh" dataFormatString="@upperCaseFormat" categoryIndex="1">
+      <header v="Mã khách" e="Customer"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="status" categoryIndex="1">
+      <header v="Danh sách trạng thái" e="Status List"></header>
+      <items style="Lookup" controller="Lookup" key="type = '002'" check="1 = 1"/>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList" >
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="140, 25, 75, 20, 25, 55, 35, 25, 25, 125"/>
+      <item value="110100----: [tu_ngay_dn].Description, [tu_ngay_dn], [den_ngay_dn]"/>
+      <item value="110100----: [tu_ngay_tt].Description, [tu_ngay_tt], [den_ngay_tt]"/>
+      <item value="1110000000: [loai_tt].Label, [loai_tt], [loai_tt].Description"/>
+      <item value="1101000000: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="110000000-: [status].Label, [status]"/>
+      <item value="110000000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110000000-: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="140, 25, 75, 20, 25, 55, 35, 25, 25, 125">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @tu_ngay_tt as tu_ngay, @den_ngay_tt as den_ngay
+exec rs_rptPaymentRequestAP @tu_ngay_dn, @den_ngay_dn, @tu_ngay_tt, @den_ngay_tt, @loai_tt, @ma_kh, @status, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  changeLookupReadonly(f, 'ma_dvcs');
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(h,a){var b=a.object,c=a.type.Context,g=a.type.Result;switch(c){case"Checking":var f=b.grid,d=b.getItem("tu_ngay_tt").value,e=b.getItem("den_ngay_tt").value;f._alterTitle=[null,[["%df",d,true],["%dt",e,true]]]}}]]>
+    </text>
+  </script>
+  &OutlineCss;
+</dir>

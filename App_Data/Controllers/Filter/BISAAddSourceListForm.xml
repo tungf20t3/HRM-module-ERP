@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BISAAddSourceListForm">
+  <!ENTITY GridController "BISAAddSourceListGrid">
+
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+  <!ENTITY FlowMultiGeneralTable "">
+
+  <!ENTITY OtherCopyField "">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Nguồn cung ứng" e="Source List"></title>
+
+  <fields>
+    &FlowMultiFormField;
+  </fields>
+
+  <views>
+    &FlowMultiFormView;
+  </views>
+
+  <commands>
+    &FlowMultiFormCommand;
+  </commands>
+
+  <script>
+    <text>
+
+      <![CDATA[
+function show$]]>&Identity;<![CDATA[$(f) {
+  var z = f.grid, h = z.get_element().parentForm, c = String.fromCharCode(253), c1 = String.fromCharCode(252), a = query$Select(z, 'count$1 $groupBy stt_rec_ng'), k = '';
+  for (var i = 0; i < a.length; i++) k = k + (k.indexOf($func.trim(a[i][0].replaceAll("'", c1))) == -1 ? (k == '' ? '' : String.fromCharCode(251)) + a[i][0].replaceAll("'", c1) : '');
+  var queryFilterString = z._filter$Fields.join(c).replaceAll("'", c1) + c + k;
+  show$FlowMulti$Form(f, queryFilterString, ']]>&Identity;<![CDATA[DataGridPanel', 'SATran', ']]>&GridController;<![CDATA[', ']]>&OtherCopyField;<![CDATA[');
+}
+
+function active$]]>&Identity;<![CDATA[$(f) {
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+  active$FlowMulti$Form(f);
+}
+
+function close$]]>&Identity;<![CDATA[$(f) {
+  close$FlowMulti$Form(f);
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+}
+
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = getGrid$FlowMulti$(f);
+      var c = String.fromCharCode(255)k1 = g._getColumnOrder('ma_kh') - 1, k2 = g._getColumnOrder('ma_ct') - 1, k3 = g._getColumnOrder('stt_rec') - 1, k = '';
+      for (var i = 0; i < g._$k.length; i++) (k += (k != '' ? ',' : '') + $func.trim(g._$k[i][k1]) + c + $func.trim(g._$k[i][k2]) + c + $func.trim(g._$k[i][k3]);)
+      if (k == '') f.grid._formScript = 'show$FlowMulti$RetrieveGrid(this)';
+      else {
+        f._checked = false;
+        f.request('GetPriceinfo', 'GetPriceinfo', [['$f$String', 'String', f._$queryFilterString], ['k', 'Infinite', k]]);
+      }
+      break;
+    case 'GetPriceinfo':
+      if (result[0][1] != '') {
+        var g = getGrid$FlowMulti$(f);
+        on$]]>&Identity;<![CDATA[$TransferData(f, g, result);
+      } else f.cancelDialog();
+      break;
+    default:
+      break;
+  }
+}
+
+function on$]]>&Identity;<![CDATA[$TransferData(f, g, a) {
+  var z = f.grid, w = z.get_element().parentForm;
+  var fields = 'ma_kh,chon,so_luong0,sl_dh,gia_nt,ma_nt,ngay_ct1,ngay_ct2,tg_th,ghi_chu,he_so1,so_luong1,so_luong2,sl_min,sl_max,gia_chuan_nt,ma_vung,sl_han_ngach,so_tham_chieu,ma_nguon,ma_nguon_gia,so_theo_doi,ma_nh0,stt_rec_ng,kieu_han_ngach,stt_han_ngach,tt_han_ngach,cd_ncc_sl,ncc_tx_sl,stt_ngm,ngay_ct0,line_nbr,stt_rec_gia,stt_rec0_gia,stt_rec1_gia,ct_gia_dk,ct_gia_pv,gia_chuan_yn,gia_yn,pp_thay_doi,pp_gia_cl_nt,pp_ck_dv_nt,pp_cp_dv_nt,pp_ck_nt,pp_cp_nt,ma_vt,dvt,he_so,sl_duyet,ngay_yc,stt_rec,stt_rec0,he_so_han_ngach,plant_order';
+  var f1 = 'ten_kh%l,ten_nguon%l,ten_nguon_gia%l,ten_vt%l', f2 = 'ten_kh,ten_nguon,ten_nguon_gia,ten_vt', ref = fields + (f1 != '' ? ',' + f1 : '');
+  if (a.length > 0) {
+    for (var r = 0; r < a.length; r++) {
+      z._appendRow(null, true);
+      var row = z._rowCount;
+      insert$]]>&Identity;<![CDATA[$Items(g, a, r, z, row, fields, f1, f2, ref);
+    }
+    if (z._activeRow <= 0) {z._activeRow = 1;}
+  }
+  f.cancelDialog();
+}
+function insert$]]>&Identity;<![CDATA[$Items(g, a, r1, z, r2, columns, c1, c2, ref) {
+  var a0 = (columns + (c1 ? ',' + c1 : '')).replaceAll("%l", (z._language == 'v' ? '' : '2')).split(','),
+    a1 = ref.replaceAll("%l", (z._language == 'v' ? '' : '2')).split(','),
+    a2 = (columns + (c2 ? ',' + c2 : '')).replaceAll("%l", (z._language == 'v' ? '' : '2')).split(',');
+
+  for (var i = 0; i < a0.length; i++) {
+    var l1 = (a1.indexOf($func.trim(a1[i])) + 1), l2 = z._getColumnOrder($func.trim(a2[i]));
+    if (l1 > 0 && l2 > 0) z._setItemValue(r2, l2, a[r1][l1]);
+  }
+}
+]]>
+      &FlowMultiScript;
+    </text>
+  </script>
+
+  <response>
+    <action id="GetPriceinfo">
+      <text>
+        <![CDATA[
+declare @purOrg varchar(32), @purGroup varchar(32), @plant varchar(32), @item varchar(32), @dForm smalldatetime, @dTo smalldatetime, @id$PR varchar(32), @IDs varchar(8000)
+declare @s nvarchar(4000), @l int, @size int, @i int, @c char(1), @d char(1), @e char(1), @p char(6), @r nvarchar(4000), @q nvarchar(4000), @delta int
+
+select @c = char(253), @d = char(252), @e = char(251), @size = 0
+exec dbo.AI_ERP$BI$Options$GetValue 'ma_nh0', @purGroup out, 'bioptionsnsd', 'user_id = @@userID'
+
+select top 0 identity(int, 1, 1) as id, cast('' as varchar(32)) as ma_kh, cast('' as char(3)) as ma_ct, cast('' as varchar(32)) as stt_rec, cast('' as char(6)) as p into #k
+select @i = 1, @l = datalength(text), @size = charindex(',', text, @size) from @k
+while @size > 0 and @size < @l begin
+  select @s = replace(substring(text, @i, @size - @i), '''', '') from @k
+  select @q = 'insert into #k (ma_kh, ma_ct, stt_rec) select ''' + replace(replace(@s, '''', ''''''), char(255) Collate Latin1_General_BIN, ''', ''') + ''''
+  exec sp_executesql @q
+  select @i = @size + 1, @delta = charindex(',', substring(text, @size + 1, @l - @size)) from @k
+  if @delta = 0 break
+
+  select @size = @size + @delta
+end
+if @i < @l begin
+  select @s = replace(substring(text, @i, @l - @i), '''', '') from @k
+  select @q = 'insert into #k (ma_kh, ma_ct, stt_rec) select ''' + replace(replace(@s, '''', ''''''), char(255) Collate Latin1_General_BIN, ''', ''') + ''''
+  exec sp_executesql @q
+end
+
+select * into #t from dbo.AI_ERP$Function$System$Split(@$f$String, @c)
+select @purOrg = replace(data, @d, '''') from #t where id = 2
+select @plant = replace(data, @d, '''') from #t where id = 3
+select @item = replace(data, @d, '''') from #t where id = 4
+select @dForm = data from #t where id = 5
+select @dTo = data from #t where id = 6
+select @id$PR = replace(data, @d, '''') from #t where id = 7
+select @IDs = replace(data, @d, '''') from #t where id = 8
+
+select top 0 rtrim(c.ma_kh) as ma_kh, 0 as chon, 0 as so_luong0, sl_dh, c.gia_nt, rtrim(c.ma_nt) as ma_nt, c.ngay_ct1, c.ngay_ct2, c.tg_th, rtrim(a.ghi_chu) as ghi_chu, c.he_so1, c.so_luong1, c.so_luong2, c.sl_min, c.sl_max,
+    cast(0 as numeric(19, 4)) as gia_chuan_nt, rtrim(b.ma_vung) as ma_vung, cast(0 as numeric(19, 4)) as sl_han_ngach, rtrim(a.so_tham_chieu) as so_tham_chieu, cast('' as varchar(32)) as ma_nguon,
+    cast('' as varchar(32)) as ma_nguon_gia, cast('' as varchar(32)) as so_theo_doi, cast('' as varchar(32)) as ma_nh0, cast('' as varchar(13)) as stt_rec_ng, cast('' as varchar(1)) as kieu_han_ngach, cast(0 as int) as stt_han_ngach,
+    cast(0 as numeric(19, 4)) as tt_han_ngach, cast('' as varchar(1)) as cd_ncc_sl, cast('' as varchar(1)) as ncc_tx_sl, cast(0 as int) as stt_ngm, cast('' as varchar(8)) as ngay_ct0, cast(0 as int) as line_nbr,
+    cast('' as varchar(13)) as stt_rec_gia, cast('' as varchar(3)) as stt_rec0_gia, cast('' as varchar(3)) as stt_rec1_gia, cast('' as nvarchar(4000)) as ct_gia_dk, cast('' as nvarchar(4000)) as ct_gia_pv,
+    cast(0 as bit) as gia_chuan_yn, cast(0 as bit) as gia_yn, cast(0 as bit) as pp_thay_doi, cast(0 as numeric(19, 4)) as pp_gia_cl_nt, cast(0 as numeric(19, 4)) as pp_ck_dv_nt, cast(0 as numeric(19, 4)) as pp_cp_dv_nt,
+    cast(0 as numeric(19, 4)) as pp_ck_nt, cast(0 as numeric(19, 4)) as pp_cp_nt, rtrim(a.ma_vt) as ma_vt, rtrim(a.dvt) as dvt, a.he_so, a.sl_duyet, a.ngay_yc, rtrim(a.stt_rec) as stt_rec, rtrim(a.stt_rec0) as stt_rec0,
+    cast(0 as numeric(19, 4)) as he_so_han_ngach, cast(0 as int) as plant_order, d.ten_kh, cast('' as nvarchar(512)) as ten_nguon, cast('' as nvarchar(512)) as ten_nguon_gia, e.ten_vt into #temp
+  from d91$000000 a, m91$000000 b, dmgia3 c, dmkh d, dmvt e
+
+select * into #stt_rec from dbo.AI_ERP$Function$System$Split(@IDs, @e)
+
+exec bs_LoadRequisitionSATran '#temp', @id$PR, @item, @dForm, @dTo, @purOrg, 2, @@language, @@userID, @@admin
+
+drop table #k, #t, #temp, #stt_rec
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

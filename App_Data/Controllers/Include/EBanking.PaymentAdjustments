@@ -1,0 +1,45 @@
+﻿<!ENTITY % Conditional.EBanking SYSTEM "..\Include\EBanking.txt">
+
+<![%Conditional.EBanking;[
+  <!ENTITY EBankingCheckBeforeAdj "
+if @loai = '2' begin
+  declare @checkEbanking bit, @oldPeriodEbanking varchar(6)
+  select convert(char(6), min(ngay_ct), 112) as period into #eperiod from #c group by year(ngay_ct), month(ngay_ct)
+  select @oldPeriodEbanking = min(period) from #eperiod
+
+  while @oldPeriodEbanking is not null begin
+    select @q = 'if exists (select 1 from knnh00$' + @oldPeriodEbanking + ' a join #c b on a.stt_rec = b.stt_rec where a.tinh_trang in(''1'', ''2'', ''3'')) select @checkEbanking = 1'
+    exec sp_executesql @q, N'@checkEbanking bit out', @checkEbanking out
+
+    if @checkEbanking = 1 begin
+      select 'ngay_ct' as field, '$NotAuthorized' as message
+      return
+    end
+    select @oldPeriodEbanking = min(period) from #eperiod where period &gt; @oldPeriodEbanking
+  end
+end
+    ">
+
+  <!ENTITY EBankingDeclare "
+declare @oldEBanking varchar(32), @currentEBanking varchar(32)
+select @currentEBanking = 'knnh00$' + @currentPeriod
+    ">
+  <!ENTITY EBankingTableStruct "select top 0 * into #knnh from knnh00$000000">
+  <!ENTITY EBankingInsertOldPartition "insert into #knnh select a.* from ' + @oldEBanking &join;">
+  <!ENTITY EBankingInsertCurrentPartition "insert into ' + @currentEBanking + ' select * from #knnh">
+  <!ENTITY EBankingUpdateDate "update #knnh &d;, ngay_ct_goc = ''' + @d + '''">
+  <!ENTITY EBankingUpdateCurrentPartition "update knnh00$' + @currentPeriod + ' &d;, ngay_ct_goc = ''' + @d + ''' from knnh00$' + @currentPeriod + ' a join #c b on a.stt_rec = b.stt_rec">
+  <!ENTITY EBankingDeleteOldPartition "delete ' + @oldEBanking &where;">
+  <!ENTITY EBankingTruncateTempt "truncate table #knnh">
+  <!ENTITY EBankingGetOldPartition ", @oldEBanking = 'knnh00$' + @oldPeriod">
+]]>
+<!ENTITY EBankingCheckBeforeAdj "">
+<!ENTITY EBankingDeclare "">
+<!ENTITY EBankingTableStruct "">
+<!ENTITY EBankingInsertOldPartition "">
+<!ENTITY EBankingInsertCurrentPartition "">
+<!ENTITY EBankingUpdateDate "">
+<!ENTITY EBankingUpdateCurrentPartition "">
+<!ENTITY EBankingDeleteOldPartition "">
+<!ENTITY EBankingTruncateTempt "">
+<!ENTITY EBankingGetOldPartition "">

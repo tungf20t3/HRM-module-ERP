@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+
+  <!ENTITY Identity "ITPhysical">
+  <!ENTITY DetailTable "d65">
+]>
+
+<dir table="m65$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Phiếu xuất điều chuyển thực tế" e="Physical Stock Transfer"></title>
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho">
+      <header v="Kho xuất" e="Source Site"></header>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_khon">
+      <header v="Kho nhập" e="Destination Site"></header>
+    </field>
+    <field name="ten_khon%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_ct" dataFormatString="@upperCaseFormat" align="right">
+      <header v="Số phiếu xuất" e="Stock Transfer Number"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày phiếu xuất" e="Stock Transfer Date"></header>
+    </field>
+    <field name="&DetailTable;" external="true" clientDefault="0" defaultValue="0" rows="208" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="&Identity;Grid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="11010000001101: [ma_kho].Label, [ma_kho], [ten_kho%l], [stt_rec], [so_ct].Label, [so_ct]"/>
+      <item value="1101000000-101: [ma_khon].Label, [ma_khon], [ten_khon%l], [ngay_ct].Label, [ngay_ct]"/>
+
+      <item value="1: [&DetailTable;]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  f.setReadOnlyFields('ma_kho, ma_khon, so_ct, ngay_ct');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid;
+  f._denyFocus = true;
+  f.setItemValues('stt_rec, ma_kho, ten_kho%l, ma_khon, ten_khon%l, so_ct, ngay_ct', [g._voucher$Retrieve$ID, g._siteOutID, g._siteOutName, g._siteInID, g._siteInName, g._voucher$Retrieve$Number, g._voucher$Retrieve$Date]);
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      set$]]>&Identity;<![CDATA[Form$FlowScript(f);
+      break;
+    default:
+      break;
+  }
+}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d65')._controlBehavior, z = f.grid, w = z.get_element().parentForm;
+  var f1 = 'sl_ss0, stt_rec, stt_rec0, so_ct, line_nbr';
+  var f2 = 'so_luong, stt_rec_wh, stt_rec0wh, wh_so, wh_ln';
+
+  var first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]);
+  var fm = f.getItemValue('ma_kho'), fn = f.getItemValue('ma_khon'), wm = w.getItemValue('ma_kho');
+  var l0 = z._getColumnOrder('ma_vt'), l1 = z._getColumnOrder('dvt'), l2 = g._getColumnOrder('nhieu_dvt'), l3 = g._getColumnOrder('sl_ss0');
+  var l4 = z._getColumnOrder('tk_vt'), l5 = g._getColumnOrder('sua_tk_vt');
+  var fields = 'ma_vt, ten_vt%l, dvt, ma_vi_tri, ma_vi_trin, ma_lo, tk_vt, ma_nx, tk_du, ]]>&XMLHiddenFields;<![CDATA[, he_so, lo_yn';
+  var la, lc = g._getColumnOrder('ton13'), ld, lx, lz, lt, lf = z._getColumnOrder('ton13'), status = null, round;
+
+  if (w._row.length > 0) status = w._row[w.getItem('status').field.Index];
+  var adj = (w._action == 'Edit' && status != '0');
+  if (adj) {
+    var f$ = z._fields;
+    la = g._getColumnOrder('ma_vt'), ld = g._getColumnOrder('he_so');
+    lx = $func.findField('ma_vt', f$).Index, lz = $func.findField('so_luong', f$).Index, lt = $func.findField('he_so', f$).Index;
+    round = $func.scaleLength(g._getColumnFormat(l3));
+  }
+
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l3) != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._sourceSiteIdentity = fm;
+      z._getItem(row, 2)._destinationSiteIdentity = fn;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+      $func.setObjectWhen(z._getItem(row, l1), g._getItemValue(r, l2));
+      $func.setObjectWhen(z._getItem(row, l4), g._getItemValue(r, l5));
+
+      var currentStock = g._getItemValue(r, lc);
+      if (currentStock == null) currentStock = 0;
+      if (adj) {
+        var currentItem = g._getItemValue(r, la), currentRatio = g._getItemValue(r, ld), total = 0;
+        if (currentRatio != 0) {
+          for (var i = 0; i < z._rows.length; i++) {
+            if ((z._rows[i][lx] == currentItem) && (fm == wm)) {
+              var quantity = 0;
+              if (z._rows[i][lz] != null) quantity = z._rows[i][lz] * z._rows[i][lt];
+              total += quantity;
+            }
+          }
+          currentStock += Math.round(total / currentRatio, round);
+        }
+      }
+      z._setItemValue(row, lf, currentStock);
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong]);
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

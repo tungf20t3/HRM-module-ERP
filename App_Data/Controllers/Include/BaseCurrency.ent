@@ -1,0 +1,96 @@
+﻿<!ENTITY % Conditional.BaseCurrency SYSTEM "..\Include\BaseCurrency.txt">
+
+<![%Conditional.BaseCurrency;[
+  <!ENTITY PMMasterFields.ext SYSTEM "..\Templates\Upload\Include\PMMasterFields.ext">
+  <!ENTITY PMMasterFields.Compact.ext SYSTEM "..\Templates\Upload\Include\PMMasterFieldsCompact.ext">
+  <!ENTITY PMMasterFields.Location.ext SYSTEM "..\Templates\Upload\Include\PMMasterFieldsLocation.ext">
+  <!ENTITY PMMasterFields.Lot.ext SYSTEM "..\Templates\Upload\Include\PMMasterFieldsLot.ext">
+
+  <!ENTITY PMDetailFields.ext SYSTEM "..\Templates\Upload\Include\PMDetailFields.ext">
+  <!ENTITY PMDetailFields.Compact.ext SYSTEM "..\Templates\Upload\Include\PMDetailFieldsCompact.ext">
+  <!ENTITY PMDetailFields.Location.ext SYSTEM "..\Templates\Upload\Include\PMDetailFieldsLocation.ext">
+  <!ENTITY PMDetailFields.Lot.ext SYSTEM "..\Templates\Upload\Include\PMDetailFieldsLot.ext">
+
+  <!ENTITY Tag.ext "7">
+  <!ENTITY Tag.Compact.ext "4">
+  <!ENTITY Tag.Location.ext "5">
+  <!ENTITY Tag.Lot.ext "6">
+
+  <!ENTITY FileName.v.ext "&FileName.ext;c.xlsx">
+  <!ENTITY FileName.Compact.v.ext "&FileName.ext;3c.xlsx">
+  <!ENTITY FileName.Location.v.ext "&FileName.ext;5c.xlsx">
+  <!ENTITY FileName.Lot.v.ext "&FileName.ext;7c.xlsx">
+  <!ENTITY FileName.e.ext "&FileName.ext;2c.xlsx">
+  <!ENTITY FileName.Compact.e.ext "&FileName.ext;4c.xlsx">
+  <!ENTITY FileName.Location.e.ext "&FileName.ext;6c.xlsx">
+  <!ENTITY FileName.Lot.e.ext "&FileName.ext;8c.xlsx">
+
+  <!ENTITY BaseCurrencyLine ", cast(0 as int) as stt">
+  <!ENTITY BaseCurrencyLineInsert ", a.stt">
+  <!ENTITY BaseCurrencyUpdate "
+update #d&Detail; set gia0 = case when b.gia0 &lt;&gt; 0 then b.gia0 else a.gia0 end,
+    tien0 = case when b.tien0 &lt;&gt; 0 then b.tien0 else a.tien0 end,
+    tien = case when b.tien0 &lt;&gt; 0 then b.tien0 else a.tien end,
+    gia3 = case when b.gia3 &lt;&gt; 0 then b.gia3 else a.gia3 end,
+    tien3 = case when b.tien3 &lt;&gt; 0 then b.tien3 else case when b.gia3 &lt;&gt; 0 then round(b.gia3 * b.so_luong, @roundAmount) else a.tien3 end end
+  from #d&Detail; a join #detailData b on a.stt = b.stt
+  where b.ma_nt &lt;&gt; @baseCurrency
+
+update #r&Tax; set t_tien = case when b.t_tien &lt;&gt; 0 then b.t_tien else a.t_tien end,
+    t_thue = case when b.t_thue &lt;&gt; 0 then b.t_thue else round(case when b.t_thue_nt &lt;&gt; 0 then a.t_thue else case when b.t_tien &lt;&gt; 0 then b.t_tien else a.t_tien end end * isnull(thue_suat, 0) / 100, @roundAmount) end
+  from #r&Tax; a join #taxData b on a.stt = b.stt
+  where b.ma_nt &lt;&gt; @baseCurrency
+
+update #r&Charge; set tien_cp = case when b.tien_cp &lt;&gt; 0 then b.tien_cp else a.tien_cp end
+  from #r&Charge; a join #chargeData b on a.stt = b.stt
+  where b.ma_nt &lt;&gt; @baseCurrency
+">
+
+  <!ENTITY PMDetailImportFields.Create ", gia0 numeric(18, 4), tien0 numeric(18, 4), gia3 numeric(18, 4), tien3 numeric(18, 4), nk numeric(18, 4), ttdb numeric(18, 4), thue numeric(18, 4)">
+  <!ENTITY PMDetailImportFields.Process ", gia0, tien0, gia3, tien3, nk, ttdb, thue">
+  <!ENTITY PMDetailImportFields.ConditionalBegin "if (w.getItemValue('ma_nt') == w._baseCurrency) {">
+  <!ENTITY PMDetailImportFields.ConditionalEnd "}">
+
+  <!ENTITY PMDetailImportFields.RefIndex "46">
+  <!ENTITY PMDetailImportFields.EditItemAccountIndex "45">
+  <!ENTITY PMDetailImportFields.MultiUOMIndex "44">
+  <!ENTITY PMDetailImportFields.TaxDebitIndex "43">
+]]>
+
+<!ENTITY PMMasterFields.ext "">
+<!ENTITY PMMasterFields.Compact.ext "">
+<!ENTITY PMMasterFields.Location.ext "">
+<!ENTITY PMMasterFields.Lot.ext "">
+
+<!ENTITY PMDetailFields.ext "">
+<!ENTITY PMDetailFields.Compact.ext "">
+<!ENTITY PMDetailFields.Location.ext "">
+<!ENTITY PMDetailFields.Lot.ext "">
+
+<!ENTITY Tag.ext "0">
+<!ENTITY Tag.Compact.ext "1">
+<!ENTITY Tag.Location.ext "2">
+<!ENTITY Tag.Lot.ext "3">
+
+<!ENTITY FileName.v.ext "&FileName.ext;.xlsx">
+<!ENTITY FileName.Compact.v.ext "&FileName.ext;3.xlsx">
+<!ENTITY FileName.Location.v.ext "&FileName.ext;5.xlsx">
+<!ENTITY FileName.Lot.v.ext "&FileName.ext;7.xlsx">
+<!ENTITY FileName.e.ext "&FileName.ext;2.xlsx">
+<!ENTITY FileName.Compact.e.ext "&FileName.ext;4.xlsx">
+<!ENTITY FileName.Location.e.ext "&FileName.ext;6.xlsx">
+<!ENTITY FileName.Lot.e.ext "&FileName.ext;8.xlsx">
+
+<!ENTITY BaseCurrencyLine "">
+<!ENTITY BaseCurrencyLineInsert "">
+<!ENTITY BaseCurrencyUpdate "">
+
+<!ENTITY PMDetailImportFields.Create "">
+<!ENTITY PMDetailImportFields.Process "">
+<!ENTITY PMDetailImportFields.ConditionalBegin "">
+<!ENTITY PMDetailImportFields.ConditionalEnd "">
+
+<!ENTITY PMDetailImportFields.RefIndex "39">
+<!ENTITY PMDetailImportFields.EditItemAccountIndex "38">
+<!ENTITY PMDetailImportFields.MultiUOMIndex "37">
+<!ENTITY PMDetailImportFields.TaxDebitIndex "36">

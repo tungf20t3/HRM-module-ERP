@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY CommandCheckLockedDate SYSTEM "..\Include\Command\ProcessLockedDate4Unit.txt">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Bút toán phân bổ định kỳ" e="Periodic Transaction"></title>
+  <fields>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false" align="right" aliasName="Period" defaultValue="(new Date()).getMonth()+1">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()" allowContain="true">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit(s)"></header>
+      <items style="Lookup" controller="Unit" key="((@@admin = 1) or (ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and (r_new = 1 or r_edit = 1 or r_del = 1 or r_access = 1)))) and status = '1'" check="((@@admin = 1) or (ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and (r_new = 1 or r_edit = 1 or r_del = 1 or r_access = 1))))"/>
+    </field>
+    <field name="keys" hidden="true" inactivate="true" filterSource="Infinite">
+      <header v="" e=""></header>
+    </field>
+
+    &ReportSign.Filter.Fields;
+    &ReportMarginField;
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130, 0"/>
+      <item value="11----1: [ky].Label, [ky], [keys]"/>
+      <item value="11---: [nam].Label, [nam]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Inserting">
+      <text>
+        &CommandCheckLockedDate;
+        <![CDATA[exec rs_Convert2AllocPeriod @ky, @nam, @ma_dvcs, @@language, @@userID, @@admin, 1]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs', true);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,d){var b=d.object,e=d.type.Context,f=d.type.Result;switch(e){case"Checking":var a=b.grid,c=[];a._p=b.getItemValue("ky"),a._y=b.getItemValue("nam"),a._u=b.getItemValue("ma_dvcs");a._alterTitle=[null,[["%s1",$func.trim(a._p.toString()),true],["%s2",$func.trim(a._y.toString()),true]]];Array.add(c,{Name:"ky",Opr:"=",Value:a._p,Type:"Decimal",Ignore:false});Array.add(c,{Name:"nam",Opr:"=",Value:a._y,Type:"Decimal",Ignore:false});b.getItemValue("ma_dvcs")&&Array.add(c,{Name:"dbo.ff_InList(ma_dvcs, '"+a._u+"')",Opr:"=",Value:1,Type:"String",Ignore:false});a.set_externalKey(c);a._queryFilterString=getQueryFilterString(b,"ky, nam");a._$k=a._$c=a._$r=[]}}function getQueryFilterString(g,h){for(var a="",f=h.split(","),d=0;d<f.length;d++){var c=$func.trim(f[d]),e=g.getItem(c),b=e?g.getItemValue(c):c;a+=String.fromCharCode(253);if(e)switch(e.field.Type){case"DateTime":a+=$func.formatDateOrder(b);break;case"Boolean":a+=b?"1":"0";break;case"Decimal":a+=b.toString();break;default:a+=$func.replace(b,"'",String.fromCharCode(252))}else a+=$func.replace(b,"'",String.fromCharCode(252))}return a}]]>
+    </text>
+  </script>
+  &OutlineCss;
+</dir>

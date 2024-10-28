@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "PFReceipt">
+  <!ENTITY DetailTable "d73">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Supplier">
+  <!ENTITY c21 "Số phiếu nhập">
+  <!ENTITY c22 "Receipt Number">
+  <!ENTITY c31 "Ngày phiếu nhập">
+  <!ENTITY c32 "Receipt Date">
+]>
+
+<dir table="m73$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Phiếu nhập" e="Purchase Receipt"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d73')._controlBehavior, l = g._getColumnOrder('chon'), z = f.grid, f1 = 'stt_rec, stt_rec0, line_nbr', f2 = 'stt_rec_hd, stt_rec0hd, hd_ln';
+  var fields = 'so_luong, ma_vt, ten_vt%l, dvt, ma_kho, ma_vi_tri, ma_lo, tk_vt, ]]>&XMLHiddenFields;<![CDATA[, he_so, cp_nt, cp, tien0, tien3, hd_so, volume, weight';
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l)) {
+      z._appendRow(null, true);
+      insert$Retrieve$Items(g, r, z, z._rowCount, fields, f1, f2);
+    }
+  }
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

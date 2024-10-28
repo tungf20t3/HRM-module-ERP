@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'FAProductionInput' else 'FAProductionInput2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$FAProductionInputImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$FAProductionInputImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="ctslts"/>
+    <table value="ctslts" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="so_the_ts" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" check="so_the_ts not in (select so_the_ts from dmts where kieu_kh = 1)&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where ngay_ks >= @currentDate)&And;not exists(select 1 from ctslts b where #unit.so_the_ts = b.so_the_ts and b.nam = @$nam and b.ky = @$ky) and #unit.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)&And;exists(select 1 from ctslts b where #unit.so_the_ts = b.so_the_ts and b.nam = @$nam and b.ky = @$ky) and #unit.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_edit = 1)" condition="&And;&And;if (@@admin &lt;&gt; 1) begin&And;if (@@admin &lt;&gt; 1 and @type = '1') begin" tag="&And;&And;end&And;end" list="@@table&And;#unit&And;#unit&And;#unit" updateValue="None" errorCode="00001&And;00002&And;00002&And;00002"/>
+    <field name="ngay_ct" column="C" allowNulls="false" type="DateTime"/>
+    <field name="sl_kh" column="D" type="Decimal"/>
+
+    <field name="nam" column="None" type="Decimal" insertValue="@$nam" updateValue="None"/>
+    <field name="ky" column="None" type="Decimal" insertValue="@$ky" updateValue="None"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật sản lượng thực hiện của TSCĐ" e="Fixed Asset Production Input"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="so_the_ts" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Thẻ tài sản" e="Fixed Asset"/>
+      </field>
+      <field name="ten_ts" afterField="so_the_ts" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên tài sản" e="Fixed Asset Name"/>
+      </field>
+      <field name="ngay_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày" e="Date"/>
+      </field>
+      <field name="sl_kh" width="16">
+        <text v="Sản lượng" e="Quantity"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'FAProductionInput', 'Edit') = 0 select @type = '0'
+end
+
+declare @field varchar(32), @currentDate smalldatetime, @r int
+select @currentDate = dateadd(mm, 1, cast(str(@$nam, 4) + replace(str(@$ky, 2), ' ', '0') + '01' as smalldatetime)) - 1
+
+-- Delete
+if @type = '0' delete @@table from @@table a where exists(select 1 from ctslts b where a.so_the_ts = b.so_the_ts and b.nam = @$nam and b.ky = @$ky)
+
+create table #unit (ma_dvcs char(32), so_the_ts char(32), stt int)
+insert into #unit select b.ma_dvcs, a.so_the_ts, a.stt from @@table a join dmts b on a.so_the_ts = b.so_the_ts
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Gather
+select a.* into #k from @@table a join ctslts b on a.so_the_ts = b.so_the_ts where b.nam = @$nam and b.ky = @$ky
+delete @@table from @@table a where exists(select 1 from #k b where a.so_the_ts = b.so_the_ts)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ and a.nam = @$nam and a.ky = @$ky end
+]]>
+    </text>
+  </processing>
+
+</import>

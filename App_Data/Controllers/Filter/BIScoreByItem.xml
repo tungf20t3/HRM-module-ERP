@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterInit SYSTEM "..\Include\XML\WhenFilterInit.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+]>
+
+<dir table="bim04$000000" code="stt_rec" order="stt_rec" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="fromDate" allowNulls="false" defaultValue="new Date()">
+      <header v="Ngày phát sinh từ" e="Scoring Date from"></header>
+      <footer v="Ngày phát sinh từ/đến" e="Scoring Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="toDate" allowNulls="false" defaultValue="new Date()">
+      <header v="Ngày phát sinh đến" e="Scoring Date to"></header>
+    </field>
+
+    <field name="so_ct1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Số tham chiếu từ/đến" e="Reference No. from/to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ct2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="" e=""></header>
+      <items style="Mask"></items>
+    </field>
+
+    <field name="ngay_tham_chieu1" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày tham chiếu từ" e="Reference Date from"></header>
+      <footer v="Ngày tc từ/đến" e="Ref. Date from/to"></footer>
+    </field>
+    <field name="ngay_tham_chieu2" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày tham chiếu đến" e="Reference Date to"></header>
+    </field>
+
+    <field name="ma_bp0" filterSource="master" operation="10">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+      <items style="AutoComplete" controller="BIPurchasingOrganization" reference="ten_bp0%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" categoryIndex="2">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_kh" filterSource="master" operation="15">
+      <header v="Mã ncc" e="Vendor"></header>
+      <items style="AutoComplete" controller="&VendorController;" reference="ten_kh%l" key="cc_yn = 1 and status = '1'" check="cc_yn = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" filterSource="master" operation="20">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_chi_tieu" filterSource="detail" operation="10">
+      <header v="Mã chỉ tiêu" e="Sub Criterion Code"></header>
+      <items style="AutoComplete" controller="BISubCriteria" reference="ten_ct%l" key="kieu_tinh = '2' and status = '1'" check="kieu_tinh = '2'"/>
+    </field>
+    <field name="ten_ct%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="user_id0" dataFormatString="0, 1" clientDefault="1" align="right" inactivate="true" categoryIndex="-1">
+      <header v="Người sử dụng" e="User"></header>
+      <footer v="1 - Lọc theo người sử dụng, 0 - Không" e="1 - Filter by User, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+
+  </fields>
+
+  <views>
+    <view id="Dir" height="40">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="1101: [ngay_tham_chieu1].Description, [ngay_tham_chieu1], [ngay_tham_chieu2]"/>
+      <item value="1101: [so_ct1].Label, [so_ct1], [so_ct2]"/>
+      <item value="11010: [ma_bp0].Label, [ma_bp0], [ten_bp0%l]"/>
+      <item value="11010: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="11010: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+
+      <item value="1101: [ma_chi_tieu].Label, [ma_chi_tieu], [ten_ct%l]"/>
+
+      <item value="11100: [user_id0].Label, [user_id0], [user_id0].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterInit;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFilterInit;
+    </text>
+  </script>
+
+</dir>

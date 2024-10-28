@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY CommandCheckLockedDate SYSTEM "..\Include\Command\PeriodLockedDate.txt">
+  <!ENTITY XMLCheckProcess SYSTEM "..\Include\XML\CheckProcess.xml">
+
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Bút toán phân bổ CCDC" e="Tool &#38; Supply Allocation Entry"></title>
+  <fields>
+    <field name="ky1" type="Decimal" dataFormatString="#0" allowNulls="false" align="right" aliasName="Period" defaultValue="(new Date()).getMonth()+1">
+      <header v="Từ kỳ" e="From Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ky2" type="Decimal" dataFormatString="#0" allowNulls="false" align="right" aliasName="Period" defaultValue="(new Date()).getMonth()+1">
+      <header v="Đến kỳ" e="To Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>S
+    <field name="type" dataFormatString="0, 1" clientDefault="1" align="right">
+      <header v="Loại" e="Type"></header>
+      <footer v="1 - Tạo phân bổ, 0 - Xóa phân bổ" e="1 - Allocate, 0 - Delete Allocation"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit(s)"></header>
+      <items style="Lookup" controller="Unit" key="ma_dvcs in (select ma_dvcs from dbo.sysunitrights where user_id = @@userID and r_access = 1) and status = '1'" check="ma_dvcs in (select ma_dvcs from dbo.sysunitrights where user_id = @@userID and r_access = 1)"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11: [ky1].Label, [ky1]"/>
+      <item value="11: [ky2].Label, [ky2]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="111000: [type].Label, [type], [type].Description"/>
+      <item value="110000: [ma_dvcs].Label, [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLCheckProcess;
+    <command event="Inserting">
+      <text>
+        &CommandCheckLockedDate;
+        <![CDATA[
+if @type = '1' exec rs_FXExeDisAlloc @ky1, @ky2, @nam, 'PK7', @@userID, @ma_dvcs
+  else exec rs_FXDelDisAlloc @ky1, @ky2, @nam, 'PK7', @@userID, @ma_dvcs, 'Del'
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$VoucherFilter$(sender) {changeLookupReadonly(sender, 'ma_dvcs', true);}
+]]>
+    </text>
+  </script>
+</dir>

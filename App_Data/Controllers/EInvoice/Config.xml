@@ -1,0 +1,47 @@
+<!DOCTYPE config [
+  <!ENTITY GetParameterValue "
+create table #id(id int, stt_rec varchar(32))
+create table #d(id int, ngay_ct varchar(32))
+create table #idProcess(stt_rec varchar(32), ngay_ct smalldatetime)
+
+insert into #id select * from dbo.AI_ERP$Function$System$Split(@$idNumber, ',')
+insert into #d select * from dbo.AI_ERP$Function$System$Split(@$voucherDate, ',')
+
+insert into #idProcess(stt_rec, ngay_ct)
+			select a.stt_rec, b.ngay_ct from #id a join #d b on a.id = b.id
+
+select stt_rec, convert(varchar(10), ngay_ct, 103) as ngay_ct from #idProcess
+">
+
+  <!ENTITY GetProfileValue "select top 1 ma_kn from tkhddtdv where ma_dvcs = @$unit and status = '1'">
+
+  <!ENTITY GetInvoiceNumber SYSTEM "Config_7100_GetInvoiceNumber.xml">
+  <!ENTITY CheckInvoiceNumber SYSTEM "Config_7360_CheckInvoiceNumber.xml">
+  <!ENTITY GetInvoiceStatus SYSTEM "Config_7370_GetInvoiceStatus.xml">
+  <!ENTITY ReleaseInvoice SYSTEM "Config_7310_ReleaseInvoice.xml">
+  <!ENTITY AdjustInvoice SYSTEM "Config_7320_AdjustInvoice.xml">
+  <!ENTITY EraseInvoice SYSTEM "Config_7330_EraseInvoice.xml">
+  <!ENTITY ReplaceInvoice SYSTEM "Config_7350_ReplaceInvoice.xml">
+]>
+
+<config xmlns="urn:schemas-ai-erp:data-client">
+
+  <!-- Định dạng các parameter trong query giao diện truyền lên khi gọi service Client.asmx
+  Ví dụ: declare @$UnitCode nvarchar(4000)
+  -->
+  <datatype sqlType="nvarchar(4000)" textMaxLength="4000"/>
+
+  &GetInvoiceNumber;
+
+  &ReleaseInvoice;
+
+  &AdjustInvoice;
+
+  &ReplaceInvoice;
+
+  &CheckInvoiceNumber;
+
+  &GetInvoiceStatus;
+
+  &EraseInvoice;
+</config>

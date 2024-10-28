@@ -1,0 +1,123 @@
+﻿<!ENTITY PriceDetailScaleField SYSTEM "..\Include\XML\BIPriceDetailScaleField.xml">
+<!ENTITY PriceDetailScaleView SYSTEM "..\Include\XML\BIPriceDetailScaleView.xml">
+<!ENTITY PriceDetailScaleButton SYSTEM "..\Include\XML\BIPriceDetailScaleButton.xml">
+<!ENTITY PriceDetailScaleClass SYSTEM "..\Include\XML\BIPriceDetailScaleClass.txt">
+
+<!ENTITY PriceDetailCurrency "var fc = (f.getItemValue('ma_nt') != f._baseCurrency);">
+
+<!ENTITY PriceDetailScaleExecuteShow "
+      var v = f._language == 'v';
+      if (r &lt;= 0) {
+        var msg = (v ? 'Chưa chọn dòng trong thông tin chi tiết.' : 'No detail line selected, please select one to process.');
+        $message.show(msg);
+        break;
+      }
+
+      var i1 = g._getColumnOrder('ma_vt'), i2 = g._getColumnOrder('ten_vt&#37;l'), ma_vt = g._getItemValue(r, i1), chk = g._getItem(r, i2);
+      if (ma_vt == '' || (chk.Checked &amp;&amp; !chk.checked)) {
+        var msg = String.format($df.getResources(f._language, 'Message.RequiredField'), g._fields[i1 - 1].Label);
+        g._errorObject = g._getItem(r, i1);
+        $message.show(msg, String.format('$find(\'{0}\').focus(\'&PriceDetailParentGridField;\');$find(\'{1}\')._errorObject.focus()', f.get_id(), g.get_id()));
+        break;
+      }
+
+      var l1 = g._getColumnOrder('ct_gia_pv'), l2 = g._getColumnOrder('ct_gia_dk');
+      if (l2 > 0) {
+        if (g._getItemValue(r, l2) != '') {
+          var e1 = (v ? 'Đã có thông tin giá theo điều kiện, không thực hiện được.' : 'Price by Condition Type already exists.');
+          $message.show(e1, String.format('$find(\'{0}\').focus(\'{1}\');', f.get_id(), 'bipd'));
+          break;
+        }
+      }
+      var v0 = g._getItemValue(r, l1), v1 = g._getItemValue(r, g._getColumnOrder('ma_vt')), v2 = g._getItemValue(r, g._getColumnOrder('ten_vt&#37;l')), v3 = g._getItemValue(r, g._getColumnOrder('dvt'));
+      var ml = g._fields[l1 - 1].MaxLength;
+      &PriceDetailCurrency;
+      g._detailInfo = {data: v0, maxLength: ml, handle: &PriceDetailRetrieveFunction;, ma_vt: v1, ten_vt: v2, dvt: v3, fc: fc};
+      g.showForm('BIPriceDetailScaleForm');
+">
+<!ENTITY PriceDetailScaleExecuteCommand "
+    case 'PriceDetailScale':
+      var r = g._activeRow;
+      if (!r || r &lt; 0) return;
+      &PriceDetailScaleExecuteShow;
+      break;
+">
+
+<!ENTITY PriceDetailConditionTypeField SYSTEM "..\Include\XML\BIPriceDetailConditionTypeField.xml">
+<!ENTITY PriceDetailConditionTypeView SYSTEM "..\Include\XML\BIPriceDetailConditionTypeView.xml">
+<!ENTITY PriceDetailConditionTypeButton SYSTEM "..\Include\XML\BIPriceDetailConditionTypeButton.xml">
+<!ENTITY PriceDetailConditionTypeClass SYSTEM "..\Include\XML\BIPriceDetailConditionTypeClass.txt">
+<!ENTITY PriceDetailConditionTypeExecuteShow "
+      var v = f._language == 'v';
+      if (r &lt;= 0) {
+        var msg = (v ? 'Chưa chọn dòng trong thông tin chi tiết.' : 'No detail line selected, please select one to process.');
+        $message.show(msg);
+        break;
+      }
+
+      var i1 = g._getColumnOrder('ma_vt'), i2 = g._getColumnOrder('ten_vt&#37;l'), ma_vt = g._getItemValue(r, i1), chk = g._getItem(r, i2);
+      if (ma_vt == '' || (chk.Checked &amp;&amp; !chk.checked)) {
+        var msg = String.format($df.getResources(f._language, 'Message.RequiredField'), g._fields[i1 - 1].Label);
+        g._errorObject = g._getItem(r, i1);
+        $message.show(msg, String.format('$find(\'{0}\').focus(\'&PriceDetailParentGridField;\');$find(\'{1}\')._errorObject.focus()', f.get_id(), g.get_id()));
+        break;
+      }
+
+      var l1 = g._getColumnOrder('ct_gia_dk'), l2 = g._getColumnOrder('ct_gia_pv');
+      if (l2 > 0) {
+        if (g._getItemValue(r, l2) != '') {
+          var e1 = (v ? 'Đã có thông tin giá theo phạm vi, không thực hiện được.' : 'Price by Scale already exists.');
+          $message.show(e1, String.format('$find(\'{0}\').focus(\'{1}\');', f.get_id(), 'bipd'));
+          break;
+        }
+      }
+      var v0 = g._getItemValue(r, l1), v1 = g._getItemValue(r, g._getColumnOrder('ma_vt')), v2 = g._getItemValue(r, g._getColumnOrder('ten_vt&#37;l')), v3 = g._getItemValue(r, g._getColumnOrder('dvt'));
+      var v4 = g._getItemValue(r, g._getColumnOrder('&PriceDetailGrossPriceField;'));
+      var ml = g._fields[l1 - 1].MaxLength;
+      &PriceDetailCurrency;
+      g._detailInfo = {data: v0, maxLength: ml, handle: &PriceDetailRetrieveFunction;, ma_vt: v1, ten_vt: v2, dvt: v3, gia_chuan_nt: v4, fc: fc};
+      g.showForm('BIPriceDetailConditionTypeForm');
+">
+<!ENTITY PriceDetailConditionTypeExecuteCommand "
+    case 'PriceDetailConditionType':
+      var r = g._activeRow;
+      if (!r || r &lt; 0) return;
+      &PriceDetailConditionTypeExecuteShow;
+      break;
+">
+
+<!ENTITY PriceDetailGetConditionTypeRef SYSTEM "..\Include\XML\BIPriceDetailGetConditionTypeRef.xml">
+<!ENTITY PriceDetailResponseConditionTypeRef "
+    case 'PriceDetailConditionTypeRef':
+      var row = (result[3].Value > 0 ? result[3].Value : g._activeRow)
+      on$GridVoucherDetail$CalcPrice(g, row, null, result[0].Value, null, result[1].Value, '', result[2].Value);
+      break;
+">
+
+<!ENTITY PriceDetailExField SYSTEM "..\Include\XML\BIPriceDetailExField.xml">
+<!ENTITY PriceDetailExView SYSTEM "..\Include\XML\BIPriceDetailExView.xml">
+<!ENTITY PriceDetailExStandardPriceAlias "case when a.pp_thay_doi = 1 and isnull(a.ct_gia_pv, '') &lt;&gt; '' then 1 else 0 end">
+<!ENTITY PriceDetailExPriceAlias "case when a.pp_thay_doi = 1 and (isnull(a.ct_gia_pv, '') &lt;&gt; '' or isnull(a.ct_gia_dk, '') &lt;&gt; '') then 1 else 0 end">
+<!ENTITY PriceDetailExHandleStandardPrice SYSTEM "..\Include\XML\BIPriceDetailExHandleStandardPrice.xml">
+<!ENTITY PriceDetailExHandlePrice SYSTEM "..\Include\XML\BIPriceDetailExHandlePrice.xml">
+
+<!ENTITY PriceDetailButtonGroup SYSTEM "..\Include\XML\BIPriceDetailButtonGroup.xml">
+<!ENTITY PriceDetailClassGroup SYSTEM "..\Include\XML\BIPriceDetailClassGroup.txt">
+<!ENTITY PriceDetailGroupExecuteCommand "
+    case 'PriceDetailGroup':
+      var r = g._activeRow;
+      if (!r || r &lt; 0) return;
+      switch (e.type.Value) {
+        case '10':
+          &PriceDetailScaleExecuteShow;
+          break;
+        case '30':
+          &PriceDetailConditionTypeExecuteShow;
+          break;
+        default:
+          break;
+      }
+      break;
+">
+<!ENTITY PriceDetailScript SYSTEM "..\Include\Javascript\BIPriceDetailScript.txt">
+<!ENTITY FormTask.HiddenOrChangeCaption SYSTEM "..\Include\Javascript\Button.txt">

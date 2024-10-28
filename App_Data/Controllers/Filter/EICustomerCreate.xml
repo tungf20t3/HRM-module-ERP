@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+
+
+
+  <!ENTITY % Control.Unit SYSTEM "..\Include\Unit.ent">
+  %Control.Unit;
+  %Control.Unit.Ignore;
+]>
+
+<dir table="khhddt" code="ma_kh" order="ma_kh" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Khai báo danh sách khách hàng" e="Retrieve Data from Customer list"></title>
+  <fields>
+    <field name="ma_dvcs" onDemand="true">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh" allowNulls="false">
+      <header v="Mã khách" e="Customer"></header>
+      <items style="Lookup" controller="&Lookup.Controller.Customer;" key="status = '1' and not exists(select ma_kh from khhddt b where dmkh.ma_kh = b.ma_kh) and e_mail &lt;&gt; ''" check="not exists(select ma_kh from khhddt b where dmkh.ma_kh = b.ma_kh) and e_mail &lt;&gt; ''"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="110100: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="11000-: [ma_kh].Label, [ma_kh]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    <command event ="Inserting">
+      <text>
+        <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000)
+select @key = 'ma_kh in (''' + replace(replace(replace(@ma_kh, ' ', ''), '''', ''), ',', ''',''') + ''')', @ma_dvcs = replace(@ma_dvcs, '''', '')
+select @key = @key + ' and e_mail <> '''''
+
+if len(@key) > 3000 return
+
+select top 0 ma_kh into #t from dmkh
+select @q = 'insert into #t select ma_kh from dmkh where ' + @key
+exec sp_executesql @q
+delete #t from #t a where exists(select 1 from khhddt b where a.ma_kh = b.ma_kh)
+
+create index i on #t (ma_kh)
+
+insert into khhddt(ma_kh, nguoi_lien_he, nguoi_dai_dien, loai_kh, status, datetime0, datetime2, user_id0, user_id2)
+  select a.ma_kh, '', '', case when a.loai_kh <> '9' then a.loai_kh else case when rtrim(a.ma_so_thue) = '' then 0 else 1 end end, 0, getdate(), getdate(), @@userID, @@userID
+    from dmkh a with (nolock) join #t b on a.ma_kh = b.ma_kh
+if object_id('dmkhdv') is null begin
+  if exists(select 1 from dmdvcs where ma_dvcs = @ma_dvcs)
+    insert into ctkhhddt(ma_kh, ma_dvcs, line_nbr) select a.ma_kh, @ma_dvcs, 1 from dmkh a with (nolock) join #t b on a.ma_kh = b.ma_kh
+end else begin
+  select @q = 'insert into ctkhhddt(ma_kh, ma_dvcs, line_nbr) select a.ma_kh, a.ma_dvcs, a.line_nbr from dmkhdv a with (nolock) join #t b on a.ma_kh = b.ma_kh'
+  exec sp_executesql @q
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){var b=a.grid;changeLookupReadonly(a,"ma_kh",true);a.setReferenceKeyFilter("ma_kh")}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

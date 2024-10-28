@@ -1,0 +1,187 @@
+﻿<!ENTITY % Conditional.BIMode.PRTran SYSTEM "..\Include\BIMode.txt">
+
+<![%Conditional.BIMode.PRTran;[
+  <!ENTITY BI.PRTran.f "160">
+  <!ENTITY BI.PRTran.Allow "true">
+  <!ENTITY BI.PRTran.Categories.Index "3">
+  <!ENTITY BI.PRTran.TabChange ", 'ma_vung'">
+  <!ENTITY BI.PRTran.APVCheckCategory "char(253) + rtrim(@ma_vung) +">
+
+  <!ENTITY BI.PRTran.Fields SYSTEM "..\Include\XML\BI.PRTran.Fields.txt">
+  <!ENTITY BI.PRTran.Views SYSTEM "..\Include\XML\BI.PRTran.Views.xml">
+  <!ENTITY BI.PRTran.Categories SYSTEM "..\Include\XML\BI.PRTran.Category.xml">
+
+  <!ENTITY BI.PRTran.Fields.Grid SYSTEM "..\Include\XML\BI.PRTran.Fields.Grid.txt">
+  <!ENTITY BI.PRTran.Views.Grid SYSTEM "..\Include\XML\BI.PRTran.Views.Grid.xml">
+
+  <!ENTITY BI.PRTran.Fields.Filter SYSTEM "..\Include\XML\BI.PRTran.Fields.Filter.txt">
+  <!ENTITY BI.PRTran.Views.Filter SYSTEM "..\Include\XML\BI.PRTran.Views.Filter.xml">
+  <!ENTITY BI.PRTran.Categories.Filter SYSTEM "..\Include\XML\BI.PRTran.Filter.Category.xml">
+
+  <!ENTITY BI.PRTRan.Fields.Detail SYSTEM "..\Include\XML\BI.PRTRan.Fields.Detail.txt">
+  <!ENTITY BI.PRTran.Views.Detail SYSTEM "..\Include\XML\BI.PRTran.Views.Detail.xml">
+
+  <!ENTITY BI.PRTran.Script SYSTEM "..\Include\Javascript\BI.PRTran.Script.txt">
+  <!ENTITY BI.PRTran.Checking "
+if (f._checked) {
+  var oa = query$Select(g, 'count$1 $groupBy stt_rec_oa $where [stt_rec_oa] != &quot;&quot;'), t = f.getItemValue('loai_ct');
+  if (oa.length &gt; 0 &amp;&amp; t != '1') {
+    f._checked = false;
+    $func.hideWait(id);
+    $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), f.getItem('ma_gd').field.Label), String.format('$find(\'{0}\').getItem(\'{1}\').focus()', id, 'ma_gd'));
+    break;
+  }
+}
+">
+  <!ENTITY BI.PRTran.Command.Retrieve.Check "
+#IF $d91.NewValue &lt;&gt; $d91.OldValue #THEN
+  if exists(select 1 from @d91 a where a.ma_kho &lt;&gt; '' and exists(select 1 from dmkho b where b.ma_kho = a.ma_kho and b.ma_vung &lt;&gt; @ma_vung)) begin
+    select '' as field, case when @@language = 'v' then N'Thông tin mã vùng của kho hàng hiện không giống với phiếu nhu cầu.' else N'Site should have same plant as Purchase Requisition.' end as message
+    return
+  end
+  select stt_rec_oa, stt_rec0oa, cast('' as smalldatetime) as ngay_ct, cast('' as varchar(32)) as ma_vung, cast('' as varchar(6)) as p into #stt_rec from @d91 where stt_rec_oa &lt;&gt; ''
+  if exists(select 1 from #stt_rec) begin
+    declare @$q nvarchar(4000), @$s nvarchar(4000), @$p varchar(6)
+    select @$s= 'update #stt_rec set ma_vung = b.ma_vung from #stt_rec a join bid10$$partition b on a.stt_rec_oa = b.stt_rec and a.stt_rec0oa = b.stt_rec0'
+    update #stt_rec set ngay_ct = b.ngay_ct, p = convert(varchar(6), b.ngay_ct, 112) from #stt_rec a left join bic10$000000 b on a.stt_rec_oa = b.stt_rec
+    select distinct p into #p from #stt_rec
+    while exists(select 1 from #p) begin
+      select top 1 @$p = p from #p order by p
+      select @$q = replace(@$s, '$partition', @$p)
+      exec sp_executesql @$q
+      delete #p where p = @$p
+    end
+    if exists(select 1 from #stt_rec where ma_vung &lt;&gt; @ma_vung)
+      select @$warning = @$warning + case when @@language = 'v' then N'Thông tin mã vùng của thỏa thuận mua hàng hiện không giống với phiếu nhu cầu.' else N'Outline Agreement should have same plant as Purchase Requisition.' end
+  end
+#ELSE
+  if exists(select 1 from d91$$partition$current a where a.stt_rec = @stt_rec and a.ma_kho &lt;&gt; '' and exists(select 1 from dmkho b where b.ma_kho = a.ma_kho and b.ma_vung &lt;&gt; @ma_vung)) begin
+    select '' as field, case when @@language = 'v' then N'Thông tin mã vùng của kho hàng hiện không giống với phiếu nhu cầu.' else N'Site should have same plant as Purchase Requisition.' end as message
+    return
+  end
+#END
+">
+  <!ENTITY BI.PRTran.Script.Check.Grid "if ($func.trim(f.getItemValue('loai_ct')) == '2') g.validRowExpression('ma_vung_dn', '([ma_vung_dn] != &quot;&quot;)');">
+
+  <!ENTITY BI.PRTran.InitExternalFields.Declare "
+declare @plantCode varchar(32), @plantName nvarchar(1024)
+select @plantCode = ma_vung from @@prime$partition$current where stt_rec = @stt_rec
+select @plantName = case when @@language = 'V' then ten_vung else ten_vung2 end from bidmvung where ma_vung = @plantCode
+">
+  <!ENTITY BI.PRTran.InitExternalFields.Select ", @plantName as ten_vung&#37;l">
+  <!ENTITY BI.PRTran.Inquiry.Parameter ", 'ma_vung', 2">
+
+  <!ENTITY BI.PRTran.Script.Active "f.getItem('d91')._controlBehavior.add_onRender(on$Voucher$GridRender);">
+  <!ENTITY BI.PRTran.Script.Close "try {f.getItem('d91')._controlBehavior.remove_onRender(on$Voucher$GridRender);} catch (ex) {}">
+  <!ENTITY BI.PRTran.Script.AfterCloneRow "g.setItemFieldValue('so_tham_chieu', e.type.Value, '');">
+  <!ENTITY BI.PRTran.Script.Copying ", stt_rec_oa, stt_rec0oa, so_tham_chieu">
+
+  <!ENTITY BI.PRTran.Response.Transaction "set$Voucher$DependOnVoucherType(f);">
+
+  <!ENTITY BI.PRDetail.Script "
+function onChange$GridVoucherDetail$PurOrg(o) {o.grid.request(o, 'GetInfoPurOrg', 'GetInfoPurOrg', ['ma_vt', 'ma_bp0'], ['ma_vung'], true);}
+
+function check$Grid$DefaultMemvar(g, n) {
+  var i, t, f = g.get_element().parentForm;
+  if (g._rowCount &lt; n) return !0;
+
+  if (g._getItemValue(n, g._getColumnOrder('loai_vt')) != '1') return true;
+  for (i = 0; i &lt; g._fields.length; i++) {
+    t = g._fields[i];
+    if ( t.Name != 'loai_vt')
+      if ((!t.ReadOnly &amp;&amp; !t.Hidden &amp;&amp; !t.External || t.AllowContain) &amp;&amp; g._getItemValue(n, i + 1)) return false;
+  }
+  return true;
+}
+">
+  <!ENTITY BI.PRDetail.Request.Load.Array ", 'ma_vung'">
+  <!ENTITY BI.PRDetail.Request.Load.Field ", 'ma_bp0'">
+  <!ENTITY BI.PRDetail.Response.Item "exec AI_ERP$BI$ImportPurchase$Item @unitCode, @ma_vt, default, default, default, default, default, default, default, @$ma_vung, @ma_bp0">
+  <!ENTITY BI.PRDetail.ResponseComplete.Item ", ['ma_nh0', result[19].Value, '', true]">
+  <!ENTITY BI.PRDetail.ResponseComplete.ItemExt "
+var v0 = (f.getItemValue('loai_ct') == '1'), v1 = (g._getItemValue(o.row, g._getColumnOrder('ma_bp0')) != '')
+if (v0 &amp;&amp; v1) g._setItemValue(o.row, g._getColumnOrder('ma_ncc_cd'), result[20].Value);
+if (!v0 &amp;&amp; v1) g._setItemValue(o.row, g._getColumnOrder('ma_vung_cd'), result[21].Value);
+">
+
+  <!ENTITY BI.PRTran.PODefaultValue.Script.LoadGrid "g._$PODefaultForm.HiddenField = &#91;'ma_bp0', 'ma_nh0'&#93;;">
+
+  <!ENTITY BI.PRTran.APV.Master.ReadOnly ", ma_vung">
+  <!ENTITY BI.PRTran.APV.Master ", @ma_vung as ma_vung">
+  <!ENTITY BI.PRTran.APV.Detail ", loai_vt, loai_dt, ma_ncc_dn, ma_ncc_cd, ma_vung_dn, so_theo_doi, ma_vt_ncc, ma_bp0, ma_nh0, ct_dt_pb">
+
+  <!ENTITY BI.PRTRan.APV.Fields.Detail SYSTEM "..\Include\XML\BI.PRTRan.APV.Fields.Detail.txt">
+  <!ENTITY BI.PRTran.APV.Views.Detail SYSTEM "..\Include\XML\BI.PRTran.APV.Views.Detail.xml">
+
+  <!ENTITY PlanRetrieve "
+    case 'Retrieve':
+      if (f._action == 'View') break;
+      switch (e.type.Value) {
+        case '10':
+          if (f.validFields('dept_id')) g.showForm('PRSaleOrderFilter');
+         break;
+        case '30':
+          if (f.getItemValue('loai_ct') == '1') g.showForm('BIPROutlineAgreementFilter');
+          break;
+        default:
+          break;
+        }
+      break;
+">
+
+  <!ENTITY PlanToolbar SYSTEM "..\Include\XML\BI.PRDetail.Retrieve.Toolbar.txt">
+]]>
+
+<!ENTITY BI.PRTran.r "216">
+<!ENTITY BI.PRTran.f "112">
+<!ENTITY BI.PRTran.Allow "false">
+<!ENTITY BI.PRTran.Categories.Index "">
+<!ENTITY BI.PRTran.TabChange "">
+<!ENTITY BI.PRTran.APVCheckCategory "">
+
+<!ENTITY BI.PRTran.Fields SYSTEM "..\Include\Standard\XML\BI.PRTran.Standard.Fields.txt">
+<!ENTITY BI.PRTran.Views SYSTEM "..\Include\Standard\XML\BI.PRTran.Standard.Views.xml">
+<!ENTITY BI.PRTran.Categories "">
+<!ENTITY BI.PRTran.Fields.Grid "">
+<!ENTITY BI.PRTran.Views.Grid "">
+
+<!ENTITY BI.PRTran.Fields.Filter SYSTEM "..\Include\Standard\XML\BI.PRTran.Standard.Fields.Filter.txt">
+<!ENTITY BI.PRTran.Views.Filter SYSTEM "..\Include\Standard\XML\BI.PRTran.Standard.Views.Filter.xml">
+<!ENTITY BI.PRTran.Categories.Filter "">
+
+<!ENTITY BI.PRTRan.Fields.Detail SYSTEM "..\Include\Standard\XML\BI.PRTRan.Standard.Fields.Detail.txt">
+<!ENTITY BI.PRTran.Views.Detail SYSTEM "..\Include\Standard\XML\BI.PRTran.Standard.Views.Detail.xml">
+
+<!ENTITY BI.PRTran.Command.Retrieve.Check "">
+<!ENTITY BI.PRTran.Script "">
+<!ENTITY BI.PRTran.Checking "">
+<!ENTITY BI.PRTran.Script.Check.Grid "">
+
+<!ENTITY BI.PRTran.InitExternalFields.Declare "">
+<!ENTITY BI.PRTran.InitExternalFields.Select "">
+<!ENTITY BI.PRTran.Inquiry.Parameter "">
+
+<!ENTITY BI.PRTran.Script.Active "">
+<!ENTITY BI.PRTran.Script.Close "">
+<!ENTITY BI.PRTran.Script.AfterCloneRow "">
+<!ENTITY BI.PRTran.Script.Copying "">
+
+<!ENTITY BI.PRTran.Response.Transaction "">
+<!ENTITY BI.PRDetail.Script "">
+
+<!ENTITY BI.PRDetail.Request.Load.Array "">
+<!ENTITY BI.PRDetail.Request.Load.Field "">
+<!ENTITY BI.PRDetail.Response.Item "exec AI_ERP$Voucher$ImportPurchase$Item @unitCode, @ma_vt">
+<!ENTITY BI.PRDetail.ResponseComplete.Item "">
+<!ENTITY BI.PRDetail.ResponseComplete.ItemExt "">
+
+<!ENTITY BI.PRTran.PODefaultValue.Script.LoadGrid "">
+
+<!ENTITY BI.PRTran.APV.Master.ReadOnly "">
+<!ENTITY BI.PRTran.APV.Master "">
+<!ENTITY BI.PRTran.APV.Detail ", ma_kh">
+<!ENTITY BI.PRTRan.APV.Fields.Detail SYSTEM "..\Include\Standard\XML\BI.PRTRan.APV.Standard.Fields.Detail.txt">
+<!ENTITY BI.PRTran.APV.Views.Detail SYSTEM "..\Include\Standard\XML\BI.PRTran.APV.Standard.Views.Detail.xml">
+
+<!ENTITY PlanRetrieve SYSTEM "..\Include\XML\PlanRetrieve.txt">
+<!ENTITY PlanToolbar SYSTEM "..\Include\XML\PlanToolbar.txt">

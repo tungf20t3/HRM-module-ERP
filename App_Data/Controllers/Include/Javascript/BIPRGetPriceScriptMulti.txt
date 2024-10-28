@@ -1,0 +1,20 @@
+﻿<![CDATA[
+function get$]]>&Identity;<![CDATA[Form$DataIR(f) {
+  var g = getGrid$FlowMulti$(f), z = f.grid, w = z.get_element().parentForm;
+  var l1 = getColumnOrderTagRow(g, 'so_luong0'), l2 = getColumnOrderTagRow(g, 'gia_nt'), l3 = getColumnOrderTagRow(g, 'ma_ncc_cd');
+  var listRow = [], listQuantity = [];
+  var cusID = w.getItemValue('ma_kh'), a = g._$k;
+  for (var r = 0; r < a.length; r++) {
+    if (a[r][l1] != 0) {
+      if (!cusID) cusID = a[r][l3];
+      if (!a[r][l2]) {
+        listRow.push(r + 1);
+        listQuantity.push(a[r][l1]));
+      }
+    }
+  }
+
+  if (listRow.length && cusID) {return {Row: listRow, Quantity: listQuantity, Customer: cusID};}
+  return 0;
+}
+]]>

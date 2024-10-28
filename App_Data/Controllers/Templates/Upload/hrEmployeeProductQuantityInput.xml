@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrEmployeeProductQuantityInput' else 'hrEmployeeProductQuantityInput2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$EmployeeProductQuantityImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$EmployeeProductQuantityImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="d03$000000, hrnv"/>
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="A" allowNulls="false" reference="1" upperCase="true"/>
+    <field name="ma_sp" column="C" allowNulls="false" upperCase="true"/>
+    <field name="so_luong" column="E" type="Decimal"/>
+    <field name="ma_bp" column="F" upperCase="true"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật số lượng sản phẩm cá nhân" e="Employee Product Quantity Input"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_nv" width ="16">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width ="32" afterField="ma_nv">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="ma_sp" width ="16">
+        <text v="Mã sản phẩm" e="Product Code"/>
+      </field>
+      <field name="ten_sp" width ="32" afterField="ma_sp">
+        <text v="Tên sản phẩm" e="Product Name"/>
+      </field>
+      <field name="so_luong" width ="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="ma_bp" width ="16">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000)
+declare @user int, @admin bit, @language char(1), @sys varchar(32)
+select @admin = @@admin, @user = @@userID, @language = @@language, @sys = '@@sysDatabaseName'
+select @message = case @language when 'v' then N'Dữ liệu trong tệp không có hoặc không hợp lệ.' else N'The content of the data file is empty or invalid.' end
+
+create table #r(ma_nv varchar(32), ma_sp varchar(32), so_luong numeric(19, 4), ma_bp varchar(32), stt_rec_nv varchar(13), stt int)
+
+select @q = 'insert into #r select a.ma_nv, a.ma_sp, a.so_luong, a.ma_bp, e.stt_rec, a.stt '
+select @q = @q + 'from @@table a join hrnv e on a.ma_nv = e.ma_nv left join hrbp b on a.ma_bp = b.ma_bp where e.status = ''1'' and ((isnull(a.ma_bp, '''') = '''') and e.ma_dvcs = ''' + replace(@ma_dvcs, '''', '''''') + ''') or b.ma_dvcs = ''' + replace(@ma_dvcs, '''', '''''') + ''''
+exec sp_executesql @q
+
+--Result
+if exists(select 1 from #r) begin
+  select '' as message, 'this.frameElement.result = @@result;parent.set$Grid$ImportResult(this.frameElement);' as script
+  select rtrim(a.ma_nv) as ma_nv, rtrim(b.ho_nv) + space(1) + rtrim(b.ten_nv) as ten_nv, rtrim(a.ma_sp) as ma_sp, case @language when 'v' then c.ten_sp else c.ten_sp2 end, a.so_luong, upper(rtrim(a.ma_bp)) as ma_bp, a.stt_rec_nv
+    from #r a left join hrnv b on a.ma_nv = b.ma_nv left join hrdmsp c on a.ma_sp = c.ma_sp order by a.stt
+  return
+end else begin
+  select @message as message
+  return
+end
+]]>
+    </text>
+  </processing>
+
+</import>

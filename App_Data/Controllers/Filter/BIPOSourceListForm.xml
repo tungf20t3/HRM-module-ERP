@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIPOSourceListForm">
+
+  <!ENTITY % Conditional.BIMode "INCLUDE">
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+
+  <!ENTITY FormTask.HiddenOrChangeCaption SYSTEM "..\Include\Javascript\Button.txt">
+]>
+
+<dir table="bim01$000000"  code="stt_rec" xmlns="urn:schemas-ai-erp:data-dir">
+
+  <title v="Cập nhật nguồn cung ứng" e="Source List Input"></title>
+  <fields>
+    <field name="ma_bp0" allowNulls="false" inactivate="true">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+      <items style="AutoComplete" controller="BIPurchasingOrganization" reference="ten_bp0%l"/>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vung" allowNulls="false" inactivate="true">
+      <header v="Mã vùng" e="Plant"></header>
+      <items style="AutoComplete" controller="BIPlant" reference="ten_vung%l" />
+    </field>
+    <field name="ten_vung%l" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" allowNulls="false" inactivate="true">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_kh" allowNulls="false" inactivate="true">
+      <header v="Mã nhà cung cấp" e="Vendor"></header>
+      <items style="AutoComplete" controller="&VendorController;" reference="ten_kh%l" key="cc_yn = 1 and status = '1'" check="cc_yn = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_hl_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày hiệu lực từ" e="Effective Date from"></header>
+      <footer v="Ngày hl từ/đến" e="Effective Date from/to"></footer>
+    </field>
+    <field name="ngay_hl_den" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày hiệu lực đến" e="Effective Date to"></header>
+    </field>
+
+    <field name="cd_ncc" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Cố định nhà cung cấp" e="Vendor Fix"></header>
+      <footer v="0 - Không, 1 - Có" e="0 - No, 1 - Yes"></footer>
+      <items style="Mask"/>
+    </field>
+
+    <field name="ghi_chu" maxLength="256">
+      <header v="Ghi chú" e="Note"></header>
+    </field>
+    <field name="ma_dvcs" allowNulls="false" disabled="true" hidden="true">
+      <header v="Đơn vị" e="Unit"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11010: [ma_bp0].Label, [ma_bp0], [ten_bp0%l]"/>
+      <item value="11010: [ma_vung].Label, [ma_vung], [ten_vung%l]"/>
+      <item value="11010: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11010: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="1101: [ngay_hl_tu].Description, [ngay_hl_tu], [ngay_hl_den]"/>
+      <item value="11100: [cd_ncc].Label, [cd_ncc], [cd_ncc].Description"/>
+      <item value="110001: [ghi_chu].Label, [ghi_chu], [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &FormTask.HiddenOrChangeCaption;
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[$Form(f) {f._controlFocus = f.getItem('ngay_hl_tu');}
+function active$]]>&Identity;<![CDATA[$Form(f) {
+  var g = f.grid, d = g._detailInfo, w = g.get_element().parentForm;
+  f.setReadOnlyFields('ma_bp0, ma_vt, ma_kh, ma_vung');
+  if (w._action == 'View') f.setReadOnlyFields('ngay_hl_tu, ngay_hl_den, cd_ncc, ghi_chu');
+
+  f.add_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);
+
+  f.setItemValues('ma_dvcs, ma_bp0, ten_bp0%l, ma_vung, ten_vung%l, ma_kh, ten_kh%l, ma_vt, ten_vt%l', [d.ma_dvcs, d.ma_bp0, d.ten_bp0, d.ma_vung, d.ten_vung, d.ma_kh, d.ten_kh, d.ma_vt, d.ten_vt]);
+  if (d.data) {
+    var a = eval(d.data), d1 = $func.formatStringToDate(a[0]), d2 = $func.formatStringToDate(a[1]);
+    f.setItemValues('ngay_hl_tu, ngay_hl_den, cd_ncc, ghi_chu', [d1, d2, a[2], a[3]]);
+  } else f.setItemValues('ngay_hl_tu, ngay_hl_den', [d.ngay_hl_tu, d.ngay_hl_den]);
+
+  if (g._readOnly) form$Button$SetCaption(f, [['Ok', null], ['Cancel', f._language == 'v' ? 'Đón<u>g</u>' : 'C<u>l</u>ose']]);
+  else {
+    f.setReferenceKeyFilter('ma_vung');
+    f.live(f.getItem('ngay_hl_tu'));
+  }
+}
+
+function close$]]>&Identity;<![CDATA[$Form(f) {try {f.remove_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}}
+
+function onForm$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, w = g.get_element().parentForm, id = f.get_id();
+      g._formScript = 'onForm$]]>&Identity;<![CDATA[$RetrieveScript(this)';
+      if (g._readOnly || w._action == 'View') {
+        f.cancelDialog();
+        return;
+      }
+      var d = g._detailInfo;
+      if (d.handle) {
+        var d1 = f.getItemValue('ngay_hl_tu'), d2 = f.getItemValue('ngay_hl_den'), cd_ncc = f.getItemValue('cd_ncc'), ghi_chu = f.getItemValue('ghi_chu');
+
+        if (f._checked && d1 > d2) {
+          var msg = (f._language == 'v' ? 'Trường <span class="Highlight">Ngày hiệu lực đến</span> phải lớn hơn hoặc bằng trường <span class="Highlight">Ngày hiệu lực từ</span>.' : '<span class="Highlight">Effective date to</span> must be larger than or equal to <span class="Highlight">Effective date from</span>.');
+          $func.hideWait(id);
+          $message.show(msg, String.format('$find(\'{0}\').getItem(\'ngay_hl_den\').focus()', id));
+          f._checked = false;
+          break;
+        }
+
+        var v1 = $func.formatDateOrder(d1), v2 = $func.formatDateOrder(d2), a = [v1, v2, cd_ncc, ghi_chu], jData = JSON.stringify(a);
+
+        if (d.maxLength > 0 && jData.length <= d.maxLength) {
+          var res = {data: jData};
+          d.handle.call(this, g, res);
+        } else {
+          f._checked = false;
+          var e = (f._language == 'v' ? 'Dữ liệu chi tiết vượt quá giới hạn cho phép.' : 'Detail data has reached your maximum limit of characters allowed.');
+          $message.show(e, String.format('var f = $find(\'{0}\');f.getItem(\'ghi_chu\').focus();', f.get_id()));
+        }
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+function onForm$]]>&Identity;<![CDATA[$RetrieveScript(g) {}
+]]>
+    </text>
+  </script>
+
+</dir>

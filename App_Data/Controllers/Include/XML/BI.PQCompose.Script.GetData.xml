@@ -1,0 +1,21 @@
+﻿<action id="Compose">
+      <text>
+        <![CDATA[
+declare @ticket varchar(32), @reportID varchar(128)
+select @ticket = lower(replace(newid(),'-',''))
+insert into @@sysDatabaseName..ticket values(@ticket, @@userID, @controller, @stt_rec, convert(char(6), @ngay_ct, 112), '@@appDatabaseName', getdate())
+
+declare @q nvarchar(4000), @mail varchar(256), @vendorName nvarchar(256), @unitName nvarchar(256), @p varchar(6), @d varchar(10), @ownerMail varchar(256)
+select @ownerMail = rtrim(e_mail) from @@sysDatabaseName..userinfo2 where id = @@userID
+select @stt_rec = replace(rtrim(@stt_rec), '''', ''''''), @ngay_ct = cast(@ngay_ct as smalldatetime), @d = convert(varchar(10), @ngay_ct, 103), @p = convert(char(6), @ngay_ct, 112), @mail = '', @vendorName = '', @unitName = ''
+set @q = 'select @mail = rtrim(b.e_mail)
+  , @vendorName = case when '@@language' = ''v'' then b.ten_kh else b.ten_kh2 end
+  , @unitName = case when '@@language' = ''v'' then c.ten_dvcs else c.ten_dvcs2 end
+  from ]]>&MailPrime;<![CDATA[' + @p + ' a join dmkh b on a.ma_kh = b.ma_kh join dmdvcs c on a.ma_dvcs = c.ma_dvcs where a.stt_rec = ''' + @stt_rec + ''''
+exec sp_executesql @q, N'@mail varchar(256) output, @vendorName nvarchar(256) output, @unitName nvarchar(256) output', @mail output, @vendorName output, @unitName output
+
+select @mail as mail, @ticket as ticket, @d as ngay_ct, @vendorName as vendorName, @unitName as unitName, @ownerMail as ownerMail
+return
+]]>
+      </text>
+    </action>

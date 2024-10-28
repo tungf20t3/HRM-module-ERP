@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIMaintainPurOrgDataCriterionInfoForm">
+
+  <!ENTITY FormTask.HiddenOrChangeCaption SYSTEM "..\Include\Javascript\Button.txt">
+  <!ENTITY ScriptQueryData SYSTEM "..\Include\Javascript\QueryData.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Thông tin chỉ tiêu" e="Criterion Information"></title>
+
+  <fields>
+    <field name="stt_rec" external="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_loai" external="true" disabled="true">
+      <header v="Mã loại" e="Main Criterion"></header>
+    </field>
+    <field name="ten_loai" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="trong_so" type="Decimal" dataFormatString="##0" external="true" disabled="true">
+      <header v="Trọng số" e="Weight"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="bie03" external="true" clientDefault="0" defaultValue="0" rows="208" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="BIMaintainPurOrgDataCriterionInfoGrid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="9" split="10">
+      <item value="100, 30, 70, 35, 65, 37, 100, 100, 0, 8, 58, 50, 100, 0"/>
+      <item value="11010000-----1: [ma_loai].Label, [ma_loai], [ten_loai], [stt_rec]"/>
+      <item value="110-----------: [trong_so].Label, [trong_so]"/>
+      <item value="1: [bie03]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[for(var f=this,id=f.get_id(),g=f.getItem("bie03")._controlBehavior,e=this._language=="v"?"Mã chỉ tiêu đã có trong phần thông tin chỉ tiêu.":"Sub Criterion already exists.",a=query$Select(g,'count$1 $groupBy ma_chi_tieu $where[ma_chi_tieu] != ""'),i=0;i<a.length;i++)if(a[i][1]>1){f._checked=false;$func.hideWait(f.get_id());$message.show(e,String.format("$find('{0}').focus('{1}');",id,"bie03"));break}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &FormTask.HiddenOrChangeCaption;
+      &ScriptQueryData;
+      <![CDATA[
+function load$]]>&Identity;<![CDATA[$Form(f) {
+  var z = f.grid, d = z._detailInfo;
+  f.add_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);
+  f.setItemValues('ma_loai, ten_loai, trong_so', [d.ma_loai, d.ten_loai, d.trong_so]);
+  if (z._readOnly) {
+    form$Button$SetCaption(f, [['Ok', null], ['Cancel', f._language == 'v' ? 'Đón<u>g</u>' : 'C<u>l</u>ose']]);
+    f._action = 'View';
+  }
+}
+function close$]]>&Identity;<![CDATA[$Form(f) {try {f.remove_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}}
+function onForm$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.getItem('bie03')._controlBehavior;
+      f.grid._formScript = 'onForm$]]>&Identity;<![CDATA[$RetrieveScript(this)';
+      if (g._readOnly) return;
+
+      var z = f.grid, d = z._detailInfo;
+      if (d.handle) {
+        var jData = formDetail$]]>&Identity;<![CDATA[$TransferData(f, g, f._dataIndex);
+        var res = {data: jData};
+        d.handle.call(this, z, res);
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+function onForm$]]>&Identity;<![CDATA[$RetrieveScript(z) {}
+function formDetail$]]>&Identity;<![CDATA[$GetJson(f, g, detailIndex) {
+  if (g._rowCount <= 0) return null;
+
+  var data = [], b = true;
+  for (var i = 1; i <= g._rowCount; i++) {
+    var d = [];
+    for (var j = 0; j < detailIndex.length; j++) {
+      var l = detailIndex[j], a = g._fields[l - 1];
+      var v = g._getItemValue(i, l);
+      if (a.Type == 'DateTime' && v) {
+        v = v.getFullYear() + String(v.getMonth() + 1).padStart(2, '0') + String(v.getDate()).padStart(2, '0');
+        b = false;
+      } else if (a.Type == 'Decimal' && v != 0) {
+        b = false;
+      } else if (v != '') b = false;
+      d[j] = v;
+    }
+    if (!b) data.push(d);
+  }
+  var jsonString = '';
+  if (data.length > 0) jsonString = JSON.stringify(data);
+  return jsonString;
+}
+
+function formDetail$]]>&Identity;<![CDATA[$TransferData(f, g, detailIndex, masterField) {
+  var jsonString = formDetail$]]>&Identity;<![CDATA[$GetJson(f, g, detailIndex, masterField);
+  if (!jsonString) return null;
+
+  var z = f.grid, c = z._detailInfo;
+  if (c.maxLength > 0 && jsonString.length <= c.maxLength) {
+    f.cancelDialog();
+    return jsonString;
+  } else {
+    f._checked = false;
+    var e = (f._language == 'v' ? 'Dữ liệu chi tiết vượt quá giới hạn cho phép.' : 'Detail data has reached your maximum limit of characters allowed.');
+    $message.show(e, String.format('var g = $find(\'{0}\');if (g._rowCount > 0) g._getItem(1, 1).focus();', g.get_id()));
+    return null;
+  }
+}
+]]>
+    </text>
+  </script>
+</dir>

@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY % DetailTax SYSTEM "..\Include\DetailTax.ent">
+  %DetailTax;
+  <!ENTITY % EnvironmentTax SYSTEM "..\Include\EnvironmentTax.ent">
+  %EnvironmentTax;
+  <!ENTITY EnvironmentTaxComma ",">
+
+  <!ENTITY Identity "SRInvoice">
+  <!ENTITY DetailTable "d81">
+  <!ENTITY c11 "Mã khách">
+  <!ENTITY c12 "Customer">
+  <!ENTITY c21 "Số hóa đơn">
+  <!ENTITY c22 "Invoice Number">
+  <!ENTITY c31 "Ngày hóa đơn">
+  <!ENTITY c32 "Invoice Date">
+
+]>
+
+<dir table="m81$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Hóa đơn bán hàng" e="Sales Invoice"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d81')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'sl_tl, stt_rec, stt_rec0, so_ct, line_nbr', f2 = 'so_luong, stt_rec_hd, stt_rec0hd, hd_so, hd_ln';
+  var first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]);
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = g._getColumnOrder('tk_tl'), l2 = g._getColumnOrder('kieu_tl');
+  var l3 = z._getColumnOrder('dvt'), l4 = g._getColumnOrder('nhieu_dvt'), l5 = z._getColumnOrder('tk_vt'), l6 = g._getColumnOrder('sua_tk_vt');
+  var fields = 'ma_vt, ten_vt%l, dvt, km_yn, he_so, gia_ton, ma_kho, ma_vi_tri, ma_lo, vi_tri_yn, lo_yn, tk_vt, tk_gv, tk_cpbh, tl_ck, tk_ck, ]]>&XMLHiddenFields;<![CDATA[, stt_rec_dh, stt_rec0dh ]]>&DetailTaxFollowCopyFields;&EnvironmentTaxInheritanceColumns;<![CDATA[';
+  if (v) fields += ', gia_nt2, gia_nt, gia';
+
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, g._getColumnOrder('sl_tl')) != 0) {
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+
+      var o = z._getItem(row, l0);
+      o.row = row;
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+
+      if (v) z.executeExpression(o, [z.$a.gia2, z.$a.tien_nt2, z.$a.tien2, z.$a.tien_nt, z.$a.tien, z.$a.ck_nt, z.$a.ck_tl ]]>&DetailTaxFollowValidDetail;&EnvironmentTaxDetailChangeQuatityInheritance;<![CDATA[]);
+
+      z.setItemGridBehavior(o, [['tk_dt', g._getItemValue(r, l1), ['', g._getItemValue(r, l2)], true]]);
+      $func.setObjectWhen(z._getItem(row, l3), g._getItemValue(r, l4));
+      $func.setObjectWhen(z._getItem(row, l5), g._getItemValue(r, l6));
+    }
+  }
+  z.executeAggregate([z.$a.t_so_luong]]>&EnvironmentTaxDetailChangeQuatityTotalInheritance;<![CDATA[, z.$a.t_tien_nt, z.$a.t_tien, z.$a.t_ck_nt, z.$a.t_ck]);
+  if (v) {
+    on$GridVoucherDetail$AmountChange(null, z, w);
+    on$GridVoucherDetail$TaxChange(null, z, w);
+  }
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

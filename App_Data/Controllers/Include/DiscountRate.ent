@@ -1,0 +1,210 @@
+﻿<!ENTITY % Conditional.DiscountRate SYSTEM "..\Include\DiscountRate.txt">
+<!ENTITY % Conditional.VoucherGoodsType SYSTEM "..\Include\VoucherGoodsType.txt">
+
+<![%Conditional.DiscountRate;[
+  <!ENTITY SVTranFields.ext SYSTEM "..\Templates\Upload\Include\SVTranFields.dct">
+  <!ENTITY SVTranFields.Compact.ext SYSTEM "..\Templates\Upload\Include\SVTranFieldsCompact.dct">
+  <!ENTITY SVTranFields.Location.ext SYSTEM "..\Templates\Upload\Include\SVTranFieldsLocation.dct">
+  <!ENTITY SVTranFields.Lot.ext SYSTEM "..\Templates\Upload\Include\SVTranFieldsLot.dct">
+  <!ENTITY ARTranFields SYSTEM "..\Templates\Upload\Include\ARTranFields.dct">
+
+  <!ENTITY Tag.ext "11">
+  <!ENTITY Tag.Compact.ext "8">
+  <!ENTITY Tag.Location.ext "9">
+  <!ENTITY Tag.Lot.ext "10">
+  <!ENTITY ListFieldDetail.DiscountRate.ext ", tl_ck, tk_ck, ck_nt, ck">
+  <!ENTITY ListFieldDetailValues.ext ", round((a.tien_nt2 - a.ck_nt) * (d.thue_suat / 100), case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(((a.tien_nt2 - a.ck_nt) * a.ty_gia) * (d.thue_suat / 100), @roundAmount), a.tl_ck, a.tk_ck, a.ck_nt, round(a.ck_nt * a.ty_gia, @roundAmount)">
+  <!ENTITY ListFieldMaster.ext ", t_ck_nt, t_ck">
+  <!ENTITY ListFieldMasterValues.ext ", d.t_tien_nt2, d.t_tien2, d.t_ck_nt, d.t_ck">
+  <!ENTITY ListFieldSumValues.ext ", sum(tien_nt2 - ck_nt) as t_tien_nt2, sum(tien2 - ck) as t_tien2, sum(ck_nt) as t_ck_nt, sum(ck) as t_ck">
+  <!ENTITY SVTranFieldZeroStock.ext ", px_gia_dd, gia_nt1, gia1, gia, tien_xuat, tien_nt_x">
+  <!ENTITY SVTranUpdateStock.ext "">
+  <!ENTITY SVTranGLCOGS.ext ", 0*tien2 as tien, 0*tien_nt2 as tien_nt">
+  <!ENTITY SVTranFieldBlankStock.ext "">
+
+  <!ENTITY ARListFieldDetail.ext ", tl_ck, tk_ck, ck_nt, ck">
+  <!ENTITY ARListFieldDetailValues.ext ", round((a.tien_nt2 - a.ck_nt) * (d.thue_suat / 100), case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(((a.tien_nt2 - a.ck_nt) * a.ty_gia) * (d.thue_suat / 100), @roundAmount), a.tl_ck, a.tk_ck, a.ck_nt, round(a.ck_nt * a.ty_gia, @roundAmount)">
+  <!ENTITY ARListFieldMaster.ext ", t_ck_nt, t_ck">
+  <!ENTITY ARListFieldMasterValues.ext ", d.t_ck_nt, d.t_ck">
+  <!ENTITY ARListFieldSumValues.ext ", sum(ck_nt) as t_ck_nt, sum(ck) as t_ck">
+
+  <!ENTITY FieldGLAcctField.ext ",tk_ck">
+  <!ENTITY FieldGLAcctFieldRef.ext ",tk_ck_co">
+  <!ENTITY FieldGLAmountField.ext ",ck">
+  <!ENTITY FieldGLFCAmountField.ext ",ck_nt">
+  <!ENTITY FieldGLKey.ext ",ck_nt + ck &lt;&gt; 0 and tk_ck &lt;&gt; ''''">
+  <!ENTITY FieldGLNoAccList.ext ",0">
+  <!ENTITY FieldGLNoAccListRef.ext ",0">
+  <!ENTITY FieldGLField.ext ",b.tk as tk_ck_co">
+  <!ENTITY PostGLUpdate.ext "update #dGL set tien_nt2 = tien_nt2 - ck_nt, tien2 = tien2 - ck where ck_nt + ck &lt;&gt; 0 and tk_ck = ''">
+
+  <!ENTITY ARFieldGLAcctField.ext ",tk_ck, tk">
+  <!ENTITY ARFieldGLAcctFieldRef.ext ",tk_ck_co, tk_thue">
+  <!ENTITY ARFieldGLAmountField.ext ",ck, thue">
+  <!ENTITY ARFieldGLFCAmountField.ext ",ck_nt, thue_nt">
+  <!ENTITY ARFieldGLKey.ext ",ck_nt + ck &lt;&gt; 0 and tk_ck &lt;&gt; '''', thue_nt + thue &lt;&gt; 0">
+  <!ENTITY ARFieldGLNoAccList.ext ",0,1">
+  <!ENTITY ARFieldGLNoAccListRef.ext ",0,1">
+  <!ENTITY ARFieldGLField.ext ",b.tk as tk_ck_co">
+  <!ENTITY ARFieldGLFieldTax.ext ", tk_thue, thue_nt, thue">
+  <!ENTITY ARFieldGLIntoTax.ext "">
+  <!ENTITY ARPostTaxAmountField.ext "- b.ck">
+  <!ENTITY ARPostTaxFCAmountField.ext "- b.ck_nt">
+  <!ENTITY ARPostPaymentAmountField.ext "- c.t_ck">
+  <!ENTITY ARPostPaymentFCAmountField.ext "- c.t_ck_nt">
+  <!ENTITY ARPostPaymentStatement.ext "update #ar set t_ck = b.t_ck from #ar a join #m&Detail; b on a.stt_rec = b.stt_rec">
+  <!ENTITY ARPostGLMemoStatement.ext "select @Statement = @Statement + char(13) + 'update #gl set dien_giai = b.dien_giai from #gl a join #m&Detail; b on a.stt_rec = b.stt_rec join #dGL c on a.stt_rec = c.stt_rec and (a.tk = c.tk_thue or a.tk_du = c.tk_thue)'">
+  <!ENTITY ARPostGLGroups.ext "1&VoucherGoodsTypeARPostGLGroups;,1,0">
+
+  <!ENTITY FileName.v.ext "&FileName.ext;b.xlsx">
+  <!ENTITY FileName.Compact.v.ext "&FileName.ext;3b.xlsx">
+  <!ENTITY FileName.Location.v.ext "&FileName.ext;5b.xlsx">
+  <!ENTITY FileName.Lot.v.ext "&FileName.ext;7b.xlsx">
+  <!ENTITY FileName.e.ext "&FileName.ext;2b.xlsx">
+  <!ENTITY FileName.Compact.e.ext "&FileName.ext;4b.xlsx">
+  <!ENTITY FileName.Location.e.ext "&FileName.ext;6b.xlsx">
+  <!ENTITY FileName.Lot.e.ext "&FileName.ext;8b.xlsx">
+
+  <!ENTITY SVImportPostPayment ", t_tien_nt2 = case when b.ma_nt = ''' + rtrim(@baseCurrency) + ''' then 0 else (b.t_tien_nt2 + b.t_ck_nt) end, t_tien2 = b.t_tien2 + b.t_ck, t_ck_nt = case when b.ma_nt = ''' + rtrim(@baseCurrency) + ''' then 0 else b.t_ck_nt end, t_ck = b.t_ck">
+]]>
+
+<!ENTITY % Conditional.COGS SYSTEM "..\Include\COGS.txt">
+
+<![%Conditional.COGS;[
+  <!ENTITY SVTranFields.ext SYSTEM "..\Templates\Upload\Include\SVTranFields.ext">
+  <!ENTITY SVTranFields.Compact.ext SYSTEM "..\Templates\Upload\Include\SVTranFieldsCompact.ext">
+  <!ENTITY SVTranFields.Location.ext SYSTEM "..\Templates\Upload\Include\SVTranFieldsLocation.ext">
+  <!ENTITY SVTranFields.Lot.ext SYSTEM "..\Templates\Upload\Include\SVTranFieldsLot.ext">
+
+  <!ENTITY ARTranFields SYSTEM "..\Templates\Upload\Include\ARTranFields.txt">
+
+  <!ENTITY Tag.ext "7">
+  <!ENTITY Tag.Compact.ext "4">
+  <!ENTITY Tag.Location.ext "5">
+  <!ENTITY Tag.Lot.ext "6">
+
+  <!ENTITY ListFieldDetail.COGS.ext ", px_gia_dd, gia_nt, gia, tien_nt, tien">
+  <!ENTITY ListFieldDetailValues.ext ", round(a.tien_nt2 * (d.thue_suat / 100), case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(a.tien_nt2 * a.ty_gia * (d.thue_suat / 100), @roundAmount), a.px_gia_dd, a.gia_nt, round(a.gia_nt * a.ty_gia, @roundPrice), a.tien_nt, round(a.tien_nt * a.ty_gia, @roundAmount)">
+  <!ENTITY ListFieldMaster.ext ", t_tien_nt, t_tien">
+  <!ENTITY ListFieldMasterValues.ext ", d.t_tien_nt2, d.t_tien2, d.t_tien_nt, d.t_tien">
+  <!ENTITY ListFieldSumValues.ext ", sum(tien_nt2) as t_tien_nt2, sum(tien2) as t_tien2, sum(tien_nt) as t_tien_nt, sum(tien) as t_tien">
+
+  <!ENTITY SVTranFieldZeroStock.ext ", ck, ck_nt">
+  <!ENTITY SVTranUpdateStock.ext ", gia_nt1 = b.gia_nt, gia1 = b.gia, tien_xuat = b.tien, tien_nt_x = b.tien_nt">
+  <!ENTITY SVTranGLCOGS.ext "">
+  <!ENTITY SVTranFieldBlankStock.ext ", tk_ck">
+
+  <!ENTITY ARListFieldDetail.ext "">
+  <!ENTITY ARListFieldDetailValues.ext ", round(a.tien_nt2 * (d.thue_suat / 100), case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(a.tien_nt2 * a.ty_gia * (d.thue_suat / 100), @roundAmount)">
+  <!ENTITY ARListFieldMaster.ext "">
+  <!ENTITY ARListFieldMasterValues.ext "">
+  <!ENTITY ARListFieldSumValues.ext "">
+
+  <!ENTITY FieldGLAcctField.ext "">
+  <!ENTITY FieldGLAcctFieldRef.ext "">
+  <!ENTITY FieldGLAmountField.ext "">
+  <!ENTITY FieldGLFCAmountField.ext "">
+  <!ENTITY FieldGLKey.ext "">
+  <!ENTITY FieldGLNoAccList.ext "">
+  <!ENTITY FieldGLNoAccListRef.ext "">
+  <!ENTITY FieldGLField.ext "">
+  <!ENTITY PostGLUpdate.ext "">
+
+  <!ENTITY ARFieldGLAcctField.ext ",tk">
+  <!ENTITY ARFieldGLAcctFieldRef.ext ",tk_thue">
+  <!ENTITY ARFieldGLAmountField.ext ",thue">
+  <!ENTITY ARFieldGLFCAmountField.ext ",thue_nt">
+  <!ENTITY ARFieldGLKey.ext ", thue_nt + thue &lt;&gt; 0">
+
+  <!ENTITY ARFieldGLNoAccList.ext "">
+  <!ENTITY ARFieldGLNoAccListRef.ext "">
+  <!ENTITY ARFieldGLField.ext "">
+  <!ENTITY ARFieldGLFieldTax.ext ", tk_thue, thue_nt, thue">
+  <!ENTITY ARFieldGLIntoTax.ext "">
+  <!ENTITY ARPostTaxAmountField.ext "">
+  <!ENTITY ARPostTaxFCAmountField.ext "">
+  <!ENTITY ARPostPaymentAmountField.ext "">
+  <!ENTITY ARPostPaymentFCAmountField.ext "">
+  <!ENTITY ARPostPaymentStatement.ext "">
+  <!ENTITY ARPostGLMemoStatement.ext "select @Statement = @Statement + char(13) + 'update #gl set dien_giai = b.dien_giai from #gl a join #m&Detail; b on a.stt_rec = b.stt_rec join #dGL c on a.stt_rec = c.stt_rec and (a.tk = c.tk_thue or a.tk_du = c.tk_thue)'">
+  <!ENTITY ARPostGLGroups.ext "1&VoucherGoodsTypeARPostGLGroups;,0">
+
+  <!ENTITY FileName.v.ext "&FileName.ext;&FileNameAlias.ext;.xlsx">
+  <!ENTITY FileName.Compact.v.ext "&FileName.ext;3&FileNameAlias.ext;.xlsx">
+  <!ENTITY FileName.Location.v.ext "&FileName.ext;5&FileNameAlias.ext;.xlsx">
+  <!ENTITY FileName.Lot.v.ext "&FileName.ext;7&FileNameAlias.ext;.xlsx">
+  <!ENTITY FileName.e.ext "&FileName.ext;2&FileNameAlias.ext;.xlsx">
+  <!ENTITY FileName.Compact.e.ext "&FileName.ext;4&FileNameAlias.ext;.xlsx">
+  <!ENTITY FileName.Location.e.ext "&FileName.ext;6&FileNameAlias.ext;.xlsx">
+  <!ENTITY FileName.Lot.e.ext "&FileName.ext;8&FileNameAlias.ext;.xlsx">
+]]>
+
+<!ENTITY SVTranFields.ext "">
+<!ENTITY SVTranFields.Compact.ext "">
+<!ENTITY SVTranFields.Location.ext "">
+<!ENTITY SVTranFields.Lot.ext "">
+<!ENTITY ARTranFields SYSTEM "..\Templates\Upload\Include\ARTranFields.txt">
+
+<!ENTITY Tag.ext "0">
+<!ENTITY Tag.Compact.ext "1">
+<!ENTITY Tag.Location.ext "2">
+<!ENTITY Tag.Lot.ext "3">
+
+<!ENTITY ListFieldDetail.COGS.ext "">
+<!ENTITY ListFieldDetail.DiscountRate.ext "">
+
+<!ENTITY ListFieldDetail.ext ", thue_nt, thue&ListFieldDetail.COGS.ext;&ListFieldDetail.DiscountRate.ext;">
+<!ENTITY ListFieldDetailValues.ext ", round(a.tien_nt2 * (d.thue_suat / 100), case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(a.tien_nt2 * a.ty_gia * (d.thue_suat / 100), @roundAmount)">
+<!ENTITY ListFieldMaster.ext "">
+<!ENTITY ListFieldMasterValues.ext ", d.t_tien_nt2, d.t_tien2">
+<!ENTITY ListFieldSumValues.ext ", sum(tien_nt2) as t_tien_nt2, sum(tien2) as t_tien2">
+
+<!ENTITY SVTranFieldZeroStock.ext ", ck, ck_nt, px_gia_dd, gia_nt1, gia1, gia, tien_xuat, tien_nt_x">
+<!ENTITY SVTranUpdateStock.ext "">
+<!ENTITY SVTranGLCOGS.ext ", 0*tien2 as tien, 0*tien_nt2 as tien_nt">
+<!ENTITY SVTranFieldBlankStock.ext ", tk_ck">
+
+<!ENTITY ARListFieldDetail.ext "">
+<!ENTITY ARListFieldDetailValues.ext ", round(a.tien_nt2 * (d.thue_suat / 100), case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(a.tien_nt2 * a.ty_gia * (d.thue_suat / 100), @roundAmount)">
+<!ENTITY ARListFieldMaster.ext "">
+<!ENTITY ARListFieldMasterValues.ext "">
+<!ENTITY ARListFieldSumValues.ext "">
+
+<!ENTITY FieldGLAcctField.ext "">
+<!ENTITY FieldGLAcctFieldRef.ext "">
+<!ENTITY FieldGLAmountField.ext "">
+<!ENTITY FieldGLFCAmountField.ext "">
+<!ENTITY FieldGLKey.ext "">
+<!ENTITY FieldGLNoAccList.ext "">
+<!ENTITY FieldGLNoAccListRef.ext "">
+<!ENTITY FieldGLField.ext "">
+<!ENTITY PostGLUpdate.ext "">
+
+<!ENTITY ARFieldGLAcctField.ext ",tk">
+<!ENTITY ARFieldGLAcctFieldRef.ext ",tk_thue">
+<!ENTITY ARFieldGLAmountField.ext ",thue">
+<!ENTITY ARFieldGLFCAmountField.ext ",thue_nt">
+<!ENTITY ARFieldGLKey.ext ", thue_nt + thue &lt;&gt; 0">
+<!ENTITY ARFieldGLNoAccList.ext "">
+<!ENTITY ARFieldGLNoAccListRef.ext "">
+<!ENTITY ARFieldGLField.ext "">
+<!ENTITY ARFieldGLFieldTax.ext ", tk_thue, thue_nt, thue">
+<!ENTITY ARFieldGLIntoTax.ext "">
+<!ENTITY ARPostTaxAmountField.ext "">
+<!ENTITY ARPostTaxFCAmountField.ext "">
+<!ENTITY ARPostPaymentAmountField.ext "">
+<!ENTITY ARPostPaymentFCAmountField.ext "">
+<!ENTITY ARPostPaymentStatement.ext "">
+<!ENTITY ARPostGLMemoStatement.ext "select @Statement = @Statement + char(13) + 'update #gl set dien_giai = b.dien_giai from #gl a join #m&Detail; b on a.stt_rec = b.stt_rec join #dGL c on a.stt_rec = c.stt_rec and (a.tk = c.tk_thue or a.tk_du = c.tk_thue)'">
+<!ENTITY ARPostGLGroups.ext "1&VoucherGoodsTypeARPostGLGroups;,0">
+
+<!ENTITY FileName.v.ext "&FileName.ext;.xlsx">
+<!ENTITY FileName.Compact.v.ext "&FileName.ext;3.xlsx">
+<!ENTITY FileName.Location.v.ext "&FileName.ext;5.xlsx">
+<!ENTITY FileName.Lot.v.ext "&FileName.ext;7.xlsx">
+<!ENTITY FileName.e.ext "&FileName.ext;2.xlsx">
+<!ENTITY FileName.Compact.e.ext "&FileName.ext;4.xlsx">
+<!ENTITY FileName.Location.e.ext "&FileName.ext;6.xlsx">
+<!ENTITY FileName.Lot.e.ext "&FileName.ext;8.xlsx">
+
+<!ENTITY SVImportPostPayment "">

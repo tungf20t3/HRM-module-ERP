@@ -1,0 +1,292 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "rptSalesTransactionListByReason">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY ReportDataTypeField SYSTEM "..\Include\XML\ReportDataTypeFieldUOM.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY Identity "&Controller;">
+  <!ENTITY FilterExpression "f._filter$Expression = '&quot;' + f._filter$Pattern + '&quot;.indexOf([ma_ct]) &gt;= 0;';">
+  <!ENTITY XMLGetParameter SYSTEM "..\Include\XML\GetTransactionParameter.xml">
+
+  <!ENTITY GetReportFormLimitRight SYSTEM "..\Include\Command\GetReportFormLimitRight.f">
+  <!ENTITY SetReportFormLimitRight SYSTEM "..\Include\Javascript\SetReportFormLimitRight.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY XMLWhenFilterQuerying SYSTEM "..\Include\XML\WhenFilterQuerying.xml">
+  <!ENTITY DynamicReportFields ",'&Controller;', '#$query', '@@sysDatabaseName'">
+  <!ENTITY % ReferenceNumber SYSTEM "..\Include\ReferenceNumber.ent">
+  %ReferenceNumber;
+
+  <!ENTITY % Tiny.External SYSTEM "..\Include\Tiny.External.ent">
+  %Tiny.External;
+
+  <!ENTITY LineCounter "7">
+  <!ENTITY ExtensionCounter "2">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.rptPurchaseInvoiceList SYSTEM "..\Include\ReportMargin.rptPurchaseInvoiceList">
+  %ReportMargin.rptPurchaseInvoiceList;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày chứng từ từ" e="Voucher Date from"/>
+      <footer v="Ngày chứng từ từ/đến" e="Voucher Date from/to"/>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày chứng từ đến" e="Voucher Date to"/>
+    </field>
+    <field name="so_ct1" align="right" dataFormatString="@upperCaseFormat" maxLength="-100">
+      <header v="Chứng từ từ/đến số" e="Voucher No. from/to"/>
+      <items style="Mask"/>
+    </field>
+    <field name="so_ct2" align="right" dataFormatString="@upperCaseFormat" maxLength="-100">
+      <header v="" e=""/>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_vt" allowNulls ="false" aliasName ="defaultItem">
+      <header v="Mặt hàng" e="Item Code"/>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+      <clientScript><![CDATA[onchange=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+
+    <field name="nv_bh" categoryIndex="1">
+      <header v="Nhân viên bán hàng" e="Sales Employee"/>
+      <items style="AutoComplete" controller="SalesEmployee" reference="ten_nv%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_nv%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    <field name="ma_kh" categoryIndex="1">
+      <header v="Khách hàng" e="Customer"/>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1' and (kh_yn = 1 or nv_yn = 1)" check = "(kh_yn = 1 or nv_yn = 1)"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    <field name="ma_kho" categoryIndex="1">
+      <header v="Kho hàng" e="Site"/>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1" clientDefault="20">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu in chỉ có số lượng" e="Quantity Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu in số lượng và giá trị" e="Quantity and Values Form"/>
+        </item>
+        <item value="30">
+          <text v="Mẫu in số lượng và giá trị ngoại tệ" e="Quantity and FC Values Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="transactionGrid" external="true" clientDefault="0" defaultValue="0" rows="&TabHeightFomula; - &Render.DeltaRowHeight;" categoryIndex="5">
+      <header v="" e=""></header>
+      <label v="" e=""></label >
+      <items style="Grid" controller="TransactionFilter" row="1"/>
+    </field>
+    <field name="transactionList" readOnly="true" categoryIndex="5">
+      <header v="" e=""></header>
+    </field>
+
+    &ReportDataTypeField;
+
+    <field name="ma_gd" categoryIndex="2">
+      <header  v="Ds mã giao dịch" e="Transaction Code List"/>
+    </field>
+
+    <field name="ma_nx" categoryIndex="1">
+      <header v="Mã nhập xuất" e="Reason"></header>
+      <items style="AutoComplete" controller="Reason" reference="ten_nx%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_nx%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vv" categoryIndex="7">
+      <header v="Mã vụ việc" e="Job"></header>
+      <items style="AutoComplete" controller="Job" reference="ten_vv%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vv%l" readOnly="true" external="true" categoryIndex="7">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" categoryIndex="7">
+      <items style="AutoComplete" controller="Department" reference="ten_bp%l" key="status = '1'" check="1 = 1"/>
+      <header v="Mã bộ phận" e="Department"></header>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" categoryIndex="7">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_hd" categoryIndex="7">
+      <items style="AutoComplete" controller="Contract" reference="ten_hd%l" key="status = '1'" check="1 = 1"/>
+      <header v="Mã hợp đồng" e="Contract"></header>
+    </field>
+    <field name="ten_hd%l" readOnly="true" external="true" categoryIndex="7">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="maxLength" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_dvt%l" external="true" hidden="true" filterSource="Cache">
+      <header v="" e=""></header>
+    </field>
+
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;" anchor="6">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101--: [tu_ngay].Description, [tu_ngay], [den_ngay]"/>
+      <item value="11011-: [so_ct1].Label, [so_ct1], [so_ct2], [maxLength]"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+
+      <item value="110100: [ma_nx].Label, [ma_nx], [ten_nx%l]"/>
+      <item value="110100: [nv_bh].Label, [nv_bh], [ten_nv%l]"/>
+      <item value="110100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="110100: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="11000-1: [ma_dvcs].Label, [ma_dvcs], [ten_dvt%l]"/>
+      <item value="11000-: [mau_bc].Label, [mau_bc]"/>
+      <item value="11000-: [loai_du_lieu].Label, [loai_du_lieu]"/>
+
+      <item value="11: [transactionGrid], [transactionList]"/>
+
+      <item value="1100000--: [ma_gd].Label, [ma_gd]"/>
+
+      <item value="110100: [ma_vv].Label, [ma_vv], [ten_vv%l]"/>
+      <item value="110100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="110100: [ma_hd].Label, [ma_hd], [ten_hd%l]"/>
+
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130, 0" anchor="6">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        <category index="2" columns="120, 25, 25, 25, 5, 20, 200, 130">
+          <header v="Lựa chọn" e="Option"/>
+        </category>
+        <category index="5" columns="569, 0" anchor="1">
+          <header v="Giao dịch" e="Transaction"/>
+        </category>
+        <category index="7" columns="120, 20, 80, 100, 100, 130" anchor="4">
+          <header v="Khác" e="Other"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message nvarchar(1024)
+select @message = ''
+]]>&GetReportFormLimitRight;<![CDATA[
+select @message + 'active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterClosing;
+    &XMLGetParameter;
+    &XMLWhenFilterQuerying;
+    &ScriptFilterInit;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @ItemName nvarchar(1024), @ItemName2 nvarchar(1024), @UOMName nvarchar(1024), @UOMName2 nvarchar(1024), @voucherList varchar(512)
+select @ItemName = ten_vt, @ItemName2 = ten_vt2 from dmvt where ma_vt = @ma_vt
+select @UOMName = b.ten_dvt, @UOMName2 = b.ten_dvt2 from dmvt a, dmdvt b where a.dvt = b.dvt and a.ma_vt = @ma_vt
+
+select @voucherList = rtrim(parameter) from @@sysDatabaseName..wcommand where sysid = ']]>&Identity;<![CDATA['
+
+select cast(@tu_ngay as smalldatetime) as tu_ngay, cast(@den_ngay as smalldatetime) as den_ngay,
+  @ma_vt as ma_vt, @ItemName as ten_vt, @ItemName2 as ten_vt2 , case when @@language = 'V' then @UOMName else @UOMName2 end as dvt
+exec rs_rptInvoiceListing @tu_ngay, @den_ngay, @ma_vt, @nv_bh, @ma_kh, @ma_kho, @ma_vv, @ma_nx, @ma_bp, @ma_hd, @ma_gd,
+  @voucherList, @so_ct1, @so_ct2, @ma_dvcs, @maxLength, '2', N'a.ngay_ct, b.stt_ct_nkc, a.so_ct', @loai_du_lieu, 4, @@language, @@userID, @@admin, @transactionList]]>&DynamicReportFields;&ReferenceParameters;
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &SetReportFormLimitRight;
+      &ScriptFilterInit;
+      <![CDATA[function onChange$VoucherFilter$Tab(a){a.parentForm.focusWhenTabChanged(["ma_nx","ma_gd",["transactionGrid"],"ma_vv"])}
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  f._tabContainer.add_activeTabChanged(onChange$VoucherFilter$Tab);
+  f._tabContainer._loaded = true;
+  changeLookupReadonly(f, 'ma_dvcs');
+  var o = f.getItem('maxLength');
+  o.value = o.maxLength;]]>&FilterExpression;<![CDATA[
+  var a = ['ma_vt'];
+  if (!f._extensions) f.request('GetItemName', 'SetItemName', a);
+  else setReferenceValue(f, a);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}try{a._tabContainer.remove_activeTabChanged(onChange$VoucherFilter$Tab)}catch(b){}}function on$Filter$ResponseComplete(p,d){var a=d.object,i=d.type.Context,f=d.type.Result;switch(i){case"Checking":var g=$func.findMemvarIndex("transactionGrid",a._memvars);g>-1&&Array.removeAt(a._memvars,g);var b=a.grid,j=a.getItem("tu_ngay").value,m=a.getItem("den_ngay").value,e=a.getItemValue("mau_bc"),h=a.getItemValue("loai_du_lieu"),c=h=="1"||h=="2",n=c?(a._language=="v"?", đvt: ":", UOM: ")+a.getItemValue("ten_dvt%l"):"",k=a.getItemValue("ma_vt"),l=a.getItemValue("ten_vt%l");b._alterTitle=[null,[["%s1",k,true],["%s2",l,true],["%s3",n,true],["%d1",j,true],["%d2",m,true]]];b._hiddenFields=[{Fields:"dvt",Value:c},{Fields:"tien2,  gia2, gia,  tien, thue, ck, pt",Value:e=="10"},{Fields:"gia_nt, tien_nt, thue_nt, tien_nt2, gia_nt2, ck_nt, pt_nt, ma_nt, ty_gia",Value:e=="20"||e=="10"}];if(a._hidden$GridForm){var o=[{Form:[3,10],Value:c},{Form:[0,7],Value:!c}];b._grid$IdHidden$FormReport=a._hidden$GridForm;b._hiddenForms=o}else b._hiddenForms=[{Form:[3,4,5,10,11,12],Value:c},{Form:[0,1,2,7,8,9],Value:!c}];remove$GridReport$Filter(b);break;case"SetItemName":a.getItem("ten_dvt%l").value=f[0].Value;a.setItemControlBehavior("ten_vt%l",f[1].Value,null,true)}}function onchange$Item(a){a.parentForm.request("GetItemName","SetItemName",["ma_vt"])}function setReferenceValue(a,c){for(var b=0;b<c.length;b++){var d=$func.findField(c[b],a._fields).ItemReference;a.setItemValue(d,$func.findMemvar(d,a._extensions).NewValue)}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetItemName">
+      <text>
+        <![CDATA[
+declare @c0 nvarchar(1024), @c1 nvarchar(1024)
+select @c0 = rtrim(b.ten_dvt%l), @c1 = rtrim(a.ten_vt%l) from dmvt a left join dmdvt b on a.dvt = b.dvt where a.ma_vt = @ma_vt
+select isnull(@c0, '') as c0, isnull(@c1, '') as c1
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &OutlineCss;
+</dir>

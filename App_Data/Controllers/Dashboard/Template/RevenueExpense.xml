@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<template type="chart" xmlns="urn:schemas-ai-erp:data-dashboard">
+  <header v="" e=""></header>
+
+  <queries>
+    <query event="Loading">
+      <text>
+        <![CDATA[
+declare @c_acc varchar(4000), @d_acc varchar(4000), @title nvarchar(1024), @color1 char(7), @color2 char(7)
+select @c_acc = c_acc, @d_acc = d_acc from biform where form_id = '001'
+select @color1 = mau from dbcolor where id = 1
+select @color2 = mau from dbcolor where id = 2
+select @title = case when @@language = 'V' then ten_vung else ten_vung2 end from dbfield where field_id = 'C001'
+exec ds_Dashboard001 'C001', '013', '', @c_acc, @d_acc, @@language, @@userID, @@admin
+select filter_time = '013', filter_unit = '', filter_type = 'bar', @title as title, case when @@language = 'v' then N'Doanh thu' else N'Revenue' end as legend1, case when @@language = 'v' then N'Chi phí' else N'Expense' end as legend2, case when @@language = 'v' then N'Đơn vị tính: VNĐ' else N'Unit of Measure: VND' end as subtitle, case when @@language = 'V' then N'Không có dữ liệu!' else N'No Data!' end as defaultData, color1 = @color1, color2 = @color2
+]]>
+      </text>
+    </query>
+
+    <query event="Filtering">
+      <text>
+        <![CDATA[
+declare @c_acc varchar(4000), @d_acc varchar(4000), @title nvarchar(1024), @color1 char(7), @color2 char(7)
+select @c_acc = c_acc, @d_acc = d_acc from biform where form_id = '001'
+select @color1 = mau from dbcolor where id = 1
+select @color2 = mau from dbcolor where id = 2
+select @title = case when @@language = 'V' then ten_vung else ten_vung2 end from dbfield where field_id = 'C001'
+exec ds_Dashboard001 'C001', @@$time, @@$unit, @c_acc, @d_acc, @@language, @@userID, @@admin
+select filter_time = @@$time, filter_unit = @@$unit, filter_type = 'bar', @title as title, case when @@language = 'v' then N'Doanh thu' else N'Revenue' end as legend1, case when @@language = 'v' then N'Chi phí' else N'Expense' end as legend2, case when @@language = 'v' then N'Đơn vị tính: VNĐ' else N'Unit of Measure: VND' end as subtitle, case when @@language = 'v' then N'Không có dữ liệu!' else N'No Data!' end as defaultData, color1 = @color1, color2 = @color2
+]]>
+      </text>
+    </query>
+  </queries>
+
+  <object name="BarChart">
+    <fields>
+      <field name="colName"></field>
+      <field name="gia_tri1" type="Decimal"></field>
+      <field name="gia_tri2" type="Decimal"></field>
+    </fields>
+  </object>
+</template>

@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir table="dmttckct" code="ma_loai, ma_ttck" order="ma_loai, ma_ttck" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_ttck" allowNulls="false">
+      <header v="Mã chữ ký" e="Signature Code"></header>
+      <items style="AutoComplete" controller="SignInformation" reference="ten_ttck%l" key="status = '1'" check="1=1"/>
+      <clientScript><![CDATA[onchange=onChange$Filter$DefiningSignType$Function(this);]]></clientScript>
+    </field>
+    <field name="ten_ttck%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_loai" allowNulls="false">
+      <header v="Loại" e="Type of Signature"></header>
+      <items style="AutoComplete" controller="SignType" reference="ten_loai%l" key="ma_ttck = '{$%c[ma_ttck]}' and status = '1'" check="ma_ttck = '{$%c[ma_ttck]}'"/>
+    </field>
+    <field name="ten_loai%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11010: [ma_ttck].Label, [ma_ttck], [ten_ttck%l]"/>
+      <item value="11010: [ma_loai].Label, [ma_loai], [ten_loai%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+if (select count(*) from dmttck) = 1 begin
+  select top 1 'init$VoucherFilter$(this, ''' + rtrim(ma_ttck) + ''', ''' + replace(replace(case when @@language = 'V' then ten_ttck else ten_ttck2 end, '\', '\\'), '''', '\''') + ''', false);' as message from dmttck
+  return
+end
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @k varchar(256), @t varchar(2)
+select top 1 @k = rtrim(b.ma_dvcs + ',' + b.ma_ct + ',' + b.loai_ct + ',' + b.nh_kho + ',' + b.ma_kho + ',' + b.ma_bp + ',' + b.tk + ',' + b.ma_nk + ',' + b.user_yn + ',' + b.xu_ly), @t = b.xu_ly
+  from dmttck a left join dmttckloai b on a.ma_ttck = b.ma_ttck where a.ma_ttck = @ma_ttck and b.ma_loai = @ma_loai
+select '' as field, '' as message, 'this.grid._signAction = ''' + rtrim(@t) + ''';set$VoucherFilter$(this, [' + rtrim(@k) + ']);' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      <![CDATA[function init$VoucherFilter$(a,b,d,c){if(!c){a.setItemValue("ma_ttck",b);a.setItemValues("ma_ttck, ten_ttck%l",[b,d]);a.setReferenceKeyFilter("ma_loai");$common.setVisible(a.getItem("ma_ttck").parentNode.parentNode.parentNode,false);a._$fieldFocus=a.getItem("ma_loai")}}function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);a.setReferenceKeyFilter("ma_loai");setFieldDisable(a,"ma_loai");a._$fieldFocus&&a._$fieldFocus.focus()}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(b,d){var b=d.object,a=b.grid,f=d.type.Context,c=d.type.Result;switch(f){case"SignType":a._$c=c[0].Value==1;a._$c&&b.setItemControlBehavior("ma_loai",c[1].Value,c[2].Value,true);b.setReferenceKeyFilter("ma_loai");b._objectFocus=null;setFieldDisable(b,"ma_loai");break;case"Checking":var a=b.grid,g=b._language=="v",e=[];a._sign=b.getItemValue("ma_ttck");a._signName=b.getItemValue("ten_ttck%l");a._signType=b.getItemValue("ma_loai");a._signTypeName=b.getItemValue("ten_loai%l");a._signHidden=b._$fieldFocus?1:0;Array.add(e,{Name:"ma_ttck",Opr:"=",Value:a._sign,Type:"String",Ignore:false});Array.add(e,{Name:"ma_loai",Opr:"=",Value:a._signType,Type:"String",Ignore:false});a.set_externalKey(e);a._alterTitle=[null,[["%c",a._signName,true],["%m",a._signType+" - "+a._signTypeName,true]]]}}function onChange$Filter$DefiningSignType$Function(a){a.parentForm.request("SignType","SignType",[["s","String",a.value]])}function set$VoucherFilter$(c,d){var a=c.grid;a._field_yn=[["ma_dvcs","ma_dvcs, ten_ma_dvcs%l","ma_dvcs"],["ma_ct","ma_ct, ten_ct%l","ma_ct"],["loai_ct","loai_ct, ten_loai_ct%l","loai_ct"],["nh_kho","nh_kho, ten_nh_kho%l","nh_kho"],["ma_kho","ma_kho, ten_kho%l","ma_kho"],["ma_bp","ma_bp, ten_bp%l","ma_bp"],["tk","tk, ten_tk%l","tk"],["ma_nk","ma_nk, ten_nk%l","ma_nk"],["user_yn","user_name, user_id","user_name"],["xu_ly","loai, ten_loai%l","loai"]];for(var b=0;b<a._field_yn.length;b++)a._field_yn[b][0]=d[b]=="0";a._hiddenFields=[];for(var b=0;b<a._field_yn.length;b++)Array.add(a._hiddenFields,{Fields:a._field_yn[b][1],Value:a._field_yn[b][0]});Array.add(a._hiddenFields,{Fields:"para_value%l",Value:"23".indexOf(a._signAction)>-1});remove$GridReport$Filter(a)}function setFieldDisable(a,d){var b=a.grid,c=a.getItem(d),e=a._findButton("Ok");c.disabled=b._$c;a._setReadOnly(c,b._$c);if(b._$c)if(!a._objectFocus)a._objectFocus=e;a._objectFocus&&a._objectFocus.focus()}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="SignType">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmttckloai where ma_ttck = @s and status = '1' group by ma_ttck having count(ma_loai) = 1)
+  select 1 as value, ma_loai, case when @@language = 'V' then ten_loai else ten_loai2 end as ten_loai from dmttckloai where ma_ttck = @s
+else
+  select 0 as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

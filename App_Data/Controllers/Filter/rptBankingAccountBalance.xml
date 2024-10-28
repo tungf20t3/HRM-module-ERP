@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_nh_dt" allowNulls="false">
+      <header v="Mã ngân hàng điện tử" e="e-Banking"></header>
+      <items style="AutoComplete" controller="EBanking" reference="ten_nh%l" key="status = '1'" check="1 = 1" information="ma_nh_dt$dmnhdt.ten_nh%l"/>
+      <clientScript><![CDATA[onchange="onChange$EBanking(this)";]]></clientScript>
+    </field>
+    <field name="ten_nh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="tk_nh">
+      <header v="Số tài khoản" e="Bank Account"></header>
+    </field>
+    <field name="ma_kn" allowNulls="true">
+      <header v="Mã kết nối" e="Banking Connection"></header>
+      <items style="AutoComplete" controller="BankingConnection" reference="ten_kn%l" key="ma_kn in (select ma_kn from dmtknhnsd where user_id = @@userID) and (ma_nh_dt = '{$%c[ma_nh_dt]}') and status = '1'" check="ma_kn in (select ma_kn from dmtknhnsd where user_id = @@userID) and (ma_nh_dt = '{$%c[ma_nh_dt]}')" information="ma_kn$dmknnh.ten_kn%l"/>
+      <clientScript><![CDATA[onchange="onChange$BankingConnection(this)";]]></clientScript>
+    </field>
+    <field name="ten_kn%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="40">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="11010-: [ma_nh_dt].Label, [ma_nh_dt], [ten_nh%l]"/>
+      <item value="11010-: [ma_kn].Label, [ma_kn], [ten_kn%l]"/>
+      <item value="11000-: [tk_nh].Label, [tk_nh]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+declare @bankCode varchar(32), @bankName nvarchar(128)
+select @message = ''
+if (select count(*) from dmnhdt where status = '1') = 1 begin
+  select top 1 @bankCode = rtrim(ma_nh_dt), @bankName = case when @@language = 'v' then rtrim(ten_nh) else rtrim(ten_nh2) end from dmnhdt where status = '1'
+  select @message = @message + 'initBank(this, ''' + @bankCode + ''', ''' + @bankName + ''');'
+end
+
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_rptBankingAccountBalance @ma_nh_dt, @tk_nh, @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(f,d){var a=d.object,e=d.type.Context,b=d.type.Result;switch(e){case"Checking":var c=a.grid;c._$bank=a.getItemValue("ma_nh_dt");c._$bankName=a.getItemValue("ten_nh%l");c._$connectionCode=a.getItemValue("ma_kn");c._alterTitle=[null,[["%s1",c._$bank,true],["%s2",c._$bankName,true]]];break;case"EBanking":if(b[0].Value==1){a.setItemValues("ma_kn, ten_kn%l",[b[1].Value,b[2].Value]);a.setItemValues("tk_nh",[b[3].Value])}a._$allowConnection=b[4].Value=="2";setItemAllowNulls(a,"ma_kn",a._$allowConnection);a.setReferenceKeyFilter("ma_kn");break;case"BankingConnection":a.setItemValues("tk_nh",[b[0].Value])}}function initBank(a,b,c){a.setItemValues("ma_nh_dt, ten_nh%l",[b,c]);onChange$EBanking(a.getItem("ma_nh_dt"))}function onChange$EBanking(b){var a=b.parentForm;a.setReferenceKeyFilter("ma_kn");a.request("EBanking","EBanking",["ma_nh_dt"])}function onChange$BankingConnection(b){var a=b.parentForm;a.request("BankingConnection","BankingConnection",["ma_kn"])}function setItemAllowNulls(e,g,f){for(var c=g.split(","),d,a,b=0;b<c.length;b++)if($func.trim(c[b])!=""){d=e.getItem($func.trim(c[b]));d.field.AllowNulls=!f;a=d.parentNode.parentNode;if(f){Sys.UI.DomElement.addCssClass(a,"Required");Sys.UI.DomElement.addCssClass(a,e._id)}else Sys.UI.DomElement.removeCssClass(a,"Required")}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="EBanking">
+      <text>
+        <![CDATA[
+declare @c int, @ma_kn char(16), @ten_kn nvarchar(128), @so_tk_nh varchar(32), @loai_kn varchar(32)
+select @c = 0, @ma_kn = '', @so_tk_nh = '', @loai_kn = '0'
+if exists(select 1 from dmknnh where ma_nh_dt = @ma_nh_dt) begin
+  select @c = count(*) from dmknnh where ma_nh_dt = @ma_nh_dt and ma_kn in (select ma_kn from dmtknhnsd where user_id = @@userID)
+  if @c = 1 select @ma_kn = a.ma_kn, @ten_kn = a.ten_kn%l, @so_tk_nh = a.so_tk_nh, @loai_kn = b.loai_kn from dmknnh a join dmnhdt b on a.ma_nh_dt = b.ma_nh_dt where a.ma_nh_dt = @ma_nh_dt and a.ma_kn in (select ma_kn from dmtknhnsd where user_id = @@userID)
+end
+select isnull(@c, 0) as c, rtrim(@ma_kn) as ma_kn, @ten_kn as ten_kn, @so_tk_nh as tk_nh, @loai_kn as loai_kn
+return
+]]>
+      </text>
+    </action>
+
+    <action id="BankingConnection">
+      <text>
+        <![CDATA[
+declare @so_tk_nh varchar(32)
+select @so_tk_nh = ''
+if exists(select 1 from dmknnh where ma_kn = @ma_kn) begin
+  select @so_tk_nh = so_tk_nh from dmknnh where ma_kn = @ma_kn
+end
+select @so_tk_nh as tk_nh
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

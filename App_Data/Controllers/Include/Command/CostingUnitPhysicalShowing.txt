@@ -1,0 +1,25 @@
+﻿    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @$control char(5), @message nvarchar(4000), @$unitName nvarchar(1023), @$costUnit bit
+select @$costUnit = rtrim(val) from options where name = 'm_gt_dvcs'
+select @message = 'var f = this;f._costUnit = ' + rtrim(@$costUnit) + ';']]>&Control;<![CDATA[
+
+if substring(@$control, 1, 1) = 1 and @$costUnit <> 1 begin
+  select @message = @message + 'setObjectFilterHidden(f, ''ma_dvcs'', false);'
+end
+
+if substring(@$control, 2, 1) = 1 begin
+  if not exists (select 1 from options where name = 'm_gia_vt' and val = '2') begin
+    select @message = @message + 'setObjectFilterHidden(f, ''ma_kho'', false);'
+  end
+end
+if substring(@$control, 3, 1) = 1 and substring(@$control, 1, 1) = 1 and @$costUnit = 1 begin
+  select @$unitName = case when @@language = 'V' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit
+  select @message = @message + 'this._unitCode=''' + @@unit + ''';this._unitName=''' + replace(replace(isnull(@$unitName, ''), '\', '\\'), '''', '\''') + ''''
+end
+select @message as message
+return
+]]>
+      </text>
+    </command>

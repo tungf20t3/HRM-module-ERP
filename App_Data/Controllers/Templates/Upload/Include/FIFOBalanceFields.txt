@@ -1,0 +1,19 @@
+<field name="ngay_ct" column="A" isPrimaryKey="true" allowNulls="false" type="DateTime" updateValue="None"/>
+<field name="so_ct" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+<field name="ma_vt" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_vt not in (select ma_vt from dmvt where gia_ton = 3)" errorCode="00001"/>
+<field name="ma_kho" column="E" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_kho not in (select ma_kho from dmkho)" errorCode="00001"/>
+<field name="ma_vi_tri" column="F" isPrimaryKey="true" upperCase="true" updateValue="None" check="@@table.ma_vi_tri = '' and exists(select 1 from dmvitri b where @@table.ma_kho = b.ma_kho)&And;@@table.ma_vi_tri &lt;&gt; '' and not exists(select 1 from dmvitri b where @@table.ma_kho = b.ma_kho and @@table.ma_vi_tri = b.ma_vi_tri)" errorCode="00002&And;00001"/>
+<field name="ma_lo" column="G" isPrimaryKey="true" upperCase="true" updateValue="None" check="@@table.ma_lo = '' and exists(select 1 from dmvt b where @@table.ma_vt = b.ma_vt and b.lo_yn = 1)&And;@@table.ma_lo &lt;&gt; '' and not exists(select 1 from dmvt b where @@table.ma_vt = b.ma_vt and b.lo_yn = 1)&And;@@table.ma_lo &lt;&gt; '' and not exists(select 1 from dmlo b where @@table.ma_lo = b.ma_lo and @@table.ma_vt = b.ma_vt)" errorCode="00002&And;00002&And;00001"/>
+<field name="so_luong" column="H" allowNulls="false" type="Decimal"/>
+<field name="tien" column="I" type="Decimal"/>
+<field name="tien_nt" column="J" type="Decimal"/>
+
+<field name="stt_rec_nt" column="None" insertValue="@wsID + @seqChar + replace(str(stt + rtrim(@currentID), @numChar), ' ', '0') + 'PNZ'" updateValue="None"/>
+<field name="stt_rec0" column="None" insertValue="'001'" updateValue="None"/>
+<field name="pn_co_gia" column="None" insertValue="1" updateValue="None"/>
+<field name="nam" column="None" insertValue="@year" updateValue="None"/>
+<field name="status" column="None" insertValue="'1'" updateValue="None"/>
+<field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+<field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+<field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+<field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>

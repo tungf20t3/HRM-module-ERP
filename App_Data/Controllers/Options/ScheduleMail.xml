@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE scheduleMail [
+  <!ENTITY maxNumberOfMail "15">
+  <!ENTITY minNumberOfMail "5">
+  
+  <!ENTITY numberOfStorageDay "180">
+  <!ENTITY maxScheduleTime "10">
+
+  <!ENTITY defaultPara "
+declare @$keyField varchar(64), @$emailField varchar(64), @$subjectField varchar(64), @$fileNameField varchar(64), 
+  @$scheduleOn bit, @$defaultSubject nvarchar(128), @$defaultFileName varchar(64), 
+  @$numberOfMail int, @$scheduleTime int
+
+select @$keyField = 'id_rec', @$emailField = 'email', @$subjectField = '', @$fileNameField = '', 
+  @$scheduleOn = 1, @$defaultSubject = N'AI ERP', @$defaultFileName = 'MailScheduleFile.txt', 
+  @$numberOfMail = round(rand() * (&maxNumberOfMail; - &minNumberOfMail;) + &minNumberOfMail;, 0), @$scheduleTime = round(rand() * (&maxScheduleTime; - 1) + 1, 0)
+">
+
+  <!ENTITY paraTable "
+select @$keyField as key_field, @$emailField as email_field, @$subjectField as subject_field, @$fileNameField as file_name_field, 
+  @$scheduleOn as schedule_on, @$defaultSubject as default_subject, @$defaultFileName as default_file_name, @$scheduleTime as schedule_time
+">
+]>
+
+<scheduleMail xmlns="urn:schemas-ai-erp:data-schedule-mail">
+
+  <setting>
+    <isSend value="true"/>
+    <aliasName value="AI ERP"/>
+    <userName value="no-reply@sample.com"/>
+    <password value="Password"/>
+    <host value="mail.sample.com"/>
+    <port value="25"/>
+    <isBodyHTML value="true"/>
+    <enableSSL value="false"/>
+    <clientTimeout value="60000"/>
+  </setting>
+
+  <group>
+    <job name="SalaryReportMail">
+      <query name="BeforeSending">
+        <text>
+          &defaultPara;
+          <![CDATA[
+if (select count(*) from hrmailbcbl with(index(status)) where [status] = '1' or [status] = '2') = 0 set @$scheduleOn = 0
+select @$subjectField = 'subject', @$defaultFileName = 'd.txt'
+]]>&paraTable;<![CDATA[
+exec AI_ERP$Mail$Salary$BeforeSend ]]>&numberOfStorageDay;<![CDATA[, @$numberOfMail
+]]>
+        </text>
+      </query>
+
+      <query name="AfterSending">
+        <text>
+          <![CDATA[
+exec AI_ERP$Mail$Salary$AfterSend @$id_rec
+]]>
+        </text>
+      </query>
+    </job>
+  </group>
+
+</scheduleMail>

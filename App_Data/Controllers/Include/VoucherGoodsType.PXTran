@@ -1,0 +1,38 @@
+﻿<!ENTITY % Conditional.VoucherGoodsType.PXTran SYSTEM "..\Include\VoucherGoodsType.txt">
+
+<![%Conditional.VoucherGoodsType.PXTran;[
+  <!ENTITY VoucherGoodsTypeAllocateKey " and loai &lt;&gt; ''90''">
+  <!ENTITY VoucherGoodsTypeImportUpdateDetailValue ", gia_nt = 0, gia = 0, thue_nt = 0, thue = 0, dvt = ''">
+
+  <!ENTITY VoucherGoodsTypeImportPost "
+update #m&Detail; set t_tien_nt = t_tien_nt&VoucherGoodsTypeImportFieldMasterInsertTotal.ForeignCurrency;, t_tien = t_tien&VoucherGoodsTypeImportFieldMasterInsertTotal.BaseCurrency;
+update #d&Detail; set tien_nt = -tien_nt, tien = -tien where loai = '90'
+">
+  <!ENTITY VoucherGoodsTypeImportMasterUpdateValue ", t_so_luong = isnull(t_so_luong, 0), t_tien_nt = isnull(t_tien_nt, 0), t_tien = isnull(t_tien, 0), t_thue_nt = isnull(t_thue_nt, 0), t_thue = isnull(t_thue, 0)">
+  <!ENTITY VoucherGoodsTypeImportMasterUpdate "update #m&Detail; set t_tien_giam_nt = isnull(l.t_tien_giam_nt, 0), t_tien_giam = isnull(l.t_tien_giam, 0)&VoucherGoodsTypeImportMasterUpdateValue; from #m&Detail; a join (select stt_rec, sum(tien_nt) as t_tien_giam_nt, sum(tien) as t_tien_giam from #d&Detail; where loai = '90' group by stt_rec) l on a.stt_rec = l.stt_rec">
+
+  <!ENTITY VoucherGoodsTypeFomulaForm "['t_tien_giam_nt', 'tien_nt', '([loai] == &quot;90&quot;)'],['t_tien_giam', 'tien', '([loai] == &quot;90&quot;)'],">
+  <!ENTITY VoucherGoodsTypeFomulaGrid "t_tien_giam_nt: ['t_tien_giam_nt', '[tien_nt]', '[loai] == &quot;90&quot;'],t_tien_giam: ['t_tien_giam', '[tien]', '[loai] == &quot;90&quot;'],">
+  <!ENTITY VoucherGoodsTypeCurrencyFields.ForeignCurrency "(([loai] == &quot;90&quot; ? (-1) : (1)) * [tien_nt])">
+  <!ENTITY VoucherGoodsTypeCurrencyFields.BaseCurrency "(([loai] == &quot;90&quot; ? (-1) : (1)) * [tien])">
+
+  <!ENTITY VoucherGoodsTypeHandleFields "dvt,so_luong,gia_nt,gia">
+
+  <!ENTITY VoucherGoodsTypeResponseComplete "
+    case 'GoodsType':
+      if (result[0].Value != '') {g.setItemGridBehavior(o, [['dvt', '', '', null], ['so_luong', 0, null, null], ['gia_nt', 0, null, null]]);}
+      &VoucherGoodsTypeValidRowChange;
+      g.validExpression(o, [g.$a.gia_nt_sl, g.$a.gia, g.$a.tien_tg], [g.$a.t_tien_nt, g.$a.t_tien], [g.$a.t_thue_nt, g.$a.t_thue, g.$a.t_tt_nt, g.$a.t_tt]);
+      g.live(o, 'tien_nt');
+      break;
+">
+  <!ENTITY VoucherGoodsTypeImportPostTaxOut "select @Statement = @Statement + char(13) + 'update #outputvat set thue_suat = 0 where thue_suat is null'">
+  <!ENTITY VoucherGoodsTypeImportPostTaxIn "select @Statement = @Statement + char(13) + 'update #inputvat set thue_suat = 0 where thue_suat is null'">
+  <!ENTITY VoucherGoodsTypeFindingFieldsInsert ", ''''">
+]]>
+
+<!ENTITY VoucherGoodsTypeAllocateKey "">
+<!ENTITY VoucherGoodsTypeCurrencyFields.ForeignCurrency "[tien_nt]">
+<!ENTITY VoucherGoodsTypeCurrencyFields.BaseCurrency "[tien]">
+<!ENTITY VoucherGoodsTypeImportPostTaxOut "">
+<!ENTITY VoucherGoodsTypeImportPostTaxIn "">

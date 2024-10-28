@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY CommandCheckLockedDate SYSTEM "..\Include\Command\TransferLockedDateUnit.txt">
+  <!ENTITY Calc "exec rs_ConvertManagementObject2NextYear @loai_dtqt, @nam, @ma_dvcs, @@userID, @@admin">
+
+  <!ENTITY ManagementObjectChange "">
+  <!ENTITY % ManagementObjectReport "INCLUDE">
+  <!ENTITY % ManagementObject SYSTEM "..\Include\ManagementObject.ent">
+  %ManagementObject;
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Kết chuyển số dư đối tượng quản trị sang năm sau" e="Transfer Management Object Balance to Next Year"></title>
+
+  <fields>
+    &ManagementObjectTypeField;
+
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <label v="Từ năm" e="From Year"></label>
+      <header v="đến năm %s" e="To Year %s"></header>
+      <footer v="&lt;span style=&quot;color:#666666;&quot; id='idf_nam'>&lt;/span>" e="&lt;span style=&quot;color:#666666;&quot; id='idf_nam'>&lt;/span>"></footer>
+      <items style="Numeric"/>
+      <clientScript><![CDATA[onchange="onChangeYear(this);"]]></clientScript>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1) and status = '1'" check="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      &ManagementObjectTypeView;
+      <item value="111000: [nam].Label, [nam], [nam].Description"/>
+      <item value="110010: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'var f = this; f._controlFocus = f.getItem(''loai_dtqt'');'
+if not exists(select 1 from options where name = 'c_004' and val = '1') begin
+  select @message = @message + 'setObjectFormHidden(f, ''ma_dvcs'');'
+end
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        &CommandCheckLockedDate;
+        &Calc;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$VoucherFilter$(f) {onChangeYear(f.getItem('nam'));}
+function onChangeYear(o) {$get('idf_nam').innerHTML = o.field.HeaderText.replace('%s', (o.parentForm.getItemValue('nam') + 1).toString());}
+function setObjectFormHidden(f, c) {$common.setVisible(f.getItem(c).parentNode.parentNode.parentNode, false);}
+]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE report [
+  <!ENTITY b SYSTEM ".\Include\BaseCurrency.xml">
+  <!ENTITY f SYSTEM ".\Include\ForeignCurrency.xml">
+  <!ENTITY s SYSTEM ".\Include\Separate.xml">
+
+  <!ENTITY p "../images/pdf.gif">
+  <!ENTITY e "../images/excel.gif">
+]>
+<report xmlns="urn:schemas-ai-erp:data-report">
+  <query type="Report">
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @Key nvarchar(4000)
+--
+select @Key = '(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID))'
+select @Key = @Key + ' and (ngay_thay_doi between ''' + convert(varchar(8), @$ngay_bd_tu, 112) + ''' and ''' + convert(varchar(8), @$ngay_bd_den, 112) + ''')'
+if @$ngay_kt_tu is not null select @Key = @Key + ' and (ngay_thay_doi2 >= ''' + convert(varchar(8), @$ngay_kt_tu, 112) + ''')'
+if @$ngay_kt_den is not null select @Key = @Key + ' and (ngay_thay_doi2 <= ''' + convert(varchar(8), @$ngay_kt_den, 112) + ''')'
+if @$bp_ref <> '' select @Key = @Key + ' and (bp_ref like ''' + @$bp_ref + '%'')'
+if @$ma_nv <> '' select @Key = @Key + ' and (ma_nv = ''' + @$ma_nv + ''')'
+--
+select top 0 a.stt_rec, a.stt_rec0, a.ngay_thay_doi into #hreqtlbhht from hreqtlbhht a
+select top 0 a.stt_rec, a.ngay_thay_doi into #t from hreqtlbhht a
+--
+select @q = 'insert into #hreqtlbhht select stt_rec, stt_rec0, max(ngay_thay_doi) from vhreqtlbhht2 where ' + @Key + ' group by stt_rec, stt_rec0'
+if @$lEmpSi_yn = 1 begin
+  select @q = @q + char(13) + 'insert into #t select stt_rec, max(ngay_thay_doi) from #hreqtlbhht group by stt_rec'
+  select @q = @q + char(13) + 'delete #hreqtlbhht from #hreqtlbhht a left join #t b on a.stt_rec = b.stt_rec and a.ngay_thay_doi = b.ngay_thay_doi where b.stt_rec is null'
+end
+exec sp_executesql @q
+select @q = 'select e.ma_nv, rtrim(e.ho_nv) + space(1) + e.ten_nv as ho_ten, b.ngay_thay_doi, b.ngay_thay_doi2, b.loai_thay_doi, b.cap_bac, b.chuc_danh, b.don_vi, b.dia_chi, b.hs_luong, b.hs_pc_chuc_vu, b.hs_pc_vuot_khung, b.hs_pc_khu_vuc, b.hs_pc_tham_nien, b.t_he_so, b.luong_toi_thieu, b.luong_co_ban, b.ty_le_bhxh, b.tien_bhxh, b.ty_le_bhyt, b.tien_bhyt, b.ty_le_bhtn, b.tien_bhtn, b.ty_le_kpcd, b.tien_kpcd, b.can_cu'
+select @q = @q + ' from #hreqtlbhht a join hreqtlbhht b with(nolock) on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0 join hrnv e with(nolock) on a.stt_rec = e.stt_rec'
+exec sp_executesql @q
+]]>
+    </text>
+  </query>
+
+  <forms>
+    <form id="0" reportFile="" templateFile="hrEmployeeSIHistory_01" commandArgument="Excel" urlImage="&e;">
+      <header v="Quá trình tham gia BHXH" e="Employee SI History"></header>
+      <download>
+        <header v="Quá trình tham gia BHXH" e="Employee SI History"></header>
+      </download>
+    </form>
+
+  </forms>
+  <fields>
+    <field name="title" type="String">
+      <header v="QUÁ TRÌNH THAM GIA BHXH" e="EMPLOYEE SI HISTORY"></header>
+    </field>
+
+    <field name="p_ma_nv" type="String">
+      <header v="Mã nhân viên" e="Employee ID"></header>
+    </field>
+    <field name="p_ten_nv" type="String">
+      <header v="Họ và tên" e="Employee Name"></header>
+    </field>
+    <field name="p_ngay_hl_tu" type="String">
+      <header v="Ngày hiệu lực từ" e="Effective Date from"></header>
+    </field>
+    <field name="p_ngay_hl_den" type="String">
+      <header v="Ngày hiệu lực đến" e="Effective Date to"></header>
+    </field>
+    <field name="p_loai_td" type="String">
+      <header v="Loại thay đổi" e="SI Change Type"></header>
+    </field>
+    <field name="p_cap_bac" type="String">
+      <header v="Cấp bậc" e="Level"></header>
+    </field>
+    <field name="p_chuc_danh" type="String">
+      <header v="Chức danh nghề" e="Job Title"></header>
+    </field>
+    <field name="p_don_vi" type="String">
+      <header v="Đơn vị" e="Unit"></header>
+    </field>
+    <field name="p_dia_chi" type="String">
+      <header v="Địa chỉ" e="Address"></header>
+    </field>
+    <field name="p_hs_luong" type="String">
+      <header v="Hệ số lương" e="Salary Coeff."></header>
+    </field>
+    <field name="p_hs_chuc_vu" type="String">
+      <header v="Hệ số pc chức vụ" e="Position Coeff."></header>
+    </field>
+    <field name="p_hs_vuot_khung" type="String">
+      <header v="Hệ số pc vượt khung (%)" e="Off-scale Coeff. (%)"></header>
+    </field>
+    <field name="p_hs_khu_vuc" type="String">
+      <header v="Hệ số pc khu vực" e="Seniority Coeff. (%)"></header>
+    </field>
+    <field name="p_hs_tham_nien" type="String">
+      <header v="Hệ số phụ cấp thâm niên" e="Region Coeff."></header>
+    </field>
+    <field name="p_tong_hs" type="String">
+      <header v="Tổng hệ số" e="Total Coefficient"></header>
+    </field>
+    <field name="p_luong_tt" type="String">
+      <header v="Lương tối thiểu" e="Minimum Salary"></header>
+    </field>
+    <field name="p_luong_cb" type="String">
+      <header v="Lương cơ bản" e="Basic Salary"></header>
+    </field>
+    <field name="p_tl_bhxh" type="String">
+      <header v="Tỷ lệ đóng BHXH (%)" e="SI Contri. Rate (%)"></header>
+    </field>
+    <field name="p_tien_bhxh" type="String">
+      <header v="Tiền BHXH" e="SI Premium"></header>
+    </field>
+    <field name="p_tl_bhyt" type="String">
+      <header v="Tỷ lệ đóng BHYT (%)" e="HI Contri. Rate (%)"></header>
+    </field>
+    <field name="p_tien_bhyt" type="String">
+      <header v="Tiền BHYT" e="HI Premium"></header>
+    </field>
+    <field name="p_tl_bhtn" type="String">
+      <header v="Tỷ lệ đóng BHTN (%)" e="UI Contri. Rate (%)"></header>
+    </field>
+    <field name="p_tien_bhtn" type="String">
+      <header v="Tiền BHTN" e="UI Premium"></header>
+    </field>
+    <field name="p_tl_kpcd" type="String">
+      <header v="Tỷ lệ đóng KPCĐ (%)" e="Union Due Rate (%)"></header>
+    </field>
+    <field name="p_tien_kpcd" type="String">
+      <header v="Tiền KPCĐ" e="Union Dues"></header>
+    </field>
+    <field name="p_can_cu" type="String">
+      <header v="Căn cứ đóng" e="Payment Basis"></header>
+    </field>
+  </fields>
+</report>

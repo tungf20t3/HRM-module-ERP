@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<template type="chart" xmlns="urn:schemas-ai-erp:data-dashboard">
+  <header v="" e=""></header>
+
+  <queries>
+    <query event="Loading">
+      <text>
+        <![CDATA[
+declare @c_acc varchar(4000), @title nvarchar(1024), @Colors varchar(8000)
+select @c_acc = c_acc from biform where form_id = '002'
+select @title = case when @@language = 'V' then ten_vung else ten_vung2 end from dbfield where field_id = 'C002'
+select @Colors = coalesce(@Colors + ',', '') + lower(mau) from dbcolor
+exec ds_Dashboard002 'C002', '013', '', @c_acc, default, @@language, @@userID, @@admin
+select filter_time = '013', filter_unit = '', filter_type = 'pie', @title as title, case when @@language = 'v' then N'Đơn vị tính: %' else N'Unit of Measure: %' end as subtitle, case when @@language = 'v' then N'Không có dữ liệu!' else N'No Data!' end as defaultData, @Colors as colors
+]]>
+      </text>
+    </query>
+
+    <query event="Filtering">
+      <text>
+        <![CDATA[
+declare @c_acc varchar(4000), @title nvarchar(1024), @Colors varchar(8000)
+select @c_acc = c_acc from biform where form_id = '002'
+select @title = case when @@language = 'V' then ten_vung else ten_vung2 end from dbfield where field_id = 'C002'
+select @Colors = coalesce(@Colors + ',', '') + lower(mau) from dbcolor
+exec ds_Dashboard002 'C002', @@$time, @@$unit, @c_acc, default, @@language, @@userID, @@admin
+select filter_time = @@$time, filter_unit = @@$unit, filter_type = 'pie', @title as title, case when @@language = 'v' then N'Đơn vị tính: %' else N'Unit of Measure: %' end as subtitle,  case when @@language = 'v' then N'Không có dữ liệu!' else N'No Data!' end as defaultData, @Colors as colors
+]]>
+      </text>
+    </query>
+  </queries>
+
+  <object name="PieChart">
+    <fields>
+      <field name="colID"></field>
+      <field name="colName"></field>
+      <field name="gia_tri" type="Decimal"></field>
+    </fields>
+  </object>
+</template>

@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+]>
+
+<dir table="cttt20" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn hóa đơn thu vượt" e="Select Overpayments"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày hóa đơn từ" e="Invoice Date from"></header>
+      <footer v="Ngày hóa đơn từ/đến" e="Invoice Date from/to"/>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" disabled="true">
+      <header v="Ngày hóa đơn đến" e="Invoice Date to"></header>
+    </field>
+    <field name="ma_kh" readOnly="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230, 0, 0, 0"/>
+      <item value="1101-11: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2], [ma_kh], [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$WRFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$none nvarchar(4000)
+select @$none = case when @@language = 'v'then N'Không có hóa đơn thu vượt theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+if exists(select 1 from cttt20 where ((@ma_dvcs = '' and ma_dvcs = @@unit) or ma_dvcs = @ma_dvcs) and ma_kh = @ma_kh and loai_tt = 0 and (ngay_ct between @ngay_ct1 and @ngay_ct2) and ((ma_nt = '' and t_tt < t_tt_qd) or (ma_nt <> '' and t_tt_nt < t_tt_qd)))
+  select '' as field, '' as message, 'on$WRFilter$Retrieve$QueryComplete(this);' as script
+else select 'ngay_ct1' as field, @$none as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$WRFilter$(f) {
+  var g = f.grid, w = g.get_element().parentForm, d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs');
+  g._custID = w.getItemValue('ma_kh');
+  g._custName = w.getItemValue('ten_kh%l');
+  g._voucher$Retrieve$Unit = u;
+  g._voucher$Retrieve$DateTo = d2;
+  f.setItemValues('ngay_ct2, ma_kh, ma_dvcs', [d2, g._custID, u]);
+}
+function on$WRFilter$Retrieve$QueryComplete(f, unit, date1, date2) {
+  var g = f.grid;
+  g._voucher$Retrieve$DateFrom = $func.findMemvar('ngay_ct1', f._memvars).NewValue;
+  set$WRFilter$FormScript(g);
+}
+function set$WRFilter$FormScript(g) {g._formScript = 'show$WRFilter$QueryComplete(this)';}
+function show$WRFilter$QueryComplete(g) {  
+  g.showForm('WRForm');
+  g._memvars = [];
+}
+]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

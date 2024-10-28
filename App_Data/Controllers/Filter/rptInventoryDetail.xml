@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày" e="Date"/>
+    </field>
+    <field name="ma_vt" allowNulls="false">
+      <header v="Vật tư" e="Item"/>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+
+    <field name="loai_bc" clientDefault="1">
+      <header v="Loại báo cáo" e="Report Type"/>
+      <items style="DropDownList">
+        <item value="1">
+          <text v="Số lượng tồn kho" e="On Hand"/>
+        </item>
+        <item value="2">
+          <text v="Số lượng trên đơn hàng mua" e="On Purchase Orders"/>
+        </item>
+        <item value="3">
+          <text v="Số lượng trên đơn hàng bán" e="On Sales Orders"/>
+        </item>
+        <item value="4">
+          <text v="Số lượng đang kiểm định" e="For Inspection"/>
+        </item>
+        <item value="5">
+          <text v="Số lượng nhận chưa có hóa đơn" e="Received Not Invoiced"/>
+        </item>
+        <item value="6">
+          <text v="Số lượng giao chưa có hóa đơn" e="Shipped Not Invoiced"/>
+        </item>
+        <item value="7">
+          <text v="Số lượng đã phân bổ" e="Allocated Q'ty"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="162">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="110---: [ngay].Label, [ngay]"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11000-: [loai_bc].Label, [loai_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @uom nvarchar(128)
+if @loai_bc = 1 select @uom = rtrim(dvt) from dmvt where ma_vt = @ma_vt
+select '' as field, '' as message, 'before$LoadGridReportForm(this, ''' + isnull(@uom, '') + ''');' as script
+return;
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_rptInventoryDetail @ma_vt, @ngay, @loai_bc, @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,c){var b=c.object,e=c.type.Context,h=c.type.Result;switch(e){case"Checking":var a=b.grid,f=b.getItem("loai_bc").selectedIndex,g=b.getItem("loai_bc").options,d=g[f].text;a._date=b.getItemValue("ngay");a._item=b.getItemValue("ma_vt");a._itemName=b.getItemValue("ten_vt%l");a._xtype=b.getItemValue("loai_bc");a._hiddenFields=[{Fields:"ma_dvcs, ngay_ct, so_ct, ma_kh, ten_kh, dvt, sl_qd",Value:a._xtype==1},{Fields:"ma_kho, ten_kho",Value:"23456".indexOf(a._xtype)>-1},{Fields:"so_luong",Value:"2356".indexOf(a._xtype)>-1},{Fields:"sl_hd",Value:"12347".indexOf(a._xtype)>-1},{Fields:"ngay_giao, sl_nx, sl_cl",Value:"147".indexOf(a._xtype)>-1},{Fields:"sl_dat",Value:"14567".indexOf(a._xtype)>-1}];a._alterTitle=[null,[["%t",d,true],["%d",b.getItem("ngay").value,true],["%s",a._item+(a._itemName!=""?" - ":"")+a._itemName,true]]];a._headerChange={Fields:"ma_kh, ten_kh, so_luong, sl_nx",Header:"136".indexOf(a._xtype)>-1};if(a._fields.length>0)try{init$GridReport$(a)}catch(j){}remove$GridReport$Filter(a)}}function before$LoadGridReportForm(b,a){var d=b.grid,e=b._language=="v",c=a!=""?(e?", đơn vị tính: ":", UOM: ")+a:"";d._alterTitle[1].push(["%u",c,true])}
+]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

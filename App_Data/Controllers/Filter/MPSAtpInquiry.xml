@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "MPSAtpInquiry">
+  <!ENTITY c1 "&lt;div id=&quot;&Identity;&quot; class=&quot;&Identity;&quot; align=&quot;center&quot; onclick=&quot;refresh$&Identity;Form(this);&quot;&gt;">
+  <!ENTITY c2 "&lt;/div&gt;">
+]>
+
+<dir type="Report" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Khả năng đáp ứng đơn hàng" e="Available to Promise"></title>
+
+  <fields>
+    <field name="ma_vt" allowNulls="false">
+      <header v="Mã vật tư" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="loai_vt in ('41', '51', '61') and kieu_hd &lt;&gt; '0' and status = '1'" check="loai_vt in ('41', '51', '61') and kieu_hd &lt;&gt; '0'" information="ma_vt$dmvt.ten_vt%l" new="Default"/>
+      <clientScript><![CDATA[onchange=change$]]>&Identity;<![CDATA[$Item$(this);]]></clientScript>
+      <footer v="&c1;Làm tươi...&c2;" e="&c1;Refresh...&c2;"/>
+    </field>
+    <field name="ten_vt%l">
+      <header v="Tên vật tư" e="Item Name"></header>
+    </field>
+    <field name="ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày hoạch định" e="Planning Date"></header>
+    </field>
+    <field name="ma_ky" readOnly ="true">
+      <header v="Kỳ hoạch định" e="Planning Bucket"></header>
+    </field>
+    <field name="ten_ky%l" external="true" disabled="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="dvt" allowNulls="false">
+      <header v="Đvt" e="UOM"/>
+      <items style="AutoComplete" controller="UOMItem" reference="ten_dvt%l" key="ma_vt = '{$%c[ma_vt]}' or ma_vt ='*'" information="dvt$vdmvtqddvt.ten_dvt%l" normal="true"/>
+    </field>
+    <field name="ten_dvt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="loai_vt">
+      <header v="Loại vật tư" e="Item Type"></header>
+    </field>
+    <field name="ten_loai_vt%l" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhieu_dvt" type="Boolean" readOnly="true" external="true" defaultValue="cast(0 as bit)" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="d1" external="true" readOnly="true" clientDefault="0" defaultValue="0" rows="307" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="" e=""></label >
+      <items style="Grid" controller="MPSAtpDetail" row="1"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="367" anchor="5" split="5">
+      <item value="100, 100, 137, 100, 100, 8, 58, 50, 100"/>
+      <item value="1110--101: [ma_vt].Label, [ma_vt], [ma_vt].Description, [ngay].Label, [ngay]"/>
+      <item value="11000-101: [ten_vt%l].Label, [ten_vt%l], [ma_ky].Label, [ten_ky%l]"/>
+      <item value="11-111: [dvt].Label, [dvt], [loai_vt].Label, [ten_loai_vt%l], [ten_dvt%l]"/>
+
+      <item value="1: [d1]"/>
+
+      <categories>
+        <category index="1" columns="769, 0" anchor="1">
+          <header v="Theo kỳ" e="Bucketed View"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @periodCode char(2), @periodName nvarchar(128), @ngay smalldatetime
+
+select @periodCode = rtrim(val) from options where name = 'm_ky_hd_nd'
+select @periodName = case when @@language = 'v' then ten_ky else ten_ky2 end from mdmky where ma_ky = @periodCode
+select @ngay = run_date from mplog
+select @ngay = isnull(@ngay, getdate())
+
+select 'this._date=''' + convert(varchar(8), @ngay, 112) + ''';this._periodCode=''' + @periodCode + ''';this._periodName=''' + replace(replace(isnull(@periodName, ''), '\', '\\'), '''', '\''') + '''; set$Form$DefaultValue(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'this._authorize = ' + rtrim(@@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'MPSPromised', 'New')) + ';load$]]>&Identity;<![CDATA[$(this);'
+if @@admin <> 1 begin
+  if not exists(select 1 from sysunitrights where user_id = @@userID and ma_dvcs = @@unit and r_new = 1) begin
+    select 'this._denyNew = true;' + @message as message
+    return
+  end
+end
+select @message as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$]]>&Identity;<![CDATA[$(f) {
+  $get(']]>&Identity;<![CDATA[').parentForm = f;
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);
+  var l = (f._language == 'v' ? '' : '2');
+  f.setReadOnlyFields('ngay, ten_vt' + l + ', ten_loai_vt' + l + ', ten_ky' + l);
+}
+function close$]]>&Identity;<![CDATA[$(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[$ResponseComplete(f, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result, g = f.getItem('d1')._controlBehavior;
+  switch (context) {
+    case 'Item':
+      f.setItemControlBehavior('dvt', result[0].Value, result[1].Value, false);
+      f.setItemValues('ten_dvt%l, nhieu_dvt, ten_loai_vt%l', [result[1].Value, result[2].Value, result[3].Value]);
+      f.setItemControlBehavior('dvt', result[0].Value, result[1].Value, false);
+      set$Voucher$ReferenceKeyFilter$UOM(f);
+      break;
+    case 'Period':
+      for (var i = g._periodCount + 1; i <= g._maxColumn; i++) {
+        g._setColumnVisible(g._getColumnOrder('ky' + i), true); 
+      }
+      g._periodCount = result[0].Value;
+      if (g._periodCount > g._maxColumn) g._periodCount = g._maxColumn;
+      for (var i = g._periodCount + 1; i <= g._maxColumn; i++) {
+        g._setColumnVisible(g._getColumnOrder('ky' + i), false);
+      }
+      g._$a = result[1].Value.split(',');
+      for (var i = 1; i <= g._periodCount; i++) {
+        var name = 'ky' + i, field = g._fields[g._getColumnOrder(name) - 1];
+        var header = $get(g._id + '_HeaderText_' + name);
+
+        field.HeaderText = g._$a[i-1];
+        header.innerHTML = g._$a[i-1];
+      }
+      break;
+    default:
+      break;
+  }
+}
+function set$Form$DefaultValue(f) {
+   f.setItemValues('ma_ky, ngay', [f._periodCode, $func.formatStringToDate(f._date)]);
+   f.setItemControlBehavior('ten_ky%l', f._periodName, null, null);
+   set$Voucher$ReferenceKeyFilter$UOM(f);
+}
+function change$]]>&Identity;<![CDATA[$Item$(o) {
+  var f = o.parentForm, name = o.field.Name;
+  switch (name) {
+    case 'ma_vt':
+      f.request('Item', 'Item', ['ma_vt'], o);
+      break;
+   default:
+      break;
+  }
+}
+function set$Voucher$ReferenceKeyFilter$UOM(f) {
+  var v = f.getItemValue('nhieu_dvt');
+  if(v) f.setReferenceKeyFilter('dvt');
+  f._setReadOnly(f.getItem('dvt'), !v);
+}
+function refresh$]]>&Identity;<![CDATA[Form(o) {
+  var f = o.parentForm, g = f.getItem('d1')._controlBehavior;
+  if (!f.validFields('ma_vt') || (!f.validFields('dvt') || (!f.validFields('ma_ky') return;
+  g._key = f.getItemValue('ma_vt') + f.getItemValue('dvt') + f.getItemValue('ma_ky');
+  on$change$MPSAtpDetail(g, f.getItemValue('ma_vt'), $func.formatDateOrder(f.getItemValue('ngay')), f.getItemValue('dvt'), f.getItemValue('ma_ky'));
+  f.request('Period', 'Period', [['ma_ky', 'String', f.getItemValue('ma_ky')]]);
+}
+]]>
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.]]>&Identity;<![CDATA[:hover{text-decoration:underline}
+.]]>&Identity;<![CDATA[{cursor:pointer;position:relative;width:64px!important;color:#3171c6;font-family:verdana;font-size:11px;}
+]]>
+    </text>
+  </css>
+
+  <response>
+    <action id="Item">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmvt where ma_vt = @ma_vt) begin
+  select rtrim(a.dvt) as dvt, b.ten_dvt%l, a.nhieu_dvt, ten_loai_vt%l from dmvt a left join dmdvt b on a.dvt = b.dvt left join dmloaivt c on a.loai_vt = c.ma_loai_vt where a.ma_vt = @ma_vt
+  return
+end
+]]>
+      </text>
+    </action>
+
+    <action id="Period">
+      <text>
+        <![CDATA[
+declare @n int, @i int, @h nvarchar(4000), @d smalldatetime
+select @d = run_date from mplog
+select @d = isnull(@d, getdate()), @h = ''
+select @n = val from options where name = 'm_so_ky_hd'
+
+select @i = 1
+while (@i <= @n) begin
+  select @h = @h + convert(varchar(10), dbo.mf_GetDOP(@ma_ky, @d, @i, 1), 103) + ','
+  set @i = @i + 1
+end
+select @n as p, @h as h
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

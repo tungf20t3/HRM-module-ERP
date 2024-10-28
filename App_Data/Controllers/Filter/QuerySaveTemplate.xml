@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lưu mẫu truy vấn" e="Save Query Template"></title>
+
+  <fields>
+    <field name="title" maxLength="64" allowNulls="false">
+      <header v="Tên mẫu" e="Template Name"></header>
+    </field>
+    <field name="other_title" maxLength="64">
+      <header v="Tên khác" e="Other Name"></header>
+    </field>
+    <field name="is_private" type="Boolean">
+      <header v="Mẫu chung" e="Public Template"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 25, 75, 100, 100, 100, 30"/>
+      <item value="1100000: [title].Label, [title]"/>
+      <item value="1100000: [other_title].Label, [other_title]"/>
+      <item value="11: [is_private].Label, [is_private]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'init$QuerySaveTemplate$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+    
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, g = f.grid;
+var query = $find(g._queryID);
+
+g._memvars = [];
+g._formScript = '';
+g.queryTemplateForm = f;
+
+query._filterList.saveTemplate(0, true);
+f._checked = false;
+window.setTimeout(function() {$func.showWait(f.get_id());}, 50);
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$QuerySaveTemplate$Form(f) {
+  var g = f.grid;
+  var query = $find(g._queryID);
+  if (!query) return;
+  var templateList = query._filterList._listTemplate;
+  var selectedTemplate = templateList._selectedItem;
+  
+  if (selectedTemplate) {
+    f.getItem('title').value = selectedTemplate.data.Title;
+    f.getItem('other_title').value = selectedTemplate.data.OtherTitle;
+    f.getItem('is_private').checked = !selectedTemplate.data.IsPrivate;
+  }
+}
+]]>
+    </text>
+  </script>
+</dir>

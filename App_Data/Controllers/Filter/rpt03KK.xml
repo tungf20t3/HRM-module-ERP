@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\Circular\A1080\ReportCircularTypeField.PIT.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="thang" type="Int16" dataFormatString="#0">
+      <header v="Tháng" e="Month"/>
+      <items style="Numeric"></items>
+      <clientScript><![CDATA[onchange=onChange$Value(this);]]></clientScript>
+    </field>
+    <field name="quy" dataFormatString="0, 1, 2, 3, 4" clientDefault="Default" defaultValue="0" align="right" maxLength="1">
+      <header v="Quý" e="Quarter"></header>
+      <items style="Mask"></items>
+      <clientScript><![CDATA[onchange=onChange$Value(this);]]></clientScript>
+    </field>
+    <field name="nam" type="Int16" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="bo_sung" type="Decimal" dataFormatString="##0">
+      <header v="Lần bổ sung" e="Additional Times"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_bp">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="TaxDepartment" reference="ten_bp%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="mau_bc" clientDefault="10">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportCircularTypeField;
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11: [thang].Label, [thang]"/>
+      <item value="11: [quy].Label, [quy]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="11: [bo_sung].Label, [bo_sung]"/>
+      <item value="110100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000: [chon_tt].Label, [chon_tt]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @period numeric(2,0), @type numeric(1,0)
+select @period = case when @thang = 0 then @quy else @thang end, @type = case when @thang = 0 then 2 else 1 end
+select @period as period, @type as type, @nam as nam, @bo_sung as bo_sung
+exec rs_rpt03KK @period, @nam, @ma_bp, @ma_dvcs, @type, @chon_tt, @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,id=f.get_id(),m=f.getItemValue("thang"),q=f.getItemValue("quy");if(q==0&&(m==0||m<1||m>12)){f._checked=false;$func.hideWait(id);$message.show(f._language=="v"?"Nhập sai tháng hoặc quý.":"Invalid Month or Quarter.",String.format("$find('{0}').focus('{1}');",id,"thang"))}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");var b=new Date;!a.getItemValue("nam")&&a.setItemValues("nam, thang",[b.getFullYear(),b.getMonth()+1]);a.live(a.getItem("thang"))}function onChange$Value(b){var a=b.parentForm,c=b.field.Name;switch(c){case"thang":if(a.getItem("thang").value!=0){a.getItem("quy").value=0;a.live(a.getItem("quy"))}break;case"quy":if(a.getItem("quy").value!=0){a.getItem("thang").value=0;a.live(a.getItem("thang"))}}}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(k,d){var b=d.object,h=d.type.Context,j=d.type.Result;switch(h){case"Checking":var a=b.grid,i=b.getItemValue("mau_bc"),g=a._language=="v",e=b.getItemValue("quy"),f=b.getItemValue("thang"),c;e==0?g?c="Tháng "+f:c="Month "+f:g?c="Quý "+e:c="Quarter "+e;a._tt=b.getItemValue("chon_tt");a._alterTitle=[null,[["%d",c,true],["%y",b.getItemValue("nam"),true]]];a._hiddenFields=[{Fields:"tien_nt, luy_ke_nt",Value:i=="10"}];a._hiddenForms=[{Form:[1,2,3,6,7,8],Value:a._tt=="1"},{Form:[0,2,3,5,7,8],Value:a._tt=="2"},{Form:[0,1,3,5,6,8],Value:a._tt=="3"},{Form:[0,1,2,5,6,7],Value:a._tt=="5"}];try{init$GridReport$(a)}catch(l){}if(!a._v)a._v=a._tt;if(a._v!=a._tt){remove$GridReport$Filter(a);a._v=a._tt}}}function remove$GridReport$Filter(a){var e="tien".split(","),d,c;for(i=0;i<e.length;i++)for(var b=0;b<a._filter.length;b++){d=$func.trim(e[i]);c=$func.findField(d,a._fields);if(c)c.FilterPanelValue="";if(a._filter[b].match(/^(\w+):/)[1]==d){Array.removeAt(a._filter,b);break}}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

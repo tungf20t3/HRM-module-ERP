@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY ValueDate "dateadd(m, 1, cast(str(@nam, 4) + replace(str(@ky, 2), ' ', '0') + '01' as smalldatetime)) - 1">
+  <!ENTITY FieldFocus "ky">
+]>
+
+<dir table="ctslts" code="so_the_ts, ky, nam" order="so_the_ts, ky, nam" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc sản lượng thực hiện của TSCĐ" e="Fixed Asset Production Filter"></title>
+  <fields>
+    <field name="ky" isPrimaryKey="true" type="Decimal" dataFormatString="#0" allowNulls="false" aliasName="Period" defaultValue="(new Date()).getMonth() + 1">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" isPrimaryKey="true" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 160, 230"/>
+      <item value="11: [ky].Label, [ky]"/>
+      <item value="11: [nam].Label, [nam]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @$lockedDate smalldatetime, @$lockedDateUnit smalldatetime
+select @$lockedDate = convert(varchar(10), ngay_ks, 111) from dmstt
+select @$lockedDateUnit = convert(varchar(10), ngay_ks, 111) from dmdvcsks where ma_dvcs = @@unit
+select 'this._lockedDate = ''' + convert(varchar(10), @$lockedDate, 111) + ''';this._lockedDateUnit = ''' + isnull(convert(varchar(10), @$lockedDateUnit, 111), '') + ''';' as message
+return
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(sender) {sender.add_onResponseComplete(on$Filter$ResponseComplete);}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}          
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array();
+      g._refreshMemvars = true;
+      g._period = f.getItemValue('ky');
+      g._year = f.getItemValue('nam');
+
+      var msg = checkFilterLockedDate(f, g._period, g._year);
+      if (msg != '') g._denyMessage = msg;
+
+      Array.add(k, {Name: 'ky', Opr: '=', Value: g._period, Type: 'Decimal', Ignore: false});
+      Array.add(k, {Name: 'nam', Opr: '=', Value: g._year, Type: 'Decimal', Ignore: false});
+      g.set_externalKey(k);
+      g._alterTitle = [null, [['%s1', g._period.toString(), true], ['%s2', g._year.toString(), true]]];
+      break;
+    default:
+      break;
+  }
+}
+function checkFilterLockedDate(f, p, y, force) {
+  var g = f.grid, d = force ? new Date(y, p - 1, 1) : new Date(y, p, 0);
+  var r = ((new Date(f._lockedDate)) >= d);
+  g._denyNew = g._deny$Unit;
+  g._denyMessage = null;
+  if (!g._denyNew) g._denyNew = r;
+  g._denyEdit = g._denyDelete = r;
+  if (f._lockedDateUnit) {
+    var u = ((new Date(f._lockedDateUnit)) >= d)
+    if (!r && !g._denyNew) g._denyNew = u;
+  }
+  if (r || u) return f._language == 'v' ? 'Đã khóa số liệu, kiểm tra lại ngày khóa sổ.' : 'Data is locked, you must modify system locked date.';
+    else return '';
+}
+]]>
+    </text>
+  </script>
+
+</dir>

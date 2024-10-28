@@ -1,0 +1,33 @@
+﻿<![CDATA[
+function load$Grid(g) {
+g.add_commandEvent(on$Grid]]>&TransferID;<![CDATA[$ExecuteCommand);
+  g.add_onResponseComplete(on$Grid]]>&TransferID;<![CDATA[$ResponseComplete);
+  ]]>&BI.PODefaultValue.Script.LoadGrid;<![CDATA[
+  g._$PODefaultForm.HiddenField = ['ma_vung'];
+
+}
+function dispose$Grid(g) {
+  try {g.remove_commandEvent(on$Grid]]>&TransferID;<![CDATA[$ExecuteCommand);} catch (ex) {}
+  try {g.remove_onResponseComplete(on$Grid]]>&TransferID;<![CDATA[$ResponseComplete);} catch (ex) {}
+}
+function on$Grid]]>&TransferID;<![CDATA[$ResponseComplete(sender, e) {
+  var g = e.object, context = e.type.Context, result = e.type.Result, o = e.type.Object;
+  switch (context) {
+    ]]>&ComposeComplete;
+&APVHistoryResponse;<![CDATA[
+    default:
+      break;
+  }
+}
+function on$Grid]]>&TransferID;<![CDATA[$ExecuteCommand(sender, e) {
+  var action = e.type.Action, g = sender;
+  ]]>&BI.PODefaultValue.Script.ExecuteCommand;<![CDATA[
+  switch (action) {
+  ]]>&ComposeRequest;
+&APVHistoryExecute;
+&APVEditExecute;<![CDATA[
+    default:
+      break;
+  }
+}
+]]>

@@ -1,0 +1,268 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterFields SYSTEM "..\Include\XML\FlowFilterFields.txt">
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "SARequisition">
+  <!ENTITY c11 "Phiếu nhu cầu từ ngày">
+  <!ENTITY c12 "Date from">
+  <!ENTITY c21 "Số phiếu nhu cầu">
+  <!ENTITY c22 "Requisition Number">
+  <!ENTITY ext "91">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'SARequisitionFilter', 'Filter', 'SATran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+
+  <!ENTITY % BIMode.SATran SYSTEM "..\Include\BIMode.SATran">
+  %BIMode.SATran;
+]>
+
+<dir table="m91$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn phiếu nhu cầu" e="Select Requisition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="&c11;" e="&c12;"></header>
+    </field>
+    <field name="so_ct" align="right" maxLength="-100" filterSource="voucherNumber" allowNulls="false">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="AutoComplete" controller="&Identity;Lookup" reference="stt_rec_ct"/>
+      <clientScript><![CDATA[onchange=onChange$]]>&Identity;<![CDATA[$VoucherNumber(this);]]></clientScript>
+    </field>
+    <field name="stt_rec_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="&c21;" e="&c22;"></header>
+    </field>
+
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    &BI.SATran.RequisitionLookup.Filter.Fields;
+
+    <field name="ma_vt" allowNulls="false">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="SAItemLookup" reference="ten_vt%l" normal="true"/>
+      <clientScript><![CDATA[onchange=onChange$]]>&Identity;<![CDATA[$ItemCode(this);]]></clientScript>
+    </field>
+    <field name="ten_vt%l" readOnly="true">
+      <header v="" e=""/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="1101&BI.SATran.RequisitionLookup.Filter.Views.Index;: [ngay_ct1].Label, [ngay_ct1], [ngay_ct2]&BI.SATran.RequisitionLookup.Filter.Views.Fields;"/>
+      <item value="11011: [so_ct].Label, [so_ct], [stt_rec_ct], [ma_dvcs]"/>
+      <item value="11010: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @unit varchar(128), @vcNumber varchar(32), @vcFields nvarchar(4000), @retrieveID varchar(128), @partition char(6), @s nvarchar(4000), @d smalldatetime, @quantity numeric(22, 4), @i int, @l int, @$none nvarchar(512)
+select @$none = case when @@language = 'v' then N'Không có phiếu nhu cầu theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+select @vcNumber = ltrim(rtrim(@so_ct))
+select @i = len(@vcNumber), @l = character_maximum_length from information_schema.columns where table_name = '@@table' and column_name = 'so_ct'
+select @vcNumber = space(@l - @i) + @vcNumber
+
+]]>&CheckRelativeProcess;<![CDATA[
+
+select @retrieveID = stt_rec from c91$000000 where (@stt_rec_ct = '' or stt_rec = @stt_rec_ct) and so_ct = @vcNumber and status in ('2', '3') and ma_dvcs = case when @ma_dvcs = '' then @@unit else @ma_dvcs end and (ngay_ct between @ngay_ct1 and @ngay_ct2)
+if isnull(@retrieveID, '') = '' begin
+  select 'so_ct' as field, @$none as message
+  return
+end
+
+if @stt_rec_ct <> '' select @retrieveID = @stt_rec_ct
+select @d = ngay_ct, @partition = convert(char(6), ngay_ct, 112) from c91$000000 where stt_rec = @retrieveID
+]]>&BI.SATran.RequisitionLookup.Filter.Check.Type;<![CDATA[
+create table #t(sl_duyet numeric(22, 4)]]>&BI.SATran.RequisitionLookup.Filter.Declare;<![CDATA[)
+set @s = 'insert into #t select sl_duyet]]>&BI.SATran.RequisitionLookup.Filter.Select;<![CDATA[ from d91$' + @partition + ' where stt_rec = ''' + replace(@retrieveID, '''', '''''') + ''' and ma_vt = ''' + replace(@ma_vt, '''', '''''') + ''' and sl_duyet <> 0]]>&BI.SATran.RequisitionLookup.Filter.Check.Item;<![CDATA['
+exec sp_executesql @s
+if not exists(select 1 from #t) begin
+  select 'ma_vt' as field, case when @@language = 'v' then N'Không có vật tư theo điều kiện đang lọc.' else N'No item matching filter condition.' end as message
+  drop table #t
+  return
+end
+]]>&BI.SATran.RequisitionLookup.Filter.Set;<![CDATA[
+select @quantity = sl_duyet from #t
+drop table #t
+
+create table #r(fields nvarchar(4000))
+select @s = 'insert into #r select '
+select @s = @s + 'a.ma_nt + char(255) + rtrim(a.dept_id) + char(255) + rtrim(a.ma_md) + char(255) + a.status + char(255) + ' + case when @@language = 'v' then 'rtrim(b.ten_bp) + char(255) + rtrim(c.ten_md)' else 'rtrim(b.ten_bp2) + char(255) + rtrim(c.ten_md2)' end + ' + char(255) + rtrim(a.ong_ba)'
+select @s = @s + ' from m91$' + @partition + ' a left join dmbp b on a.dept_id = b.ma_bp left join dmmd c on a.ma_md = c.ma_md'
+select @s = @s + ' where a.stt_rec = ''' + replace(@retrieveID, '''', '''''') + ''' and c.ma_ct = ''PR1'''
+exec sp_executesql @s
+]]>&BI.SATran.RequisitionLookup.Filter.Update;<![CDATA[
+select @vcFields = replace(replace(fields, '\', '\\'), '''', '\''') from #r
+drop table #r
+
+select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, ''' + @vcNumber + ''', ''' + @retrieveID + ''', ''' + @vcFields + ''', ''' + convert(char(8), @d, 112) + ''', ''' + @ma_vt + ''', ' + rtrim(@quantity) + ');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {f.getItem('so_ct')._idle = ]]>&IdleLookupFilter;<![CDATA[; f.getItem('ma_vt')._idle = ]]>&IdleLookupFilter;<![CDATA[;}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._language = f.grid._language;
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f._lookingItem = f.getItem('ma_vt')._controlBehavior;
+  f._looking.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$LoadingNumber);
+  f._lookingItem.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$LoadingItem);
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Filter$ResponseComplete);
+
+  var g = f.grid, w = g.get_element().parentForm, d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs');
+  f.setItemValues('ngay_ct2, ma_dvcs', [d2, u]);
+  ]]>&BI.SATran.RequisitionLookup.Filter.Active;<![CDATA[
+  g._voucher$Retrieve$ItemName = '';
+  g._voucher$Retrieve$Created = d2;
+  var o = f.getItem('so_ct'), t = w.getItemValue('so_nc');
+  if (t != '' && g._rowCount > 0) {
+    f.setItemValue('so_ct', t);
+    f.setItemValue('stt_rec_ct', g._getItemValue(1, g._getColumnOrder('stt_rec_nc')));
+    $common.setVisible(o.a, false);
+    o.disabled = true;
+  }
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {
+  try {f.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}
+  try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$LoadingItem);} catch (ex) {}
+  try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$LoadingNumber);} catch (ex) {}
+}
+function on$]]>&Identity;<![CDATA[Filter$Before$LoadingNumber(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1')) e.type.cancelEvent = true;
+  else {
+    var g = f.grid, w = g.get_element().parentForm;
+    var d1 = f.getItemValue('ngay_ct1'), d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs');
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: d1},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: d2},
+      {Name: 'ma_dvcs', Type: 'String', Value: u}
+    ];
+    sender.set_memvars(a);
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$Before$LoadingItem(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('so_ct')) e.type.cancelEvent = true;
+  else if (f.getItemValue('stt_rec_ct') == '') {
+    e.type.cancelEvent = true;
+    $message.show(String.format($df.getResources(f.grid._language, 'Message.RequiredField'), f.getItem('so_ct').field.Label), String.format('$find(\'{0}\').getItem(\'{1}\').focus()', f.get_id(), 'so_ct'));
+  }
+  else {
+    var g = f.grid, w = g.get_element().parentForm;
+    a = [
+      {Name: 'stt_rec_ct', Type: 'String', Value: f.getItemValue('stt_rec_ct')}
+    ];
+    sender.set_memvars(a);
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, c, d, k, e, i, l) {
+  var g = f.grid;
+  g._voucher$Retrieve$ID = d;
+  g._voucher$Retrieve$Number = c;
+  g._voucher$Retrieve$Fields = k;
+  g._voucher$Retrieve$Date = $func.formatStringToDate(e);
+  g._voucher$Retrieve$Item = i;
+  g._voucher$Retrieve$ApproveQty = l;
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g);
+}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g) {
+  g.showForm(']]>&Identity;<![CDATA[Form');
+  g._memvars = [];
+}
+function onChange$]]>&Identity;<![CDATA[$ItemCode(o) {
+  var f = o.parentForm;
+  if (f.getItemValue('ma_vt') != '') f.request('Item', 'Item', ['ma_vt', 'stt_rec_ct']);
+}
+function onChange$]]>&Identity;<![CDATA[$VoucherNumber(o) {
+  var f = o.parentForm;
+  f.request('VoucherNumber', 'VoucherNumber', ['ngay_ct1', 'ngay_ct2', 'so_ct', 'ma_dvcs']);
+}
+function on$]]>&Identity;<![CDATA[Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'VoucherNumber':
+      f.setItemValue('stt_rec_ct', result[0].Value);
+      f.setItemControlBehavior('ma_vt', '', '', false);
+      f.grid._voucher$Retrieve$ItemName = '';
+      f.live(f.getItem('ma_vt'));
+      break;
+    case 'Item':
+      f.setItemControlBehavior('ma_vt', result[0].Value, result[1].Value);
+      f.grid._voucher$Retrieve$ItemName = result[1].Value;
+      f.live(f.getItem('ma_vt'));
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="VoucherNumber">
+      <text>
+        <![CDATA[
+declare @unit varchar(128), @voucherNumber varchar(128), @c varchar(128)
+select @unit = case when @ma_dvcs = '' then @@unit else @ma_dvcs end
+select @voucherNumber = dbo.ff_PadL(rtrim(ltrim(@so_ct)), character_maximum_length) from information_schema.columns where table_name = 'c91$000000' and column_name = 'so_ct'
+select @c = stt_rec from c91$000000 where ma_dvcs = @unit and so_ct = @voucherNumber and status in ('2', '3') and (ngay_ct between @ngay_ct1 and @ngay_ct2)
+select isnull(@c, '') as c
+return
+]]>
+      </text>
+    </action>
+
+    <action id="Item">
+      <text>
+        <![CDATA[
+declare @partition char(6), @q nvarchar(512)
+select top 0 ma_vt, ten_vt into #tmp from dmvt
+select @partition = convert(char(6), ngay_ct, 112) from c91$000000 where stt_rec = @stt_rec_ct
+set @q = 'insert into #tmp select rtrim(a.ma_vt) as ma_vt, rtrim(b.ten_vt%l) as ten_vt from d91$' + @partition + ' a left join dmvt b on a.ma_vt = b.ma_vt where a.stt_rec = ''' + replace(@stt_rec_ct, '''', '''''') + ''' and a.ma_vt = ''' + replace(@ma_vt, '''', '''''') + ''''
+exec sp_executesql @q
+if exists(select count(*) from #tmp)
+  select rtrim(ma_vt) as ma_vt, rtrim(ten_vt) as ten_vt from #tmp
+else
+  select '' c1, '' c2
+drop table #tmp
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &ScriptFlowFilterCss;
+</dir>

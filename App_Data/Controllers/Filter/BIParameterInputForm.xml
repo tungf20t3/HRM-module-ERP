@@ -1,0 +1,251 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIParameterInput">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY ScriptIrregular SYSTEM "..\Include\Javascript\Irregular.txt">
+]>
+
+<dir table="bidmvtts" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Sửa tham số" e="Edit Parameter"></title>
+  <fields>
+    <field name="ma_phan_he" dataFormatString="@upperCaseFormat" inactivate="true" disabled="true">
+      <header v="Mã phân hệ" e="Module"></header>
+      <items style="AutoComplete" controller="Module" reference="ten_phan_he%l" information="ma_phan_he$dmphanhe.ten_phan_he%l"/>
+    </field>
+    <field name="ten_phan_he%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="type" external="true" defaultValue="''" disabled="true" readOnly="true">
+      <header v="" e=""/>
+    </field>
+    <field name="descript%l" inactivate="true" disabled="true">
+      <header v="Tên tham số hệ thống" e="Description"></header>
+    </field>
+
+    <field name="lookup_val" onDemand="true" allowContain="true">
+      <header v="Giá trị" e="Value"></header>
+      <items style="AutoComplete" controller="" reference="lookup_name%l" key="1=1" check="1=1"/>
+      <clientScript><![CDATA[onchange=onChange$]]>&Identity;<![CDATA[$Item(this);]]></clientScript>
+    </field>
+    <field name="lookup_name%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="nor_val" external="true" defaultValue="''" allowContain="true">
+      <header v="Giá trị" e="Value"></header>
+      <clientScript><![CDATA[onchange=onChange$]]>&Identity;<![CDATA[$Item(this);]]></clientScript>
+    </field>
+    <field name="num_val" external="true" type="Decimal" defaultValue="0" allowContain="true">
+      <header v="Giá trị" e="Value"></header>
+      <items style="Numeric"></items>
+      <clientScript><![CDATA[onchange=onChange$]]>&Identity;<![CDATA[$Item(this);]]></clientScript>
+    </field>
+    <field name="cmb_val" external="true" defaultValue="''" allowContain="true">
+      <header v="Giá trị" e="Value"></header>
+      <items style="DropDownList">
+        <item value="">
+          <text v="" e=""/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;<![CDATA[onchange=onChange$]]>&Identity;<![CDATA[$Item(this);]]></clientScript>
+    </field>
+
+    <field name="stt" external="true" defaultValue="''" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_phan_he" external="true" defaultValue="''" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="val" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="val_view%l" external="true" hidden="true" readOnly="true" defaultValue="char(255)">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+
+  <views>
+    <view id="Dir" height="160">
+      <item value="120, 100, 100, 100, 130, 0"/>
+      <item value="110001: [descript%l].Label, [descript%l], [ma_phan_he]"/>
+      <item value="11100: [lookup_val].Label, [lookup_val], [lookup_name%l]"/>
+      <item value="11000: [nor_val].Label, [nor_val]"/>
+      <item value="1111: [num_val].Label, [num_val], [val], [type]"/>
+      <item value="1101-: [cmb_val].Label, [cmb_val], [val_view%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'show$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, d = f.grid._detailInfo.dataRef, u = (d.checkList == '1');
+if (f._checked && u) checkValue]]>&Identity;<![CDATA[(f, 'nor_val');
+if (f._checked && d.check == '1' && d.irregular == '1') objectBehavior$Dir$Irregular.checkCode(f, 'nor_val');
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var z = f.grid, d = z._detailInfo.data, dataRef = z._detailInfo.dataRef;
+  f.setItemValues('val, ma_phan_he, descript%l', [d.value, d.module, d.parameterName]);
+  if (dataRef.itemStyle != 'CBO') f.setItemValues('nor_val, num_val, lookup_val, val_view%l', [d.value, d.value, d.value, d.value]);
+}
+function show$]]>&Identity;<![CDATA[Form$(f) {
+  var z = f.grid, d = z._detailInfo.data, dataRef = z._detailInfo.dataRef;
+  setObject]]>&Identity;<![CDATA[FormHidden(f, dataRef);
+  f.setReferenceKeyFilter('ma_phan_he');
+  if (dataRef.itemStyle == 'AUTO') {f.setReferenceKeyFilter('lookup_val');}
+}
+function load$]]>&Identity;<![CDATA[$Form(f) {
+  f.add_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);
+  var dataRef = f.grid._detailInfo.dataRef;
+  setForm]]>&Identity;<![CDATA[ControlBehavior(f, dataRef);
+  if (dataRef.itemStyle == 'CBO') onChange$]]>&Identity;<![CDATA[$Item(f.getItem('cmb_val'))
+}
+function close$]]>&Identity;<![CDATA[$Form(f) {try {f.remove_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}}
+function onForm$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var z = f.grid, d = z._detailInfo, t = d.dataRef.itemStyle, val = f.getItemValue('val'), name = f.getItemValue('val_view%l');
+      if (t == 'AUTO') val = f.getItemValue('lookup_val'), name = val;
+      if (d.dataRef.upperKey) {val = val.toUpperCase(), name = name.toUpperCase()};
+      if (d.handle) {d.handle.call(this, z, {value: val, name: name});
+      on$]]>&Identity;<![CDATA[Filter$QueryComplete(f);
+      break;
+    default:
+      break;
+  }
+}
+function setObject]]>&Identity;<![CDATA[FormHidden(f, data) {
+  switch (data.itemStyle) {
+    case 'FN':
+    case 'LST':
+      setItem]]>&Identity;<![CDATA[FormVisible(f, 'num_val');
+      break;
+    case 'CBO':
+      setItem]]>&Identity;<![CDATA[FormVisible(f, 'cmb_val');
+      break;
+    case 'AUTO':
+      setItem]]>&Identity;<![CDATA[FormVisible(f, 'lookup_val');
+      set]]>&Identity;<![CDATA[LookupField(f, data);
+      break;
+    default:
+      setItem]]>&Identity;<![CDATA[FormVisible(f, 'nor_val');
+      break;
+  }
+}
+function setItem]]>&Identity;<![CDATA[FormVisible(f, c) {
+  var a = ['nor_val', 'num_val', 'cmb_val', 'lookup_val'];
+  for (var i = 0; i < a.length; i++) {
+    var o = f.getItem(a[i]);
+    if (a[i] != c) $common.setVisible(o.parentNode.parentNode.parentNode, false);
+  }
+  f._controlFocus = f.getItem(c);
+}
+function setForm]]>&Identity;<![CDATA[ControlBehavior(f, data) {
+  var t = data.itemStyle;
+  if (t == 'FN' || t == 'LST') {
+    var o = f.getItem('num_val');
+    o._controlBehavior.set_format(data.itemFormat);
+  } else if (t == 'CBO') {
+    var o = f.getItem('cmb_val'), value = data.itemValue.split(','), text = data.itemText.split(',');
+    for (var i = 0; i < value.length; i++) {
+      o.options[i] = new Option(text[i], value[i]);
+      if ($func.trim(value[i]) == $func.trim(data.itemInit)) o.options[i].selected = true;
+    }
+  }
+}
+
+function onChange$]]>&Identity;<![CDATA[$Item(o) {
+  var f = o.parentForm, t = f.grid._detailInfo.dataRef.itemStyle;
+  if (t == 'FN' || t == 'LST' || t == 'AUTO') f.setItemValue('val', f.getItemValue(o.field.Name).toString());
+  else f.getItem('val').value = o.value;
+  if (t == 'CBO') f.getItem('val_view%l').value = o[o.selectedIndex].text;
+  else f.getItem('val_view%l').value = o.value;
+}
+
+function checkValue]]>&Identity;<![CDATA[(f, field) {
+  var a = field.split(','), t = f.getItemValue('nor_val'), q = t.split(',');
+  for (var i = 0; i < a.length; i++) {
+    var e = null, name = $func.trim(a[i]), o = f.getItem(name), c = o.value, l = o.field.Label;
+    if (c != '') {
+      for (var j = 0; j < q.length; j++) {
+        if ($func.trim(q[j]) == '') {
+          e = true;
+          break;
+        }
+      }
+    }
+    if (e) return showError]]>&Identity;<![CDATA[(f, l, name);
+  }
+  return true;
+}
+function showError]]>&Identity;<![CDATA[(f, l, name) {
+  var id = f.get_id(), msg = (f._language == 'v' ? 'Trường <span class="Highlight">{0}</span> chưa nhập hoặc giá trị nhập không hợp lệ.' : 'Field <span class="Highlight">{0}</span> must not be blank or has invalid value.');
+  msg = String.format(msg, l);
+  f._checked = false;
+  $func.hideWait(id);
+  $message.show(msg, String.format('$find(\'{0}\').getItem(\'' + name + '\').focus();', id));
+  return false;
+}
+
+function set]]>&Identity;<![CDATA[LookupField(f, data) {
+  var o = f.getItem('lookup_val')
+  o._controlBehavior._controller = data.controllerLookup;
+  o._controlBehavior._upperCase = data.upperKey;
+  o.field.ItemCheckFilter = data.lookupCheck;
+  o.field.ItemKeyFilter = data.lookupKey;
+}
+
+function on$]]>&Identity;<![CDATA[Filter$QueryComplete(f) {set$]]>&Identity;<![CDATA[Filter$FormScript(f.grid);}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g, h) {g._memvars = [];}
+]]>
+      &ScriptIrregular;
+    </text>
+  </script>
+  &OutlineCss;
+</dir>

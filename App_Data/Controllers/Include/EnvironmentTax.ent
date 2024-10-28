@@ -1,0 +1,139 @@
+﻿<!ENTITY % Conditional.EnvironmentTax SYSTEM "..\Include\EnvironmentTax.txt">
+
+<![%Conditional.EnvironmentTax;[
+
+  <!ENTITY VoucherGoodsTypeHandleKey "">
+  <!ENTITY VoucherGoodsTypeHandleField "">
+
+  <!ENTITY EnvironmentTaxFields SYSTEM "..\Include\XML\EnvironmentTaxFields.txt">
+  <!ENTITY EnvironmentTaxDetailFields SYSTEM "..\Include\XML\EnvironmentTaxDetailFields.txt">
+  <!ENTITY EnvironmentTaxDetailViews SYSTEM "..\Include\XML\EnvironmentTaxDetailViews.xml">
+  <!ENTITY EnvironmentTaxDetailView SYSTEM "..\Include\XML\EnvironmentTaxDetailView.xml">
+  <!ENTITY EnvironmentTaxInheritanceFields SYSTEM "..\Include\XML\EnvironmentTaxInheritanceFields.txt">
+  <!ENTITY EnvironmentTaxInheritanceViews SYSTEM "..\Include\XML\EnvironmentTaxInheritanceViews.xml">
+  <!ENTITY EnvironmentTaxXMLFlowFormFields SYSTEM "..\Include\XML\EnvironmentTaxXMLFlowFormFields.txt">
+  <!ENTITY EnvironmentTaxXMLFlowFormViews SYSTEM "..\Include\XML\EnvironmentTaxXMLFlowFormViews.txt">
+
+  <!ENTITY EnvironmentTaxFunction SYSTEM "..\Include\Javascript\EnvironmentTax.txt">
+  <!ENTITY EnvironmentTaxGridFields "addGridFieldsEnvironment(f, c, r, g, 'thue_mt_nt : thue_mt');">
+  <!ENTITY EnvironmentTaxTotalFields ", ['t_thue_mt_nt', 'thue_mt_nt'], ['t_thue_mt', 'thue_mt']">
+  <!ENTITY EnvironmentTaxCurrencyResponse SYSTEM "..\Include\Javascript\WhenEnvironmentTaxCurrencyResponse.txt">
+  <!ENTITY EnvironmentTaxExecuteExpression.BaseCurrency " + [t_thue_mt]">
+  <!ENTITY EnvironmentTaxExecuteExpression.ForeignCurrency " + [t_thue_mt_nt]">
+  <!ENTITY EnvironmentTaxAfterUpdate.BaseCurrency " + thue_mt">
+  <!ENTITY EnvironmentTaxAfterUpdate.ForeignCurrency " + thue_mt_nt">
+  <!ENTITY EnvironmentTaxAddRender "f.getItem('d&EnvironmentTaxTag;')._controlBehavior.add_onRender(on$Voucher$EnvironmentTaxGridRender);">
+  <!ENTITY EnvironmentTaxRemoveRender "try {f.getItem('d&EnvironmentTaxTag;')._controlBehavior.remove_onRender(on$Voucher$EnvironmentTaxGridRender);} catch (ex) {}">
+
+  <!ENTITY EnvironmentTaxDetailArray SYSTEM "..\Include\Javascript\EnvironmentTaxDetailArray.txt">
+
+  <!ENTITY EnvironmentTaxDetailExecuteExpression.BaseCurrency " + [thue_mt]">
+  <!ENTITY EnvironmentTaxDetailExecuteExpression.ForeignCurrency " + [thue_mt_nt]">
+  <!ENTITY EnvironmentTaxDetailChangeQuatity ", g.$a.mt, g.$a.mt_tg">
+  <!ENTITY EnvironmentTaxDetailChangeQuatityTotal ", g.$a.t_thue_mt, g.$a.t_thue_mt_nt">
+
+  <!ENTITY EnvironmentTaxDetailChangeQuatityInheritance "&EnvironmentTaxComma; z.$a.mt, z.$a.mt_tg">
+  <!ENTITY EnvironmentTaxDetailChangeQuatityTotalInheritance ", z.$a.t_thue_mt, z.$a.t_thue_mt_nt">
+
+  <!ENTITY EnvironmentTaxDetailChange "
+    case 'thue_mt':
+      &EnvironmentTaxChangeField.BaseCurrency;
+      break;
+    case 'thue_mt_nt':
+      if (f._baseCurrency == f.getItemValue('ma_nt')) g.validExpression(o, [g.$a.mt_vnd], null, null);
+      &EnvironmentTaxChangeField.ForeignCurrency;
+      break;
+">
+  <!ENTITY EnvironmentTaxDetailResponseItem "&DetailResponseItem;">
+  <!ENTITY EnvironmentTaxDetailResponseUOM "&DetailResponseUOM;">
+  <!ENTITY EnvironmentTaxDetailResponseValid "&DetailResponseValid;">
+  <!ENTITY EnvironmentTaxDetailResponseQuantity "&ChangeQuatityValidExpressionTotal;">
+  <!ENTITY EnvironmentTaxGetUOMConversion SYSTEM "..\Include\XML\EnvironmentTaxGetUOMConversion.xml">
+  <!ENTITY EnvironmentTaxUOMReturn ", isnull(@$hs, 0) as he_so_mt, isnull(@EnvironmentAmount, 0) as muc_thue_mt, isnull(@EnvironmentPercent, 0) as tl_chiu_thue_mt">
+  <!ENTITY EnvironmentTaxParameter ",1, @$ngay_lct,'&EnvironmentTaxType;'">
+  <!ENTITY EnvironmentTaxValue ", @$hs, @EnvironmentAmount, @EnvironmentPercent">
+
+  <!ENTITY EnvironmentTaxInheritanceQuery SYSTEM "..\Include\XML\EnvironmentTaxInheritanceQuery.xml">
+  <!ENTITY EnvironmentTaxInheritanceLoadingJoin " left join #dmkbtmt mt on a.ma_vt = mt.ma_vt and a.dvt = mt.dvt_0">
+  <!ENTITY EnvironmentTaxInheritanceColumns " , muc_thue, tl_chiu_thue, tk_thue_mt, he_so_mt">
+  <!ENTITY EnvironmentTaxPrimePartitionCurrent "#prime">
+  <!ENTITY EnvironmentTaxPrimeTableStruct "d&EnvironmentTaxPrimeTable;$000000">
+  <!ENTITY EnvironmentTaxWhereClause "(stt_rec = @stt_rec)">
+
+  <!ENTITY EnvironmentTaxAmount.BaseCurrency " + g._getItemValue(i, g._getColumnOrder('thue_mt'))">
+  <!ENTITY EnvironmentTaxAmount.ForeignCurrency " + g._getItemValue(i, g._getColumnOrder('thue_mt_nt'))">
+
+  <!ENTITY EnvironmentTaxCheck "if (!(g.validRowExpression('tk_thue_mt', '([thue_mt] == 0) || ([thue_mt] != 0 &amp;&amp; [tk_thue_mt] != &quot;&quot;)'))) break;">
+  <!ENTITY EnvironmentTaxCheckPromotion "if (!(g.validRowExpression('tk_cpbh', '([km_yn] == 0) || (([thue_mt] == 0) &amp;&amp; ([km_yn] == 1)) || ([tk_cpbh] != &quot;&quot;)'))) break;">
+
+  <!ENTITY EnvironmentTaxScriptFlowFormFunction SYSTEM "..\Include\Javascript\EnvironmentTaxScriptFlowFormFunction.txt">
+
+  <!ENTITY EnvironmentTaxImportPostInventoryUpdateZero ", thue_mt, thue_mt_nt">
+
+  <!ENTITY EnvironmentTaxDetailAssignExpression.BaseCurrency ",thue_mt">
+  <!ENTITY EnvironmentTaxDetailAssignExpression.ForeignCurrency ",thue_mt_nt">
+
+  <!ENTITY EnvironmentTaxValid "validEnvironment(f.getItem('d&EnvironmentTaxTag;')._controlBehavior);">
+]]>
+
+<!ENTITY EnvironmentTaxFunction "">
+<!ENTITY EnvironmentTaxFields "">
+<!ENTITY EnvironmentTaxDetailFields "">
+
+<!ENTITY EnvironmentTaxDetailViews "">
+<!ENTITY EnvironmentTaxDetailView "">
+<!ENTITY EnvironmentTaxInheritanceFields "">
+<!ENTITY EnvironmentTaxInheritanceViews "">
+
+<!ENTITY CurrentCustomerBalanceFunction "">
+<!ENTITY EnvironmentTaxGridFields "">
+<!ENTITY EnvironmentTaxTotalFields "">
+<!ENTITY EnvironmentTaxCurrencyResponse SYSTEM "..\Include\Javascript\WhenCurrencyResponse.txt">
+<!ENTITY EnvironmentTaxExecuteExpression.BaseCurrency "">
+<!ENTITY EnvironmentTaxExecuteExpression.ForeignCurrency "">
+<!ENTITY EnvironmentTaxAfterUpdate.BaseCurrency "">
+<!ENTITY EnvironmentTaxAfterUpdate.ForeignCurrency "">
+<!ENTITY EnvironmentTaxAddRender "">
+<!ENTITY EnvironmentTaxRemoveRender "">
+
+<!ENTITY EnvironmentTaxDetailArray "">
+<!ENTITY EnvironmentTaxDetailExecuteExpression.BaseCurrency "">
+<!ENTITY EnvironmentTaxDetailExecuteExpression.ForeignCurrency "">
+<!ENTITY EnvironmentTaxDetailChangeQuatity "">
+<!ENTITY EnvironmentTaxDetailChangeQuatityTotal "">
+<!ENTITY EnvironmentTaxDetailChangeQuatityInheritance "">
+<!ENTITY EnvironmentTaxDetailChangeQuatityTotalInheritance "">
+
+<!ENTITY EnvironmentTaxDetailChange "">
+<!ENTITY EnvironmentTaxDetailResponseItem "">
+<!ENTITY EnvironmentTaxDetailResponseUOM "">
+<!ENTITY EnvironmentTaxDetailResponseValid "">
+<!ENTITY EnvironmentTaxDetailResponseQuantity "">
+<!ENTITY EnvironmentTaxGetUOMConversion "">
+<!ENTITY EnvironmentTaxUOMReturn "">
+<!ENTITY EnvironmentTaxValue "">
+<!ENTITY EnvironmentTaxParameter ",0, null, ''">
+
+<!ENTITY EnvironmentTaxInheritanceQuery "">
+<!ENTITY EnvironmentTaxInheritanceLoadingJoin "">
+<!ENTITY EnvironmentTaxInheritanceColumns "">
+<!ENTITY EnvironmentTaxPrimePartitionCurrent "@@prime$partition$current">
+<!ENTITY EnvironmentTaxPrimeTableStruct "@@prime000000">
+<!ENTITY EnvironmentTaxWhereClause "@@whereClause">
+
+<!ENTITY EnvironmentTaxAmount.BaseCurrency "">
+<!ENTITY EnvironmentTaxAmount.ForeignCurrency "">
+
+<!ENTITY EnvironmentTaxCheck "">
+<!ENTITY EnvironmentTaxCheckPromotion "">
+
+<!ENTITY EnvironmentTaxScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+<!ENTITY EnvironmentTaxXMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+<!ENTITY EnvironmentTaxXMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+
+<!ENTITY EnvironmentTaxImportPostInventoryUpdateZero "">
+
+<!ENTITY EnvironmentTaxDetailAssignExpression.BaseCurrency "">
+<!ENTITY EnvironmentTaxDetailAssignExpression.ForeignCurrency "">
+
+<!ENTITY EnvironmentTaxValid "">

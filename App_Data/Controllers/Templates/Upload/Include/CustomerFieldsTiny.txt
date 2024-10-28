@@ -1,0 +1,32 @@
+<fields identity="true" name="stt" index="&Tiny.External.Import.ViewIndex;">
+  <field name="ma_kh" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+  <field name="ten_kh" column="B" allowNulls="false"/>
+  <field name="ten_kh2" column="C"/>
+  <field name="loai_kh" column="D" allowNulls="false" defaultValue="1" check="loai_kh not in ('0', '1', '9')" errorCode="00002"/>
+  <field name="dia_chi" column="E" check="dia_chi = '' and loai_kh = '1'" errorCode="00002"/>
+  <field name="ma_so_thue" column="F" upperCase="true" check="&EIImportCheckTax;" errorCode="&EITaxErrorCode;"/>
+  <field name="tk" column="G" check="tk &lt;&gt; '' and tk not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+  <field name="ma_tt" column="H" check="ma_tt &lt;&gt; '' and ma_tt not in (select ma_tt from dmtt)" errorCode="00001"/>
+  <field name="dien_thoai" column="I"/>
+  <field name="fax" column="J"/>
+  <field name="e_mail" column="K" check="&EIImportCheckEmail;" errorCode="&EIEmailErrorCode;"/>
+  <field name="home_page" column="L"/>
+  <field name="tk_nh" column="M" upperCase="true"/>
+  <field name="ngan_hang" column="N"/>
+  <field name="tinh_thanh" column="O"/>
+  <field name="doi_tac" column="P"/>
+  <field name="ghi_chu" column="Q" maxLength="256"/>
+
+  <field name="nh_kh1" column="" check="nh_kh1 &lt;&gt; '' and nh_kh1 not in (select ma_nh from dmnhkh where loai_nh = 1)" errorCode="00001"/>
+  <field name="nh_kh2" column="" check="nh_kh2 &lt;&gt; '' and nh_kh2 not in (select ma_nh from dmnhkh where loai_nh = 2)" errorCode="00001"/>
+  <field name="nh_kh3" column="" check="nh_kh3 &lt;&gt; '' and nh_kh3 not in (select ma_nh from dmnhkh where loai_nh = 3)" errorCode="00001"/>
+  <field name="kh_yn" column="None" type="Boolean" insertValue="'1'" updateValue="None"/>
+  <field name="cc_yn" column="None" type="Boolean" insertValue="'1'" updateValue="None"/>
+  <field name="nv_yn" column="None" type="Boolean" insertValue="'1'" updateValue="None"/>
+
+  <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+  <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+  <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+  <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+  <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+</fields>

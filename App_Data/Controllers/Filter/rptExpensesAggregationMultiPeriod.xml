@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptPivotFilter SYSTEM "..\Include\Javascript\PivotFilter.txt">
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+
+  <!ENTITY % CompactMode SYSTEM "..\Include\CompactMode.ent">
+  %CompactMode;
+
+  <!ENTITY LineCounter "9">
+  <!ENTITY ExtensionCounter "4">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+    </field>
+    <field name="ky_pt" dataFormatString="1, 2, 3, 4" clientDefault="Default" defaultValue="1" align="right">
+      <header v="Kiểu báo cáo" e="Report Type"></header>
+      <footer v="1 - Tháng, 2 - Quý, 3 - 6 tháng, 4 - Năm" e="1 - Month, 2 - Quarter, 3 - Half a year, 4 - Year"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ky" type="Int16" dataFormatString="#0" clientDefault="Default" defaultValue="3" allowNulls="false">
+      <header v="Số kỳ phân tích" e="Analysis Periods"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ds_tk" categoryIndex="1">
+      <header v="Danh sách tài khoản" e="Account List"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="loai" dataFormatString="1, 2" clientDefault="Default" defaultValue="1" align="right" categoryIndex="1">
+      <header v="Nợ/có" e="Debit/Credit"/>
+      <footer v="1 - Nợ, 2 - Có" e="1 - Debit, 2 - Credit"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="ds_tk_gt" categoryIndex="1">
+      <header v="Ds tk không tính g.trừ" e="Non-deduction Accts"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="bc_theo" categoryIndex="1">
+      <header v="Báo cáo theo" e="Report by"/>
+      <items style="DropDownList">
+        <item value="1">
+          <text v="Tài khoản" e="Account"/>
+        </item>
+        <item value="2">
+          <text v="Mã phí" e="Expense"/>
+        </item>
+        &ReportFormExpenseFields;
+        <item value="4">
+          <text v="Bộ phận" e="Department"/>
+        </item>
+        <item value="5">
+          <text v="Vụ việc" e="Job"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="nhom_theo1" categoryIndex="1">
+      <header v="Nhóm theo" e="Group by"/>
+      <items style="DropDownList">
+        <item value="0">
+          <text v="Không nhóm" e="No Group"/>
+        </item>
+        <item value="1">
+          <text v="Tài khoản" e="Account"/>
+        </item>
+        <item value="2">
+          <text v="Mã phí" e="Expense"/>
+        </item>
+        &ReportFormExpenseFields;
+        <item value="4">
+          <text v="Bộ phận" e="Department"/>
+        </item>
+        <item value="5">
+          <text v="Vụ việc" e="Job"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="nhom_theo2" categoryIndex="1">
+      <header v="Phân nhóm theo" e="Subgroup by"/>
+      <items style="DropDownList">
+        <item value="0">
+          <text v="Không nhóm" e="No Group"/>
+        </item>
+        <item value="1">
+          <text v="Tài khoản" e="Account"/>
+        </item>
+        <item value="2">
+          <text v="Mã phí" e="Expense"/>
+        </item>
+        &ReportFormExpenseFields;
+        <item value="4">
+          <text v="Bộ phận" e="Department"/>
+        </item>
+        <item value="5">
+          <text v="Vụ việc" e="Job"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="nh_phi1" categoryIndex="1">
+      <header v="Nhóm phí 1" e="Expense Group 1"></header>
+      <footer v="Nhóm phí" e="Expense Group"></footer>
+      <items style="AutoComplete" controller="ExpenseGroup" key="loai_nh = 1 and status = '1'" check="loai_nh = 1"/>
+    </field>
+    <field name="nh_phi2" categoryIndex="1">
+      <header v="Nhóm phí 2" e="Expense Group 2"></header>
+      <items style="AutoComplete" controller="ExpenseGroup" key="loai_nh = 2 and status = '1'" check="loai_nh = 2"/>
+    </field>
+    <field name="nh_phi3" categoryIndex="1">
+      <header v="Nhóm phí 3" e="Expense Group 3"></header>
+      <items style="AutoComplete" controller="ExpenseGroup" key="loai_nh = 3 and status = '1'" check="loai_nh = 3"/>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1 "/>
+    </field>
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 100, 30, 0"/>
+      <item value="110: [tu_ngay].Label, [tu_ngay]"/>
+      <item value="1110000: [ky_pt].Label, [ky_pt], [ky_pt].Description"/>
+      <item value="11: [so_ky].Label, [so_ky]"/>
+      <item value="11000: [ds_tk].Label, [ds_tk]"/>
+      <item value="1110000: [loai].Label, [loai], [loai].Description"/>
+      <item value="11000: [ds_tk_gt].Label, [ds_tk_gt]"/>
+      <item value="11000: [bc_theo].Label, [bc_theo]"/>
+      <item value="11000: [nhom_theo1].Label, [nhom_theo1]"/>
+      <item value="11000: [nhom_theo2].Label, [nhom_theo2]"/>
+      <item value="11011: [nh_phi1].Description, [nh_phi1], [nh_phi2], [nh_phi3]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 100, 30, 0">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select case @ky_pt
+  when '1' then case when @@language = 'V' then N'Tháng' else 'Month' end
+  when '2' then case when @@language = 'V' then N'Quý' else 'Quarter' end
+  when '3' then case when @@language = 'V' then N'6 tháng' else 'Half a year' end
+  when '4' then case when @@language = 'V' then N'Năm' else 'Year' end
+end as kieu_bc, @bc_theo as bc_theo, @tu_ngay as tu_ngay
+exec rs_rptExpensesAggregationMultiPeriod @tu_ngay, @ky_pt, @so_ky, @ds_tk, @loai, @ds_tk_gt, @bc_theo, @nhom_theo1, @nhom_theo2, @nh_phi1, @nh_phi2, @nh_phi3, @mau_bc, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptPivotFilter;
+      &OutlineEntry;
+      &ScriptQueryFilterString;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  changeLookupReadonly(f, 'ds_tk');
+  changeLookupReadonly(f, 'ds_tk_gt');
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(n,f){var b=f.object,j=f.type.Context,m=f.type.Result;switch(j){case"Checking":var a=b.grid,l=b.getItemValue("mau_bc"),k=b.getItem("tu_ngay").value,i=b.getItem("ky_pt").value,h=b.getItem("so_ky").value,g=b.getItem("bc_theo"),d=a._language=="v",c;switch(i){case"1":c=d?"theo tháng":"by Month";break;case"2":c=d?"theo quý":"by Quarter";break;case"3":c=d?"theo 6 tháng":"by Half a Year";break;case"4":c=d?"theo năm":"by Year"}a._pivotFieldHeaderText=g.value==3&&d?"Đơn vị":g.options[g.selectedIndex].text;a._alterTitle=[null,[["%s1",c,true],["%s2",h,true],["%d",k,true]]];a._queryFilterString=getQueryFilterString(b,"tu_ngay, ky_pt, so_ky, bc_theo, ma_dvcs, mau_bc, nhom_theo1, nhom_theo2, nh_phi1, nh_phi2, nh_phi3, ds_tk, ds_tk_gt, loai");var e=h+String.fromCharCode(255)+l;if(!a._v)a._v=e;if(a._v!=e){remove$GridReport$Filter(a);a._v=e}}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY CommandCheckLockedDate SYSTEM "..\Include\Command\CostingUnitLockedProcess.txt">
+
+  <!ENTITY Control ",@$control = '110'">
+  <!ENTITY CostingUnitFilterShowing SYSTEM "..\Include\Command\CostingUnitPhysicalShowing.txt">
+  <!ENTITY CostingUnitFilter SYSTEM "..\Include\Javascript\CostingUnitFilter.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tính chi phí dở dang cuối kỳ theo số liệu kiểm kê" e="Calculate Period-end WIP Cost by Physical Counting"></title>
+  <fields>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false" align="right" aliasName="Period" defaultValue="(new Date()).getMonth() + 1">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_kho" allowNulls="false">
+      <header v="Mã kho" e="Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="(ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_access = 1)) and (not exists(select 1 from syssiterights where user_id = @@userID) or ma_kho in (select ma_kho from syssiterights where user_id = @@userID)) and status = '1'" check="(ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_access = 1)) and (not exists(select 1 from syssiterights where user_id = @@userID) or ma_kho in (select ma_kho from syssiterights where user_id = @@userID))"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom_kho" allowNulls="false">
+      <header v="Nhóm kho" e="Site Group"></header>
+      <items style="AutoComplete" controller="SiteGroup" reference="ten_nhom_kho%l" key="ma_nh in (select ma_nh from dmkho where isnull(ma_nh, '') &lt;&gt; ''and ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)) and status = '1'" check="ma_nh in (select ma_nh from dmkho where isnull(ma_nh, '') &lt;&gt; ''and ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1))" information="ma_nh$dmnhkho.ten_nh%l"/>
+    </field>
+    <field name="ten_nhom_kho%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs" onDemand="true">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1) and status = '1'" check="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)"/>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11: [ky].Label, [ky]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="110100: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="110100: [nhom_kho].Label, [nhom_kho], [ten_nhom_kho%l]"/>
+      <item value="110100: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @$control char(5), @message nvarchar(4000), @$unitName nvarchar(1023), @$costUnit bit
+select @$costUnit = rtrim(val) from options where name = 'm_gt_dvcs'
+select @message = 'var f = this;f._costUnit = ' + rtrim(@$costUnit) + ';']]>&Control;<![CDATA[
+
+if exists(select 1 from options where name = 'm_gia_vt' and val <> '1') or exists(select 1 from options where name = 'm_gia_nh_kho' and val <> '1')
+  select @message = @message + 'setObjectFilterHidden(f, ''nhom_kho'', false);'
+
+if substring(@$control, 1, 1) = 1 and @$costUnit <> 1
+  select @message = @message + 'setObjectFilterHidden(f, ''ma_dvcs'', false);'
+
+
+if substring(@$control, 2, 1) = 1 and exists (select 1 from options where name = 'm_gia_vt' and val <> '2')
+  select @message = @message + 'setObjectFilterHidden(f, ''ma_kho'', false);'
+
+if substring(@$control, 3, 1) = 1 and substring(@$control, 1, 1) = 1 and @$costUnit = 1 begin
+  select @$unitName = case when @@language = 'V' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit
+  select @message = @message + 'this._unitCode=''' + @@unit + ''';this._unitName=''' + replace(replace(isnull(@$unitName, ''), '\', '\\'), '''', '\''') + ''''
+end
+select @message as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Inserting">
+      <text>
+        &CommandCheckLockedDate;
+        <![CDATA[
+exec xs20_COCalcEdWipCostByEndingMaterials @ky, @nam, @ma_kho, @nhom_kho, @ma_dvcs, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &CostingUnitFilter;
+    </text>
+  </script>
+</dir>

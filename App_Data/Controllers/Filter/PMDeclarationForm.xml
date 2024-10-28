@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY % EnvironmentTax SYSTEM "..\Include\EnvironmentTax.ent">
+  %EnvironmentTax;
+  <!ENTITY EnvironmentTaxComma ",">
+
+  <!ENTITY Identity "PMDeclaration">
+  <!ENTITY DetailTable "d98">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Supplier">
+  <!ENTITY c21 "Số tờ khai">
+  <!ENTITY c22 "Voucher Number">
+  <!ENTITY c31 "Ngày tờ khai">
+  <!ENTITY c32 "Voucher Date">
+
+  <!ENTITY % BIMode.POFlow SYSTEM "..\Include\BIMode.POFlow">
+  %BIMode.POFlow;
+
+  <!ENTITY % BIMode.PMTran.Flow SYSTEM "..\Include\BIMode.PMTran.Flow">
+  %BIMode.PMTran.Flow;
+]>
+
+<dir table="m98$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tờ khai hải quan" e="Customs Declaration Sheet"></title>
+  <fields>
+    &EnvironmentTaxXMLFlowFormFields;
+  </fields>
+
+  <views>
+    &EnvironmentTaxXMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &EnvironmentTaxScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d98')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = 'stt_rec, stt_rec0, so_ct, line_nbr]]>&BI.FlowSA.Fields.F1;<![CDATA[', f2 = 'stt_rec_tk, stt_rec0tk, tk_so, tk_ln]]>&BI.FlowSA.Fields.F2;<![CDATA[';
+  var first = true, k = z._voucher$Retrieve$Fields.split(String.fromCharCode(255)), v = (w.getItemValue('ma_nt') == k[0]);
+  var m = f.getItemValue('ma_kh'), l0 = z._getColumnOrder('ma_vt'), l1 = z._getColumnOrder('dvt'), l2 = g._getColumnOrder('nhieu_dvt'), l3 = z._getColumnOrder('tk_vt'), l4 = g._getColumnOrder('sua_tk_vt');
+  var s0 = ', gia_nt0, tien_nt0, nk_nt, nk, ttdb_nt, ttdb, thue_nt, thue', s1 = ', gia_nt, gia, tien_nt, tien', s2 = ', gia_nt3, gia3, tien_nt3, tien3';
+  var fields = 'ma_vt, ten_vt%l, dvt, tk_vt, gia_ton, thue_cn, ma_thue_nk, thue_suat_nk, tk_thue_nk, ma_thue_ttdb, thue_suat_ttdb, tk_thue_ttdb, ma_thue, thue_suat, tk_thue, ]]>&XMLHiddenFields;&BI.PO.Flow.Fields;&BI.FlowOA.Fields;<![CDATA[, he_so, lo_yn, tao_lo, so_luong, stt_rec_dh, stt_rec0dh, dh_so, dh_ln]]>&EnvironmentTaxInheritanceColumns;<![CDATA[';
+  if (v) {
+    fields += s0;
+    f1 += s1;
+    f2 += s2;
+  }
+  for (var r = 1; r <= g._rowCount; r++) {
+    var ins = true, row = z._rowCount;
+    if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+    if (ins) z._appendRow(null, true);
+    row = z._rowCount;
+    z._getItem(row, 1)._customerIdentity = m;
+    var o = z._getItem(row, l0);
+    o.row = row;
+    insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+    z.executeExpression(o, [z.$a.gia0_tg, z.$a.tien0]]>&EnvironmentTaxDetailChangeQuatityInheritance;<![CDATA[]);
+    $func.setObjectWhen(z._getItem(row, l1), g._getItemValue(r, l2));
+    $func.setObjectWhen(z._getItem(row, l3), g._getItemValue(r, l4));
+  }
+  z.executeAggregate([z.$a.t_so_luong, z.$a.t_tien_nt0, z.$a.t_tien0, z.$a.t_tien_nt3, z.$a.t_tien3, z.$a.t_nk_nt, z.$a.t_nk, z.$a.t_ttdb_nt, z.$a.t_ttdb, z.$a.t_thue_nt, z.$a.t_thue]]>&EnvironmentTaxDetailChangeQuatityTotalInheritance;<![CDATA[]);
+  w.executeExpression([z.$a.t_tt_nt, z.$a.t_tt]);
+
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

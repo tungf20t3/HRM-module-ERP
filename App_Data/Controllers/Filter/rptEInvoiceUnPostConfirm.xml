@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY % DetailTax SYSTEM "..\Include\DetailTax.ent">
+  %DetailTax;
+  <!ENTITY % EIOptions SYSTEM "..\Include\EIOptions.ent">
+  %EIOptions;
+  <!ENTITY % Discount SYSTEM "..\Include\Discount.ent">
+  %Discount;
+  <!ENTITY % EINote SYSTEM "..\Include\EINote.ent">
+  %EINote;
+
+  <!ENTITY Key "declare @rk varchar(16)
+select @rk = lower(left(replace(newid(),'-',''), 16))
+update @@sysDatabaseName..userinfo2 set rkey = @rk where id = @@userID">
+]>
+
+<dir table="userinfo2" code="name" order="name" database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xác nhận mật khẩu" e="Confirm Password"></title>
+  <fields>
+    <field name="cpass" external="true" defaultValue="''">
+      <header v="Xác nhận mật khẩu" e="Confirm Password"></header>
+      <clientScript><![CDATA[type="password" onchange="genHash(this);"]]></clientScript>
+    </field>
+    <field name="chkpass" external="true" hidden="true" readOnly="true" defaultValue="''" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="1100-1: [cpass].Label, [cpass], [chkpass]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        &Key;<![CDATA[
+select 'this._key = ''' + @rk + ''';loadForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'closeForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,o=f.getItem("cpass");o.oldValue=o.value;o.value="";checkFieldEntry(f,o);if(f._checked){f._checked=false;f.request("CheckKey","CheckKey",["chkpass"])}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function loadForm(a){var b=a.grid;a.add_onResponseComplete(on$Form$ResponseComplete);a._$init&&a.request("Key","Key",[]);a._$init=true}function closeForm(a){try{a.remove_onResponseComplete(on$Form$ResponseComplete)}catch(b){}}function on$Form$ResponseComplete(e,b){var a=b.object,d=b.type.Context,c=b.type.Result;switch(d){case"Key":a._key=c[0].Value;break;case"CheckKey":if(c[0].Value)request$EIUnPost(a);else $message.show(a._language=="v"?"Mật khẩu xác nhận không đúng.":"Confirmation password is invalid.",String.format("revertPassword('{0}', '', true); $find('{0}').focus('{1}');",a.get_id(),"cpass"))}}function request$EIUnPost(b){var a=b.grid,c=[["ma_dvcs","String",a._getItemValue(a._activeRow,a._$u)],["ma_ct","String",a._$voucherCode],["stt_rec","String",a._getItemValue(a._activeRow,a._$k)],["ngay_ct","DateTime",a._getItemValue(a._activeRow,a._$d)]];a._$confirmForm=b;a.request(a,"UpdateProcess","UpdateProcess",c)}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Key">
+      <text>
+        &Key;<![CDATA[
+select @rk as value
+return
+]]>
+      </text>
+    </action>
+
+    <action id="CheckKey">
+      <text>
+        <![CDATA[
+declare @hash varchar(32), @c bit, @d bit, @k varchar(6)
+exec @@sysDatabaseName..AI_ERP$System$CheckSum @@userID, @chkpass, 0, @c output
+select @c as val
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

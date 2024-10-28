@@ -1,0 +1,178 @@
+﻿<title v="" e=""></title>
+<subTitle v="" e=""></subTitle>
+<fields>
+  <field name="&k;" isPrimaryKey="true" width="0" hidden="true" dataFormatString="@upperCaseFormat" aliasName="isnull(a.&k;, '')">
+    <header v="" e=""></header>
+  </field>
+  <field name="name" isPrimaryKey="true" width="0" hidden="true" aliasName="isnull(a.name, b.name)">
+    <header v="" e=""></header>
+  </field>
+  <field name="ma_phan_he" width="0" hidden="true" aliasName="b" readOnly="true">
+    <header v="" e=""></header>
+  </field>
+  <field name="descript%l" width="300" aliasName="b" readOnly="true">
+    <header v="Tên tham số hệ thống" e="System Parameter Name"></header>
+  </field>
+  <field name="gt_nhap" width="100" external="true" allowContain="true" aliasName="isnull(a.val_view%l, b.val_view%l)" readOnly="true">
+    <header v="Giá trị" e="Value"></header>
+  </field>
+  <field name="gt_nd" width="0" hidden="true" external="true" aliasName="isnull(b.val_view%l, '')" readOnly="true">
+    <header v="Giá trị ngầm định" e="Default Value"></header>
+  </field>
+  <field name="val" width="0" hidden="true" aliasName="isnull(a.val, b.val)">
+    <header v="Giá trị" e="Value"></header>
+  </field>
+  <field name="val_df" width="0" external="true" hidden="true" aliasName="isnull(b.val, '')" readOnly="true">
+    <header v="Giá trị ngầm định" e="Default Value"></header>
+  </field>
+  <field name="stt_sx" type="Int32" width="0" align="right" hidden="true" aliasName="b">
+    <header v="" e=""></header>
+  </field>
+</fields>
+
+<views>
+  <view id="Grid">
+    <field name="&k;"/>
+    <field name="name"/>
+    <field name="ma_phan_he"/>
+    <field name="descript%l"/>
+    <field name="gt_nhap"/>
+    <field name="gt_nd"/>
+    <field name="val"/>
+    <field name="val_df"/>
+    <field name="stt_sx"/>
+  </view>
+</views>
+
+<commands>
+  <command event="Loading">
+    <text>
+      <![CDATA[select 'load$BI]]>&Controller;<![CDATA[ParameterDetail$(this);' as message
+return]]>
+    </text>
+  </command>
+  <command event="Closing">
+    <text>
+      <![CDATA[select 'dispose$BI]]>&Controller;<![CDATA[ParameterDetail$(this);' as message
+return]]>
+    </text>
+  </command>
+</commands>
+
+<script>
+  <text>
+    <![CDATA[
+function load$BI]]>&Controller;<![CDATA[ParameterDetail$(g) {
+  g.add_onResponseComplete(on$BI]]>&Controller;<![CDATA[ParameterDetail$ResponseComplete);
+  g.add_commandEvent(on$BI]]>&Controller;<![CDATA[ParameterDetail$ExecuteCommand);
+}
+function dispose$BI]]>&Controller;<![CDATA[ParameterDetail$(g) {
+  try {g.remove_commandEvent(on$BI]]>&Controller;<![CDATA[ParameterDetail$ExecuteCommand);} catch (ex) {}
+  try {g.remove_onResponseComplete(on$BI]]>&Controller;<![CDATA[ParameterDetail$ResponseComplete);} catch (ex) {}
+}
+
+function on$BI]]>&Controller;<![CDATA[ParameterDetail$ExecuteCommand(sender, e) {
+  var action = e.type.Action, g = sender, f = g.get_element().parentForm;
+  switch (action) {
+    case 'InputPrameter':
+      if (f._action == 'View') break;
+      var code = f.getItemValue(']]>&k;<![CDATA[');
+      var r = g._activeRow, c0 = g._getColumnOrder('val'), c1 = g._getColumnOrder('ma_phan_he'), c2 = g._getColumnOrder('descript%l'), c3 = g._getColumnOrder('name');
+      v0 = g._getItemValue(r, c0), v1 = g._getItemValue(r, c1), v2 = g._getItemValue(r, c2);
+      v3 = g._getItemValue(r, c3);
+      g._detailInfo = {
+          data: {
+            value: v0,
+            module: v1,
+            parameterName: v2,
+            name: v3
+          },         
+          handle: on$GridDetail$Parameter$Retrieve};
+        g.request(g, 'GetInfoParameter', 'GetInfoParameter', [['name', 'String', v3], ['code', 'String', code]]);
+      break;
+    default:
+      break;
+  }
+}
+
+function on$BI]]>&Controller;<![CDATA[ParameterDetail$ResponseComplete(sender, e) {
+  var g = e.object, context = e.type.Context, result = e.type.Result, o = e.type.Object;
+  switch (context) {
+    case 'GetInfoParameter':
+      g._detailInfo['dataRef'] = {
+        itemStyle: result[0].Value,
+        itemFormat: result[1].Value,
+        itemValue: result[2].Value,
+        itemText: result[3].Value,
+        itemInit: g._detailInfo.data.value,
+        checkList: result[4].Value,
+        controllerLookup: result[5].Value,
+        lookupKey: result[6].Value,
+        lookupCheck: result[7].Value,
+        upperKey: result[8].Value,
+        irregular: result[9].Value,
+        check: result[10].Value
+      };
+      g.showForm('BIParameterInputForm');
+      break;
+    default:
+      break;
+  }
+}
+function on$GridDetail$Parameter$Retrieve(g, result) {
+  var r = g._activeRow, c0 = g._getColumnOrder('val'), c1 = g._getColumnOrder('gt_nhap');
+  g._setItemValue(r, c0, result.value);
+  g._setItemValue(r, c1, result.name);
+  g._focusWhenTabChanged();
+}
+]]>
+  </text>
+</script>
+
+<response>
+  <action id="GetInfoParameter">
+    <text>
+      <![CDATA[
+if exists (select 1 from bidmts where name = @name and controller = ']]>&Controller;<![CDATA[') begin
+  declare @$code varchar(32)
+  select @$code = replace(@code, '''', '''''')
+  select type, number_format, cmb_val, case when @@language = 'v' then rtrim(cmb_view) else rtrim(cmb_view2) end as itemText, check_list_yn, controller_lookup, replace(replace(replace(key_lookup, '@$admin', '@@admin'), '@$userID', '@@userID'), '@$code', @$code) as key_lookup, replace(replace(replace(check_lookup, '@$admin', '@@admin'), '@$userID', '@@userID'), '@$code', @$code) as check_lookup, upper_key, irregular_yn, check_yn from vbidmts where name = @name and controller = ']]>&Controller;<![CDATA['
+  return
+end
+      ]]>
+    </text>
+  </action>
+</response>
+
+<queries>
+  <query event="Loading">
+    <text>
+      <![CDATA[
+declare @whereKey nvarchar(4000)
+select @whereKey = 'a.]]>&k;<![CDATA[ = ''' + replace(@]]>&k;<![CDATA[, '''', '') + ''''
+create table #ts (]]>&k;<![CDATA[ varchar(32), name varchar(32), val nvarchar(512), val_view nvarchar(512), val_view2 nvarchar(512))
+insert into #ts exec AI_ERP$BIParameterView ']]>&Controller;<![CDATA[', '@@table', ']]>&k;<![CDATA[', @whereKey
+select @@fieldExternal from (select * from #ts where @@whereClause) a right join vbidmts b on a.name = b.name where controller = ']]>&Controller;<![CDATA[' order by @@orderByClause
+]]>
+    </text>
+  </query>
+</queries>
+
+<toolbar>
+  <button command="InputPrameter">
+    <title v="Khai báo$$120" e="Edit$$120"></title>
+  </button>
+  <button command="Freeze">
+    <title v="Toolbar.Freeze" e="Toolbar.Freeze"></title>
+  </button>
+</toolbar>
+
+  <css>
+    <text>
+      <![CDATA[
+div.InputPrameter{background-image:url(../images/Shift.png);background-repeat:no-repeat;background-position:6px -1px;}
+div.TextInputPrameter{background-image:url(../images/TextAsterisk.png);background-repeat:no-repeat,repeat-x;background-position:6px -1px;}
+div.InputPrameterOverGreen, div.TextInputPrameterOverGreen{background-color:#F9FAFB;}
+]]>
+    </text>
+  </css>

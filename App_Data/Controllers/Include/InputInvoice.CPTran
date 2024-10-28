@@ -1,0 +1,293 @@
+﻿<![%InputInvoice.CPTran;[
+
+  <!ENTITY IIActiveVoucherScript "
+  f._done1 = f._done2 = f._done3 = f._done4 = 0;
+  f.getItem('d56')._controlBehavior.add_onRender(on$Voucher$GridRender$Detail);
+  f.getItem('r30')._controlBehavior.add_onRender(on$Voucher$GridRender$Tax);
+  f.getItem('k51')._controlBehavior.add_onRender(on$Voucher$GridRender$TaxDeduction);
+  var f56 = f.getItem('f56');
+  if (f56) f56._controlBehavior.add_onRender(on$Voucher$GridRender$BankCharges);
+  else f._done4 = 1;
+
+  var tabsLength = f._tabContainer.get_tabs().length;
+  var w = (tabsLength &lt;= 10 ? 60 : 50);
+  if (tabsLength &gt;= 9) {
+    for (var i = 1; i &lt;= tabsLength; i ++) {
+      var z = $get('__tab_' + f.get_id() + '_Tabs_Panel' + i);
+      if (z &amp;&amp; z.offsetWidth >= w) {
+        z.style.width = w + 'px';
+        z.style.whiteSpace = 'nowrap';
+        z.style.textOverflow = 'ellipsis';
+        z.title = z.innerHTML;
+      }
+    }
+  }
+  
+  var myInterval = setInterval(function () {
+    if (f.grid._$external) busy$Page(f, true);
+    if (f._done1 &amp;&amp; f._done2 &amp;&amp; f._done3 &amp;&amp; f._done4) {
+      if (f.grid._$external) {
+        insert$Form$Data(f);
+        busy$Page(f, false);
+      }
+      clearInterval(myInterval);
+    }
+  }, 100);
+">
+  <!ENTITY IICloseVoucherScript "
+  f._done1 = f._done2 = f._done3 = f._done4 = 0;
+  try {f.getItem('d56')._controlBehavior.remove_onRender(on$Voucher$GridRender$Detail);} catch (ex) {}
+  try {f.getItem('r30')._controlBehavior.remove_onRender(on$Voucher$GridRender$Tax);} catch (ex) {}
+  try {f.getItem('k51')._controlBehavior.remove_onRender(on$Voucher$GridRender$TaxDeduction);} catch (ex) {}
+
+  var f56 = f.getItem('f56');
+  if (f56) try {f56._controlBehavior.remove_onRender(on$Voucher$GridRender$BankCharges);} catch (ex) {}
+">
+  <!ENTITY IIInsertDataScript "
+function on$Voucher$GridRender$Detail(sender, eventArgs) {eventArgs.grid.get_element().parentForm._done1 = 1;}
+function on$Voucher$GridRender$Tax(sender, eventArgs) {eventArgs.grid.get_element().parentForm._done2 = 1;}
+function on$Voucher$GridRender$TaxDeduction(sender, eventArgs) {eventArgs.grid.get_element().parentForm._done3 = 1;}
+function on$Voucher$GridRender$BankCharges(sender, eventArgs) {eventArgs.grid.get_element().parentForm._done4 = 1;}
+function insert$Form$Data(f) {
+  var g = f.grid, d = f.getItem('d56')._controlBehavior, r = f.getItem('r30')._controlBehavior,
+    df = g._$detailImportData, gf = g._$gridDetailImport,
+    result = g._$result, multi = g._$inputInvoiceLength &amp;&amp; g._$inputInvoiceLength &gt; 1,
+    count = gf._rowCount;
+
+  if (!count) return;
+  var currency = result[0][5], customer = search(f, df, 'ma_kh'), customerName = search(f, df, 'ten_kh&#37;l');
+
+  // Insert Master:
+  f.setItemValues('ma_nt, ty_gia, t_tien_nt, t_thue_nt, t_tt_nt', [currency, result[0][6], result[0][7], result[0][9], result[0][10]]);
+  if (!multi) f.setItemValues('so_seri0, ngay_ct, ngay_lct, dien_giai', [result[0][0], result[0][2], result[0][2], result[0][15]]);
+  f.setItemValues('stt_rec_hddv, ngay_hddv, status_hddv', [g._$sttRec, g._$ngayCt, g._$status]);
+  f.setItemValues('tk_ex, ten_tk_ex, ma_tt0, ten_tt0', [search(f, df, 'tk'), search(f, df, 'ten_tk&#37;l'), search(f, df, 'ma_tt'), search(f, df, 'ten_tt&#37;l')]);
+
+  f.setItemControlBehavior('echu_tk', customerName, null, true);
+  f.setItemControlBehavior('etk_nh', search(f, df, 'tk_nh'), null, true);
+  f.setItemControlBehavior('eten_nh', search(f, df, 'ten_nh'), null, true);
+  f.setItemControlBehavior('etinh_thanh', search(f, df, 'tinh_thanh'), null, true);
+  f.setItemControlBehavior('echi_nhanh', search(f, df, 'chi_nhanh'), null, true);
+  f.setItemControlBehavior('equoc_gia', search(f, df, 'quoc_gia'), null, true);
+
+  if ($func.trim(customer)) {
+    f.setItemControlBehavior('ma_kh', customer, customerName, true);
+    f.setItemValues('ong_ba, dia_chi, ten_ncc, ma_so_thue', [search(f, df, 'ong_ba'), search(f, df, 'dia_chi'), customerName, search(f, df, 'ma_so_thue')]);
+  }
+
+  if (f.grid._$external) {
+    f.setItemValue('loai_ct', '9');
+    set$Voucher$GridColumns(d);
+  }
+
+  // Insert Tab Detail:
+  insert$Form$Data$Detail(f, d, gf, result, count, true);
+
+  set$DefaultPositionGrid(r);
+
+  // Insert Tab Tax:
+  insert$Form$Data$Tax(f, r, gf, result, count, customer, customerName, false);
+
+  on$GridVoucherTax$RowChange(r, f);
+  setTimeout(function() {try {f.getItem('ma_kh').focus();} catch (ex) {}}, 10);
+
+  if (f._baseCurrency != currency || (f._baseCurrency == currency &amp;&amp; f._baseCurrency != g._dvCurrency)) {
+    f._currencyBehavior.setFormLayout(1);
+    f._currencyBehavior.setGridLayout();
+  }
+
+  set$Voucher$DependOnVoucherType(f);
+  if (f.getItem('f56')) set$Voucher$ChargeColumn(f, 'f56', ['ty_gia']);
+}
+&IIInsertDataScriptDetail;
+&IIInsertDataScriptTax;
+&InputInvoiceRefreshGridScript;
+">
+  <!ENTITY IIInsertDataScriptDetail "
+function insert$Form$Data$Detail(f, d, gf, result, count, first) {
+  var c = d._getColumnOrder('tk_no'), line = gf._getColumnOrder('line_nbr');
+
+  for (var i = d._rowCount - 1; i &gt;= 0; i--) {
+    d._removeRowNumber(d._activeRow);
+    d._activeRow = i;
+  }
+
+  var l1 = gf._getColumnOrder('dien_giai'), l2 = gf._getColumnOrder('tien_nt0');
+  for (var i = 1; i &lt;= count; i++) {
+    var ins = true, row = d._rowCount;
+    if (first &amp;&amp; row &gt; 0) {ins = false; first = false;}
+    if (ins) d._appendRow(null, true);
+    row = d._rowCount;
+    var o = d._getItem(row, c);
+    o.row = row;
+
+    d.setItemGridBehavior(o, [
+      ['dien_giai', gf._getItemValue(row, l1), '', true],
+      ['tien_nt', gf._getItemValue(row, l2), null, null],
+      ['tt_nt', gf._getItemValue(row, l2), null, null]
+    ]);
+
+    d.executeExpression(o, [d.$a.tien, d.$a.tien_tt]);
+    d.validExpression(o, [d.$a.tien, d.$a.tien_tt], [d.$a.t_tien_nt, d.$a.t_tien], [d.$a.t_tt_nt, d.$a.t_tt]);
+    on$GridVoucherDetail$RowChange(d, f);
+  }
+}
+">
+  <!ENTITY IIInsertDataScriptTax "
+function insert$Form$Data$Tax(f, r, gf, result, count, customer, customerName, first) {
+  var customerName, originalName, tax, amount, taxFC, amountFC, taxRate, exchangeRate, invoiceForm, invoiceFormName, invoiceFormCheck, taxAccount, taxAccountName, taxAccountCheck;
+  var y0 = r._getColumnOrder('so_ct0');
+  var a = query$Select(gf, 'sum$tien_nt0, sum$thue_nt $groupBy thue_suat');
+
+  for (var j = 0; j &lt; count; j++) {
+    if (result[j][54] == '1') {
+      var ins = true, row = r._rowCount;
+      if (first &amp;&amp; row &gt; 0) if (r.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) r._appendRow(null, true);
+      row = r._rowCount;
+      var o = r._getItem(row, y0);
+      o.row = row;
+
+      invoiceForm = result[j][45], invoiceFormName = result[j][46], invoiceFormCheck = (invoiceFormName != '' || invoiceForm == '')
+      taxAccount = result[j][47], taxAccountName = result[j][48], taxAccountCheck = (taxAccountName != '' || taxAccount == '');
+      originalName = result[j][29]; //customerName = result[j][44],
+
+      r.setItemGridBehavior(o, [
+        ['mau_bc', '3', '', true],
+        ['ma_tc', r._taxProperty, '', true],
+        ['ma_mau_ct', invoiceForm, [invoiceFormName, invoiceFormCheck], true],
+        ['tk_thue_no', taxAccount, [taxAccountName, taxAccountCheck], true],
+        ['tk_cn', result[j][49], '', true],
+        ['so_seri0', result[j][0], '', true],
+        ['so_ct0', result[j][1], '', true],
+        ['ngay_ct0', result[j][2], null, true],
+        ['ma_kh', $func.trim(customerName) == $func.trim(originalName) ? customer : '', '', true],
+        ['ten_kh', originalName, '', true],
+        ['dia_chi', result[j][30], '', true],
+        ['ma_so_thue', result[j][31], '', true],
+        ['ten_vt', result[j][35], '', true],
+        ['ma_thue', result[j][51], '', true],
+        ['t_tien_nt', result[j][50], null, null],
+        ['thue_suat', result[j][52], null, null],
+        ['t_thue_nt', result[j][53], null, null],
+        ['t_tien', result[j][50], null, null],
+        ['t_thue', result[j][53], null, null]
+      ]);
+      r.validExpression(o, [r.$a.z_t_tien, r.$a.z_t_thue_nt, r.$a.z_t_thue], [r.$a.t_thue_nt, r.$a.t_thue], [r.$a.t_tt_nt, r.$a.t_tt]);
+      r.validExpression(o, [r.$a.z_t_thue, r.$a.z_t_thue_tg], [r.$a.t_thue_nt, r.$a.t_thue], [r.$a.t_tt_nt, r.$a.t_tt]);
+    }
+  }
+}
+">
+
+  <!ENTITY IICheck "
+declare @$iiquery nvarchar(4000), @$i int, @$n int, @$stt_rec varchar(13), @$ngay smalldatetime, @$hddv_status char(1)
+if not isnull(@$stt_rec_hddv, '') = '' begin
+  select * into #stt from dbo.AI_ERP$Function$System$Split(@$stt_rec_hddv, ',')
+  select * into #ngay from dbo.AI_ERP$Function$System$Split(@$ngay_hddv, ',')
+
+  select @$i = 1
+  select @$n = count(*) from #stt
+  while @$i &lt;= @$n begin
+    select @$stt_rec = replace(data, '''', '') from #stt where id = @$i
+    select @$ngay = replace(data, '''', '') from #ngay where id = @$i
+    select @$iiquery = 'select @hddv_status = status from m15$' + convert(char(6), @$ngay, 112) + ' where stt_rec = ''' + @$stt_rec + ''''
+    exec sp_executesql @$iiquery, N'@hddv_status char(1) output', @$hddv_status output
+    if @$hddv_status = '4' or @$hddv_status = '*' begin
+      select case when @@language = 'V' then N'Hóa đơn đầu vào đã tạo chứng từ, vui lòng kiểm tra lại.' else N'There exists voucher against this invoice, please check again.' end as message
+      return
+    end
+
+    set @$i = @$i + 1
+  end
+end
+">
+  <!ENTITY IIInsert "
+if not isnull(@$stt_rec_hddv, '') = '' begin
+  select * into #hddv1 from dbo.AI_ERP$Function$System$Split(@$stt_rec_hddv, ',')
+  select * into #hddv2 from dbo.AI_ERP$Function$System$Split(@$ngay_hddv, ',')
+  select * into #hddv3 from dbo.AI_ERP$Function$System$Split(@$status_hddv, ',')
+
+  insert into h56$$partition$current(stt_rec, ngay_ct, stt_rec_hd0, ngay_hd0, status0) select @stt_rec, @ngay_ct, a.data, b.data, c.data
+    from #hddv1 a with(nolock) left join #hddv2 b with(nolock) on a.id = b.id left join #hddv3 c with(nolock) on a.id = c.id
+
+  select @$i = 1
+  select @$n = count(*) from #hddv1
+  while @$i &lt;= @$n begin
+    select @$stt_rec = replace(data, '''', '') from #hddv1 where id = @$i
+    select @$ngay = replace(data, '''', '') from #hddv2 where id = @$i
+
+    select @$iiquery = '
+update m15$&#37;Partition set status = ''4'', ma_ct_gs = '@@id', so_ct_gs = ''' + replace(@so_ct, '''', '''''') + ''', ngay_ct_gs = cast(''' + convert(char(8), @ngay_ct, 112) + ''' as smalldatetime), tt_gs = ''2'', stt_rec_gs = ''' + replace(@stt_rec , '''', '') + ''' from m15$&#37;Partition where &#37;[stt_rec = ''' + @$stt_rec + ''']&#37;
+update i15$&#37;Partition set status = ''4'' from i15$&#37;Partition where &#37;[stt_rec = ''' + @$stt_rec + ''']&#37;
+update c15$000000 set status = ''4'' from c15$000000 where &#37;[stt_rec = ''' + @$stt_rec + ''']&#37;'
+
+    exec AI_ERP$Partition$Execute @$iiquery, null, 'ngay_ct', @$ngay, @$ngay, @@userID, @@admin
+    set @$i = @$i + 1
+  end
+end
+
+&InputInvoiceRefreshGridCommand;
+">
+  <!ENTITY IIUpdate "
+declare @$iistt char(13), @$iingay smalldatetime, @$iiquery nvarchar(4000), @$iiDateMin smalldatetime, @$iiDateMax smalldatetime
+select identity(int, 1, 1) as stt, ngay_ct, stt_rec_hd0, ngay_hd0, status0 into #h56 from h56$$partition$previous where stt_rec = @stt_rec
+
+declare @$i int, @$n int
+select @$i = 1
+select @$n = count(*) from #h56
+while @$i &lt;= @$n begin
+  select @$iistt = stt_rec_hd0, @$iingay = ngay_hd0 from #h56 where stt = @$i
+
+  if not isnull(@$iistt, '') = '' begin
+    select @$iiquery = 'update m15$&#37;Partition set so_ct_gs = ''' + replace(@so_ct, '''', '''''') + ''', ngay_ct_gs = cast(''' + convert(char(8), @ngay_ct, 112) + ''' as smalldatetime), stt_rec_gs = ''' + replace(@stt_rec , '''', '') + ''' from m15$&#37;Partition where &#37;[stt_rec = ''' + replace(@$iistt , '''', '') + ''']&#37;'
+    exec AI_ERP$Partition$Execute @$iiquery, null, 'ngay_ct', @$iingay, @$iingay, @@userID, @@admin
+  end
+
+  set @$i = @$i + 1
+end
+
+select @$iingay = ngay_ct from #h56 where stt = 1
+if @$iingay &lt;&gt; @ngay_ct begin
+  if $partition$current = $partition$previous update h56$$partition$current set ngay_ct = convert(char(8), @ngay_ct, 112) where stt_rec = @stt_rec
+  else begin
+    insert into h56$$partition$current(stt_rec, ngay_ct, stt_rec_hd0, ngay_hd0, status0) select @stt_rec, @ngay_ct, stt_rec_hd0, ngay_hd0, status0 from #h56
+
+    select @$iiquery = 'delete h56$&#37;Partition where &#37;[stt_rec = ''' + replace(@stt_rec , '''', '') + ''']&#37;'
+    exec AI_ERP$Partition$Execute @$iiquery, null, 'ngay_ct', @$iingay, @$iingay, @@userID, @@admin
+  end
+end
+
+&InputInvoiceRefreshGridCommand;
+">
+  <!ENTITY IIDelete "
+declare @$stt_rec_hddv char(13), @$ngay_hddv smalldatetime, @$status_hddv char(1), @$iiquery nvarchar(4000)
+select identity(int, 1, 1) as stt, stt_rec_hd0, ngay_hd0, status0 into #h56 from h56$$partition$current where stt_rec = @stt_rec
+
+declare @$i int, @$n int
+select @$i = 1
+select @$n = count(*) from #h56
+while @$i &lt;= @$n begin
+  select @$stt_rec_hddv = stt_rec_hd0, @$ngay_hddv = ngay_hd0, @$status_hddv = status0 from #h56 where stt = @$i
+
+  if not isnull(@$stt_rec_hddv, '') = '' begin
+    delete h56$$partition$current where stt_rec = @stt_rec
+    select @$iiquery = '
+update m15$&#37;Partition set status = ''' + replace(@$status_hddv , '''', '') + ''', so_ct_gs = '''', ngay_ct_gs = null, tt_gs = ''1'', stt_rec_gs = '''' from m15$&#37;Partition where &#37;[stt_rec = ''' + replace(@$stt_rec_hddv , '''', '') + ''']&#37;
+update i15$&#37;Partition set status = ''' + replace(@$status_hddv , '''', '') + ''' from i15$&#37;Partition where &#37;[stt_rec = ''' + replace(@$stt_rec_hddv , '''', '') + ''']&#37;
+update c15$000000 set status = ''' + replace(@$status_hddv , '''', '') + ''' from c15$000000 where &#37;[stt_rec = ''' + replace(@$stt_rec_hddv , '''', '') + ''']&#37;'
+    exec AI_ERP$Partition$Execute @$iiquery, null, 'ngay_ct', @$ngay_hddv, @$ngay_hddv, @@userID, @@admin
+  end
+
+  set @$i = @$i + 1
+end
+">
+]]>
+
+<!ENTITY IIActiveVoucherScript "">
+<!ENTITY IICloseVoucherScript "">
+<!ENTITY IIInsertDataScript "">
+<!ENTITY IIInsert "">
+<!ENTITY IIDelete "">
+<!ENTITY IIInsertDataScriptDetail "">
+<!ENTITY IIInsertDataScriptTax "">

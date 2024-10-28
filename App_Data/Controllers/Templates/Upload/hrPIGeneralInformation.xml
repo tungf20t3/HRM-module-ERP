@@ -1,0 +1,467 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY s1 "Số CMND/CCCD &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt;">
+  <!ENTITY s2 "ID card No. &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt;">
+
+  <!ENTITY % CheckValidEmail SYSTEM "..\..\Include\CheckImportValidEmail.ent">
+  %CheckValidEmail;
+  <!ENTITY CheckValidEmail.FieldName "email_cty,email_ca_nhan">
+  <!ENTITY CheckValidEmail.MultiEmail "1=1">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrPIGeneralInformation' else 'hrPIGeneralInformation2' end as file_name">
+
+  <!ENTITY Controller "hrPIGeneralInformation">
+  <!ENTITY PrimeFieldImport "stt_rec">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="5"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$PIGeneralInformationImport$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$PIGeneralInformationImport$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrnv"/>
+    <table value="hrnv" alias="a"/>
+    <listTable value="#r"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <variable>
+    <var id="E0001">
+      <header v="Số CMND/CCCD đã có trong thông tin nhân viên." e="ID card No. is already exists." />
+    </var>
+    &MailImportVariable;
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ho_nv" column="." allowNulls="false"/>
+    <field name="ten_nv" column="." allowNulls="false"/>
+    <field name="bo_phan" column="." allowNulls="false" upperCase="true" check="bo_phan not in (select ma_bp from hrbp)" errorCode="00001"/>
+    <field name="gioi_tinh" column="." defaultValue="1" check="gioi_tinh not in ('1', '2')" errorCode="00002"/>
+    <field name="ngay_vao" column="." allowNulls="false" type="DateTime"/>
+    <field name="ngay_chinh_thuc" column="." type="DateTime"/>
+    <field name="ngay_sinh" column="." allowNulls="false" type="DateTime"/>
+    <field name="noi_sinh" column="."/>
+    <field name="ma_loai_gt" column="." check="ma_loai_gt &lt;&gt; '' and ma_loai_gt not in (select ma_loai_gt from dmloaigt)" errorCode="00001"/>
+    <field name="cmnd_so" column="."/>
+    <field name="cmnd_noi_cap" column="." upperCase="true" check="cmnd_noi_cap &lt;&gt; '' and cmnd_noi_cap not in (select ma_tinh from hrdmtinh)" errorCode="00001"/>
+    <field name="cmnd_ngay_hl" column="." type="DateTime"/>
+    <field name="cmnd_ngay_hh" column="." type="DateTime"/>
+    <field name="quoc_tich" column="." upperCase="true" check="quoc_tich &lt;&gt; '' and quoc_tich not in (select ma_qt from dmqt)" errorCode="00001"/>
+    <field name="dan_toc" column="." upperCase="true" check="dan_toc &lt;&gt; '' and dan_toc not in (select ma_dt from hrdmdt)" errorCode="00001"/>
+    <field name="ton_giao" column="." upperCase="true" check="ton_giao &lt;&gt; '' and ton_giao not in (select ma_tg from hrdmtg)" errorCode="00001"/>
+    <field name="hon_nhan" column="." upperCase="true" check="hon_nhan &lt;&gt; '' and hon_nhan not in (select ma_tthn from hrdmtthn)" errorCode="00001"/>
+    <field name="dien_thoai_dd" column="."/>
+    <field name="email_cty" column="."/>
+    <field name="dia_chi_ht_so" column="."/>
+    <field name="dia_chi_ht_xa" column="." upperCase="true" check="dia_chi_ht_xa &lt;&gt; '' and (dia_chi_ht_tinh = '' or dia_chi_ht_quan = '' or (dia_chi_ht_tinh &lt;&gt; '' and dia_chi_ht_quan &lt;&gt; '' and not exists(select 1 from hrdmphuong b where @@table.dia_chi_ht_tinh = b.ma_tinh and @@table.dia_chi_ht_quan = b.ma_quan and @@table.dia_chi_ht_xa = b.ma_phuong)))" errorCode="00001"/>
+    <field name="dia_chi_ht_quan" column="." upperCase="true" check="dia_chi_ht_quan &lt;&gt; '' and (dia_chi_ht_tinh = '' or dia_chi_ht_tinh &lt;&gt; '' and not exists(select 1 from hrdmquan b where @@table.dia_chi_ht_tinh = b.ma_tinh and @@table.dia_chi_ht_quan = b.ma_quan))" errorCode="00001"/>
+    <field name="dia_chi_ht_tinh" column="." upperCase="true" check="dia_chi_ht_tinh &lt;&gt; '' and dia_chi_ht_tinh not in (select ma_tinh from hrdmtinh)" errorCode="00001"/>
+    <field name="vi_tri" column="." upperCase="true" check="vi_tri &lt;&gt; '' and vi_tri not in (select ma_vtr from hrvt)" errorCode="00001"/>
+    <field name="bac_quan_ly" column="." upperCase="true" check="bac_quan_ly &lt;&gt; '' and bac_quan_ly not in (select ma_bac from hrdmbql)" errorCode="00001"/>
+    <field name="nv_ql" column="." upperCase="true" check="nv_ql &lt;&gt; '' and nv_ql not in (select ma_nv from hrnv union all select ma_nv from @@table)" errorCode="00001"/>
+    <field name="ma_tdhv" column="." upperCase="true" check="ma_tdhv &lt;&gt; '' and ma_tdhv not in (select ma_tdhv from hrdmtdhv)" errorCode="00001"/>
+    <field name="truong_hoc" column="."/>
+    <field name="ma_cn" column="." upperCase="true" check="ma_cn &lt;&gt; '' and ma_cn not in (select ma_cn from hrdmcn)" errorCode="00001"/>
+    <field name="ngay_hoc_tu" column="." type="DateTime"/>
+    <field name="ngay_hoc_den" column="." type="DateTime"/>
+    <field name="ngay_tot_nghiep" column="." type="DateTime"/>
+    <field name="loai_tot_nghiep" column="."/>
+    <field name="ma_nn" column="." upperCase="true" check="ma_nn &lt;&gt; '' and ma_nn not in (select ma_nn from hrdmnn)" errorCode="00001"/>
+    <field name="bang_cap" column="." upperCase="true" check="bang_cap &lt;&gt; '' and bang_cap not in (select ma_cc from hrdmcc)" errorCode="00001"/>
+    <field name="diem" column="."/>
+    <field name="ngay_cap_bang" column="." type="DateTime"/>
+    <field name="dien_thoai_cty" column="."/>
+    <field name="dien_thoai_nha" column="."/>
+    <field name="email_ca_nhan" column="."/>
+    <field name="giam_ho" column="."/>
+    <field name="nguoi_than" column="."/>
+    <field name="dia_chi_th_tru_so" column="."/>
+    <field name="dia_chi_th_tru_xa" column="." upperCase="true" check="dia_chi_th_tru_xa &lt;&gt; '' and (dia_chi_th_tru_tinh = '' or dia_chi_th_tru_quan = '' or (dia_chi_th_tru_tinh &lt;&gt; '' and dia_chi_th_tru_quan &lt;&gt; '' and not exists(select 1 from hrdmphuong b where @@table.dia_chi_th_tru_tinh = b.ma_tinh and @@table.dia_chi_th_tru_quan = b.ma_quan and @@table.dia_chi_th_tru_xa = b.ma_phuong)))" errorCode="00001"/>
+    <field name="dia_chi_th_tru_quan" column="." upperCase="true" check="dia_chi_th_tru_quan &lt;&gt; '' and (dia_chi_th_tru_tinh = '' or dia_chi_th_tru_tinh &lt;&gt; '' and not exists(select 1 from hrdmquan b where @@table.dia_chi_th_tru_tinh = b.ma_tinh and @@table.dia_chi_th_tru_quan = b.ma_quan))" errorCode="00001"/>
+    <field name="dia_chi_th_tru_tinh" column="." upperCase="true" check="dia_chi_th_tru_tinh &lt;&gt; '' and dia_chi_th_tru_tinh not in (select ma_tinh from hrdmtinh)" errorCode="00001"/>
+    <field name="que_quan_so" column="."/>
+    <field name="que_quan_xa" column="." upperCase="true" check="que_quan_xa &lt;&gt; '' and (que_quan_tinh = '' or que_quan_quan = '' or (que_quan_tinh &lt;&gt; '' and que_quan_quan &lt;&gt; '' and not exists(select 1 from hrdmphuong b where @@table.que_quan_tinh = b.ma_tinh and @@table.que_quan_quan = b.ma_quan and @@table.que_quan_xa = b.ma_phuong)))" errorCode="00001"/>
+    <field name="que_quan_quan" column="." upperCase="true" check="que_quan_quan &lt;&gt; '' and (que_quan_tinh = '' or que_quan_tinh &lt;&gt; '' and not exists(select 1 from hrdmquan b where @@table.que_quan_tinh = b.ma_tinh and @@table.que_quan_quan = b.ma_quan))" errorCode="00001"/>
+    <field name="que_quan_tinh" column="." upperCase="true" check="que_quan_tinh &lt;&gt; '' and que_quan_tinh not in (select ma_tinh from hrdmtinh)" errorCode="00001"/>
+    <field name="nh_nv1" column="." upperCase="true" check="nh_nv1 &lt;&gt; '' and nh_nv1 not in (select ma_nh from hrdmnhnv where loai_nh = '1')" errorCode="00001"/>
+    <field name="nh_nv2" column="." upperCase="true" check="nh_nv2 &lt;&gt; '' and nh_nv2 not in (select ma_nh from hrdmnhnv where loai_nh = '2')" errorCode="00001"/>
+    <field name="nh_nv3" column="." upperCase="true" check="nh_nv3 &lt;&gt; '' and nh_nv3 not in (select ma_nh from hrdmnhnv where loai_nh = '3')" errorCode="00001"/>
+
+    <field name="tinh_trang_nv" column="None" insertValue="@working" updateValue="None"/>
+    <field name="ma_dvcs" column="None"/>
+    <field name="bp_ref" column="None"/>
+    <field name="stt_rec" column="None" insertValue="@wsID + replace(str(stt + @currentID , 9), ' ', '0') + 'HRM'" updateValue="None"/>
+
+    <field name="dia_chi_ht_phuong" column="None"/>
+    <field name="dia_chi_th_tru_phuong" column="None"/>
+    <field name="que_quan_phuong" column="None"/>
+    <field name="dia_chi_ht" column="None" insertValue="rtrim(dia_chi_ht_so) + case when dia_chi_ht_so &lt;&gt; '' and dia_chi_ht_phuong &lt;&gt; '' then ' - ' else '' end + dia_chi_ht_phuong" updateValue="b.dia_chi_ht_so + case when b.dia_chi_ht_so &lt;&gt; '' and b.dia_chi_ht_phuong &lt;&gt; '' then ' - ' else '' end + b.dia_chi_ht_phuong"/>
+    <field name="dia_chi_th_tru" column="None" insertValue="rtrim(dia_chi_th_tru_so) + case when dia_chi_th_tru_so &lt;&gt; '' and dia_chi_th_tru_phuong &lt;&gt; '' then ' - ' else '' end + dia_chi_th_tru_phuong" updateValue="b.dia_chi_th_tru_so + case when b.dia_chi_th_tru_so &lt;&gt; '' and b.dia_chi_th_tru_phuong &lt;&gt; '' then ' - ' else '' end + b.dia_chi_th_tru_phuong"/>
+    <field name="que_quan" column="None" insertValue="rtrim(que_quan_so) + case when que_quan_so &lt;&gt; '' and que_quan_phuong &lt;&gt; '' then ' - ' else '' end + que_quan_phuong" updateValue="b.que_quan_so + case when b.que_quan_so &lt;&gt; '' and b.que_quan_phuong &lt;&gt; '' then ' - ' else '' end + b.que_quan_phuong"/>
+    <field name="status" column="None" insertValue="1" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Thông tin nhân viên" e="Employee Information"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_nv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ho_nv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Họ" e="Last Name"/>
+      </field>
+      <field name="ten_nv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tên" e="First Name"/>
+      </field>
+      <field name="bo_phan" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="gioi_tinh" width="16">
+        <text v="Giới tính" e="Gender"/>
+      </field>
+      <field name="ngay_vao" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày vào công ty" e="Join Date"/>
+      </field>
+      <field name="ngay_chinh_thuc" width="16">
+        <text v="Ngày vào chính thức" e="Official Hire Date"/>
+      </field>
+      <field name="ngay_sinh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày sinh" e="Date of Birth"/>
+      </field>
+      <field name="noi_sinh" width="32">
+        <text v="Nơi sinh" e="Place of Birth"/>
+      </field>
+      <field name="ma_loai_gt" width="16">
+        <text v="Loại giấy tờ" e="Identity Paper Type"/>
+      </field>
+      <field name="cmnd_so" width="16">
+        <text v="Số CMND/CCCD" e="ID Card No."/>
+      </field>
+      <field name="cmnd_noi_cap" width="16">
+        <text v="Nơi cấp" e="Place of Issue"/>
+      </field>
+      <field name="cmnd_ngay_hl" width="16">
+        <text v="Ngày cấp" e="Date of Issue"/>
+      </field>
+      <field name="cmnd_ngay_hh" width="16">
+        <text v="Ngày hết hạn" e="Expiry Date"/>
+      </field>
+      <field name="quoc_tich" width="16">
+        <text v="Quốc tịch" e="Nationality"/>
+      </field>
+      <field name="dan_toc" width="16">
+        <text v="Dân tộc" e="Ethnic"/>
+      </field>
+      <field name="ton_giao" width="16">
+        <text v="Tôn giáo" e="Religion"/>
+      </field>
+      <field name="hon_nhan" width="16">
+        <text v="Tình trạng hôn nhân" e="Marital Status"/>
+      </field>
+      <field name="dien_thoai_dd" width="16">
+        <text v="Điện thoại di động" e="Mobile Phone"/>
+      </field>
+      <field name="email_cty" width="32">
+        <text v="Thư (Email)" e="Email Address"/>
+      </field>
+      <field name="dia_chi_ht_so" width="32">
+        <text v="Địa chỉ hiện tại" e="Current Address"/>
+      </field>
+      <field name="dia_chi_ht_xa" width="16">
+        <text v="Phường/xã" e="Ward/Commune"/>
+      </field>
+      <field name="dia_chi_ht_quan" width="16">
+        <text v="Quận/huyện" e="District"/>
+      </field>
+      <field name="dia_chi_ht_tinh" width="16">
+        <text v="Tỉnh/thành" e="Province/City"/>
+      </field>
+      <field name="vi_tri" width="16">
+        <text v="Vị trí công việc" e="Province/City"/>
+      </field>
+      <field name="bac_quan_ly" width="16">
+        <text v="Bậc quản lý" e="Job Grade"/>
+      </field>
+      <field name="nv_ql" width="16">
+        <text v="Người quản lý trực tiếp" e="Direct Supervisor"/>
+      </field>
+      <field name="ma_tdhv" width="16">
+        <text v="Trình độ học vấn" e="Education Level"/>
+      </field>
+      <field name="truong_hoc" width="32">
+        <text v="Trường tốt nghiệp" e="Graduation from"/>
+      </field>
+      <field name="ma_cn" width="16">
+        <text v="Chuyên ngành" e="Education Major"/>
+      </field>
+      <field name="ngay_hoc_tu" width="16">
+        <text v="Từ ngày" e="From Date"/>
+      </field>
+      <field name="ngay_hoc_den" width="16">
+        <text v="Đến ngày" e="To Date"/>
+      </field>
+      <field name="ngay_tot_nghiep" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày tốt nghiệp" e="Graduation Date"/>
+      </field>
+      <field name="loai_tot_nghiep" width="16">
+        <text v="Xếp loại tốt nghiệp" e="Rank of Graduation"/>
+      </field>
+      <field name="ma_nn" width="16">
+        <text v="Ngoại ngữ" e="Foreign Language"/>
+      </field>
+      <field name="bang_cap" width="16">
+        <text v="Bằng cấp" e="Certificate"/>
+      </field>
+      <field name="diem" width="16">
+        <text v="Bằng/Điểm" e="Grade/Score"/>
+      </field>
+      <field name="ngay_cap_bang" width="16">
+        <text v="Ngày cấp" e="Date of Issue"/>
+      </field>
+      <field name="dien_thoai_cty" width="16">
+        <text v="Điện thoại công ty" e="Office Phone"/>
+      </field>
+      <field name="dien_thoai_nha" width="16">
+        <text v="Điện thoại nhà riêng" e="Home Phone"/>
+      </field>
+      <field name="email_ca_nhan" width="32">
+        <text v="Thư (Email) cá nhân" e="Email Address"/>
+      </field>
+      <field name="giam_ho" width="32">
+        <text v="Cha hoặc Mẹ hoặc Người giám hộ" e="Father or Mother or Guardian"/>
+      </field>
+      <field name="nguoi_than" width="32">
+        <text v="Thân nhân khác" e="Others"/>
+      </field>
+      <field name="dia_chi_th_tru_so" width="32">
+        <text v="Địa chỉ thường trú" e="Permanent Address"/>
+      </field>
+      <field name="dia_chi_th_tru_xa" width="16">
+        <text v="Phường/xã" e="Ward/Commune"/>
+      </field>
+      <field name="dia_chi_th_tru_quan" width="16">
+        <text v="Quận/huyện" e="District"/>
+      </field>
+      <field name="dia_chi_th_tru_tinh" width="16">
+        <text v="Tỉnh/thành" e="Province/City"/>
+      </field>
+      <field name="que_quan_so" width="32">
+        <text v="Quê quán" e="Native Country"/>
+      </field>
+      <field name="que_quan_xa" width="16">
+        <text v="Phường/xã" e="Ward/Commune"/>
+      </field>
+      <field name="que_quan_quan" width="16">
+        <text v="Quận/huyện" e="District"/>
+      </field>
+      <field name="que_quan_tinh" width="16">
+        <text v="Tỉnh/thành" e="Province/City"/>
+      </field>
+      <field name="nh_nv1" width="16">
+        <text v="Nhóm nhân viên 1" e="Employee Group 1"/>
+      </field>
+      <field name="nh_nv2" width="16">
+        <text v="Nhóm nhân viên 2" e="Employee Group 2"/>
+      </field>
+      <field name="nh_nv3" width="16">
+        <text v="Nhóm nhân viên 3" e="Employee Group 3"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @q nvarchar(4000), @key nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @wsID varchar(1), @working varchar(32), @maxID char(13), @identityCardConflict nvarchar(512)
+declare @user int, @admin bit, @language char(1), @sys varchar(32), @count int, @joinUnit bit, @joinDept bit, @r int, @currentID int
+
+select @admin = @@admin, @user = @@userID, @language = @@language, @sys = '@@sysDatabaseName', @key = '', @joinUnit = 0, @joinDept = 0
+select @wsID = rtrim(val) from options where rtrim(name) = 'm_ws_id'
+select @working = rtrim(val) from options where rtrim(name) = 'm_tt_lam_viec'
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @identityCardConflict = case when @@language = 'v' then N']]>&s1;<![CDATA[ đã có trong thông tin nhân viên.' else ']]>&s2;<![CDATA[ is already exists.' end
+
+-- Delete
+if @type = '0' delete @@table from @@table a where exists(select 1 from hrnv b where a.ma_nv = b.ma_nv)
+
+]]>&CheckValidEmailCommandCheckingImport;<![CDATA[
+-- Check
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_nv', stt, @message from @@table where ma_nv like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_nv', @r = min(stt) from @@table where ma_nv like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+]]>&Checking;<![CDATA[
+
+-- Check Identity Card Number
+-- + Self
+if @$mode = 1 begin
+  select cmnd_so into #duplicate0 from @@table where cmnd_so <> '' group by cmnd_so having count(*) > 1
+  if exists(select 1 from #duplicate0) begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'cmnd_so', a.stt, 'E0001' from @@table a join #duplicate0 b on a.cmnd_so = b.cmnd_so
+    where 1=1]]>&w1;<![CDATA['cmnd_so']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['E0001']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end
+end else begin
+  select @r = stt from (select min(stt) as stt from @@table where cmnd_so <> '' group by cmnd_so having count(*) > 1) a
+  if @r is not null begin
+    select replace(replace(@identityCardConflict, '%s1', cmnd_so), '%s2', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+
+select b.stt_rec, c.ma_dvcs, c.bp_ref, a.*, cast('' as nvarchar(511)) as dia_chi_ht_phuong, cast('' as nvarchar(511)) as dia_chi_th_tru_phuong, cast('' as nvarchar(511)) as que_quan_phuong
+  into #k from @@table a join hrnv b on a.ma_nv = b.ma_nv join hrbp c on a.bo_phan = c.ma_bp
+if @type = '1' delete @@table where ma_nv in (select ma_nv from #k)
+
+update #k set dia_chi_ht_phuong = b.ten_phuong from #k a join hrdmphuong b on a.dia_chi_ht_tinh = b.ma_tinh and a.dia_chi_ht_quan = b.ma_quan and a.dia_chi_ht_xa = b.ma_phuong
+update #k set dia_chi_th_tru_phuong = b.ten_phuong from #k a join hrdmphuong b on a.dia_chi_th_tru_tinh = b.ma_tinh and a.dia_chi_th_tru_quan = b.ma_quan and a.dia_chi_th_tru_xa = b.ma_phuong
+update #k set que_quan_phuong = b.ten_phuong from #k a join hrdmphuong b on a.que_quan_tinh = b.ma_tinh and a.que_quan_quan = b.ma_quan and a.que_quan_xa = b.ma_phuong
+
+-- + Inserting
+if @$mode = 1 begin
+  select a.ma_nv into #duplicate1 from @@table a join hrnv b on a.cmnd_so = b.cmnd_so left join #k c on b.ma_nv = c.ma_nv where a.cmnd_so <> '' and c.ma_nv is null group by a.ma_nv
+  if exists(select 1 from #duplicate1) begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'cmnd_so', a.stt, 'E0001' from @@table a join #duplicate1 b on a.ma_nv = b.ma_nv
+    where 1=1]]>&w1;<![CDATA['cmnd_so']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['E0001']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end
+end else begin
+  select @r = min(a.stt) from @@table a join hrnv b on a.cmnd_so = b.cmnd_so left join #k c on b.ma_nv = c.ma_nv where a.cmnd_so <> '' and c.ma_nv is null group by a.ma_nv
+  if @r is not null begin
+    select replace(replace(@identityCardConflict, '%s1', cmnd_so), '%s2', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+
+-- + Updating
+if @type = '1' begin
+  if @$mode = 1 begin
+    select a.ma_nv into #duplicate2 from #k a join hrnv b on a.cmnd_so = b.cmnd_so where a.cmnd_so <> '' and a.ma_nv <> b.ma_nv group by a.ma_nv
+    if exists(select 1 from #duplicate2) begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select 'cmnd_so', a.stt, 'E0001' from #k a join #duplicate2 b on a.ma_nv = b.ma_nv
+      where 1=1]]>&w1;<![CDATA['cmnd_so']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['E0001']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end
+  end else begin
+    select @r = min(a.stt) from #k a join hrnv b on a.cmnd_so = b.cmnd_so where a.cmnd_so <> '' and a.ma_nv <> b.ma_nv group by a.ma_nv
+    if @r is not null begin
+      select replace(replace(@identityCardConflict, '%s1', cmnd_so), '%s2', @@delta + @r) as message from #k where stt = @r
+      return
+    end
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Key
+if @admin = 0 begin
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+  select @q = 'delete @@table from @@table a where not exists(select 1 from hrbp e where a.bo_phan = e.ma_bp' + case when @key = '' then '' else ' and (' + @key + ')' end + ')'
+  exec sp_executesql @q
+
+  if @type = '1' begin
+    select @q = 'delete @@table from @@table where ma_nv in (select ma_nv from hrnv) and ma_nv not in (select ma_nv from hrnv e' + case when @key = '' then '' else ' where (' + @key + ')' end + ')'
+    exec sp_executesql @q
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'hrPIGeneralInformation', 'Edit') = 0 select @type = 0
+  end
+end
+
+-- Gather
+select top 0 ma_dvcs, bp_ref, ma_nv, ho_nv, ten_nv, bo_phan, gioi_tinh, ngay_vao, ngay_chinh_thuc, ngay_sinh, noi_sinh, ma_loai_gt, cmnd_so, cmnd_noi_cap, cmnd_ngay_hl, cmnd_ngay_hh, quoc_tich, dan_toc, ton_giao, hon_nhan, dien_thoai_dd, email_cty, dia_chi_ht_so, dia_chi_ht_phuong, dia_chi_ht_quan, dia_chi_ht_tinh, vi_tri, bac_quan_ly, nv_ql, ma_tdhv, truong_hoc, ma_cn, ngay_hoc_tu, ngay_hoc_den, ngay_tot_nghiep, loai_tot_nghiep, ma_nn, bang_cap, diem, ngay_cap_bang, dien_thoai_cty, dien_thoai_nha, email_ca_nhan, giam_ho, nguoi_than, dia_chi_th_tru_so, dia_chi_th_tru_phuong, dia_chi_th_tru_quan, dia_chi_th_tru_tinh, que_quan_so, que_quan_phuong, que_quan_quan, que_quan_tinh, nh_nv1, nh_nv2, nh_nv3, cast(0 as int) as stt, dia_chi_ht_xa, dia_chi_th_tru_xa, que_quan_xa into #r from hrnv
+
+insert into #r select b.ma_dvcs, b.bp_ref, a.ma_nv, a.ho_nv, a.ten_nv, a.bo_phan, a.gioi_tinh, a.ngay_vao, a.ngay_chinh_thuc, a.ngay_sinh, a.noi_sinh, a.ma_loai_gt, a.cmnd_so, a.cmnd_noi_cap, a.cmnd_ngay_hl, a.cmnd_ngay_hh, a.quoc_tich, a.dan_toc,
+    a.ton_giao, a.hon_nhan, a.dien_thoai_dd, a.email_cty, a.dia_chi_ht_so, c.ten_phuong as dia_chi_ht_phuong, a.dia_chi_ht_quan, a.dia_chi_ht_tinh, a.vi_tri, a.bac_quan_ly, a.nv_ql, a.ma_tdhv, a.truong_hoc, a.ma_cn, a.ngay_hoc_tu, a.ngay_hoc_den, a.ngay_tot_nghiep, a.loai_tot_nghiep,
+    a.ma_nn, a.bang_cap, a.diem, a.ngay_cap_bang, a.dien_thoai_cty, a.dien_thoai_nha, a.email_ca_nhan, a.giam_ho, a.nguoi_than, a.dia_chi_th_tru_so, d.ten_phuong as dia_chi_th_tru_phuong, a.dia_chi_th_tru_quan, a.dia_chi_th_tru_tinh, a.que_quan_so, e.ten_phuong as que_quan_phuong, a.que_quan_quan, a.que_quan_tinh,
+    a.nh_nv1, a.nh_nv2, a.nh_nv3, a.stt, a.dia_chi_ht_xa, a.dia_chi_th_tru_xa, a.que_quan_xa
+  from @@table a join hrbp b on a.bo_phan = b.ma_bp
+    left join hrdmphuong c on a.dia_chi_ht_tinh = c.ma_tinh and a.dia_chi_ht_quan = c.ma_quan and a.dia_chi_ht_xa = c.ma_phuong
+    left join hrdmphuong d on a.dia_chi_th_tru_tinh = d.ma_tinh and a.dia_chi_th_tru_quan = d.ma_quan and a.dia_chi_th_tru_xa = d.ma_phuong
+    left join hrdmphuong e on a.que_quan_tinh = e.ma_tinh and a.que_quan_quan = e.ma_quan and a.que_quan_xa = e.ma_phuong
+
+-- Insert
+select @count = count(*) from #r
+if @count > 0 begin
+  select @maxID = max(stt_rec) from hrnv
+  select @currentID = case when @maxID is null then 1 else cast(substring(@maxID, 2, 9) as int) end
+
+  ]]>&Inserting;<![CDATA[ end
+
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  update #k set bo_phan = b.bo_phan, bp_ref = b.bp_ref, vi_tri = b.vi_tri, bac_quan_ly = b.bac_quan_ly, nv_ql = b.nv_ql
+    from #k a join hrnv b on a.stt_rec = b.stt_rec join hreqtlvht c on a.stt_rec = c.stt_rec
+  update hrnv set @@list from hrnv a join #k b on a.stt_rec = b.stt_rec
+
+  if exists (select 1 from options where name = 'd_001' and val = '1') begin
+    update dvhrnv set status = '3' from dvhrnv a join #k b on a.stt_rec_nv = b.stt_rec
+    delete dvxlduyet where stt_rec in (select a.stt_rec from dvhrnv a join #k b on a.stt_rec_nv = b.stt_rec)
+  end
+end
+]]>
+    </text>
+  </processing>
+
+</import>

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="Import" targetNamespace="urn:schemas-ai-erp:data-import" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-import" xmlns:a="urn:schemas-ai-erp:data-import" xmlns:mstns="urn:schemas-ai-erp:data-import" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="config" type="configType" />
+  <xs:complexType name="configType">
+    <xs:sequence>
+      <xs:element name="query" type="queryType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="define" type="defineType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="controllers" type="controllersType" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="defineType">
+    <xs:sequence>
+      <xs:element name="field" type="defineFieldType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="controllersType">
+    <xs:sequence>
+      <xs:element name="controller" type="controllerType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="controllerType">
+    <xs:sequence>
+      <xs:element name="fields" type="fieldsType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="command" type="commandType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="items" type="itemType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="type" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="itemType">
+    <xs:sequence>
+      <xs:element name="replace" type="replaceType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="replaceType">
+    <xs:attribute name="field" type="xs:string" use="required"/>
+    <xs:attribute name="source" type="xs:string" use="required"/>
+    <xs:attribute name="destination" type="xs:string" use="required"/>
+    <xs:attribute name="reference" type="xs:string" use="optional"/>
+    <xs:attribute name="limit" type="xs:boolean" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="fieldsType">
+    <xs:sequence>
+      <xs:element name="add" type="addType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="check" type="checkType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="addType">
+    <xs:sequence>
+      <xs:element name="field" type="fieldType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="checkType">
+    <xs:sequence>
+      <xs:element name="field" type="checkFieldType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="checkFieldType">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="check" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="defineFieldType">
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="source" type="xs:string" use="optional"/>
+    <xs:attribute name="key" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="fieldType">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="column" type="xs:string" use="required"/>
+    <xs:attribute name="type" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="String"/>
+          <xs:enumeration value="DateTime"/>
+          <xs:enumeration value="Boolean"/>
+          <xs:enumeration value="Decimal"/>
+          <xs:enumeration value="Int"/>
+          <xs:enumeration value="Float"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="ansi" type="xs:boolean" use="optional"/>
+    <xs:attribute name="defaultValue" type="xs:string" use="optional"/>
+    <xs:attribute name="isPrimaryKey" type="xs:boolean" use="optional"/>
+    <xs:attribute name="allowNulls" type="xs:boolean" use="optional"/>
+    <xs:attribute name="upperCase" type="xs:boolean" use="optional"/>
+    <xs:attribute name="maxLength" type="xs:int" use="optional"/>
+    <xs:attribute name="reference" type="xs:string" use="optional"/>
+    <xs:attribute name="alias" type="xs:string" use="optional"/>
+    <xs:attribute name="relation" type="xs:string" use="optional"/>
+    <xs:attribute name="check" type="xs:string" use="optional"/>
+    <xs:attribute name="condition" type="xs:string" use="optional"/>
+    <xs:attribute name="tag" type="xs:string" use="optional"/>
+    <xs:attribute name="list" type="xs:string" use="optional"/>
+    <xs:attribute name="resource" type="xs:string" use="optional"/>
+    <xs:attribute name="expression" type="xs:string" use="optional"/>
+    <xs:attribute name="insertValue" type="xs:string" use="optional"/>
+    <xs:attribute name="updateValue" type="xs:string" use="optional"/>
+    <xs:attribute name="category" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="queryType">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="commandType">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="intType">
+    <xs:attribute name="value" type="xs:int"/>
+  </xs:complexType>
+  <xs:complexType name="stringType">
+    <xs:attribute name="value" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="typeType">
+    <xs:attribute name="value">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="List"/>
+          <xs:enumeration value="Voucher"/>
+          <xs:enumeration value="Other"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+</xs:schema>

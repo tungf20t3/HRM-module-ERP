@@ -1,0 +1,37 @@
+﻿<!ENTITY % Conditional.VisibleField SYSTEM "..\Include\VoucherVisibleField.txt">
+
+<![%Conditional.VisibleField;[
+  <!ENTITY VisibleFieldScript SYSTEM "..\Include\Javascript\VisibleFieldGrid.txt">
+  <!ENTITY VisibleFieldGridShowing "
+declare @$visibleField varchar(4000)
+exec AI_ERP$System$VisibleField @@id, @@userID, '@@sysDatabaseName', @$visibleField out
+select @$visibleField = case when @$visibleField &lt;&gt; '' then '{' + @$visibleField + '}' else 'null' end
+select @message = @message + 'showing$VisibleField$Grid(this, ' + @$visibleField + ', ''&VisibleFieldController;'');'
+">
+  <!ENTITY VisibleFieldGridDetailShowing "
+select @message = @message + 'showing$VisibleField$GridDetail(this, ''&VisibleFieldController;'');'
+">
+  
+  <!ENTITY InitFormVisibleField "init$VisibleField$Form(f, '&VisibleFieldController;');">
+  <!ENTITY LoadFormVisibleField "load$VisibleField$Form(f);">
+
+  <!ENTITY VisibleFieldPrinting "
+create table #visibleFieldPrint(controller varchar(64), ds_truong_an varchar(1024))
+insert into #visibleFieldPrint exec AI_ERP$Report$VisibleFieldPrinting @@id, @@userID, '@@sysDatabaseName'
+">
+  <!ENTITY VisibleFieldPrintTempTable "into #tempResult">
+  <!ENTITY VisibleFieldPrintTempResult "
+exec AI_ERP$Report$VisibleFieldSetting '#tempResult', '&VisibleFieldController;Master'
+select * from #tempResult">
+]]>
+
+<!ENTITY VisibleFieldScript "">
+<!ENTITY VisibleFieldGridShowing "">
+<!ENTITY VisibleFieldGridDetailShowing "">
+<!ENTITY InitFormVisibleField "">
+<!ENTITY LoadFormVisibleField "">
+
+<!ENTITY VisibleFieldPrinting "">
+<!ENTITY VisibleFieldPrintTempTable "">
+<!ENTITY VisibleFieldPrintTempResult "">
+

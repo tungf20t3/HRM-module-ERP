@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="mdbbh" code="ngay_ct1, ngay_ct2, ma_vt, ma_kho" order="ngay_ct1, ngay_ct2, ma_vt, ma_kho" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xóa các bản ghi" e="Delete Records"></title>
+  <fields>
+    <field name="ngay_ct01" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày bắt đầu từ ngày" e="Start Date"></header>
+      <footer v="Ngày bắt đầu từ/đến" e="Start Date from/to"></footer>
+    </field>
+    <field name="ngay_ct02" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày bắt đầu đến ngày" e="Date to"></header>
+    </field>
+
+    <field name="ngay_ct11" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày kết thúc từ ngày" e="End Date"></header>
+      <footer v="Ngày kết thúc từ/đến" e="End Date from/to"></footer>
+    </field>
+    <field name="ngay_ct12" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày bắt đầu đến ngày" e="Date to"></header>
+    </field>
+
+    <field name="ma_vt">
+      <header v="Mã vật tư" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="kieu_hd &lt;&gt; '0' and status = '1'" check="kieu_hd &lt;&gt; '0' " information="ma_vt$dmvt.ten_vt%l" new="Default"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_kho">
+      <header v="Mã kho" e="Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="xoa_yn" type="Boolean" external="true" allowContain="true" defaultValue="true">
+      <header v="" e=""></header>
+      <footer v="Xác nhận xóa dự báo" e="Confirm delete"></footer>
+      <items style="CheckBox"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 20, 80, 100, 230"/>
+      <item value="1101: [ngay_ct01].Description, [ngay_ct01], [ngay_ct02]"/>
+      <item value="1101: [ngay_ct11].Description, [ngay_ct11], [ngay_ct12]"/>
+      <item value="11010: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11010: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="11: [xoa_yn].Description, [xoa_yn]"/>
+    </view>
+  </views>
+  <commands>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this;
+if (f.getItemValue('xoa_yn') == false) {
+  var msg = (f._language == 'v' ? 'Chưa chọn xác nhận xóa dự báo.' : 'Invalid input.');
+  f._checked = false;
+  $message.show(msg);
+}
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+if (@$xoa_yn = 1) begin
+  declare @q nvarchar(4000)
+  select @q = 'delete mdbbh from mdbbh a join dmkho b on a.ma_kho = b.ma_kho where a.ngay_ct1 between ''' + replace(convert(char(8), @ngay_ct01, 112), '''', '')  + ''' and ''' + replace(convert(char(8), @ngay_ct02, 112), '''', '') + ''''
+  select @q = @q + ' and a.ngay_ct2 between ''' + replace(convert(char(8), @ngay_ct11, 112), '''', '')  + ''' and ''' + replace(convert(char(8), @ngay_ct12, 112), '''', '') + ''''
+  select @q = @q + ' and (exists (select 1 from sysunitrights where user_id = @@userID and r_del = 1 and b.ma_dvcs = ma_dvcs) or @@admin = 1)'
+  select @q = @q + ' and (not exists(select 1 from syssiterights where user_id = @@userID) or a.ma_kho in (select ma_kho from syssiterights where user_id = @@userID))'
+
+  if @ma_vt <> '' select @q = @q + ' and a.ma_vt like ''' + replace(@ma_vt, '''', '''''') + '%''' 
+  if @ma_kho <> '' select @q = @q + ' and a.ma_kho like ''' + replace(@ma_kho, '''', '''''') + '%'''
+
+  exec sp_executesql @q
+end
+]]>
+      </text>
+    </command>
+  </commands>
+</dir>

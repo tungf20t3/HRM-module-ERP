@@ -1,0 +1,16 @@
+﻿<![CDATA[
+select top 0 * into ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ from d]]>&EnvironmentTaxPrimeTable;<![CDATA[$000000
+declare @$p varchar(6), @key varchar(32)
+select @key = replace(@stt_rec, '''', '')
+select @$p = convert(char(6), ngay_ct, 112) from c]]>&EnvironmentTaxPrimeTable;<![CDATA[$000000 where stt_rec = @stt_rec
+execute('insert into ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ select * from d]]>&EnvironmentTaxPrimeTable;<![CDATA[$' + @$p + ' where stt_rec = ''' + @key + '''')
+
+select distinct a.ma_vt, a.dvt, a.muc_thue, a.ty_le as tl_chiu_thue, a.tk_thue_mt, b.dvt as dvt_0, a.ty_le * 0 as he_so_mt, a.ty_le * 0 as ty_le_0, a.ty_le * 0 as ty_le_2 into #dmkbtmt
+  from dmkbtmt a join ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ b on a.ma_vt = b.ma_vt
+    where a.loai = ]]>&EnvironmentTaxType;<![CDATA[ and a.ngay_hl =(select max(ngay_hl) from dmkbtmt c where c.ngay_hl <= @ngay_mt and c.ma_vt = b.ma_vt and c.loai = ]]>&EnvironmentTaxType;<![CDATA[) and stt_rec = @stt_rec
+
+update #dmkbtmt set he_so_mt = 1 where dvt = dvt_0
+update #dmkbtmt set ty_le_0 = b.he_so from #dmkbtmt a join vdmvtqddvt b on a.dvt = b.dvt and a.ma_vt = b.ma_vt where a.he_so_mt = 0
+update #dmkbtmt set ty_le_2 = b.he_so from #dmkbtmt a join vdmvtqddvt b on a.dvt_0 = b.dvt and a.ma_vt = b.ma_vt where a.he_so_mt = 0
+update #dmkbtmt set he_so_mt = he_so/ty_le_0*ty_le_2 from #dmkbtmt a join vdmvtqddvt b ON a.ma_vt = b.ma_vt where b.xtype = 'S' and a.he_so_mt = 0
+]]>

@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY NotifyContentCss SYSTEM "..\Include\XML\NotifyContentCss.txt">
+
+  <!ENTITY Identity "rptNotifyListDetail">
+
+  <!ENTITY FormNoPaddingWidth "753">
+  <!ENTITY FormNoPaddingScript SYSTEM "..\Include\Javascript\FormNoPadding.txt">
+]>
+
+<dir id="0" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chi tiết lỗi" e="Error Detail"></title>
+  <fields>
+    <field name="noi_dung" external="true" readOnly="true" defaultValue="''" filterSource="Plugin">
+      <header v="" e=""></header>
+      <footer v="&lt;div id=&quot;viewContent&quot; &gt;&lt;/div&gt;" e="&lt;div id=&quot;viewContent&quot; &gt;&lt;/div&gt;"></footer>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="279" anchor="1">
+      <item value="&FormNoPaddingWidth;"/>
+      <item value="1: [noi_dung].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'show$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function show$]]>&Identity;<![CDATA[$(f) {
+  show$NoPadding$Form(f, 'viewContent');
+}
+function active$]]>&Identity;<![CDATA[$(f) {
+  active$NoPadding$Form(f);
+  var g = f.grid, vc = $get('viewContent');
+  vc.style.backgroundColor = '#fff';
+  if (g._currentContentObject) vc.appendChild(g._currentContentObject);
+  else vc.innerHTML = g._currentContent;
+  f._findButton('Close').focus();
+}
+
+function close$]]>&Identity;<![CDATA[$(f) {
+  close$NoPadding$Form(f);
+  if (f.grid._importForm) {
+    var btn = f.grid._importForm._findButton('Cancel');
+    if (btn) btn.focus();
+    f.grid._importForm = null;
+  }
+}
+]]>
+      &FormNoPaddingScript;
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.ime-header{background-color:#F3F3F3;cursor:pointer;padding:4px;border-top:1px solid #d2d6d9;height:13px;}
+.ime-header:hover{background-color:#EAF5F9}
+.ime-header:before{content: url(../Images/Tree/p3.png);float:left;margin-right:5px;font-size:6pt}
+.ime-content{padding:5px 5px 5px 20px;white-space:normal;}
+.ime-active{background-color:#D7EDF4}
+.ime-active:before{content: url(../Images/Tree/m3.png)}
+]]>
+    </text>
+  </css>
+</dir>

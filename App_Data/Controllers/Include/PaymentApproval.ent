@@ -1,0 +1,80 @@
+﻿<!ENTITY % Conditional.PaymentApproval SYSTEM "..\Include\PaymentApproval.txt">
+
+<![%Conditional.PaymentApproval;[
+  <!ENTITY APVXMLFields SYSTEM "..\Include\XML\APVXMLFields.txt">
+  <!ENTITY APVXMLViews SYSTEM "..\Include\XML\APVXMLViews.txt">
+  <!ENTITY APVXMLCategoryIndex SYSTEM "..\Include\XML\APVXMLCategoryIndex.txt">
+  <!ENTITY APVInitExternalFieldsDeclare SYSTEM "..\Include\Command\APVInitExternalFieldsDeclare.txt">
+  <!ENTITY APVInitExternalFieldsSelect SYSTEM "..\Include\Command\APVInitExternalFieldsSelect.txt">
+  <!ENTITY APVCheckApprove SYSTEM "..\Include\Command\APVCheckApprove.txt">
+  <!ENTITY APVApprove SYSTEM "..\Include\Command\APVApprove.txt">
+  <!ENTITY APVMailApproveInsert SYSTEM "..\Include\Command\APVMailApproveInsert.txt">
+  <!ENTITY APVMailApproveUpdate SYSTEM "..\Include\Command\APVMailApproveUpdate.txt">
+  <!ENTITY APVDelete SYSTEM "..\Include\Command\APVDelete.txt">
+  <!ENTITY APVWhenVoucherCopying SYSTEM "..\Include\Javascript\APVWhenVoucherCopying.txt">
+  <!ENTITY APVSetVoucherDefaultValue SYSTEM "..\Include\Javascript\APVSetVoucherDefaultValue.txt">
+  <!ENTITY APVSetReadOnlyFields SYSTEM "..\Include\Javascript\APVSetReadOnlyFields.txt">
+  <!ENTITY APVHandleStatus SYSTEM "..\Include\Javascript\APVHandleStatus.txt">
+  <!ENTITY APVAddStatus SYSTEM "..\Include\Javascript\APVAddStatus.txt">
+  <!ENTITY APVFunctionScript SYSTEM "..\Include\Javascript\APVFunctionScript.txt">
+  <!ENTITY APVTabChange ", 'nguoi_duyet'">
+  <!ENTITY APVInitExternalFieldsSelectWithComma ",&APVInitExternalFieldsSelect;">
+  <!ENTITY APVStatusField SYSTEM "..\Include\XML\APVPaymentStatusField.txt">
+
+  <!ENTITY APVPostGetStatusNext "@$status">
+  <!ENTITY APVPostCondition "&APVPostGetStatusNext; = '2'">
+
+  <!ENTITY APVStatus ", 4, 9">
+  <!ENTITY APVTaxStatus "case when @status &lt;&gt; '2' then '0' else '2' end">
+  <!ENTITY APVPayableStatus " and e.status = '2'">
+
+  <!ENTITY APVHiddenImportStatus "
+select 'if (this.getItem(''status'')) $common.setVisible(this.getItem(''status'').parentNode.parentNode.parentNode, false);' as message
+return
+    ">
+  <!ENTITY APVImportVoucherCommand "">
+  <!ENTITY % PostNotifyApproval SYSTEM "..\Include\PostNotifyApprovalVoucher.ent">
+  %PostNotifyApproval;
+
+  <!ENTITY APVStatusFieldAutoGenerate "">
+  <!ENTITY APVStatusCheckAutoGenerate "
+if @status &lt;&gt; '0' begin
+  select 'status' as field, '$NotAuthorized' as message
+  return
+end">
+
+  <!ENTITY APVHistoryToolbar SYSTEM "..\Include\XML\APVHistoryToolbar.xml">
+]]>
+
+<!ENTITY APVXMLFields "">
+<!ENTITY APVXMLViews "">
+<!ENTITY APVXMLCategoryIndex "">
+<!ENTITY APVInitExternalFieldsDeclare "">
+<!ENTITY APVInitExternalFieldsSelect "">
+<!ENTITY APVCheckApprove "">
+<!ENTITY APVApprove "">
+<!ENTITY APVMailApproveInsert "">
+<!ENTITY APVMailApproveUpdate "">
+<!ENTITY APVDelete "">
+<!ENTITY APVWhenVoucherCopying "">
+<!ENTITY APVSetVoucherDefaultValue "">
+<!ENTITY APVSetReadOnlyFields "">
+<!ENTITY APVHandleStatus "">
+<!ENTITY APVAddStatus "">
+<!ENTITY APVFunctionScript "">
+<!ENTITY APVTabChange "">
+<!ENTITY APVInitExternalFieldsSelectWithComma "">
+<!ENTITY APVStatusField SYSTEM "..\Include\XML\APVPaymentStatusFieldDefault.txt">
+<!ENTITY APVStatus "">
+<!ENTITY APVTaxStatus "@status">
+<!ENTITY APVPayableStatus "">
+
+<!ENTITY APVPostGetStatusNext "@status">
+<!ENTITY APVPostCondition "@status &lt;&gt;'0'">
+<!ENTITY APVHiddenImportStatus "">
+<!ENTITY APVImportVoucherCommand "&ImportVoucherCommand;">
+
+<!ENTITY APVStatusFieldAutoGenerate SYSTEM "..\Include\XML\APVStatusFieldAutoGenerate.txt">
+<!ENTITY APVStatusCheckAutoGenerate "">
+
+<!ENTITY APVHistoryToolbar "">

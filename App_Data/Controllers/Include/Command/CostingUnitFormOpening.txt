@@ -1,0 +1,21 @@
+﻿  <command event="Showing">
+    <text>
+      <![CDATA[
+declare @unitName nvarchar(1023), @costDept char(1), @costMO char(1), @costUnit char(1), @message nvarchar(4000)
+select @unitName = case when @@language = 'v' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit
+
+select @costUnit = rtrim(val) from options where name = 'm_gt_dvcs'
+select @costDept = rtrim(val) from options where name = 'x_dt_bp'
+select @costMO = rtrim(val) from options where name = 'x_dt_lsx'
+
+if @costUnit = '1' and exists(select 1 from options where name = 'm_dtgt_dvcs' and rtrim(val) = '1')
+  select @costDept = isnull(x_dt_bp, 0), @costMO = isnull(x_dt_lsx, 0) from dmdvcskb where status = '1' and ma_dvcs = @@unit and (x_dt_bp <> 0 or x_dt_lsx <> 0 or x_dt_sp <> 0)
+
+select @message = 'var f = this;f._unitCode=''' + @@unit + ''';f._unitName=''' + replace(replace(isnull(@unitName, ''), '\', '\\'), '''', '\''') + ''';f._controlFocus = f.getItem('']]>&ControlFocus;<![CDATA['');setObjectFormHidden(f, ''ma_dvcs'', f.grid._costUnit);'
+select @message = @message + 'setObjectFormHidden(f, ''ma_bp'', ' + case when @costDept = '1' then 'true' else 'false' end + ');setObjectFormHidden(f, ''so_lsx'', ' + case when @costMO = '1' then 'true' else 'false' end + ');'
+
+select @message as message
+return
+]]>
+    </text>
+  </command>

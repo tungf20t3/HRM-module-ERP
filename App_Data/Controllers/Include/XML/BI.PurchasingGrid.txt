@@ -1,0 +1,285 @@
+﻿  <title v="" e=""></title>
+  <subTitle v="" e=""></subTitle>
+  <fields>
+    <field name="&k1;" isPrimaryKey="true" width="0" hidden="true" dataFormatString="@upperCaseFormat" aliasName="isnull(a.&k1;, '')">
+      <header v="" e=""></header>
+    </field>
+    <field name="&k2;" isPrimaryKey="true" width="0" hidden="true" dataFormatString="@upperCaseFormat" aliasName="isnull(a.&k2;, '')">
+      <header v="" e=""></header>
+    </field>
+    <field name="name" width="0" hidden="true" aliasName="isnull(a.name, b.name)">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_phan_he" width="0" hidden="true" readOnly="true" inactivate="true" aliasName="b">
+      <header v="" e=""></header>
+    </field>
+    <field name="descript%l" width="300" readOnly="true" aliasName="b">
+      <header v="Tên tham số hệ thống" e="System Parameter Name"></header>
+    </field>
+
+    <field name="gt_nhap" width="100" external="true" aliasName="isnull(a.valdetail_view%l, b.valdetail_view%l)" readOnly="true">
+      <header v="Giá trị" e="Value"></header>
+    </field>
+    <field name="gt_nd" width="0" hidden="true" external="true" aliasName="isnull(b.valdetail_view%l, '')" readOnly="true">
+      <header v="Giá trị ngầm định" e="Default Value"></header>
+    </field>
+    <field name="val" width="0" hidden="true" aliasName="isnull(a.valdetail, b.valdetail)">
+      <header v="" e=""></header>
+    </field>
+    <field name="val_df" width="0" external="true" hidden="true" aliasName="isnull(b.valdetail, '')" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="cmb_view%l" width="0" external="true" hidden="true" aliasName="b" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+   <field name="cmb_val" width="0" external="true" hidden="true" aliasName="b" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_sx" type="Int32" width="0" align="right" hidden="true" aliasName="b">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Grid">
+      <field name="&k1;"/>
+      <field name="&k2;"/>
+      <field name="name"/>
+      <field name="ma_phan_he"/>
+      <field name="descript%l"/>
+      <field name="gt_nhap"/>
+      <field name="gt_nd"/>
+      <field name="val"/>
+      <field name="val_df"/>
+      <field name="cmb_val"/>
+      <field name="cmb_view%l"/>
+      <field name="stt_sx"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Controller;<![CDATA[Detail$(this);' as message
+return]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'dispose$]]>&Controller;<![CDATA[Detail$(this);' as message
+return]]>
+      </text>
+    </command>
+
+    <command event="Scattering">
+      <text>
+        <![CDATA[
+select 'scatter$]]>&Controller;<![CDATA[Detail$(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$]]>&Controller;<![CDATA[Detail$(g) {
+  g.add_onResponseComplete(on$]]>&Controller;<![CDATA[Detail$ResponseComplete);
+  g.add_commandEvent(on$]]>&Controller;<![CDATA[Detail$ExecuteCommand);
+}
+function dispose$]]>&Controller;<![CDATA[Detail$(g) {
+  try {g.remove_commandEvent(on$]]>&Controller;<![CDATA[Detail$ExecuteCommand);} catch (ex) {}
+  try {g.remove_onResponseComplete(on$]]>&Controller;<![CDATA[Detail$ResponseComplete);} catch (ex) {}
+}
+function scatter$]]>&Controller;<![CDATA[Detail$(g) {
+  var f = g.get_element().parentForm, z = f.grid, jsonString = z._detailInfo.data, a = ['val'], l;
+  f._dataIndex = [g._getColumnOrder('name'), g._getColumnOrder('val')];
+  f._dataKeyCheck = g._getColumnOrder('val');
+  f._valueCheck = g._getColumnOrder('val_df');
+  ]]>&Controller;<![CDATA[$FillGrid(g, jsonString, f._dataIndex);
+}
+
+function on$]]>&Controller;<![CDATA[Detail$ExecuteCommand(sender, e) {
+  var action = e.type.Action, g = sender, f = g.get_element().parentForm;
+  switch (action) {
+    case 'InputPrameter':
+      var r = g._activeRow, c0 = g._getColumnOrder('val'), c1 = g._getColumnOrder('ma_phan_he'), c2 = g._getColumnOrder('descript%l'), c3 = g._getColumnOrder('name');
+      if (r < 1) break;
+      var code = f.getItemValue(']]>&k1;<![CDATA[');
+      v0 = g._getItemValue(r, c0), v1 = g._getItemValue(r, c1), v2 = g._getItemValue(r, c2);
+      v3 = g._getItemValue(r, c3);
+      g._detailInfo = {
+          data: {
+            value: v0,
+            module: v1,
+            parameterName: v2
+          },         
+          handle: on$GridDetail$Parameter$Retrieve};
+        g.request(g, 'GetInfoParameter', 'GetInfoParameter', [['name', 'String', v3], ['code', 'String', code]]);
+      break;
+    case 'Option':
+      var r = g._activeRow, c0 = g._getColumnOrder('gt_nhap'), c1 = g._getColumnOrder('gt_nd'), c2 = g._getColumnOrder('val'), c3 = g._getColumnOrder('val_df')
+      if (r > 0) {
+        g._setItemValue(r, c0, g._getItemValue(r, c1));
+        g._setItemValue(r, c2, g._getItemValue(r, c3));
+      }
+      break;
+    default:
+      break;
+  }
+}
+function on$]]>&Controller;<![CDATA[Detail$ResponseComplete(sender, e) {
+  var g = e.object, context = e.type.Context, result = e.type.Result, o = e.type.Object;
+  switch (context) {
+    case 'GetInfoParameter':
+      g._detailInfo['dataRef'] = {
+        itemStyle: result[0].Value,
+        itemFormat: result[1].Value,
+        itemValue: result[2].Value,
+        itemText: result[3].Value,
+        itemInit: g._detailInfo.data.value,
+        checkList: result[4].Value,
+        controllerLookup: result[5].Value,
+        lookupKey: result[6].Value,
+        lookupCheck: result[7].Value,
+        upperKey: result[8].Value,
+        irregular: result[9].Value,
+        check: result[10].Value
+      };
+      g.showForm('BIParameterInputForm');
+      break;
+    default:
+      break;
+  }
+}
+function on$GridDetail$Parameter$Retrieve(g, result) {
+  var r = g._activeRow, c0 = g._getColumnOrder('val'), c1 = g._getColumnOrder('gt_nhap');
+  g._setItemValue(r, c0, result.value);
+  g._setItemValue(r, c1, result.name);
+  g._focusWhenTabChanged();
+}
+function ]]>&Controller;<![CDATA[$FillGrid(g, jsonString, dataIndex) {
+  var colValueInput = g._getColumnOrder('gt_nhap'), cmbValColumn = g._getColumnOrder('cmb_val'), cmbTextColumn = g._getColumnOrder('cmb_view%l'),
+    colDefault = g._getColumnOrder('gt_nd'), colVal = g._getColumnOrder('val'), colValDefault = g._getColumnOrder('val_df');
+  if (jsonString != '') {
+    var data = eval(jsonString);
+    for (var row = 1; row <= g._rowCount; row++) {
+      g._setItemValue(row, colValueInput, g._getItemValue(row, colDefault));
+      g._setItemValue(row, colVal, g._getItemValue(row, colValDefault));
+      for (var i = 0; i < data.length; i++) {
+        var valKey = data[i][0], val = data[i][1];      
+        if (valKey == g._getItemValue(row, dataIndex[0])) {
+          g._setItemValue(row, dataIndex[1], val);
+          var cmbVal = g._getItemValue(row, cmbValColumn);
+   
+          if (cmbVal != '') {
+            var index = cmbVal.split(',').indexOf(val);
+            g._setItemValue(row, colValueInput, g._getItemValue(row, cmbTextColumn).split(',')[index]);
+          } else {
+            g._setItemValue(row, colValueInput, val);
+          }
+        }
+      }
+    }
+  } else {
+    for (var row = 1; row <= g._rowCount; row++) {
+       g._setItemValue(row, colValueInput, g._getItemValue(row, colDefault));
+       g._setItemValue(row, colVal, g._getItemValue(row, colValDefault));
+    }
+  }
+}
+function ]]>&Controller;<![CDATA[$GetJson(g, dataIndex, dataKeyCheck, valueCheck) {
+  if (g._rowCount <= 0) return null;
+
+  var data = [];
+  for (var i = 1; i <= g._rowCount; i++) {
+    if (g._getItemValue(i, dataKeyCheck) != g._getItemValue(i, valueCheck)) {
+      var d = [];
+      for (var j = 0; j < dataIndex.length; j++) {
+        var l = dataIndex[j], a = g._fields[l - 1];
+        var v = g._getItemValue(i, l);
+        if (a.Type == 'DateTime' && v) v = v.getFullYear() + String(v.getMonth() + 1).padStart(2, '0') + String(v.getDate()).padStart(2, '0');
+        d[j] = v;
+      }
+      data.push(d);
+    }
+  }
+  var jsonString = '';
+  if (data.length > 0) jsonString = JSON.stringify(data);
+  return jsonString;
+}
+
+function bi$Purchasing$TransferData(f, g, dataIndex, dataKeyCheck, valueCheck) {
+  var jsonString = ]]>&Controller;<![CDATA[$GetJson(g, dataIndex, dataKeyCheck, valueCheck);
+  if (!jsonString) return '';
+
+  var z = f.grid, c = z._detailInfo;
+  if (c.maxLength > 0 && jsonString.length <= c.maxLength) {
+    return jsonString;
+  } else {
+    f._checked = false;
+    var e = (f._language == 'v' ? 'Dữ liệu chi tiết vượt quá giới hạn cho phép.' : 'Detail data has reached your maximum limit of characters allowed.');
+    $message.show(e, String.format('var g = $find(\'{0}\');if (g._rowCount > 0) g._getItem(1, 1).focus();', g.get_id()));
+    return '';
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetInfoParameter">
+      <text>
+        <![CDATA[
+if exists (select 1 from bidmts where name = @name and controller = ']]>&ControllerParameter;<![CDATA[') begin 
+  declare @$code varchar(32)
+  select @$code = replace(@code, '''', '''''')
+  select type, number_format, cmbdetail_val, case when @@language = 'v' then rtrim(cmbdetail_view) else rtrim(cmbdetail_view2) end as itemText, check_list_yn, controller_lookup, replace(replace(replace(key_lookup, '@$admin', '@@admin'), '@$userID', '@@userID'), '@$code', @$code) as key_lookup, replace(replace(replace(check_lookup, '@$admin', '@@admin'), '@$userID', '@@userID'), '@$code', @$code) as check_lookup, upper_key, irregular_yn, check_yn from vbidmts where name = @name and controller = ']]>&ControllerParameter;<![CDATA['
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+
+  <queries>
+    <query event="Loading">
+      <text>
+        <![CDATA[
+declare @whereKey nvarchar(4000)
+select @whereKey = 'a.]]>&k1;<![CDATA[ = ''' + replace(@]]>&k1;<![CDATA[, '''', '') + ''' and a.]]>&k2;<![CDATA[ = ''' + replace(@]]>&k2;<![CDATA[, '''', '') + ''''
+create table #ts (]]>&k1;<![CDATA[ varchar(32), ]]>&k2;<![CDATA[ varchar(32), name varchar(32), valdetail nvarchar(512), valdetail_view nvarchar(512), valdetail_view2 nvarchar(512))
+insert into #ts exec AI_ERP$BIParameterView ']]>&ControllerParameter;<![CDATA[', '@@table', 'a.]]>&k1;<![CDATA[, a.]]>&k2;<![CDATA[', @whereKey
+select @@fieldExternal from (select * from #ts where @@whereClause) a right join vbidmts b on a.name = b.name where controller = ']]>&ControllerParameter;<![CDATA[']]>&Kind;<![CDATA[ order by @@orderByClause
+]]>
+      </text>
+    </query>
+  </queries>
+
+  <toolbar>
+    <button command="InputPrameter">
+      <title v="Khai báo$$120" e="Edit$$120"></title>
+    </button>
+    <button command="Option">
+      <title v="Lấy giá trị ngầm định$$90" e="Reset to default value$Reset$90"></title>
+    </button>
+    <button command="Freeze">
+      <title v="Toolbar.Freeze" e="Toolbar.Freeze"></title>
+    </button>
+  </toolbar>
+
+  <css>
+    <text>
+      <![CDATA[
+div.InputPrameter{background-image:url(../images/Shift.png);background-repeat:no-repeat;background-position:6px -1px;}
+div.TextInputPrameter{background-image:url(../images/TextAsterisk.png);background-repeat:no-repeat,repeat-x;background-position:6px -1px;}
+div.InputPrameterOverGreen, div.TextInputPrameterOverGreen{background-color:#F9FAFB;}
+div.TextSave{background-image:url(../images/TextStorage.png);background-repeat:no-repeat,repeat-x;background-position:6px -1px;}
+div.TextOption{background-image:url(../images/TextOption.png);background-repeat:no-repeat,repeat-x;background-position:6px -1px;}
+div.TextSaveOverGreen, div.TextOptionOverGreen{background-color:#F9FAFB;}
+]]>
+    </text>
+  </css>

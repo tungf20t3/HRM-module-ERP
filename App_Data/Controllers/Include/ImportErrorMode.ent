@@ -1,0 +1,128 @@
+﻿<!ENTITY % Conditional.ImportErrorMode SYSTEM "..\Include\ImportErrorMode.txt">
+<!ENTITY % Conditional.CompactMode SYSTEM "..\Include\CompactMode.txt">
+
+<![%Conditional.ImportErrorMode;[
+  <!ENTITY StartErrorCount "set rowcount @$errorCount;">
+  <!ENTITY InsertErrorTable "insert into #errorTable(@@errorTableField)">
+  <!ENTITY InsertErrorTableCell "insert into #errorTable([column], row, message)">
+
+  <!ENTITY EndErrorCount "set @$errorCount = @$errorCount - @@rowcount; set rowcount 0; if @$errorCount = 0 begin select * from #errorTable order by id; return end;">
+  <!ENTITY EndErrorMode "if @$mode = 1 and @$errorCount &lt;&gt; @$errorTotal begin select * from #errorTable order by id; return end;">
+
+  <!ENTITY UploadModeProcess SYSTEM "..\Include\XML\UploadModeProcess.txt">
+  <![%Conditional.CompactMode;[
+    <!ENTITY FilterFormModeField.Description.v "1 - Hiện thông báo, 2 - Hiển thị nội dung chi tiết">
+    <!ENTITY FilterFormModeField.Description.e "1 - Show error message, 2 - Show detail content">
+    <!ENTITY FilterFormModeField.Data "1, 2">
+  ]]>
+  <!ENTITY FilterFormModeField.Description.v "1 - Hiện thông báo, 2 - Hiển thị nội dung chi tiết, 3 - Tải tệp về">
+  <!ENTITY FilterFormModeField.Description.e "1 - Show error message, 2 - Show detail content, 3 - Download file">
+  <!ENTITY FilterFormModeField.Data "1, 2, 3">
+
+  <!ENTITY FilterFormModeField SYSTEM "..\Include\XML\FilterFormModeField.txt">
+  <!ENTITY FilterFormModeView SYSTEM "..\Include\XML\FilterFormModeView.txt">
+  <!ENTITY FilterFormModeVar "set$&Identity;Memvar(f, importMemvars, 'mode');">
+  <!ENTITY FilterFormModeVarField ", mode">
+  <!ENTITY FilterFormModeScript SYSTEM "..\Include\Javascript\FilterFormModeScript.txt">
+
+  <!ENTITY FilterFormModeEndSubmit "
+var $mode = f.getItemValue('mode'); if ($mode == '1' || $mode == '2') {window.setTimeout(function() {f._busy = true; $func.showWait(f.get_id());}, 50);}
+$get('fileupload').value = '';
+$get(f.get_id() + '_form_upload').value = '';
+">
+  <!ENTITY IrregularMessage "set @message = case when @@language = 'v' then N'Giá trị có chứa các ký tự: ' else N'The value contains any of the following characters: ' end + @irregularChars">
+]]>
+
+<!ENTITY StartErrorCount "">
+<!ENTITY InsertErrorTable "">
+<!ENTITY InsertErrorTableCell "">
+
+<!ENTITY w1 " and not exists(select 1 from #errorTable e where e.field in (">
+<!ENTITY w2 ") and e.row = ">
+<!ENTITY w3 " and e.message = ">
+<!ENTITY w4 ")">
+
+<!ENTITY EndErrorCount "">
+<!ENTITY EndErrorMode "">
+
+<!ENTITY UploadModeProcess "">
+
+<!ENTITY FilterFormModeField "">
+<!ENTITY FilterFormModeView "">
+<!ENTITY FilterFormModeVar "">
+<!ENTITY FilterFormModeVarField "">
+<!ENTITY FilterFormModeScript "">
+
+<!ENTITY FilterFormModeEndSubmit "window.setTimeout(function() {f._busy = true; $func.showWait(f.get_id());}, 50);">
+<!ENTITY IrregularMessage "">
+
+<!ENTITY ImportLockedDateVariable SYSTEM "..\Include\Xml\ImportLockedDateVariable.txt">
+<!ENTITY ImportLockedDateCheck "
+if @$mode = 1 begin
+  &StartErrorCount;
+  &InsertErrorTable; select 'ngay_ct', stt, 'LD001' from @@table a, dmstt b where (a.ngay_ct &lt; b.ngay_gh1) or (a.ngay_ct &gt; b.ngay_gh2) or (a.ngay_ct &lt;= b.ngay_ks)
+  &w1;'ngay_ct'&w2;stt&w3;'LD001'&w4;
+  &EndErrorCount;
+  &StartErrorCount;
+  &InsertErrorTable; select 'ngay_ct', stt, 'LD002' from @@table a, dmctks b where b.user_id = @user and b.ma_ct = @voucherID and a.ngay_ct &lt;= b.ngay_ks
+  &w1;'ngay_ct'&w2;stt&w3;'LD002'&w4;
+  &EndErrorCount;
+  &StartErrorCount;
+  &InsertErrorTable; select 'ngay_ct', stt, 'LD003' from @@table a, dmdvcsks b, #unit c where a.ngay_ct = c.ngay_ct and b.ma_dvcs = c.ma_dvcs and a.ngay_ct &lt;= b.ngay_ks
+  &w1;'ngay_ct'&w2;stt&w3;'LD003'&w4;
+  &EndErrorCount;
+  &StartErrorCount;
+  &InsertErrorTable; select 'ngay_ct', stt, 'LD004' from @@table a, sysdaterules b where b.user_id = @user and ((b.ngay_ct1 is not null and a.ngay_ct &lt; b.ngay_ct1) or (b.ngay_ct2 is not null and a.ngay_ct &gt; b.ngay_ct2))
+  &w1;'ngay_ct'&w2;stt&w3;'LD004'&w4;
+  &EndErrorCount;
+end else begin
+  select @r = min(stt) from @@table a, dmstt b where (a.ngay_ct &lt; b.ngay_gh1) or (a.ngay_ct &gt; b.ngay_gh2)&ImportLockedDateSystem;
+  select @r = min(stt) from @@table a, dmstt b where (a.ngay_ct &lt;= b.ngay_ks)&ImportLockedDateData;
+  select @r = min(stt) from @@table a, dmctks b where b.user_id = @user and b.ma_ct = @voucherID and a.ngay_ct &lt;= b.ngay_ks&ImportLockedDateVoucher;
+  select @r = min(stt) from @@table a, dmdvcsks b, #unit c where a.ngay_ct = c.ngay_ct and b.ma_dvcs = c.ma_dvcs and a.ngay_ct &lt;= b.ngay_ks&ImportLockedDateUnit;
+  select @r = min(stt) from @@table a, sysdaterules b where b.user_id = @user and ((b.ngay_ct1 is not null and a.ngay_ct &lt; b.ngay_ct1) or (b.ngay_ct2 is not null and a.ngay_ct &gt; b.ngay_ct2))&ImportLockedDateWork;
+end
+">
+
+<!ENTITY ImportLockedDateSystem "
+if @r is not null begin
+  select replace(replace(@locked, '.', ''), '&#37;s', @@delta + @r) + case when @@language = 'v' then N', hoặc ngày giới hạn hệ thống.' else N' or system locked date.' end as message
+  return
+end
+">
+<!ENTITY ImportLockedDateData "
+if @r is not null begin
+  if (@@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'LockedDate', 'Access') = 0)
+    select replace(replace(@locked, '.', ''), '&#37;s', @@delta + @r) + case when @@language = 'v' then N', hoặc liên hệ với người quản trị hệ thống kiểm tra lại' else N', contact the system administrator to check' end + N' &lt;span class=&quot;Highlight&quot;&gt;' + case when @@language = 'v' then N'ngày khóa sổ' else N'data closing date' end  + '&lt;/span&gt;.'
+  else
+    select replace(replace(@locked, '.', ''), '&#37;s', @@delta + @r) + '&lt;a href=&quot;' + rtrim(link) + '&quot; target=&quot;_blank&quot; style=&quot;color:&#35;035ab8;&quot;&gt;' + case when @@language = 'v' then N', hoặc ngày khóa sổ' else N' or data closing date' end + '&lt;/a&gt;.' as message from @@sysDatabaseName..wcommand where sysid = 'LockedDate'
+  return
+end
+">
+<!ENTITY ImportLockedDateVoucher "
+if @r is not null begin
+  if (@@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'VoucherLocking', 'Access') = 0)
+    select replace(replace(@locked, '.', ''), '&#37;s', @@delta + @r) + case when @@language = 'v' then N', hoặc liên hệ với người quản trị hệ thống kiểm tra lại' else N', contact the system administrator to check' end + N' &lt;span class=&quot;Highlight&quot;&gt;' + case when @@language = 'v' then N'ngày khóa sổ theo chứng từ' else N'voucher locking date' end  + '&lt;/span&gt;.'
+  else
+    select replace(replace(@locked, '.', ''), '&#37;s', @@delta + @r) + '&lt;a href=&quot;' + rtrim(link) + '&quot; target=&quot;_blank&quot; style=&quot;color:&#35;035ab8;&quot;&gt;' + case when @@language = 'v' then N', hoặc ngày khóa sổ theo chứng từ' else N' or voucher locking date' end + '&lt;/a&gt;.' as message from @@sysDatabaseName..wcommand where sysid = 'VoucherLocking'
+  return
+end
+">
+<!ENTITY ImportLockedDateUnit "
+if @r is not null begin
+  if (@@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'UnitLocking', 'Access') = 0)
+    select replace(replace(@locked, '.', ''), '&#37;s', @@delta + @r) + case when @@language = 'v' then N', hoặc liên hệ với người quản trị hệ thống kiểm tra lại' else N', contact the system administrator to check' end + N' &lt;span class=&quot;Highlight&quot;&gt;' + case when @@language = 'v' then N'ngày khóa sổ theo đơn vị' else N'unit locking date' end  + '&lt;/span&gt;.'
+  else
+    select replace(replace(@locked, '.', ''), '&#37;s', @@delta + @r) + '&lt;a href=&quot;' + rtrim(link) + '&quot; target=&quot;_blank&quot; style=&quot;color:&#35;035ab8;&quot;&gt;' + case when @@language = 'v' then N', hoặc ngày khóa sổ theo đơn vị' else N' or unit locking date' end + '&lt;/a&gt;.' as message from @@sysDatabaseName..wcommand where sysid = 'UnitLocking'
+  return
+end
+">
+<!ENTITY ImportLockedDateWork "
+if @r is not null begin
+  if (@@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'WorkingDate', 'Access') = 0)
+    select replace(replace(@locked, '.', ''), '&#37;s', @@delta + @r) + case when @@language = 'v' then N', hoặc liên hệ với người quản trị hệ thống kiểm tra lại' else N', contact the system administrator to check' end + N' &lt;span class=&quot;Highlight&quot;&gt;' + case when @@language = 'v' then N'ngày làm việc' else N'working date' end  + '&lt;/span&gt;.'
+  else
+    select replace(replace(@locked, '.', ''), '&#37;s', @@delta + @r) + '&lt;a href=&quot;' + rtrim(link) + '&quot; target=&quot;_blank&quot; style=&quot;color:&#35;035ab8;&quot;&gt;' + case when @@language = 'v' then N', hoặc ngày làm việc' else N' or working date' end + '&lt;/a&gt;.' as message from @@sysDatabaseName..wcommand where sysid = 'WorkingDate'
+  return
+end
+">

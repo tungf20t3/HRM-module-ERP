@@ -1,0 +1,49 @@
+﻿<!ENTITY % Conditional.GenerateImportTemplate SYSTEM "..\Include\GenerateImportTemplate.txt">
+<!ENTITY % Conditional.ExportImportTemplate SYSTEM "..\Include\ExportImportTemplate.txt">
+
+<![%Conditional.GenerateImportTemplate;[
+
+  <!ENTITY ExportImportTemplateQuery "">
+  <!ENTITY ExportImportTemplateQueryReturnFileName "">
+]]>
+
+<![%Conditional.ExportImportTemplate;[
+
+  <!ENTITY ExportImportTemplateQuery "">
+  <!ENTITY ExportImportTemplateQueryReturnFileName "">
+  <!ENTITY EIT.UserDefinedDownload "&UserDefinedDownload;">
+]]>
+
+<!ENTITY UserDefinedDownload "
+var r = $get('requestFormData');
+if (!r) r = $func.requestFormData();
+var query = '?type=TemplateUpload&amp;&ExportImportTemplate.UploadController;' + String.format('&amp;r={0}', Math.random());
+r.action = $func.resolveClientUrl('~/AppHandler/ExportHandler.ashx' + query, g._baseUrl);
+if (!$func.isIE) r.target = '_blank';
+r.submit();
+if (g._activeCell) g._activeCell.focus();
+break;
+">
+
+<!ENTITY UserDefinedDownloadExtension "
+var r = $get('requestFormData');
+if (!r) r = $func.requestFormData();
+var query = '?type=TemplateUpload&amp;&ExportImportTemplate.UploadControllerExtension;' + String.format('&amp;r={0}', Math.random());
+r.action = $func.resolveClientUrl('~/AppHandler/ExportHandler.ashx' + query, g._baseUrl);
+if (!$func.isIE) r.target = '_blank';
+r.submit();
+break;
+">
+
+<!ENTITY EIT.UserDefinedDownload "">
+
+<!ENTITY ExportImportTemplateQuery "&ExportQueryStaticFile;">
+<!ENTITY ExportImportTemplateQueryReturnFileName ", @filename as file_name">
+
+<!ENTITY EIT.NoteField SYSTEM "..\Include\XML\ExportImportTemplateNoteField.txt">
+<!ENTITY EIT.NoteFieldAdd SYSTEM "..\Include\XML\ExportImportTemplateNoteFieldAdd.txt">
+<!ENTITY EIT.StarColor.Require "FF0000">
+<!ENTITY EIT.StarColor.Sub "FFC000">
+<!ENTITY EIT.TextColor.Sub "BFBFBF">
+
+<!ENTITY StandardCssImport SYSTEM "..\Include\XML\StandardCssImport.txt">

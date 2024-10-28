@@ -1,0 +1,186 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\FlowFilterFunction.txt">
+
+  <!ENTITY Identity "DCDetail">
+  <!ENTITY c11 "Đơn hàng từ ngày">
+  <!ENTITY c12 "Order Date From">
+  <!ENTITY c21 "Số đơn hàng">
+  <!ENTITY c22 "Order Number">
+  <!ENTITY ext "52">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'DCDetail', 'Filter', 'DCTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+
+<dir table="m52$000000" code="stt_rec" order="ngay_ct, so_ct" id="BPC" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn đơn hàng" e="Select Purchase Order"></title>
+  <fields>
+    <field name="loai_dh" dataFormatString="1, 2, 3" clientDefault="1" align="right">
+      <header v ="Loại đơn hàng" e="Type"/>
+      <footer v="1 - Hợp đồng mua hàng, 2 - Đơn hàng trong nước, 3 - Đơn hàng nhập khẩu" e="1 - Schedule Agreement, 2 - Domestic Order, 3 - Import Order"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="&c11;" e="&c12;"></header>
+    </field>
+    <field name="so_ct" align="right" maxLength="-100" filterSource="voucherNumber" allowNulls="false">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="AutoComplete" controller="&Identity;Lookup" reference="stt_rec_ct"/>
+    </field>
+    <field name="stt_rec_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kh" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="tk_ex" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ty_gia" readOnly="true" defaultValue="1" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nt" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230, 0, 0"/>
+      <item value="111001: [loai_dh].Label, [loai_dh], [loai_dh].Description, [ty_gia]"/>
+      <item value="110111: [ngay_ct1].Label, [ngay_ct1], [ngay_ct2], [ma_kh], [ten_kh%l]"/>
+      <item value="1101111: [so_ct].Label, [so_ct], [stt_rec_ct], [ma_dvcs], [tk_ex], [ma_nt]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @vcNumber varchar(32), @vcCustomerID varchar(32), @vcCode varchar(32), @vcDate smalldatetime, @vcID varchar(32), @rangeFrom smalldatetime, @rangeTo smalldatetime, @dateFrom smalldatetime, @dateTo smalldatetime, @l int, @i int, @c smalldatetime, @e varchar(32), @s nvarchar(4000), @$none nvarchar(512), @ext varchar(3), @extBI varchar(2), @keyMaster nvarchar(4000), @t varchar(128), @unit varchar(128)
+select @keyMaster = '%#20$' + rtrim(@ma_kh) + case when @loai_dh = '1' then '%#35$' else '%#30$' end + rtrim(@ma_nt) + '%'
+select @rangeFrom = ngay_gh1, @rangeTo = ngay_gh2, @$none = case when @@language = 'v' then N'Không có đơn hàng theo điều kiện đang lọc.' else N'No data matching filter condition.' end from dmstt
+]]>&CheckRelativeProcess;<![CDATA[
+select @vcCode = case when @loai_dh = '1' then 'PA2' when @loai_dh = '2' then 'PO1' else 'PO2' end
+select @extBI = case when @loai_dh = '1' then 'bi' else '' end, @ext = case when @loai_dh = '1' then '06' when @loai_dh = '2' then '94' else '95' end
+declare @v table(e varchar(32))
+create table #r(stt_rec varchar(32), ngay_ct smalldatetime, e varchar(32))
+
+select @vcNumber = ltrim(rtrim(@so_ct)), @unit = case when @ma_dvcs = '' then @@unit else @ma_dvcs end
+select @i = len(@vcNumber), @l = character_maximum_length from information_schema.columns where table_name = '@@table' and column_name = 'so_ct'
+select @vcNumber = space(@l - @i) + @vcNumber, @c = @ngay_ct1
+
+select top 0 stt_rec, ngay_ct into #t from i]]>&ext;<![CDATA[$000000
+while (month(@c) + year(@c) * 12) <= (month(@ngay_ct2) + year(@ngay_ct2) * 12) begin
+  select @t = @extBI + 'i' + @ext + '$' + convert(char(6), @c, 112), @c = dateadd(month, 1, @c)
+  if exists(select 1 from information_schema.tables where table_name = @t) begin
+    set @s = 'insert into #t select top 1 stt_rec, ngay_ct from ' + rtrim(@t)
+    set @s = @s + char(13) + 'where status in (''2'', ''3'') and ngay_ct between ''' + convert(char(8), @ngay_ct1, 112) + ''' and ''' + convert(char(8), @ngay_ct2, 112) + ''''
+    set @s = @s + char(13) + 'and so_ct = ''' + replace(@vcNumber, '''', '''''') + ''' and ma_dvcs = ''' + replace(@unit, '''', '''''') + ''''
+    if @keyMaster <> '' set @s = @s + char(13) + 'and m$ like N''' + replace(@keyMaster, '''', '''''') + ''''
+    set @s = @s + char(13) + 'order by stt_rec'
+    exec sp_executesql @s
+  end
+  if exists(select 1 from #t where (isnull(stt_rec, '') <> '')) begin
+    select @vcID = stt_rec, @vcDate = ngay_ct from #t
+    drop table #t
+    goto Retrieve
+  end
+end
+drop table #t
+select 'so_ct' as field, @$none as message
+return
+Retrieve:
+select @e = convert(char(6), @vcDate, 112)
+select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$QueryComplete(this, ''' + @vcCode + ''', ''' + @vcID + ''', ''' + @e + ''', ''' + @tk_ex + ''', ''' + rtrim(@ty_gia) + ''', ''' + rtrim(@ma_nt) + ''');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {f.getItem('so_ct')._idle = ]]>&IdleLookupFilter;<![CDATA[;}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f._looking.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);
+
+  var g = f.grid, w = g.get_element().parentForm, d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs');
+  g._custID = w.getItemValue('ma_kh');
+  g._custName = w.getItemValue('ten_kh%l');
+  g._tk_ex = w.getItemValue('tk_ex');
+  g._ty_gia = w.getItemValue('ty_gia');
+  g._ma_nt = w.getItemValue('ma_nt');
+  f.setItemValues('ngay_ct2, ma_kh, ma_dvcs, tk_ex, ty_gia, ma_nt', [d2, g._custID, u, g._tk_ex, g._ty_gia, g._ma_nt]);
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Filter$Before$Loading(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1')) e.type.cancelEvent = true;
+  else {
+    var g = f.grid, w = g.get_element().parentForm;
+    var d1 = f.getItemValue('ngay_ct1'), d2 = w.getItemValue('ngay_lct'), u = w.getItemValue('ma_dvcs'), vc = f.getItemValue('loai_dh');
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: d1},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: d2},
+      {Name: 'ma_kh', Type: 'String', Value: g._custID},
+      {Name: 'ma_dvcs', Type: 'String', Value: u},
+      {Name: 'loai_dh', Type: 'String', Value: vc},
+      {Name: 'tk_ex', Type: 'String', Value: g._tk_ex},
+      {Name: 'ty_gia', Type: 'String', Value: g._ty_gia},
+      {Name: 'ma_nt', Type: 'String', Value: g._ma_nt}
+    ];
+    sender.set_memvars(a);
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$QueryComplete(f, c, d, e, tk, tg, nt) {
+  var g = f.grid, w = g.get_element().parentForm, z = w.getItem('d52')._controlBehavior
+  Array.add(f._memvars, {Name: 'vcCode', OldValue: null, NewValue: c, Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'vcID', OldValue: null, NewValue: d, Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'e', OldValue: null, NewValue: e, Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'tk', OldValue: null, NewValue: tk, Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'ty_gia', OldValue: null, NewValue: tg, Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'ma_nt', OldValue: null, NewValue: nt, Modified: true, Items: []});
+
+  var element = f.grid.get_element();
+  element.field.AllowContain = true;
+  element.field.FilterSource = '';
+  z._rowChange = true;
+}
+]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

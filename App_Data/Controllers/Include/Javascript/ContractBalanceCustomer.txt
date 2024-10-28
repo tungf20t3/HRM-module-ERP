@@ -1,0 +1,42 @@
+﻿<![CDATA[
+function activeFormOpeningBalance(f) {
+  var o;
+  if (!f.getItemValue('tk')) {
+    o = f.getItem('ma_kh');
+    o.disabled= true;
+    $common.setVisible(o.a, false);
+  } else {
+    o = f.getItem('tk');
+    o._$pending = true;
+    setCustFormVisible(o);
+  }
+  f._controlFocus = f.getItem('tk');
+  f.add_onResponseComplete(on$ContractOpeningBalanceForm$ResponseComplete);
+}  
+function close$ContractOpeningBalanceForm(f) {
+  try {f.remove_onResponseComplete(on$ContractOpeningBalanceForm$ResponseComplete)} catch (ex) {}
+}
+function on$ContractOpeningBalanceForm$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'SetCheckAccount':
+      var o = f.getItem('ma_kh'), v = result[0].Value == 1;
+      if (!v) f.setItemControlBehavior('ma_kh', '', '', false);
+      $common.setVisible(o.a, v);
+      o.field.AllowNulls = !v;
+      grandNode = o.parentNode.parentNode;
+      if (v) {
+        o.disabled = !v;
+        Sys.UI.DomElement.addCssClass(grandNode, 'Required');
+        Sys.UI.DomElement.addCssClass(grandNode, f._id);
+      } else Sys.UI.DomElement.removeCssClass(grandNode, 'Required');
+      o.disabled = !v;
+      break;
+    default:
+      break;
+  }
+}
+function setCustFormVisible(o) {
+  o.parentForm.request('GetCheckAccount', 'SetCheckAccount', ['tk']);
+}
+]]>

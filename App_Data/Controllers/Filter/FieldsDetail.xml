@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "FieldsDetail">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY % CompactMode SYSTEM "..\Include\CompactMode.ent">
+  %CompactMode;
+]>
+
+<dir table="freefunctions" code="id" order="id" database="Sys" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc dữ liệu" e="Filter Data"></title>
+
+  <fields>
+    <field name="id" allowNulls="false">
+      <header v="Chức năng" e="Function"></header>
+      <items style="AutoComplete" controller="FreeFunction" reference="description%l" key="status = '1'&Operation.And;&FieldsFilter;" check="&Operation.And;&FieldsFilter;" information="id$freefunctions.description%l"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&Controller;<![CDATA[$Function(this);"]]></clientScript>
+    </field>
+    <field name="description%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="controller" readOnly="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="id_type" dataFormatString="1, 2, 3, 4, 9" clientDefault="1" defaultValue="1" align="right">
+      <header v="Thông tin" e="Information"></header>
+      <footer v="1 - Chi tiết, 2 - Thuế, 3 - Phí ngân hàng, 4 - Thông tin chung, 9 - Khác" e="1 - Detail, 2 - Tax, 3 - Charge, 4 - General, 9 - Other"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&Controller;<![CDATA[$Type(this);"]]></clientScript>
+    </field>
+    <field name="tax" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="groupby_type" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230, 0, 0"/>
+      <item value="110101: [id].Label, [id], [description%l], [controller]"/>
+      <item value="111001: [id_type].Label, [id_type], [id_type].Description, [tax], [groupby_type]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+if not exists(select 1 from userinfo where id = @@userID and admin = 1) begin
+  select '' as field, case when @@language = 'V' then N'Không có quyền truy cập chức năng này.' else 'You have not permission in this function.' end as message
+  return
+end
+select 'active$]]>&Controller;<![CDATA[$Filter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Controller;<![CDATA[$Filter(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      <![CDATA[
+function active$]]>&Controller;<![CDATA[$Filter(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  if (f.getItemValue('id') != '') f.request('Function', 'Function', ['id']);
+  if (!f._$a) f._$a = [];
+}
+function close$]]>&Controller;<![CDATA[$Filter(f) {try {f.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function onChange$]]>&Controller;<![CDATA[$Function(o) {o.parentForm.request('Function', 'Function', ['id']);}
+function onChange$]]>&Controller;<![CDATA[$Type(o) {
+  var f = o.parentForm;
+  if (!f._$a.length) return;
+  var i = parseInt(f.getItemValue('id_type')) - 1;
+  if (i > f._$n - 1) i = f._$n - 1;
+  f.setItemValue('controller', f._$a[i]);
+}
+function on$Filter$ResponseComplete(f, e) {
+  var context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array(), name = f.getItemValue('description%l'), x = f.getItemValue('id_type'), y = f.getItemValue('groupby_type');
+
+      var info = '';
+      if (f._language == 'v') info = (x == 1 ? 'Chi tiết' : (x == 2 ? 'Thuế' : (x == 3 ? 'Phí ngân hàng' : (x == 4 ? 'Thông tin chung' : 'Khác'))));
+        else info = (x == 1 ? 'Detail' : (x == 2 ? 'Tax' : (x == 3 ? 'Charge' : (x == 4 ? 'General' : 'Other'))));
+
+      g._$v = [];
+      g._$controller = f.getItemValue('controller');
+      g._$type = x;
+      g._$groupbyType = y;
+      g._alterTitle = [null, [['%s1', name, true], ['%s2', info, true]]];
+      g._hiddenFields = [
+        {Fields: 'post_yn', Value: (y == '0') || (y == '1' && x == '2') || (y == '2' && x == '1') || (x == '4')},
+        {Fields: 'width', Value: (x == '4')}
+      ];
+      Array.add(k, {Name: 'controller', Opr: '=', Value: g._$controller, Type: 'String', Ignore: false});
+      g.set_externalKey(k);
+      remove$GridReport$Filter(g);
+      break;
+    case 'Function':
+      f._$a = [], f._$n = result.length - 1;
+      var v = true;
+      for (var i = 0; i < f._$n; i++) {
+        Array.add(f._$a, result[i].Value);
+        if (i > 0) v = v && (!f._$a[i]);
+      }
+      f.setItemValue('groupby_type', result[f._$n].Value);
+      if (v) f.setItemValue('id_type', '1');
+      onChange$]]>&Controller;<![CDATA[$Type(f.getItem('id_type'));
+      setItemDisable(f, 'id_type', v);
+      break;
+    default:
+      break;
+  }
+}
+function setItemDisable(f,e,d){for(var c=e.split(","),a=0;a<c.length;a++){var b=f.getItem($func.trim(c[a]));b.a&&$common.setVisible(b.a,!d);b.disabled=d}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Function">
+      <text>
+        <![CDATA[
+if exists(select 1 from @@sysDatabaseName..freefunctions where id = @id) begin
+  select controller, tax_controller, charge_controller, general_controller, deductible_controller, groupby_type from @@sysDatabaseName..freefunctions where id = @id
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+
+</dir>

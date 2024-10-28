@@ -1,0 +1,324 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Controller "hrEmployeeSalaryInformation">
+  <!ENTITY PrimeFieldImport "stt_rec">
+  <!ENTITY TypeImport "2">
+  <!ENTITY TableDestinationImport "hrttctluong, hrttctluongbh">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrEmployeeSalaryInformation' else 'hrEmployeeSalaryInformation2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="5"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$EmployeeSalaryInformationImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$EmployeeSalaryInformationImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrttluong, hrnv"/>
+    <dependence value="hrttluong, hrttctluong, hrttctluongbh"/>
+    <listTable value="#r, #ct, #d1"/>
+    <temporary value="#k, #ct2, #d2" alias="b, b, b"/>
+    <alias value="master, detail, insurance"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="A" isPrimaryKey="true" allowNulls="false" reference="1" upperCase="true" check="ma_nv not in (select ma_nv from hrnv)" errorCode="00001"/>
+    <field name="tk_nh" column="C" resource="master"/>
+    <field name="ma_nh" column="D" resource="master" upperCase="true" check="ma_nh &lt;&gt; '' and ma_nh not in (select ma_nh from hrdmnh)" errorCode="00001"/>
+    <field name="loai_luong" column="E" defaultValue="1" check="loai_luong not in ('1', '2', '3', '9')" errorCode="00002" resource="master"/>
+    <field name="kieu_tinh" column="F" defaultValue="1" check="kieu_tinh not in ('0', '1')" errorCode="00002" resource="master"/>
+
+    <field name="ma_ngach" column="G" resource="master" upperCase="true" check="ma_ngach &lt;&gt; '' and ma_ngach not in (select ma_ngach from hrdmnl)" errorCode="00001"/>
+    <field name="ma_bac" column="H" resource="master" upperCase="true" check="ma_bac &lt;&gt; '' and ma_bac not in (select ma_bac from hrdmbl)" errorCode="00001"/>
+    <field name="he_so_luong" column="I" type="Decimal" resource="master"/>
+    <field name="tien_khoan" column="J" type="Decimal" resource="master"/>
+    <field name="phu_cap" column="K" type="Decimal" resource="master"/>
+    <field name="tro_cap" column="L" type="Decimal" resource="master"/>
+
+    <field name="he_so1" column="M" type="Decimal" resource="master"/>
+    <field name="he_so2" column="N" type="Decimal" resource="master"/>
+    <field name="he_so3" column="O" type="Decimal" resource="master"/>
+
+    <field name="tien1" column="P" type="Decimal" resource="master"/>
+    <field name="tien2" column="Q" type="Decimal" resource="master"/>
+    <field name="tien3" column="R" type="Decimal" resource="master"/>
+    <field name="ma_nt" column="S" upperCase="true" check="ma_nt &lt;&gt; '' and ma_nt not in (select ma_nt from dmnt)" errorCode="00001" resource="master"/>
+
+    <field name="ma_ngach_ct" column="T" relation="ma_ngach" resource="detail" reference="0.ma_ngach" upperCase="true" check="ma_ngach_ct &lt;&gt; '' and ma_ngach_ct not in (select ma_ngach from hrdmnl)" errorCode="00001"/>
+    <field name="ma_bac_ct" column="U" relation="ma_bac" resource="detail" reference="0.ma_bac" upperCase="true" check="ma_bac_ct &lt;&gt; '' and ma_bac_ct not in (select ma_bac from hrdmbl)" errorCode="00001"/>
+    <field name="he_so_luong_ct" column="V" type="Decimal" relation="he_so_luong" resource="detail"/>
+    <field name="tien_khoan_ct" column="W" type="Decimal" relation="tien_khoan" resource="detail"/>
+    <field name="ngay_hl_ct" column="X" type="DateTime" relation="ngay_hl" check="(ma_ngach_ct &lt;&gt; '' or ma_bac_ct &lt;&gt; '' or he_so_luong_ct &lt;&gt; 0) and ngay_hl_ct is null" errorCode="invalidValueMessage" resource="detail"/>
+
+    <field name="hs_luong_bh" column="Y" type="Decimal" relation="he_so_luong" resource="insurance"/>
+    <field name="tien_bh" column="Z" type="Decimal" resource="insurance"/>
+    <field name="tien_cl" column="AA" type="Decimal" resource="insurance"/>
+    <field name="ngay_hl" column="AB" type="DateTime" check="hs_luong_bh &lt;&gt; 0 and ngay_hl is null" errorCode="invalidValueMessage" resource="insurance"/>
+
+    <field name="stt_rec" column="None" updateValue="None" resource="master, detail, insurance"/>
+    <field name="stt_rec0" column="None" insertValue="replace(str(stt, 3), ' ', '0')" updateValue="None" resource="detail, insurance"/>
+    <field name="line_nbr" column="None" type="Int" insertValue="stt" updateValue="None" resource="detail, insurance"/>
+    <field name="he_so_dc" column="None" type="Decimal" insertValue="1" updateValue="None" resource="master"/>
+    <field name="ngan_hang" column="None"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="@datetime0" updateValue="None" resource="master"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="@datetime0" updateValue="@datetime0" resource="master"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@user" updateValue="None" resource="master"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@user" updateValue="@user" resource="master"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Thông tin lương nhân viên" e="Employee Salary Information"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_nv" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width ="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="tk_nh" width ="16">
+        <text v="Tk ngân hàng" e="Bank Account"/>
+      </field>
+      <field name="ma_nh" width ="16">
+        <text v="Ngân hàng" e="Bank Code"/>
+      </field>
+      <field name="loai_luong" width ="16">
+        <text v="Loại lương" e="Salary Category"/>
+      </field>
+      <field name="kieu_tinh" width ="16">
+        <text v="Kiểu tính" e="Calculating Way"/>
+      </field>
+
+      <field name="ma_ngach" width ="16">
+        <text v="Ngạch lương" e="Pay Grade"/>
+      </field>
+      <field name="ma_bac" width ="16">
+        <text v="Bậc lương" e="Rank of Salary"/>
+      </field>
+      <field name="he_so_luong" width ="16">
+        <text v="Hệ số lương" e="Salary Coefficient"/>
+      </field>
+
+      <field name="tien_khoan" width ="16">
+        <text v="Tiền khoán" e="Piece Rate Amount"/>
+      </field>
+      <field name="phu_cap" width ="16">
+        <text v="Phụ cấp" e="Allowance"/>
+      </field>
+      <field name="tro_cap" width ="16">
+        <text v="Trợ cấp" e="Benefit"/>
+      </field>
+
+      <field name="he_so1" width ="16">
+        <text v="Hệ số 1" e="Coefficient 1"/>
+      </field>
+      <field name="he_so2" width ="16">
+        <text v="Hệ số 2" e="Coefficient 2"/>
+      </field>
+      <field name="he_so3" width ="16">
+        <text v="Hệ số 3" e="Coefficient 3"/>
+      </field>
+
+      <field name="tien1" width ="16">
+        <text v="Tiền 1" e="Amount 1"/>
+      </field>
+      <field name="tien2" width ="16">
+        <text v="Tiền 2" e="Amount 2"/>
+      </field>
+      <field name="tien3" width ="16">
+        <text v="Tiền 3" e="Amount 3"/>
+      </field>
+
+      <field name="ma_nt" width ="16">
+        <text v="Loại tiền" e="Currency"/>
+      </field>
+
+      <field name="ma_ngach_ct" width ="16">
+        <text v="Ngạch lương chi tiết" e="Pay Grade Detail"/>
+      </field>
+      <field name="ma_bac_ct" width ="16">
+        <text v="Bậc lương chi tiết" e="Rank of Salary Detail"/>
+      </field>
+      <field name="he_so_luong_ct" width ="16">
+        <text v="Hệ số lương chi tiết" e="Salary Coefficient Detail"/>
+      </field>
+      <field name="tien_khoan_ct" width ="16">
+        <text v="Tiền khoán chi tiết" e="Piece Rate Amount Detail"/>
+      </field>
+      <field name="ngay_hl_ct" width ="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hiệu lực chi tiết" e="Effective Date Detail"/>
+      </field>
+
+      <field name="hs_luong_bh" width ="16">
+        <text v="Hệ số lương bảo hiểm" e="Base Salary Coefficient"/>
+      </field>
+      <field name="tien_bh" width ="16">
+        <text v="Tiền bảo hiểm" e="Insurance Amount"/>
+      </field>
+      <field name="tien_cl" width ="16">
+        <text v="Tiền chênh lệch" e="Difference Amount"/>
+      </field>
+      <field name="ngay_hl" width ="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hiệu lực" e="Effective Date"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @field varchar(32), @baseCurrency varchar(32), @datetime0 datetime
+declare @user int, @admin bit, @language char(1), @sys varchar(32), @joinUnit bit, @joinDept bit, @r int, @count int
+select @admin = @@admin, @user = @@userID, @language = @@language, @sys = '@@sysDatabaseName', @datetime0 = getdate(), @key = '', @joinUnit = 0, @joinDept = 0
+select @baseCurrency = rtrim(val) from options where rtrim(name) = 'm_ma_nt0'
+
+-- Check
+]]>&Checking;<![CDATA[
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Key
+if @admin = 0 begin
+  exec AI_ERP$HRM$DeptRightFilter @user, @admin, 'e', 'e', @sys, @key output, @joinUnit output, @joinDept output
+  select @key = dbo.AI_ERP$Function$System$GetCheckKey(@key)
+  select @key = case when @key = '' then '' else ' where (' + @key + ')' end
+end
+
+-- Gather
+create table #r(stt_rec char(13), tk_nh varchar(64), ma_nh char(32), ngan_hang nvarchar(128), loai_luong char(32), kieu_tinh char(32),
+  ma_ngach varchar(33), ma_bac varchar(33), he_so_luong numeric(19, 4), tien_khoan numeric(19, 2), phu_cap numeric(19, 2), tro_cap numeric(19, 2),
+  he_so1 numeric(19, 4), he_so2 numeric(19, 4), he_so3 numeric(19, 4), tien1 numeric(19, 4), tien2 numeric(19, 4), tien3 numeric(19, 4), ma_nt char(32),
+  ma_ngach_ct varchar(33), ma_bac_ct varchar(33), he_so_luong_ct numeric(19, 4), tien_khoan_ct numeric(19, 4), ngay_hl_ct smalldatetime,
+  hs_luong_bh numeric(19, 4), tien_bh numeric(19, 4), tien_cl numeric(19, 4), ngay_hl smalldatetime)
+
+select @q = 'insert into #r select e.stt_rec, a.tk_nh, a.ma_nh, isnull(c.ten_nh, ''''), a.loai_luong, a.kieu_tinh, a.ma_ngach, a.ma_bac, a.he_so_luong, a.tien_khoan, a.phu_cap, a.tro_cap, he_so1, he_so2, he_so3,'
+select @q = @q + 'a.tien1, a.tien2, a.tien3, case when a.ma_nt <> '''' then a.ma_nt else ''' + @baseCurrency + ''' end, '
+select @q = @q + 'a.ma_ngach_ct, a.ma_bac_ct, a.he_so_luong_ct, a.tien_khoan_ct, a.ngay_hl_ct, '
+select @q = @q + 'a.hs_luong_bh, a.tien_bh, a.tien_cl, a.ngay_hl'
+select @q = @q + ' from @@table a join hrnv e on a.ma_nv = e.ma_nv left join hrdmnh c on a.ma_nh = c.ma_nh' + @key
+exec sp_executesql @q
+
+select stt_rec, cast('' as char(3)) as stt_rec0, hs_luong_bh, tien_bh, tien_cl, ngay_hl, cast(0 as int) as stt into #d1 from #r where ngay_hl is not null
+select stt_rec, cast('' as char(3)) as stt_rec0, ma_ngach_ct, ma_bac_ct, he_so_luong_ct, tien_khoan_ct, ngay_hl_ct, cast(0 as int) as stt into #ct from #r where ngay_hl_ct is not null
+
+if @type = '0' begin
+  delete #r from #r a where exists(select 1 from hrttluong b where a.stt_rec = b.stt_rec)
+  delete #d1 from #d1 a where exists(select 1 from hrttctluongbh b where a.stt_rec = b.stt_rec and a.ngay_hl = b.ngay_hl)
+  delete #ct from #ct a where exists(select 1 from hrttctluong b where a.stt_rec = b.stt_rec and a.ngay_hl_ct = b.ngay_hl)
+end
+
+select b.stt_rec, a.tk_nh, a.ma_nh, a.ngan_hang, a.loai_luong, a.kieu_tinh, a.ma_ngach, a.ma_bac, a.he_so_luong, a.tien_khoan,
+    a.phu_cap, a.tro_cap, a.he_so1, a.he_so2, a.he_so3, a.tien1, a.tien2, a.tien3, a.ma_nt into #k
+  from #r a join hrttluong b on a.stt_rec = b.stt_rec
+delete #r from #r a where exists(select 1 from #k b where a.stt_rec = b.stt_rec)
+
+select b.stt_rec, b.stt_rec0, a.ma_ngach_ct, a.ma_bac_ct, a.he_so_luong_ct, a.tien_khoan_ct, a.ngay_hl_ct into #ct2 from #ct a join hrttctluong b on a.stt_rec = b.stt_rec and a.ngay_hl_ct = b.ngay_hl
+delete #ct from #ct a where exists(select 1 from #ct2 b where a.stt_rec = b.stt_rec and a.ngay_hl_ct = b.ngay_hl_ct)
+
+select b.stt_rec, b.stt_rec0, a.hs_luong_bh, a.tien_bh, a.tien_cl, a.ngay_hl into #d2 from #d1 a join hrttctluongbh b on a.stt_rec = b.stt_rec and a.ngay_hl = b.ngay_hl
+delete #d1 from #d1 a where exists(select 1 from #d2 b where a.stt_rec = b.stt_rec and a.ngay_hl = b.ngay_hl)
+if @type = '1' ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+-- Insert
+@@inserting(master);
+
+select @count = count(*) from #ct
+if @count > 0 begin
+  create table #sttct(stt_rec char(13), stt_rec0 char(3))
+  create table #o1ct(stt_rec char(13), ngay_hl smalldatetime, stt int not null identity (1, 1))
+
+  insert into #sttct select b.stt_rec, max(b.stt_rec0)
+    from #ct a join hrttctluong b on a.stt_rec = b.stt_rec group by b.stt_rec
+
+  insert into #o1ct(stt_rec, ngay_hl)
+    select stt_rec, ngay_hl_ct
+      from (select stt_rec, ngay_hl_ct from #ct
+         union select distinct stt_rec, null from #ct) a order by stt_rec, ngay_hl_ct
+
+  select stt, stt_rec into #o2ct from #o1ct where ngay_hl is null
+
+  update #ct set stt = b.stt + cast(isnull(c.stt_rec0, 0) as int) from #ct a
+    left join (select c.stt - d.stt as stt, c.stt_rec, c.ngay_hl from #o1ct c join #o2ct d on c.stt_rec = d.stt_rec) b
+      on a.stt_rec = b.stt_rec and a.ngay_hl_ct = b.ngay_hl
+    left join #sttct c
+      on a.stt_rec = c.stt_rec
+
+  -- Insert
+  @@inserting(detail);
+end
+
+select @count = count(*) from #d1
+if @count > 0 begin
+  create table #stt(stt_rec char(13), stt_rec0 char(3))
+  create table #o1(stt_rec char(13), ngay_hl smalldatetime, stt int not null identity (1, 1))
+
+  insert into #stt select b.stt_rec, max(b.stt_rec0)
+    from #d1 a join hrttctluongbh b on a.stt_rec = b.stt_rec group by b.stt_rec
+
+  insert into #o1(stt_rec, ngay_hl)
+    select stt_rec, ngay_hl
+      from (select stt_rec, ngay_hl from #d1
+         union select distinct stt_rec, null from #d1) a order by stt_rec, ngay_hl
+
+  select stt, stt_rec into #o2 from #o1 where ngay_hl is null
+
+  update #d1 set stt = b.stt + cast(isnull(c.stt_rec0, 0) as int) from #d1 a
+    left join (select c.stt - d.stt as stt, c.stt_rec, c.ngay_hl from #o1 c join #o2 d on c.stt_rec = d.stt_rec) b
+      on a.stt_rec = b.stt_rec and a.ngay_hl = b.ngay_hl
+    left join #stt c
+      on a.stt_rec = c.stt_rec
+
+  -- Insert
+  @@inserting(insurance);
+end
+
+-- Update
+if @type = '1' begin
+  update hrttluong set @@list(master); from hrttluong a join #k b on a.stt_rec = b.stt_rec
+
+  update hrttctluong set @@list(detail); from hrttctluong a join #ct2 b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0
+
+  update hrttctluongbh set @@list(insurance); from hrttctluongbh a join #d2 b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0
+end
+]]>
+    </text>
+  </processing>
+
+</import>

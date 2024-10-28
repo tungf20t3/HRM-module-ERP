@@ -1,0 +1,63 @@
+﻿<!ENTITY % Conditional.HandleVoucherNumber SYSTEM "..\Include\HandleVoucherNumber.txt">
+<!ENTITY % Conditional.CheckSerialNumber SYSTEM "..\Include\CheckSerialNumber.txt">
+<!ENTITY % Conditional.VoucherEditLog SYSTEM "..\Include\VoucherEditLog.txt">
+
+<!ENTITY CommandCheckVoucherNumberDeclare "
+declare @$warning nvarchar(4000)
+set @$warning = ''
+">
+
+<![%Conditional.HandleVoucherNumber;[
+
+  <!ENTITY CommandCheckVoucherNumberExecute "
+declare @$existsVoucherNumber nvarchar(512), @$msgNextVoucherNumber nvarchar(4000), @$voucherNumberQuery nvarchar(4000)
+declare @$randomKeyVoucherNumber varchar(13), @$idVoucherNumber char(13), @$voucherNumberType int
+declare @$currentVoucherNumber varchar(32), @$minVoucherNumber varchar(32), @$maxVoucherNumber varchar(32), @$nextVoucherNumber nvarchar(33), @$voucherNumberLength int, @$voucherBookUnit varchar(32)
+declare @$checkKey nvarchar(1024), @$insertGrandField varchar(128), @$insertGrandValue varchar(1024), @$updateGrand varchar(1024), @$grandTable varchar(64)
+declare @$externalCheck tinyint, @$externalValue nvarchar(128), @$checkVoucherBook varchar(32), @$internalCondition nvarchar(1024), @$externalMapCondition nvarchar(1024),	@$externalCondition nvarchar(1024)
+
+select @$minVoucherNumber = '', @$maxVoucherNumber = ''
+select @$voucherNumberLength = character_maximum_length from INFORMATION_SCHEMA.COLUMNS where table_name = 'wrkcolumns' and column_name = 'so_ct'
+
+&HandleVoucherNumberMapExecute;
+">
+
+  <!ENTITY HandleVoucherNumber.FormInsertion "stt_rec = @$randomKeyVoucherNumber">
+  <!ENTITY HandleVoucherBookProcess SYSTEM "..\Include\Command\HandleVoucherBookProcess.txt">
+  <!ENTITY HandleVoucherNumberProcess SYSTEM "..\Include\Command\HandleVoucherNumberProcess.txt">
+
+  <!ENTITY HandleVoucherBookContext "
+if @ma_nk &lt;&gt; '' and exists(select 1 from options where name = 'm_kt_quyen' and val = '1') begin
+  declare @$strVoucherBook nvarchar(128)
+  set @$strVoucherBook = replace(rtrim(@ma_nk), '''', '''''')
+  select @$insertGrandField = @$insertGrandField + ', ma_nk',
+    @$insertGrandValue = @$insertGrandValue + ', ''' + @$strVoucherBook + '''',
+    @$checkKey = @$checkKey + case when @$checkKey &lt;&gt; '' then ' and ' else '' end + 'ma_nk = ''' + @$strVoucherBook + '''' + case when @$voucherBookUnit &lt;&gt; '' then ' and ma_dvcs = ''' + replace(@$voucherBookUnit, '''', '''''') + '''' else '' end,
+    @$checkVoucherBook = @ma_nk
+end
+">
+
+  <![%Conditional.CheckSerialNumber;[
+    <!ENTITY HandleSerialContext "
+if exists(select 1 from syscolumns where name = '&HandleVoucherNumberSerialField;' and id = object_id(@$grandTable)) begin
+  declare @$strSerial nvarchar(128)
+  select @$strSerial = replace(rtrim(@so_seri), '''', '''''')
+  select @$insertGrandField = @$insertGrandField + ', &HandleVoucherNumberSerialField;', @$insertGrandValue = @$insertGrandValue + ', ''' + @$strSerial + '''',
+    @$updateGrand = @$updateGrand + ', &HandleVoucherNumberSerialField; = ''' + @$strSerial + '''',@$externalCheck = 1, @$externalValue = @$strSerial
+end
+">
+  ]]>
+  <!ENTITY HandleSerialContext "">
+
+  <![%Conditional.VoucherEditLog;[
+    <!ENTITY CommandWhenBeforeUpdateLog "exec AI_ERP$App$Voucher$EditLog @stt_rec, @@id, '$partition$previous', '1', '&HandleVoucherNumber.LogGrandTable;', '#&HandleVoucherNumber.LogGrandTable;$log'">
+  ]]>
+]]>
+
+<!ENTITY HandleVoucherNumber.FormInsertion "">
+<!ENTITY CommandCheckVoucherNumberExecute "&HandleVoucherNumberMapExecute;">
+
+<![%Conditional.VoucherEditLog;[
+  <!ENTITY CommandWhenBeforeUpdateLog "exec AI_ERP$App$Voucher$EditLog @stt_rec, @@id, '$partition$previous', '1'">
+]]>
+<!ENTITY CommandWhenBeforeUpdateLog "">

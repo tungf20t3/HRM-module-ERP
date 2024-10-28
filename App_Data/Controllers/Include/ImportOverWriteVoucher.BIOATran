@@ -1,0 +1,98 @@
+﻿<!ENTITY % Conditional.ImportOverwrite SYSTEM "..\Include\ImportOverwriteVoucher.txt">
+
+<![%Conditional.ImportOverwrite;[
+  <!ENTITY ImportOverwriteMatchData "
++ ' join &ImportOverwriteMainTable; b with(nolock) on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct' + case when @check$Unit = '1' then ' and a.ma_dvcs = b.ma_dvcs' else '' end
+">
+
+  <!ENTITY ImportOverwriteDeleting "
+select stt_rec, ma_bp0, cast(1 as int) as stt into #owmaster from bim&Detail;$000000
+select stt_rec, ma_nh0, cast(1 as int) as stt into #owmaster2 from bim&Detail;$000000
+select stt_rec, ma_kho, cast(1 as int) as stt into #owdetail from bid&Detail;$000000
+select stt_rec, ma_vung, cast(1 as int) as stt into #owdetail2 from bid&Detail;$000000
+set @field = 'so_ct'
+
+insert into #owmaster select distinct o.stt_rec, b.ma_bp0, o.stt from #owdata o join bic&Detail;$000000 b on b.stt_rec = o.stt_rec
+insert into #owmaster2 select distinct o.stt_rec, b.ma_nh0, o.stt from #owdata o join bic&Detail;$000000 b on b.stt_rec = o.stt_rec
+
+if @$mode = 1 begin
+  &StartErrorCount;
+  select @q = '&InsertErrorTable; select @field, o.stt, ''OW01'' from #owdata o where status &lt;&gt; ''0''
+  &w1;@field&w2;o.stt&w3;''OW01''&w4; group by o.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  &EndErrorCount;
+  select @$owp = min(p) from #owpartition
+  while @$owp is not null begin
+    set @q = 'insert into #owdetail select distinct o.stt_rec, b.ma_kho, o.stt from #owdata o join bid&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where o.p = ''' + @$owp + ''''
+    set @q = 'insert into #owdetail2 select distinct o.stt_rec, b.ma_vung, o.stt from #owdata o join bid&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where o.p = ''' + @$owp + ''''
+    exec sp_executesql @q
+    &StartErrorCount;
+    select @q = '&InsertErrorTable; select @field, o.stt, ''OW01'' from #owdata o join bid&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where (b.sl_dat &lt;&gt; 0 or b.sl_nhap &lt;&gt; 0 or b.sl_hd &lt;&gt; 0 or b.stt_rec_nc &lt;&gt; '''' or b.stt_rec_bg &lt;&gt; '''' or b.stt_rec_kh &lt;&gt; '''') and o.p = ''' + @$owp + '''
+      &w1;@field&w2;o.stt&w3;''OW01''&w4; group by o.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    &EndErrorCount;
+    select @$owp = min(p) from #owpartition where p > @$owp
+  end
+end else begin
+  set @q = 'select top 1 @r = min(o.stt) from #owdata o where status &lt;&gt; ''0'''
+  exec sp_executesql @q, N'@r int out', @r out &ImportOverwriteError;
+
+  select @$owp = min(p) from #owpartition
+  while @$owp is not null begin
+    set @q = 'insert into #owdetail select distinct o.stt_rec, b.ma_kho, o.stt from #owdata o join bid&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where o.p = ''' + @$owp + ''''
+    set @q = 'insert into #owdetail2 select distinct o.stt_rec, b.ma_vung, o.stt from #owdata o join bid&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where o.p = ''' + @$owp + ''''
+    exec sp_executesql @q
+
+    set @q = 'select top 1 @r = min(o.stt) from #owdata o join bid&Detail;$' + @$owp + ' b on b.stt_rec = o.stt_rec where (b.sl_dat &lt;&gt; 0 or b.sl_nhap &lt;&gt; 0 or b.sl_hd &lt;&gt; 0 or b.stt_rec_nc &lt;&gt; '''' or b.stt_rec_bg &lt;&gt; '''' or b.stt_rec_kh &lt;&gt; '''') and o.p = ''' + @$owp + ''''
+    exec sp_executesql @q, N'@r int out', @r out &ImportOverwriteError;
+    select @$owp = min(p) from #owpartition where p > @$owp
+  end
+end
+
+set @field = 'ma_bp0'
+if @$mode = 1 begin
+  &StartErrorCount;
+  &InsertErrorTable; select @field, o.stt, 'OW01' from #owmaster o where not exists(select 1 from bisyspurorgrights b where o.ma_bp0 = b.ma_bp0 and b.user_id = @user and b.r_edit = 1)
+  &w1;@field&w2;o.stt&w3;'OW01'&w4;
+  &EndErrorCount;
+end else begin
+  select top 1 @r = min(o.stt) from #owmaster o where not exists(select 1 from bisyspurorgrights b where o.ma_bp0 = b.ma_bp0 and b.user_id = @user and b.r_edit = 1) &ImportOverwriteError;
+end
+
+set @field = 'ma_nh0'
+exec AI_ERP$BI$System$CheckImportPurchasingGroupRights '#owmaster2', 'ma_nh0', 'stt', @@userID, @@admin, @r output, default, @$mode, @$errorCount output
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  &Error;
+end
+
+set @field = 'ma_kho'
+exec AI_ERP$System$CheckImportSiteRights '#owdetail', 'ma_kho', 'stt', @@userID, @@admin, @r output, default, @$mode, @$errorCount output
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  &Error;
+end
+
+set @field = 'ma_vung'
+exec AI_ERP$BI$System$CheckImportPlantRights '#owdetail2', 'ma_vung', 'stt', @@userID, @@admin, @r output, default, @$mode, @$errorCount output
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  &Error;
+end
+">
+
+  <!ENTITY ImportOverwriteDeleted "&ImportOverwriteDeleteMultiVoucher;">
+  <!ENTITY ImportOverwriteInsertingByPart "&ImportOverwriteUpdateByPart;">
+  <!ENTITY ImportOverwriteInserting "
+if @type = '1' begin
+  update bic&Detail;$000000 set user_id0 = o.user_id0 from bic&Detail;$000000 a join #owdata o on a.stt_rec = o.stt_rec
+end
+">
+]]>
+
+<!ENTITY ImportOverwriteDeleting "">
+<!ENTITY ImportOverwriteDeleted "">
+<!ENTITY ImportOverwriteInsertingByPart "">

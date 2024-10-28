@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="hrbtkcl" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="((@@admin = 1) or (ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_access = 1))) and status = '1'" check="((@@admin = 1) or (ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_access = 1)))"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="182">
+      <item value="120, 30, 70, 100, 100, 130, 0, 0"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+if @@admin <> 1 begin
+  if not exists(select 1 from sysunitrights where user_id = @@userID and ma_dvcs = @@unit and r_new = 1) begin
+    select 'this.grid._denyNew = true;' as message
+    return
+  end
+end
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,a){var b=a.object,d=a.type.Context,f=a.type.Result;switch(d){case"Checking":var e=b.grid,c=[];b.getItemValue("ma_dvcs")&&Array.add(c,{Name:"dbo.ff_InList(ma_dvcs, '"+b.getItemValue("ma_dvcs")+"')",Opr:"=",Value:1,Type:"String",Ignore:false});e.set_externalKey(c)}}]]>
+    </text>
+  </script>
+</dir>

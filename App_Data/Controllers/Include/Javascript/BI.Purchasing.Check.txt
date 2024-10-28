@@ -1,0 +1,17 @@
+﻿<![CDATA[
+var sourceTable = ']]>&BI.Purchasing.SourceTable;<![CDATA[', purchasingFormID = this.get_id(), purchasingGrid = this.getItem(sourceTable)._controlBehavior;
+var purchasingErrorMessage = (this._language == 'v' ? 'Có tồn tại ]]>&BI.Purchasing.Message.v;<![CDATA[ trùng nhau trong phần thông tin ]]>&BI.Purchasing.Message.v;<![CDATA[, không thể lưu được.' : 'Invalid ]]>&BI.Purchasing.Message.e;<![CDATA[ code, it already exists.');
+if (this._checked) {
+  var purchasingColumnOrder = purchasingGrid._getColumnOrder(']]>&BI.Purchasing.Field;<![CDATA['), purchasingArray = query$Select(purchasingGrid, 'count$1 $groupBy ]]>&BI.Purchasing.Field;<![CDATA[');
+  for (var i = 0; i < purchasingArray.length; i++) {
+    if (purchasingArray[i][1] > 1) {
+      purchasingGrid._errorObject = purchasingGrid._getItem(i + 1,  purchasingColumnOrder);
+      this._checked = false;
+      $func.hideWait(purchasingFormID);
+      $message.show(purchasingErrorMessage, String.format('$find(\'{0}\').focus(\'{1}\');$find(\'{2}\')._errorObject.focus();', purchasingFormID, sourceTable, purchasingGrid.get_id()));
+      break;
+    }
+  }
+}
+if (this._checked) purchasingGrid.setSequenceNumber('line_nbr');
+]]>

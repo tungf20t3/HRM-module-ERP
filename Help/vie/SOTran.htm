@@ -1,0 +1,291 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="SOTran.doc" />
+<title>Đơn hàng</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">     Đơn hàng</p>
+<p id="p1">
+Phân hệ Quản lý bán hàng trong hệ thống AI ERP quản lý các đơn hàng bán theo 03 loại giao dịch:</p>
+<ul class="lo_1">
+-       Giao dịch 1 – đơn hàng<br/> 
+-       Giao dịch 2 – hợp đồng<br/> 
+-       Giao dịch 3 – đơn hàng xuất hoá đơn ngay
+</ul>
+<p id="p1">
+Khái niệm giao dịch hợp đồng trong hệ thống AI ERP dùng để chỉ những đơn hàng khung - những thỏa thuận mua bán giữa khách hàng và khách hàng không liên quan đến việc trực tiếp nhập/ xuất hàng hoá. Mọi trường hợp liên quan đến việc trực tiếp nhập/ xuất hàng hoá đều thông qua mã giao dịch 1 – đơn hàng.
+<br/> 
+Khái niệm đơn hàng xuất hoá đơn ngay dùng trong trường hợp bộ phận bán hàng/ cửa hàng của công ty bán hàng trực tiếp không qua đơn hàng tuy nhiên bộ phận bán hàng vẫn muốn ghi nhận để tiện theo dõi và quản lý. Do vậy, khi lập đơn hàng xuất hoá đơn ngay thì việc bán hàng và thanh toán tiền hàng đã diễn ra xong xuôi, bộ phận bán hàng chỉ ghi nhận lại doanh thu, xuất hoá đơn và chuyển số liệu hoá đơn sang bộ phận kế toán để hạch toán.
+<br/> 
+Quá trình lập đơn hàng/ hợp đồng được hỗ trợ bằng nhiều cách:</p>
+<ul class="lo_1">
+-       Lập trực tiếp đơn hàng/ hợp đồng mới;<br/> 
+-       Lấy số liệu từ giấy báo giá đã báo: một đơn hàng/ hợp đồng có thể lấy số liệu từ nhiều giấy báo giá, ngược lại một giấy báo giá có thể được lập thành nhiều hợp đồng nhưng một giấy báo giá chỉ có thể chuyển thành một đơn hàng;<br/> 
+-       Lấy số liệu từ hợp đồng: chức năng dành riêng cho mã giao dịch 1 – đơn hàng, một đơn hàng chỉ được lấy số liệu từ một hợp đồng (ngược lại, một hợp đồng có thể tách thành nhiều đơn hàng).
+</ul>
+<p id="td2">      Quy trình lập đơn hàng</p>
+<p id="p2">
+Lập đơn hàng là bước tiếp sau Giấy báo giá trong quy trình bán hàng. Thông tin của hợp đồng sẽ được kế thừa để lập các đơn hàng bán, thông tin của đơn hàng sẽ được
+ kế thừa để lập hóa đơn bán hàng.</p>
+<ul class="lo_1">
+Bước trước:     Giấy báo giá<br/> 
+Bước sau:       Lập đơn hàng từ hợp đồng, hóa đơn<br/>
+Bộ phận lập:    Bộ phận xử lý đơn hàng
+</ul>
+
+<p id="pic"><img src="vie/SOtran.png"/></p>
+<p id="td2"> Giải thích thông tin</p>
+<p id="td3">    Mô tả trạng thái mã giao dịch 1 - đơn hàng và mã giao dịch 2 - hợp đồng</p>
+<p class="node">Lập chứng từ</p>
+<p class="node_d">
+Trạng thái đang lập đơn hàng. Đây là trạng thái ngầm định khi tạo mới đơn hàng. </p>
+<p class="node_d">Ở trạng thái này có thể có các xử lý:</p>
+<ul class="lo_2">
+- Chờ duyệt: trong quy trình mà người tạo chứng từ không có quyền duyệt, cần phải chuyển thực hiện bước quy trình duyệt bởi người dùng khác;<br/>
+- Duyệt: trong quy trình mà người tạo chứng từ có quyền duyệt.;<br/>
+- Treo: Dùng trong trường hợp thực hiện treo trực tiếp. Tùy chọn này không cần gắn liền với quyền duyệt. Khi cần xử lý bỏ treo (duyệt), cần 
+phải thực hiện bởi người dùng có quyền truy nhập vào chức năng "Xử lý đơn hàng treo".
+</ul>
+<p class="node">Duyệt</p>
+<p class="node_d">
+Trạng thái khi đơn hàng đã được duyệt và sẵn sàng xuất kho. 
+Trạng thái này được xác lập ngay trên đơn hàng hoặc thông qua chức năng duyệt, hoặc sau khi xử lý treo đơn hàng. 
+Để thực hiện duyệt (không thông qua chức năng treo), người dùng phải có quyền duyệt tương ứng. 
+Ở trạng thái này, đơn hàng không được phép hiệu chỉnh bất cứ thông tin gì.</p>
+
+<p class="node">	Treo</p>
+<p class="node_d">Trạng thái của đơn hàng đang ngừng xử lý (treo vì tranh chấp, nợ quá hạn…). 
+<br/>Trạng thái này được xác lập ngay trên đơn hàng (treo trực tiếp) hoặc treo tự động bởi hệ thống. 
+Ở trạng thái này, đơn hàng không được phép hiệu chỉnh bất cứ thông tin gì. 
+Nếu muốn hiệu chỉnh, phải bỏ trạng thái treo trong bước "Xử lý đơn hàng treo".</p>
+<p class="note">Chú ý: 
+<br/>
+- Chương trình dựa trên công nợ của khách hàng tại thời điểm lập đơn hàng. Nếu tổng số dư công nợ và doanh số đặt hàng của đơn hàng hiện tại 
+(đã trừ chiết khấu) lớn hơn hạn mức nợ trong danh mục khách hàng thì chương trình tự động chuyển trạng thái treo đơn hàng;
+<br/>
+- Giảm công nợ chỉ được thực hiện qua chi tiết hóa đơn, khi thu tiền bàn hàng phải dùng phiếu thu loại 1. Phải sử dụng quy trình lấy dữ liệu từ 
+đơn hàng cho hóa đơn.
+<br/>
+- Nếu đơn hàng để trống mã thanh toán thì chương trình hiểu là đơn hàng thanh toán ngay, vì vậy khi lập hóa đơn từ đơn hàng, phải chọn tài khoản
+ khử trùng; </p>
+<p class="node">Đang xuất</p>
+<p class="node_d">
+Trạng thái cho biết một số vật tư và một phần số lượng đặt hàng đã được xuất kho. 
+Trạng thái này được xác lập trên đơn hàng loại 1 (hợp đồng) khi duyệt đơn hàng loại 3 (xuất hóa đơn ngay) có kế thừa số liệu. 
+Hoặc khi thực hiện phiếu xuất bán, hóa đơn bán hàng, phiếu giao hàng có kế thừa số liệu từ đơn hàng.
+Ở trạng thái này, đơn hàng không được phép hiệu chỉnh bất cứ thông tin gì.</p>
+<p class="node">Hoàn thành</p>
+<p class="node_d">
+Trạng thái cho biết tất cả các vật tư và số lượng đặt hàng đã được xuất kho. 
+Trạng thái này được xác lập khi thực hiện phiếu xuất bán, hóa đơn bán hàng, phiếu giao hàng có kế thừa toàn bộ số liệu từ đơn hàng.
+Ở trạng thái này, đơn hàng không được phép hiệu chỉnh bất cứ thông tin gì.</p>
+<p class="node"> Đóng</p>
+<p class="node_d">
+Trạng thái cho biết các vật tư và sl đặt hàng sẽ không được tiếp tục xuất nữa. 
+Trạng thái này được xác lập khi đóng đơn hàng. Có thể đóng đơn hàng ở bất kỳ trạng thái nào, khi bỏ đóng sẽ trả về trạng thái tương ứng trước khi đóng.
+Ở trạng thái này, đơn hàng không được phép hiệu chỉnh bất cứ thông tin gì.</p>
+<p id="td3">      Mô tả các trường thông tin chung - phần trên</p>
+<p class="node">Mã giao dịch</p>
+<p class="node_d">
+Chọn 01 trong 03 giao dịch sau: 1 – Đơn hàng (mã ngầm định), 2 - Hợp đồng và 3 - Xuất hóa đơn ngay, trường này bắt buộc phải khai báo.
+<br/> 
+Tùy thuộc quy trình bán hàng sẽ có những chọn lựa sử dụng mã giao dịch tương ứng. Ở những doanh nghiệp chỉ bán hàng theo đơn hàng thì chỉ cần "Đơn hàng" hoặc "Hợp đồng". Ngược lại, có những doanh nghiệp bán lẻ thì việc nhập số liệu hàng đã bán vào một đơn hàng là cần thiết (để theo dõi doanh số bán của phòng kinh doanh)- AI ERP quy định những đơn hàng như vậy là "Đơn hàng xuất hóa đơn ngay".</p>
+<p class="node">Mã khách</p>
+<p class="node_d">
+Mã khách hàng, lấy từ Danh mục khách hàng, trường này bắt buộc phải khai báo.</p>
+<p class="node">Mã thanh toán</p>
+<p class="node_d">
+Mã thanh toán của đơn hàng/ hợp đồng, lấy từ Danh mục thanh toán, trường này không bắt buộc phải khai báo.
+<br/>
+Hạn thanh toán của đơn hàng dùng để kế thừa các bước sau và dùng torng việc xác định đơn hàng công nợ.</p>
+<p class="note">Chú ý: <br/>
+Hạn thanh toán nếu để trống thì đơn hàng được xem như trả tiền ngay và khong tham gia vào tính toán giới hạn công nợ khi xét duyệt các đơn hàng tiếp sau.
+</p>
+<p class="node">Số đơn hàng</p>
+<p class="node_d">
+Số đơn hàng/ hợp đồng, người sử dụng có thể tự gõ hoặc chương trình tự đánh số tuỳ theo khai báo trong hệ thống danh mục chứng từ.</p>
+<p class="node">Ngày lập</p>
+<p class="node_d">
+Ngày lập đơn hàng/ hợp đồng.</p>
+<p class="node">Tỷ giá</p>
+<p class="node_d">
+Chọn mã ngoại tệ và khai báo tỷ giá tại ngày lập đơn hàng/ hợp đồng.</p>
+<p class="node">Số hợp đồng</p>
+<p class="node_d">
+Số hợp đồng, trường này chỉ hiện giá trị trong trường hợp lập đơn hàng từ hợp đồng.</p>
+<p class="node">Ngày hiệu lực</p>
+<p class="node_d">
+Ngày hiệu lực của hợp đồng, chỉ cập nhật giá trị trường này nếu mã giao dịch là 2 - Hợp đồng.</p>
+<p class="node">Trạng thái</p>
+<p class="node_d">
+Trạng thái của đơn hàng/ hợp đồng. Đơn hàng/ hợp đồng có 06 trạng thái: "Lập chứng từ", "Duyệt", "Treo", "Đang xuất hàng", "Hoàn thành" và "Đóng".</p>
+<p id="td3">     Mô tả các trường ngăn Chi tiết     </p>
+<p class="node">Mã hàng</p>
+<p class="node_d">
+Được nhập trực tiếp từ danh mục vật tư (với đơn hàng xuất hóa đơn ngay) hoặc lấy từ báo giá.</p>
+<p class="node">Đvt</p>
+<p class="node_d">
+Đơn vị tính của vật tư hàng hóa, có thể được lấy mặc nhiên như trong danh mục vật tư nhưng cũng có thể thay đổi qua đơn vị tính quy đổi trong những trường hợp đặc biệt.</p>
+<p class="node">Mã kho</p>
+<p class="node_d">
+Được nhập trực tiếp từ danh mục kho (với đơn hàng xuất hóa đơn ngay) hoặc lấy từ báo giá.</p>
+<!--p class="node">Tồn kho</p>
+<p class="node_d">
+Hiện số tồn kho tức thời của vật tư. Số liệu tồn kho này được tính toán dựa vào các dữ liệu nhập, xuất mà người dùng đã cập nhật vào chương trình tính đến thời điểm nhập liệu, không phụ thuộc vào ngày của đơn hàng.
+<br/> 
+Cột này có thể được khai báo ẩn (hiện) tại mục "Hệ thống/ Danh mục/ Khai báo các tham số tuỳ chọn".</p-->
+<p class="node">Số lượng</p>
+<p class="node_d">
+Số lượng vật tư đặt hàng (bắt buộc khai báo).</p>
+<p class="node">Giá chuẩn (nguyên tệ)</p>
+<p class="node_d">
+Đơn giá bán của vật tư theo khai báo trong "Cập nhật giá bán" theo đồng tiền ngoại tệ.</p>
+<p class="node">Giá bán (nguyên tệ)</p>
+<p class="node_d">
+Giá bán của vật tư theo đồng ngoại tệ khai báo, trường này chỉ hiện lên nếu trong phần thông tin chung chọn trường tiền là ngoại tệ, không phải VND. Trong trường hợp giao dịch đơn hàng thuộc diện được chiết khấu mà mã chiết khấu này khai báo là không "Tính trên tiền hàng" thì giá sẽ bằng giá chuẩn sau khi trừ đi tiền chiết khấu.</p>
+<p class="node">Tiền (nguyên tệ)</p>
+<p class="node_d">
+Tiền phát sinh theo đồng tiền ngoại tệ. Nếu có sự thay đổi giá trị tiền ngoại tệ thì sẽ tính toán lại giá trị tiền=tiền ngoại tệ * tỷ giá.</p>
+<p class="node">Chiết khấu (nguyên tệ)</p>
+<p class="node_d">
+Tiền chiết khấu trong trường hợp giao dịch đơn hàng thuộc diện được chiết khấu mà mã chiết khấu này được khai báo là "Tính trên tiền hàng".</p>
+<p class="node">Mã thuế / Thuế suất</p>
+<p class="node_d">
+Mã thuế GTGT và thuế suất GTGT của vật tư, lấy từ danh mục vật tư hoặc chọn nhập từ Danh mục mã thuế.</p>
+<p class="node">Ngày giao</p>
+<p class="node_d">
+Ngày giao hàng, thông tin được lấy từ báo giá.</p>
+<p class="node">Giá chuẩn</p>
+<p class="node_d">
+Đơn giá bán của vật tư theo khai báo trong "Cập nhật giá bán".</p>
+<p class="node">Giá bán</p>
+<p class="node_d">
+Giá bán của vật tư theo đồng hạch toán. Nếu là mã giao dịch xuất hóa đơn ngay thì sẽ lấy theo giá chuẩn. Nếu lấy thông tin từ giấy báo giá thì giá bán sẽ lấy theo giá bán trong giấy báo giá
+<br/> 
+Trong trường hợp giao dịch đơn hàng thuộc diện được chiết khấu mà mã chiết khấu này được khai báo là không "Tính trên tiền hàng" thì giá sẽ bằng giá chuẩn sau khi trừ đi tiền chiết khấu.</p>
+<p class="node">Tiền</p>
+<p class="node_d">
+Tiền phát sinh theo đồng tiền hạch toán</p>
+<p class="node">Chiết khấu</p>
+<p class="node_d">
+Tiền chiết khấu trong trường hợp giao dịch đơn hàng thuộc diện được chiết khấu mà mã chiết khấu này được khai báo là "Tính trên tiền hàng".</p>
+<p class="node">Thuế</p>
+<p class="node_d">
+Tiền thuế GTGT của vật tư theo VND, trường này sẽ thay vị trí trường Thuế (nguyên tệ) nếu phần thông tin chung chọn trường mã ngọai tệ là VND.</p>
+<p class="node">Sl xuất</p>
+<p class="node_d">
+Số lượng vật tư đã xuất kho cho đơn hàng, số này được thể hiện khi vật tư của đơn hàng được lập phiếu xuất, số này chỉ thể hiện để kiểm tra trên đơn hàng, không sửa được.</p>
+<p class="node">Sl hoá đơn</p>
+<p class="node_d">
+Số lượng vật tư đã cập nhật hoá đơn cho đơn hàng. Số này được thể hiện khi vật tư của đơn hàng được lập hóa đơn bán hàng, số này chỉ thể hiện để kiểm tra trên đơn hàng, không sửa được.</p>
+<p class="node">Vụ việc</p>
+<p class="node_d">
+Mã vụ việc dùng để theo dõi một quá trình bán hàng, thông tin được lấy từ báo giá. Nếu các bước sau được lập từ số liệu này, vụ việc sẽ tự động kèm theo.</p>
+<p id="td3">     Mô tả các trường ngăn Chi phí </p>
+<p id="p3">
+ngăn chi phí trong hợp đồng được khai báo để làm thông tin tham khảo thêm, dùng để khai báo các khoản chi phí sẽ phát sinh theo hợp đồng. Hiện tại chưa có mối liên kết thông tin này với các bước quy trình sau.</p>
+<p class="node">Mã chi phí</p>
+<p class="node_d">
+Mã chi phí được kèm theo hợp đồng, được lấy từ Danh mục chi phí, trường này không bắt buộc phải khai báo nếu không phát sinh.</p>
+<p class="node">Tiền</p>
+<p class="node_d">
+Tiền chi phí liên quan đến việc bán hàng nếu đơn hàng được thực hiện. Các khoản theo từng mã chi phí sẽ được phân bổ cho từng vật tư trong hợp đồng theo tiêu thức phân bổ đặc trưng của từng mã chi phí. Tiêu thức phân bổ phụ thuộc vào việc lập danh mục chi phí.</p>
+<p id="td3">      Mô tả các trường ngăn Thông tin giao hàng   </p>
+<p class="node">Nơi nhận / Địa chỉ</p>
+<p class="node_d">
+Nơi giao hàng / Địa chỉ nơi nhận hàng, được lấy từ Danh mục địa chỉ giao hàng. Lưu ý, chỉ nhập được thông tin này khi đã khai báo địa chỉ của khách hàng này trong Danh mục địa chỉ giao hàng.</p>
+<p class="node">Hình thức vận chuyển</p>
+<p class="node_d">
+Hình thức vận chuyển hàng hoá, lấy từ Danh mục hình thức vận chuyển.</p>
+<p id="td3">      Mô tả các trường ngăn Thông tin khách hàng</p>
+<p class="node">Tên khách hàng / Địa chỉ / Số điện thoại / Fax</p>
+<p class="node_d">
+Những thông tin được lấy mặc nhiên trong danh mục khách hàng, chỉ dùng để tham khảo, không nhập liệu vào các trường này.</p>
+
+<p id="td3">Tệp đính kèm</p>
+<p id="p3">Chương trình cho phép tải tệp đính kèm từ máy tính, ứng dụng đi động vào chứng từ hoặc chụp hình quay phim trực tiếp từ ứng dụng đi động. 
+Tham khảo "Thao tác với tệp đính kèm".</p>
+<p id="td3"> Ngăn "Ghi chú"</p>
+<p id="p3"> Ngăn "Ghi chú" dùng để chia sẻ thông tin và tương tác với những người dùng khác, cho phép người 
+sử dụng có thể khai thác các tính năng: <br/>
+    - Đăng tin, ảnh, đoạn phim ngắn, tải tập tin có tính chất chia sẻ chung cho mọi người;<br/>
+    - Xem nhanh thông tin tình hình phản hồi;
+</p>
+<p class="note">
+Lưu ý:<br/>
+- Những thông tin mang tính chất riêng tư không nên đăng trên chức năng này;<br/>
+- Chỉ người dùng có quyền "quản trị" mới xóa các nội dung  của người khác; Với người dùng thông thường, chỉ xóa các nội dung do người dùng đó tạo ra;<br/>
+- Khi xóa 1 dòng nội dung  thì các nội dung "trả lời" cũng bị xóa;<br/>
+- Khi xem vẫn cho nhập nội dung, kể cả không có quyền sửa chứng từ. Những người dùng có quyền truy nhập vào chứng từ có thể tham gia viết;<br/>
+- Khi có nhiều nội dung viết, muốn xem các nội dung bị che khuất, nhấn "Xem thêm...";<br/>
+- Sau khi nhập đoạn văn bản, chèn hình ảnh...phải nhấn "Gửi nội dung", nếu không, khi thoát chứng từ, các nội dung sẽ không được lưu.
+</p>
+<p id="td3">     Mô tả các trường ngăn Thông tin khác </p>
+<p class="node">Ngày hợp đồng</p>
+<p class="node_d">
+Ngày lập hợp đồng, trường này chỉ hiện giá trị trong trường hợp lập đơn hàng từ hợp đồng.</p>
+<p class="node">Ngày hiệu lực</p>
+<p class="node_d">
+Ngày hiệu lực của hợp đồng, trường này chỉ hiện giá trị trong trường hợp lập đơn hàng từ hợp đồng.</p>
+<p class="node">Trạng thái</p>
+<p class="node_d">
+Trạng thái của hợp đồng, trường này chỉ hiện giá trị trong trường hợp lập đơn hàng từ hợp đồng.</p>
+<p class="node">Nv bán hàng</p>
+<p class="node_d">
+Mã nhân viên phụ trách đơn hàng/ hợp đồng, lấy từ Danh mục nhân viên bán hàng.</p>
+<p class="node">Số hóa đơn/ Ngày hóa đơn</p>
+<p class="node_d">
+Dùng để bộ phận bán hàng nhập số và ngày hóa đơn trong trươờng hợp phòng tiêu thụ xuất hóa đơn nhưng không hạch toán được.</p>
+<p id="td2">Một số thao tác xử lý trong đơn hàng</p>
+<p class="node">Tạo đơn hàng từ số liệu báo giá </p>
+<p class="node_d">
+Tạo mới phiếu đơn hàng, nhấn chức năng "<img src="vie\retrieve.png"/> - Lấy dữ liệu", chọn chức năng "Lấy số liệu từ báo giá", 
+nhập ngày giới hạn đầu, sau đó nhấn tìm giấy báo giá. <br/>
+Chọn giấy báo giá cần chuyển, nhập số lượng đơn hàng và nhấp "chọn", sau đó thoát khỏi màn hình giấy báo giá. 
+Chương trình sẽ tự động cập nhật vào đơn hàng những dòng hàng hóa đã chọn trong danh sách trên.
+</p>
+<p class="node">Tạo đơn hàng từ số liệu hợp đồng</p>
+<p class="node_d">Tạo mới phiếu đơn hàng, nhấn chức năng "<img src="vie\retrieve.png"/> - Lấy dữ liệu", chọn chức năng "Lấy số liệu từ báo giá", 
+nhập ngày giới hạn đầu, sau đó nhấn tìm hợp đồng. <br/>
+Chọn hợp đồng cần chuyển, nhập số lượng đơn hàng và nhấp "chọn", sau đó thoát khỏi màn hình hợp đồng. 
+Chương trình sẽ tự động cập nhật vào đơn hàng những dòng hàng hóa đã chọn trong danh sách trên.</p>
+
+<p class="node">Thao tác với tệp đính kèm</p>
+
+<p class="node_d">Chương trình cho phép tải tệp đính kèm vào chứng từ. 
+Để tải lên, nhấn biểu tượng <img src="vie\attach_up.png"/> để chọn tệp. Để tải xuống, nhấn biểu tượng <img src="vie\attach_dow.png"/>. 
+Để xóa tệp khỏi chứng từ, nhấn biểu tượng <img src="vie\attach_rem.png"/>.<br/>
+Tổng dung lượng các tệp là khoảng 10Mb, dung lượng lớn nhất từng tệp có thể khai báo. 
+(Tham khảo nhân viên tư vấn để sử dụng chức năng này hiệu quả).</p>
+
+<p id="td2">Soạn thư</p>
+<p id="p2">Chương trình tích hợp chức năng soạn thư điện tử và gửi người mua xác nhận. 
+</p>
+<ul class="lo_1">
+- Để thực hiện, nhấn biểu tượng <img src="vie/mailcompose.png"> - Soạn thư;<br>
+- Nếu khách hàng đã khai báo địa chỉ thư, chương trình sẽ mặc nhiên tại trường người nhận. Người dùng có thể sửa lại;<br>
+- Nhập các địa chỉ cần gửi, bao gồm người nhận, người cùng nhận và người nhận ẩn danh. Có thể gửi nhiều địa chỉ trong cùng danh sách, dùng đấu hai chấm (;) 
+hoặc dấu phẩy (') để ngăn cách giữa các địa chỉ trong danh sách;<br>
+- Thư điện tử có thể đính kèm mẫu in theo danh sách mẫu in cho phép và các tệp đã đính kèm trước đó trong chứng từ. Người dùng phải chọn lựa những tệp 
+cần thiết để gửi đính kèm. Tính năng này thực hiện tại ngăn "Mẫu in đính kèm" và "Tệp đính kèm";<br>
+- Nội dung được chương trình mặc định trước, người dùng có thể điều chỉnh lại cho phù hợp;<br>
+- Sau khi đã hoàn tất soạn thư và kiểm tra các tệp đính kèm, nhấn "Gửi" để gửi cho người mua.
+</ul>
+<!---->
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>

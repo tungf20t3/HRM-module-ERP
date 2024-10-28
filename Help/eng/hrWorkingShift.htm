@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Working Shift List</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Working Shift List
+<p id="p3">Used for data entry in:<br/>
+-	Non-working Days, Public Holidays;<br/>
+-	Overtime Definition;<br/>
+-	Employee Card Info Input;<br/>
+-	Employee Leave Input;<br/>
+-	Employee Workday Adjusting;<br/>
+-	Employee Leave by Regulation.
+
+<p id="td2">Entry screen
+<p id="pic"><img src="eng\hrWorkingShift.png"></img>
+
+<p id="td2">Field descriptions
+
+<p class="node">Category
+<p class="node_d">	1 - Regular, 2 - Overtime
+
+<p class="node">	Rounding Minutes
+<p class="node_d">This is a minimum time block used in working time rounding. For not creating many decimal digits from multiplication and division, it should be a number fully divided by 3 (such as 3, 6, 9, 12, 15...).
+
+<p class="node">	Rounding Type
+<p class="node_d">	General formula for working time rounding
+<p class="fml">Number of working minutes = (Regular Working Hours*60)-n* minimum time block.
+
+<p class="node_d">	1 - Ceiling<br>
+If the rounding type is 1 - Up, number of late in/early out minutes is less than the minimum time block (rounding minutes), 
+the working hours will not be subtracted. <br>
+<p class="e">For example: Rounding minutes is 3, regular working hours is 8 <br>
+- If the late in minutes is from 1 to 2, number of working minutes = (8*60) - 0*3. Working hours = 480/60 = 8 (hour). It is not subtracted any block.<br>
+- If the late in minutes is from 3 to 5, number of working minutes = (8*60) - 1*3. Working hours = 477/60 = 7.95 (hour). It is subtracted 1 block.<br>
+- If the late in minutes is from 6 to 8, number of working minutes = (8*60) - 2*3. Working hours = 474/60 = 7.90 (hour). It is subtracted 2 blocks.<br>
+- ...
+
+<p class="node_d">2 - Floor<br>
+If the rounding type is 2 - Down, number of late in/early out minutes is less than the minimum time block (rounding minutes), 
+the working hours will also be subtracted by block. <br>
+<p class="e">For example: Rounding minutes is 3, regular working hours is 8 <br>
+- If the late in minutes is from 1 to 2, number of working minutes = (8*60) - 1*3. Working hours = 477/60 = 7.95 (hour). It is subtracted 1 block.<br>
+- If the late in minutes is from 3 to 5, number of working minutes = (8*60) - 2*3. Working hours = 474/60 = 7.90 (hour). It is subtracted 2 blocks.<br>
+- If the late in minutes is from 6 to 8, number of working minutes = (8*60) - 3*3. Working hours = 471/60 = 7.85 (hour). It is subtracted 3 blocks.<br>
+- ...
+
+<p class="node_d">3 - System<br>
+If the rounding type is 3 - System, the fact that working hours will be subtracted or not depends on the position of late in/early out minutes
+within 2 parts of the minimum time block (rounding minutes). <br>
+<p class="e">For example: Rounding minutes is 3<br>
+- If the late in minutes is 1, number of working minutes = (8*60) - 0*3. The working hours is not subtracted.<br>
+- If the late in minutes is from 2 to 4, number of working minutes = (8*60) - 1*3. Working hours = 477/60 = 7.95 (hour). It is subtracted 1 block.<br>
+- If the late in minutes is from 5 to 7, number of working minutes = (8*60) - 2*3. Working hours = 474/60 = 7.90 (hour). It is subtracted 2 blocks.<br>
+- If the late in minutes is from 8 to 10, number of working minutes = (8*60) - 3*3. Working hours = 471/60 = 7.85 (hour). It is subtracted 3 blocks.<br>
+- ...
+
+<p class="node">	Maximum Idle Time
+<p class="node_d">	This information is used to determine if the time out is of the previous day or not in case a working shift begins on a day and ends on the next day.
+In this case, the time out can only be later than one defined in detailed shift a period of time equal to "Maximum Idle Time". 
+If it is greater than "Maximum Idle Time", the system will record this inaccurate time out in "Employees with Inaccurate Time In/Out".
+
+<p class="note">In case there is 1 detailed shift in a day (e.g. Saturday morning), 
+it is required to define 1 regular working shift (Saturday morning) and 1 overtime shift (Saturday afternoon).
+
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

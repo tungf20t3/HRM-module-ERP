@@ -1,0 +1,271 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE query [
+  <!ENTITY % BIMode.PurchasingInformation SYSTEM "..\Include\BIMode.PurchasingInformation">
+  %BIMode.PurchasingInformation;
+]>
+
+<query prime="r90$" field="ngay_ct" xmlns="urn:schemas-ai-erp:data-query">
+  <title v="Phân tích số liệu mua hàng" e="Purchasing Data Analysis"/>
+
+  <filterTitle v="Danh sách điều kiện lọc" e="Filter List"/>
+  <filterSubTitle v="Kéo thả các trường để thêm vào danh sách" e="Drag and drop to add fields to the list"/>
+
+  <previewTitle v="Số liệu mua hàng" e="Purchasing Data"/>
+  <previewSubTitle v="Xem, kết xuất thông tin dưới dạng tệp bảng tính..." e="View, Export the data as a spreadsheet file..."/>
+
+  <format>
+    <type name="AllowNulls" value="true"></type>
+    <type name="Numeric" value="#########0.00"></type>
+    <type name="ItemCount" value="10"></type>
+    <type name="PagingCount" value="10"></type>
+    <type name="PagingList" value="5,10,15,20,25"></type>
+    <type name="ColumnList" value="1105,1111,2000,2001,1113,3002,3003,3004,4000,4001,4002,3000"></type>
+    <type name="GroupList" value=""></type>
+
+    <type name="FilterList" value="1001,1002"></type>
+
+    <type name="HeaderBeginRow" value="3"></type>
+    <type name="DetailBeginRow" value="5"></type>
+    <type name="RowHeight" value="12"></type>
+    <type name="ColumnWidth" value="10"></type>
+    <type name="DeltaWidth" value="5"></type>
+    <type name="OnProcessFailure" value="parent.on$PurchasingInformation$OnProcessFailure({0});"></type>
+  </format>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+if @@admin <> 1 exec dbo.AI_ERP$System$Query$Initialize @@controller, @@tables, @@alias, @@userID, @@admin, @@sysDatabaseName
+]]>
+      </text>
+    </command>
+
+    <command event="InitExternalFields">
+      <text>
+        <![CDATA[
+declare @$ma_nt varchar(8)
+select @$ma_nt = rtrim(val) from options where name = 'm_ma_nt0'
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <data>
+    <tables>
+      <table id="10" parentID="" controller="" key="stt_rec" type="1">
+        <title v="Thông tin chung" e="General Information"/>
+      </table>
+      <table id="20" parentID="" controller="" key="stt_rec" type="1">
+        <title v="Nhà cung cấp" e="Supplier"/>
+      </table>
+      <table id="30" parentID="" controller="" key="stt_rec" type="1">
+        <title v="Vật tư" e="Item"/>
+      </table>
+      <table id="40" parentID="" controller="" key="stt_rec" type="1">
+        <title v="Dữ liệu" e="Data"/>
+      </table>
+      <table id="50" parentID="" controller="" key="stt_rec" type="1">
+        <title v="Khác" e="Other"/>
+      </table>
+    </tables>
+
+    <columns>
+      <column id="1001" tableID="10" name="ngay_ct" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120" allowNulls="false" allowRemove="false" hidden="true" defaultOperation="c6" defaultValue="new Date(new Date().getFullYear(), new Date().getMonth(), 1)">
+        <title v="Ngày từ" e="Date From"/>
+      </column>
+      <column id="1002" tableID="10" name="ngay_ct" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120" allowNulls="false" allowRemove="false" hidden="true" defaultOperation="c5" defaultValue="new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)">
+        <title v="Ngày đến" e="Date To"/>
+      </column>
+
+      <column id="1100" tableID="10" name="ma_dvcs" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Đơn vị" e="Unit"/>
+      </column>
+      <column id="1101" tableID="10" name="ma_ct" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã chứng từ" e="Voucher Code"/>
+      </column>
+      <column id="1102" tableID="10" name="ten_ct%l" aliasName="{0}.ten_ct%l" dataType="nvarchar" width="300" external="true" mapping="ma_ct$dmct.ma_ct" pivot="0">
+        <title v="Tên chứng từ" e="Voucher Name"/>
+      </column>
+      <column id="1103" tableID="10" name="ma_gd" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã giao dịch" e="Transaction Code"/>
+      </column>
+      <column id="1104" tableID="10" name="ten_gd%l" aliasName="{0}.ten_gd%l" dataType="nvarchar" width="300" external="true" mapping="ma_gd#ma_ct#loai_ct$dmmagd.ma_gd#ma_ct#loai_ct" chart="1">
+        <title v="Tên giao dịch" e="Transaction Name"/>
+      </column>
+      <column id="1105" tableID="10" name="ngay_ct" order="ngay_ct" dataType="smalldatetime" dataFormatString="@datetimeFormat" width="120">
+        <title v="Ngày chứng từ" e="Voucher Date"/>
+      </column>
+      <column id="1106" tableID="10" name="year({0}.ngay_ct)" dataType="int" align="right" dataFormatString="###0" width="100" indent="true">
+        <title v="Năm" e="Year"/>
+      </column>
+      <column id="1107" tableID="10" name="datepart(quarter, {0}.ngay_ct)" dataType="int" align="right" dataFormatString="#0" width="100" indent="true">
+        <title v="Quý" e="Quarter"/>
+      </column>
+      <column id="1108" tableID="10" name="month({0}.ngay_ct)" dataType="int" align="right" dataFormatString="#0" width="100" indent="true">
+        <title v="Tháng" e="Month"/>
+      </column>
+      <column id="1109" tableID="10" name="datepart(week, {0}.ngay_ct)" dataType="int" align="right" dataFormatString="#0" width="100" indent="true">
+        <title v="Tuần" e="Week"/>
+      </column>
+      <column id="1110" tableID="10" name="day({0}.ngay_ct)" dataType="int" align="right" dataFormatString="#0" width="80" pivot="0" indent="true">
+        <title v="Ngày" e="Day"/>
+      </column>
+      <column id="1111" tableID="10" name="so_ct" dataType="char" align="right" maxLength="12" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Số chứng từ" e="Voucher Number"/>
+      </column>
+      <column id="1112" tableID="10" name="case when {0}.ma_nt = '' then @$ma_nt else {0}.ma_nt end" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã nt" e="Currency Code"/>
+      </column>
+      <column id="1113" tableID="10" name="dien_giai" dataType="nvarchar" width="300" pivot="0">
+        <title v="Diễn giải" e="Description"/>
+      </column>
+
+      <column id="2000" tableID="20" name="ma_kh" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã nhà cung cấp" e="Supplier ID"/>
+      </column>
+      <column id="2001" tableID="20" name="ten_kh%l" aliasName="{0}.ten_kh%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_kh$dmkh.ma_kh" chart="1">
+        <title v="Tên nhà cung cấp" e="Supplier Name"/>
+      </column>
+      <column id="2006" tableID="20" name="nh_kh1" aliasName="{0}.nh_kh1" dataType="char" maxLength="16" dataFormatString="@upperCaseFormat" external="true" chart="1" mapping="ma_kh$dmkh.ma_kh" width="120">
+        <title v="Nhóm nhà cung cấp 1" e="Supplier Group 1"/>
+      </column>
+      <column id="2007" tableID="20" name="nh_kh2" aliasName="{0}.nh_kh2" dataType="char" maxLength="16" dataFormatString="@upperCaseFormat" external="true" chart="1" mapping="ma_kh$dmkh.ma_kh" width="120">
+        <title v="Nhóm nhà cung cấp 2" e="Supplier Group 2"/>
+      </column>
+      <column id="2008" tableID="20" name="nh_kh3" aliasName="{0}.nh_kh3" dataType="char" maxLength="16" dataFormatString="@upperCaseFormat" external="true" chart="1" mapping="ma_kh$dmkh.ma_kh" width="120">
+        <title v="Nhóm nhà cung cấp 3" e="Supplier Group 3"/>
+      </column>
+      <column id="2009" tableID="20" name="ten_nh_kh1%l" aliasName="{0}.ten_nh%l" key="{0}.loai_nh=1" dataType="nvarchar" maxLength="512" external="true" mapping="ma_kh$dmkh.ma_kh,dmkh.nh_kh1$dmnhkh.ma_nh" chart="1" width="300">
+        <title v="Tên nhóm nhà cung cấp 1" e="Supplier Group 1 Name"/>
+      </column>
+      <column id="2010" tableID="20" name="ten_nh_kh2%l" aliasName="{0}.ten_nh%l" key="{0}.loai_nh=2" dataType="nvarchar" maxLength="512" external="true" mapping="ma_kh$dmkh.ma_kh,dmkh.nh_kh2$dmnhkh.ma_nh" chart="1" width="300">
+        <title v="Tên nhóm nhà cung cấp 2" e="Supplier Group 2 Name"/>
+      </column>
+      <column id="2011" tableID="20" name="ten_nh_kh3%l" aliasName="{0}.ten_nh%l" key="{0}.loai_nh=3" dataType="nvarchar" maxLength="512" external="true" mapping="ma_kh$dmkh.ma_kh,dmkh.nh_kh3$dmnhkh.ma_nh" chart="1" width="300">
+        <title v="Tên nhóm nhà cung cấp 3" e="Supplier Group 3 Name"/>
+      </column>
+      <column id="2018" tableID="20" name="ma_tt" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã thanh toán" e="Term"/>
+      </column>
+      <column id="2019" tableID="20" name="ten_tt%l" aliasName="{0}.ten_tt%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_tt$dmtt.ma_tt" chart="1">
+        <title v="Tên thanh toán" e="Term Name"/>
+      </column>
+
+      &BI.Query.Columns;
+
+      <column id="3000" tableID="30" name="ma_vung" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Vùng" e="Plant"/>
+      </column>
+      <column id="3001" tableID="30" name="ten_vung%l" aliasName="{0}.ten_vung%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_vung$bidmvung.ma_vung" chart="1">
+        <title v="Tên vùng" e="Plant Name"/>
+      </column>
+      <column id="3002" tableID="30" name="ma_kho" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã kho" e="Site Code"/>
+      </column>
+      <column id="3003" tableID="30" name="ten_kho%l" aliasName="{0}.ten_kho%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_kho$dmkho.ma_kho" chart="1">
+        <title v="Tên kho" e="Site Name"/>
+      </column>
+      <column id="3004" tableID="30" name="ma_vi_tri" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã vị trí" e="Location Code"/>
+      </column>
+      <column id="3005" tableID="30" name="ten_vi_tri%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_vi_tri$dmvitri.ma_vi_tri" chart="1">
+        <title v="Tên vị trí" e="Item Name"/>
+      </column>
+      <column id="3006" tableID="30" name="ma_lo" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã lô" e="Lot Code"/>
+      </column>
+      <column id="3007" tableID="30" name="ten_lo%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_lo$dmlo.ma_lo" chart="1">
+        <title v="Tên lô" e="Lot Name"/>
+      </column>
+      <column id="3008" tableID="30" name="ma_vt" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã vật tư" e="Item Code"/>
+      </column>
+      <column id="3009" tableID="30" name="ten_vt%l" aliasName="{0}.ten_vt%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_vt$dmvt.ma_vt" chart="1">
+        <title v="Tên vật tư" e="Item Name"/>
+      </column>
+      <column id="3010" tableID="30" name="loai_vt" aliasName="{0}.ma_loai_vt" dataType="char" maxLength="16" dataFormatString="@upperCaseFormat" external="true" chart="1" mapping="ma_loai_vt$dmloaivt.ma_loai_vt" width="120">
+        <title v="Loại vật tư" e="Item Type"/>
+      </column>
+      <column id="3011" tableID="30" name="dvt1" dataType="char" maxLength="16" width="80" pivot="0">
+        <title v="Đvt" e="UOM"/>
+      </column>
+      <column id="3012" tableID="30" name="ten_dvt%l" aliasName="{0}.ten_dvt%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="dvt1$dmdvt.dvt" chart="1">
+        <title v="Tên đvt" e="UOM Name"/>
+      </column>
+
+      <column id="3013" tableID="30" name="nh_vt1" aliasName="{0}.nh_vt1" dataType="char" maxLength="16" dataFormatString="@upperCaseFormat" external="true" chart="1" mapping="ma_vt$dmvt.ma_vt" width="120">
+        <title v="Nhóm vật tư 1" e="Item Group 1"/>
+      </column>
+      <column id="3014" tableID="30" name="nh_vt2" aliasName="{0}.nh_vt2" dataType="char" maxLength="16" dataFormatString="@upperCaseFormat" external="true" chart="1" mapping="ma_vt$dmvt.ma_vt" width="120">
+        <title v="Nhóm vật tư 2" e="Item Group 2"/>
+      </column>
+      <column id="3015" tableID="30" name="nh_vt3" aliasName="{0}.nh_vt3" dataType="char" maxLength="16" dataFormatString="@upperCaseFormat" external="true" chart="1" mapping="ma_vt$dmvt.ma_vt" width="120">
+        <title v="Nhóm vật tư 3" e="Item Group 3"/>
+      </column>
+      <column id="3016" tableID="30" name="ten_nh_vt1%l" aliasName="{0}.ten_nh%l" key="{0}.loai_nh=1" dataType="nvarchar" maxLength="512" external="true" mapping="ma_vt$dmvt.ma_vt,dmvt.nh_vt1$dmnhvt.ma_nh" chart="1" width="300">
+        <title v="Tên nhóm vật tư 1" e="Item Group 1 Name "/>
+      </column>
+      <column id="3017" tableID="30" name="ten_nh_vt2%l" aliasName="{0}.ten_nh%l" key="{0}.loai_nh=2" dataType="nvarchar" maxLength="512" external="true" mapping="ma_vt$dmvt.ma_vt,dmvt.nh_vt2$dmnhvt.ma_nh" chart="1" width="300">
+        <title v="Tên nhóm vật tư 2" e="Item Group 2 Name "/>
+      </column>
+      <column id="3018" tableID="30" name="ten_nh_vt3%l" aliasName="{0}.ten_nh%l" key="{0}.loai_nh=3" dataType="nvarchar" maxLength="512" external="true" mapping="ma_vt$dmvt.ma_vt,dmvt.nh_vt3$dmnhvt.ma_nh" chart="1" width="300">
+        <title v="Tên nhóm vật tư 3" e="Item Group 3 Name "/>
+      </column>
+
+      <column id="4000" tableID="40" name="sl_nhap" dataType="numeric" align="right" width="120" dataFormatString="@quantityInputFormat">
+        <title v="Số lượng" e="Quantity"/>
+      </column>
+      <column id="4001" tableID="40" name="gia" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyPriceInputFormat">
+        <title v="Giá nhập" e="Receive Price"/>
+      </column>
+      <column id="4002" tableID="40" name="tien_nhap" dataType="numeric" align="right" width="120" dataFormatString="@baseCurrencyAmountInputFormat">
+        <title v="Tiền nhập" e="Receive Amount"/>
+      </column>
+      <column id="4003" tableID="40" name="gia_nt" dataType="numeric" align="right" width="120" dataFormatString="@foreignCurrencyAmountInputFormat">
+        <title v="Giá nhập nt" e="FC Receive Price"/>
+      </column>
+      <column id="4004" tableID="40" name="tien_nt_n" dataType="numeric" align="right" width="120" dataFormatString="@foreignCurrencyAmountInputFormat">
+        <title v="Tiền nhập nt" e="FC Receive Amount"/>
+      </column>
+
+      <column id="5000" tableID="50" name="ma_bp0" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Đơn vị mua" e="Purchasing Organization"/>
+      </column>
+      <column id="5001" tableID="50" name="ten_bp0%l" aliasName="{0}.ten_bp%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_bp0$bidmbp0.ma_bp" chart="1">
+        <title v="Tên đơn vị mua" e="Purchasing Organization Name"/>
+      </column>
+      <column id="5002" tableID="50" name="ma_nh0" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Nhóm mua" e="Purchasing Group"/>
+      </column>
+      <column id="5003" tableID="50" name="ten_nh0%l" aliasName="{0}.ten_nh%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_nh0$bidmnhom0.ma_nh" chart="1">
+        <title v="Tên nhóm mua" e="Purchasing Group Name"/>
+      </column>
+      <column id="5004" tableID="50" name="ma_bp" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã bộ phận" e="Department"/>
+      </column>
+      <column id="5005" tableID="50" name="ten_bp%l" aliasName="{0}.ten_bp%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_bp$dmbp.ma_bp" chart="1">
+        <title v="Tên bộ phận" e="Department Name"/>
+      </column>
+      <column id="5006" tableID="50" name="ma_hd" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã hợp đồng" e="Contract"/>
+      </column>
+      <column id="5007" tableID="50" name="ten_hd%l" aliasName="{0}.ten_hd%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_hd$dmhd.ma_hd" chart="1">
+        <title v="Tên hợp đồng" e="Contract Name"/>
+      </column>
+      <column id="5008" tableID="50" name="ma_vv" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã vụ việc" e="Job"/>
+      </column>
+      <column id="5009" tableID="50" name="ten_vv%l" aliasName="{0}.ten_vv%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_vv$dmvv.ma_vv" chart="1">
+        <title v="Tên vụ việc" e="Job Name"/>
+      </column>
+      <column id="5010" tableID="50" name="ma_phi" dataType="char" maxLength="16" width="120" dataFormatString="@upperCaseFormat" pivot="0">
+        <title v="Mã phí" e="Expense"/>
+      </column>
+      <column id="5011" tableID="50" name="ten_phi%l" aliasName="{0}.ten_phi%l" dataType="nvarchar" maxLength="512" width="300" external="true" mapping="ma_phi$dmphi.ma_phi" chart="1">
+        <title v="Tên phí" e="Expense Name"/>
+      </column>
+    </columns>
+  </data>
+
+</query>

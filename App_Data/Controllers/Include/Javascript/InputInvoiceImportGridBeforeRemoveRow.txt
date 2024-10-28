@@ -1,0 +1,22 @@
+<![CDATA[
+function on$]]>&Identity;<![CDATA[$ExecuteCommand(sender, e) {
+  var action = e.type.Action, g = sender, f = g.get_element().parentForm;
+  switch (action) {
+    case 'BeforeRemoveRow':
+      if (!(g._getItemValue(g._activeRow, g._getColumnOrder('tien_nt0')) == 0 && g._getItemValue(g._activeRow, g._getColumnOrder('thue_nt')) == 0)) {
+        var msg = g._language == 'v' ? 'Dòng hiện tại có giá trị tiền hoặc thuế khác 0 nên không xóa được.' : 'Cannot delete this record because either the item amount or tax amount is not equal to 0.';
+        $message.show(msg, String.format('$find(\'{0}\')._focusWhenTabChanged();', g._id));
+
+        var formID = g.get_element().parentForm._id;
+        var buttonID = formID.substring(0, formID.indexOf('_dirExtender')) + '_DialogMessage_dlgOk';
+        
+        setTimeout(function() {try {$get(buttonID).focus();} catch (ex) {}}, 10);
+        e.type.cancelEvent = true;
+        return false;
+      }
+      break;
+    default:
+      break;
+  }
+}
+]]>

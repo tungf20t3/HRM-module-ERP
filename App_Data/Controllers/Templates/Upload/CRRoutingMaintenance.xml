@@ -1,0 +1,442 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY AfterUpdate "
+  delete ctrtvt from ctrtvt a join #d1 b on a.stt_rec = b.stt_rec
+  insert into ctrtvt (stt_rec, ma_cd, ma_vt, ma_lo_trinh, loai_btp, ma_ccv, ma_cm) select stt_rec, ma_cd, ma_vt, max(ma_lo_trinh), 1, max(ma_ccv), max(ma_cm) from #d1 group by stt_rec, ma_cd, ma_vt
+">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'CRRoutingMaintenanceDetail' else 'CRRoutingMaintenanceDetail2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$CRRoutingMaintenanceImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$CRRoutingMaintenanceImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="phrt, ctrt"/>
+    <dependence value="phrt, ctrt, irt"/>
+    <listTable value="#m1, #d1, #i1"/>
+    <temporary value="#m2, #d2, #i2" alias="b, b, b"/>
+    <alias value="master, detail, inquiry"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_lo_trinh" column="A" allowNulls="false" upperCase="true" updateValue="None" resource="master, detail, inquiry"/>
+    <field name="ten_lo_trinh" column="B" allowNulls="false" resource="master"/>
+    <field name="ten_lo_trinh2" column="C" resource="master"/>
+    <field name="ma_cd" column="D" reference="1" allowNulls="false" upperCase="true" updateValue="None" resource="detail" check="exists(select 1 from @@table b where @@table.ma_lo_trinh = b.ma_lo_trinh and @@table.ma_cd = b.ma_cd having count(b.stt) &gt; 1)" errorCode="00002"/>
+    <field name="ten_cd" column="E" reference="1" allowNulls="false" resource="detail"/>
+    <field name="ten_cd2" column="F" reference="1" resource="detail"/>
+    <field name="kieu_cd" column="G" reference="1" allowNulls="false" resource="detail" check="kieu_cd not in ('1', '2', '3', '4')" errorCode="00002"/>
+    <field name="cd_truoc" column="H" reference="1" resource="detail"/>
+    <field name="cd_sau" column="I" reference="1" resource="detail"/>
+    <field name="ma_vt" column="J" reference="1" allowNulls="false" upperCase="true" resource="detail" check="ma_vt not in (select ma_vt from dmvt where loai_vt in ('41', '51'))" errorCode="00001"/>
+    <field name="loai_cd" column="K" reference="1" allowNulls="false" resource="detail" check="loai_cd not in ('1', '2', '3')" errorCode="00002"/>
+    <field name="ma_ccv" column="L" reference="1" upperCase="true" resource="detail" check="loai_cd = '3' and ma_ccv &lt;&gt; ''&And;loai_cd &lt;&gt; '3' and ma_ccv not in (select ma_ccv from sfdmcumcv)" errorCode="00002&And;00001"/>
+    <field name="ma_cm" column="M" reference="1" upperCase="true" resource="detail" check="ma_cm &lt;&gt; '' and ma_cm not in (select ma_cm from sfdmcummay)" errorCode="00001"/>
+    <field name="dvt" column="N" reference="1" resource="detail"/>
+
+    <field name="tg_bd_cds" column="O" type="Decimal" resource="detail"/>
+    <field name="sl_bd_cds" column="P" type="Decimal" resource="detail"/>
+    <field name="tg_cho" column="Q" type="Decimal" resource="detail" check="loai_cd = '3' and tg_cho &lt;&gt; 0" errorCode="00002"/>
+    <field name="tg_cai_dat" column="R" type="Decimal" resource="detail" check="loai_cd = '3' and tg_cai_dat &lt;&gt; 0" errorCode="00002"/>
+    <field name="sl_may" column="S" type="Decimal" resource="detail"/>
+
+    <field name="cach_tinh" column="T" reference="1" resource="detail" check="cach_tinh not in ('1', '2')" errorCode="00002"/>
+    <field name="nang_suat" column="U" type="Decimal" resource="detail"/>
+    <field name="tg_vs" column="V" type="Decimal" resource="detail"/>
+    <field name="tg_chuyen" column="W" type="Decimal" resource="detail"/>
+    <field name="nc_cai_dat" column="X" type="Decimal" resource="detail"/>
+
+    <field name="nc_th" column="Y" type="Decimal" resource="detail"/>
+    <field name="cc_sd" column="Z" reference="1" resource="detail"/>
+    <field name="ma_kh" column="AA" reference="1" upperCase="true" resource="detail" check="loai_cd = '3' and (ma_kh &lt;&gt; '' and ma_kh not in (select ma_kh from dmkh))&And;loai_cd &lt;&gt; '3' and ma_kh &lt;&gt; ''" errorCode="00001&And;00002"/>
+    <field name="tg_gc" column="AB" type="Decimal" resource="detail" check="loai_cd &lt;&gt; '3' and tg_gc &lt;&gt; 0" errorCode="00002"/>
+    <field name="cp_gc" column="AC" type="Decimal" resource="detail" check="loai_cd &lt;&gt; '3' and cp_gc &lt;&gt; 0" errorCode="00002"/>
+    <field name="tl_kt" column="AD" type="Decimal" resource="detail"/>
+    <field name="tl_kt2" column="AE" type="Decimal" resource="detail"/>
+
+    <field name="tru_dm" column="AF" reference="1" resource="detail" type="Boolean" defaultValue="false" check="tru_dm &lt;&gt; '' and tru_dm not in ('0', '1')" errorCode="00002"/>
+    <field name="td_chuyen" column="AG" reference="1" resource="detail" type="Boolean" defaultValue="false" check="(dung_kt = 1 or nk_yn = 1) and td_chuyen = 1 &And; td_chuyen &lt;&gt; '' and td_chuyen not in ('0', '1')" errorCode="00002&And;00002"/>
+    <field name="dung_kt" column="AH" reference="1" resource="detail" type="Boolean" defaultValue="false" check="(td_chuyen = 1 or nk_yn = 1) and dung_kt = 1 &And; dung_kt &lt;&gt; '' and dung_kt not in ('0', '1')" errorCode="00002&And;00002"/>
+    <field name="td_phi" column="AI" reference="1" resource="detail" type="Boolean" defaultValue="false" check="td_phi &lt;&gt; '' and td_phi not in ('0', '1')" errorCode="00002"/>
+    <field name="nhap_sl" column="AJ" reference="1" resource="detail" type="Boolean" defaultValue="false" check="nhap_sl &lt;&gt; '' and nhap_sl not in ('0', '1')" errorCode="00002"/>
+    <field name="nk_yn" column="AK" reference="1" resource="detail" type="Boolean" defaultValue="false" check="(td_chuyen = 1 or dung_kt = 1) and nk_yn = 1 &And; nk_yn &lt;&gt; '' and nk_yn not in ('0', '1')" errorCode="00002&And;00002"/>
+    <field name="xk_yn" column="AL" reference="1" resource="detail" type="Boolean" defaultValue="false"/>
+
+    <field name="stt_rec" column="None" updateValue="None" resource="master, detail, inquiry"/>
+    <field name="stt_rec0" column="None" updateValue="None" resource="detail"/>
+    <field name="line_nbr" column="None" type="Int" updateValue="None" resource="detail"/>
+
+    <field name="ma_ct" column="None" insertValue="@voucherID" updateValue="None" resource="master, detail"/>
+
+    <field name="c$" column="None" resource="inquiry"/>
+    <field name="m$" column="None" resource="inquiry"/>
+    <field name="d$" column="None" resource="inquiry"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None" resource="master, inquiry"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="@datetime0" updateValue="None" resource="master"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="@datetime0" updateValue="@datetime0" resource="master"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@user" updateValue="None" resource="master, inquiry"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@user" updateValue="@user" resource="master"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Khai báo quy trình sản xuất" e="Routing Maintenance"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_lo_trinh" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã quy trình" e="Routing Code"/>
+      </field>
+      <field name="ten_lo_trinh" width ="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên quy trình" e="Routing Name"/>
+      </field>
+      <field name="ten_lo_trinh2" width ="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="ma_cd" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã công đoạn" e="Operation Code"/>
+      </field>
+      <field name="ten_cd" width ="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên công đoạn" e="Operation Name"/>
+      </field>
+      <field name="ten_cd2" width ="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="kieu_cd" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Kiểu c.đoạn" e="Opr. Style"/>
+      </field>
+      <field name="cd_truoc" width ="16">
+        <text v="C.đoạn trước" e="Previous Opr."/>
+      </field>
+      <field name="cd_sau" width ="16">
+        <text v="C.đoạn sau" e="Next Opr."/>
+      </field>
+      <field name="ma_vt" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã btp" e="WIP"/>
+      </field>
+      <field name="loai_cd" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại c.đoạn" e="Opr. Type"/>
+      </field>
+      <field name="ma_ccv" width ="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã trung tâm cv" e="Work Center"/>
+      </field>
+      <field name="ma_cm" width ="16">
+        <text v="Mã cụm máy" e="Machine Center"/>
+      </field>
+      <field name="dvt" width ="12">
+        <text v="Đvt giao dịch" e="Transaction UOM"/>
+      </field>
+      <field name="tg_bd_cds" width ="16">
+        <text v="Tg bđ c.đoạn sau" e="Overlap"/>
+      </field>
+      <field name="sl_bd_cds" width ="16">
+        <text v="Sl bđ c.đoạn sau" e="Send Ahead"/>
+      </field>
+      <field name="tg_cho" width ="16">
+        <text v="Th.gian chờ sx" e="Wait Time"/>
+      </field>
+      <field name="tg_cai_dat" width ="16">
+        <text v="Th.gian cài đặt" e="Setup Time"/>
+      </field>
+      <field name="sl_may" width ="16">
+        <text v="Số lượng máy" e="No. of Resource"/>
+      </field>
+      <field name="cach_tinh" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Cách tính" e="Time Basic"/>
+      </field>
+      <field name="nang_suat" width ="16">
+        <text v="Năng suất" e="Piece Rate"/>
+      </field>
+      <field name="tg_vs" width ="16">
+        <text v="Th.gian vệ sinh máy" e="Clear Time"/>
+      </field>
+      <field name="tg_chuyen" width ="16">
+        <text v="Th.gian chuyển " e="Move Time"/>
+      </field>
+      <field name="nc_cai_dat" width ="16">
+        <text v="Nh.công cài đặt" e="Setup Resource"/>
+      </field>
+      <field name="nc_th" width ="16">
+        <text v="Nh.công chạy máy" e="Run Resource"/>
+      </field>
+      <field name="cc_sd" width ="50">
+        <text v="Công cụ sử dụng" e="Tool Number"/>
+      </field>
+      <field name="ma_kh" width ="16">
+        <text v="Nhà cung cấp" e="Supplier"/>
+      </field>
+      <field name="tg_gc" width ="16">
+        <text v="Th.gian gia công " e="Subcontract Leadtime"/>
+      </field>
+      <field name="cp_gc" width ="16">
+        <text v="Chi phí gia công" e="Subcontract Cost"/>
+      </field>
+      <field name="tl_kt" width ="16">
+        <text v="Tỷ lệ kế thừa nvl từ công đoạn trước (%)" e="WIP Consumption Rate"/>
+      </field>
+      <field name="tl_kt2" width ="16">
+        <text v="Tỷ lệ kế thừa btp từ công đoạn trước (%)" e="WIP Processing Rate"/>
+      </field>
+      <field name="tru_dm" width ="12">
+        <text v="Trừ định mức" e="Backflush"/>
+      </field>
+      <field name="td_chuyen" width ="12">
+        <text v="Tự động chuyển" e="Auto Move"/>
+      </field>
+      <field name="dung_kt" width ="12">
+        <text v="Dừng kiểm tra" e="Inspection Stop"/>
+      </field>
+      <field name="td_phi" width ="12">
+        <text v="Tự động tính phí" e="Auto Charge"/>
+      </field>
+      <field name="nhap_sl" width ="12">
+        <text v="Nhập sản lượng" e="Count Point"/>
+      </field>
+      <field name="nk_yn" width ="12">
+        <text v="Tự động nhập kho" e="Auto Good Receipt"/>
+      </field>
+      <field name="xk_yn" width ="12">
+        <text v="Tự động xuất kho" e="Auto Good Issue"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @field varchar(32), @wsID varchar(1), @datetime0 datetime, @irregularChars varchar(128), @irregular nvarchar(4000), @duplicate nvarchar(4000)
+declare @user int, @admin bit, @r int, @i int, @k int, @currentID int, @count int, @voucherID varchar(8), @message nvarchar(4000)
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> đã có hoặc lồng nhau.' else 'The value of cell <span class="Highlight">%invalidCell</span> is invalid or already exists.' end
+
+alter table @@table alter column ma_lo_trinh char(32)
+create index i on @@table (ma_lo_trinh)
+
+select @wsID = rtrim(val) from options where rtrim(name) = 'm_ws_id'
+select @i = 1, @admin = @@admin, @user = @@userID, @voucherID = 'SF3', @datetime0 = getdate()
+-- Update
+
+update @@table set dvt = b.dvt from @@table a join dmvt b on a.ma_vt = b.ma_vt where a.dvt = ''
+
+-- Check
+]]>&Checking;<![CDATA[
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'dvt', stt, '00001' from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt where b.dvt is null and c.dvt is null
+  ]]>&w1;<![CDATA['dvt']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_lo_trinh', stt, @message from @@table where ma_lo_trinh like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_cd', stt, @message from @@table where ma_cd like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'cd_truoc', stt, '00002' from @@table a where cd_truoc <> '' and cd_truoc not in (select ma_cd from @@table b where a.ma_lo_trinh = b.ma_lo_trinh and b.stt < a.stt)
+  ]]>&w1;<![CDATA['cd_truoc']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[ group by ma_lo_trinh, stt
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'cd_sau', stt, '00002' from @@table a where cd_sau <> '' and cd_sau not in (select ma_cd from @@table b where a.ma_lo_trinh = b.ma_lo_trinh and b.stt > a.stt)
+  ]]>&w1;<![CDATA['cd_sau']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[ group by ma_lo_trinh, stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'dvt', @r = min(stt) from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt where b.dvt is null and c.dvt is null]]>&Error;<![CDATA[
+  select @field = 'ma_lo_trinh', @r = min(stt) from @@table where ma_lo_trinh like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+  select @field = 'ma_cd', @r = min(stt) from @@table where ma_cd like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+  select @field = 'cd_truoc', @r = min(stt) from @@table a where cd_truoc <> '' and cd_truoc not in (select ma_cd from @@table b where a.ma_lo_trinh = b.ma_lo_trinh and b.stt < a.stt) group by ma_lo_trinh ]]>&Error;<![CDATA[
+  select @field = 'cd_sau', @r = min(stt) from @@table a where cd_sau <> '' and cd_sau not in (select ma_cd from @@table b where a.ma_lo_trinh = b.ma_lo_trinh and b.stt > a.stt) group by ma_lo_trinh ]]>&Error;<![CDATA[
+end
+
+if @admin <> 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'CRRoutingMaintenance', 'Edit') = 0 select @type = '0'
+  end
+end
+
+if @type = '0' delete @@table from @@table a where exists(select 1 from phrt b where a.ma_lo_trinh = b.ma_lo_trinh)
+select a.*, b.stt_rec into #k from @@table a join phrt b on a.ma_lo_trinh = b.ma_lo_trinh
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_lo_trinh = b.ma_lo_trinh)
+
+-- Checking
+select @field = 'ma_lo_trinh'
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_lo_trinh <> b.ma_lo_trinh and a.ma_lo_trinh like rtrim(b.ma_lo_trinh) + ''%''
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, phrt b with (index(PK_phrt)) where a.ma_lo_trinh like rtrim(b.ma_lo_trinh) + ''%''
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from phrt a, @@table b with (index(i)) where a.ma_lo_trinh like rtrim(b.ma_lo_trinh) + ''%''
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+  exec sp_executesql @q, N'@field varchar(32)', @field
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_lo_trinh <> b.ma_lo_trinh and a.ma_lo_trinh like rtrim(b.ma_lo_trinh) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  select top 1 @r = a.stt from @@table a, phrt b with (index(PK_phrt)) where a.ma_lo_trinh like rtrim(b.ma_lo_trinh) + '%']]>&Duplicate;<![CDATA[
+  select @q = 'select top 1 @r = b.stt from phrt a, @@table b with (index(i)) where a.ma_lo_trinh like rtrim(b.ma_lo_trinh) + ''%'''
+  exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+if @type = '1' begin
+  declare @changeField nvarchar(64), @changeFieldMsg nvarchar(4000), @recCode char(13), @routingCode varchar(32)
+
+  select top 1 @routingCode = a.ma_lo_trinh, @r = b.stt from ctrt a join #k b on a.stt_rec = b.stt_rec where a.ma_vt2 <> ''
+  if @routingCode is not null begin
+    select @message = case when @@language = 'v' then N'Quy trình sản xuất <span class="Highlight">%s</span> đã có nhập bán thành phẩm cộng thêm, không thể chép đè được.' else N'The routing <span class="Highlight">%s</span> has been included the extra WIP, it could not be overwritten.' end
+    select replace(@message, '%s', @routingCode) as message, 'ma_lo_trinh' as field, @r as record
+    return
+  end
+
+  select a.* into #importdetail from #k a where exists(select 1 from cs2$000000 b where b.ma_lo_trinh = a.ma_lo_trinh)
+  select @r = min(stt) from #importdetail
+  while @r is not null begin
+    select @recCode = stt_rec, @routingCode = ma_lo_trinh from #importdetail where stt = @r
+    exec AI_ERP$Voucher$CheckFieldChange @recCode, @voucherID, '', '', @@language, @changeField out, @changeFieldMsg out, 'bang_tc = ''#importdetail'''
+    if @changeFieldMsg <> '' begin
+      select @message = case when @@language = 'v' then N'Quy trình sản xuất <span class="Highlight">%s</span>: ' else N'The routing <span class="Highlight">%s</span>: ' end + @changeFieldMsg
+      select replace(@message, '%s', @routingCode) as message, 'ma_lo_trinh' as field, @r as record
+      return
+    end
+    select @r = min(stt) from #importdetail where stt > @r and stt_rec <> @recCode
+  end
+end
+
+select top 0 stt_rec, stt_rec0, line_nbr, ma_lo_trinh, ma_cd, ten_cd, ten_cd2, kieu_cd, cd_truoc, cd_sau, ma_vt, loai_cd, ma_ccv, ma_cm, dvt, tg_bd_cds, sl_bd_cds, tg_cho, tg_cai_dat, sl_may, nang_suat, cach_tinh, tg_vs, tg_chuyen, nc_cai_dat, nc_th, cc_sd, ma_kh, tg_gc, cp_gc, tl_kt, tl_kt2, tru_dm, td_chuyen, dung_kt, td_phi, nhap_sl, nk_yn, xk_yn into #d1 from ctrt
+
+select @count = count(*) from @@table
+
+if @count > 0 begin
+  select top 0 stt_rec, ma_lo_trinh, cast(0 as int) as stt, identity(int, 1, 1) as id into #id1 from phrt
+  insert into #id1(stt_rec, ma_lo_trinh, stt) select '', ma_lo_trinh, min(stt) from @@table group by ma_lo_trinh
+
+  select @k = count(*) from #id1
+  select @currentID = stt_rec from dmstt
+
+  update dmstt set stt_rec = stt_rec + @count
+  update #id1 set stt_rec = @wsID + replace(str(id + rtrim(@currentID) , 9), ' ', '0') + @voucherID
+
+  insert into #d1
+    select b.stt_rec, replace(str((a.stt - b.stt) + 1, 3), ' ', '0'), (a.stt - b.stt) + 1, a.ma_lo_trinh, a.ma_cd, a.ten_cd, a.ten_cd2, a.kieu_cd, a.cd_truoc, a.cd_sau, a.ma_vt, a.loai_cd, a.ma_ccv, a.ma_cm, a.dvt, a.tg_bd_cds, a.sl_bd_cds, a.tg_cho, a.tg_cai_dat, a.sl_may, a.nang_suat, a.cach_tinh, a.tg_vs, a.tg_chuyen, a.nc_cai_dat, a.nc_th, a.cc_sd, a.ma_kh, a.tg_gc, a.cp_gc, a.tl_kt, a.tl_kt2, a.tru_dm, a.td_chuyen, a.dung_kt, a.td_phi, a.nhap_sl, a.nk_yn, a.xk_yn
+      from @@table a join #id1 b on a.ma_lo_trinh = b.ma_lo_trinh order by a.ma_lo_trinh, a.stt
+
+  select top 0 stt_rec, ma_lo_trinh, ten_lo_trinh, ten_lo_trinh2 into #m1 from phrt
+  insert into #m1 select b.stt_rec, a.ma_lo_trinh, a.ten_lo_trinh, a.ten_lo_trinh2 from @@table a join #id1 b on a.stt = b.stt
+
+  select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, c$, m$, d$, ma_lo_trinh, cast(0 as int) as stt, identity(int, 1, 1) as id into #i1 from irt
+  insert into #i1 select a.stt_rec, null, '', '', rtrim(a.ma_lo_trinh) + a.stt_rec, '#10$' + rtrim(a.ma_lo_trinh), '', a.ma_lo_trinh, a.stt from #id1 a join @@table b on a.stt = b.stt
+  select @q = dbo.AI_ERP$Function$Update$Inquiry('#i1', '#d1', 'd$', 'ma_cd, ma_vt', '#10$, #20$', 'stt_rec', default, default, default, default, default)
+  exec sp_executesql @q
+
+  -- Insert
+  @@inserting(master);
+  @@inserting(detail);
+  @@inserting(inquiry);
+  ]]>&AfterUpdate;<![CDATA[
+end
+
+if @type = '1' begin
+  select @k = count(*) from #k
+
+  if @k > 0 begin
+    select top 0 stt_rec, ma_lo_trinh, cast(0 as int) as stt, identity(int, 1, 1) as id into #id2 from phrt
+    insert into #id2 select b.stt_rec, a.ma_lo_trinh, min(a.stt) from #k a join phrt b on a.ma_lo_trinh = b.ma_lo_trinh group by a.ma_lo_trinh, b.stt_rec
+
+    select top 0 stt_rec, stt_rec0, line_nbr, ma_lo_trinh, ma_cd, ten_cd, ten_cd2, kieu_cd, cd_truoc, cd_sau, ma_vt, loai_cd, ma_ccv, ma_cm, dvt, tg_bd_cds, sl_bd_cds, tg_cho, tg_cai_dat, sl_may, nang_suat, cach_tinh, tg_vs, tg_chuyen, nc_cai_dat, nc_th, cc_sd, ma_kh, tg_gc, cp_gc, tl_kt, tl_kt2, tru_dm, td_chuyen, dung_kt, td_phi, nhap_sl, nk_yn, xk_yn into #d2 from ctrt
+
+    insert into #d2
+      select b.stt_rec, replace(str((a.stt - b.stt) + 1, 3), ' ', '0'), (a.stt - b.stt) + 1, a.ma_lo_trinh, a.ma_cd, a.ten_cd, a.ten_cd2, a.kieu_cd, a.cd_truoc, a.cd_sau, a.ma_vt, a.loai_cd, a.ma_ccv, a.ma_cm, a.dvt, a.tg_bd_cds, a.sl_bd_cds, a.tg_cho, a.tg_cai_dat, a.sl_may, a.nang_suat, a.cach_tinh, a.tg_vs, a.tg_chuyen, a.nc_cai_dat, a.nc_th, a.cc_sd, a.ma_kh, a.tg_gc, a.cp_gc, a.tl_kt, a.tl_kt2, a.tru_dm, a.td_chuyen, a.dung_kt, a.td_phi, a.nhap_sl, a.nk_yn, a.xk_yn
+        from #k a join #id2 b on a.ma_lo_trinh = b.ma_lo_trinh order by a.ma_lo_trinh, a.stt
+
+    select top 0 stt_rec, ma_lo_trinh, ten_lo_trinh, ten_lo_trinh2 into #m2 from phrt
+    insert into #m2 select b.stt_rec, a.ma_lo_trinh, a.ten_lo_trinh, a.ten_lo_trinh2 from #k a join #id2 b on a.stt = b.stt
+
+    select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, c$, m$, d$, ma_lo_trinh, cast(0 as int) as stt, identity(int, 1, 1) as id into #i2 from irt
+    insert into #i2 select a.stt_rec, null, '', '', rtrim(a.ma_lo_trinh) + a.stt_rec, '#10$' + rtrim(a.ma_lo_trinh), '', a.ma_lo_trinh, a.stt from #id2 a join #k b on a.stt = b.stt
+    select @q = dbo.AI_ERP$Function$Update$Inquiry('#i2', '#d2', 'd$', 'ma_cd, ma_vt', '#10$, #20$', 'stt_rec', default, default, default, default, default)
+    exec sp_executesql @q
+
+    -- Update
+    update phrt set @@list(master); from phrt a join #m2 b on a.stt_rec = b.stt_rec
+
+    delete ctrt where stt_rec in (select distinct stt_rec from #id2)
+
+    truncate table #d1
+    insert into #d1 select * from #d2
+    @@inserting(detail);
+
+    update irt set @@list(inquiry); from irt a join #i2 b on a.stt_rec = b.stt_rec
+    ]]>&AfterUpdate;<![CDATA[
+  end
+end
+]]>
+    </text>
+  </processing>
+
+</import>

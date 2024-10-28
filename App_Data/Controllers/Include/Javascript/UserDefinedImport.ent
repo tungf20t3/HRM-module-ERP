@@ -1,0 +1,17 @@
+﻿<!ENTITY ImportUserDefinedDeclare "
+   var userDefinedFields = '&ImportUserDefinedFields;', arrUDField = null, arrUDColumn = [];
+   if (userDefinedFields != '') {
+    arrUDField = userDefinedFields.match(/(?=\S)[^,]+?(?=\s*(,|$))/g);
+    for (var u = 0; u &lt; arrUDField.length; u++) {
+      Array.add(arrUDColumn, g._getColumnOrder(arrUDField[u]));
+    }
+  }
+">
+<!ENTITY ImportUserDefinedSetItem "
+  if (userDefinedFields != '') {
+    for (var u = 0; u &lt; arrUDField.length; u++) {
+      if (arrUDColumn[u] > 0) Array.add(itemGridBehavior, [arrUDField[u], g._getItemValue(row, arrUDColumn[u]), ['', ref.substr(beginUDIndex + u, 1) == '1'], true]);
+    }
+  }
+  g.setItemGridBehavior(o, itemGridBehavior);
+">

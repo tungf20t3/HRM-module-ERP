@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "rptPOAnalysisByItem">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY GetReportFormStockRight SYSTEM "..\Include\Command\GetReportFormStockRight.txt">
+  <!ENTITY SetReportFormStockRight SYSTEM "..\Include\Javascript\SetReportFormStockRight.txt">
+
+  <!ENTITY Identity "&Controller;">
+  <!ENTITY FilterExpression "f.setItemValue('ds_ma_ct', f._filter$Pattern);';">
+  <!ENTITY GetTransactionParameter SYSTEM "..\Include\Command\GetTransactionParameter.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY ExtensionCounter "2">
+  <!ENTITY Delta12 "0">
+  <!ENTITY Delta22 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.rptPOAnalysisByItem SYSTEM "..\Include\ReportMargin.rptPOAnalysisByItem">
+  %ReportMargin.rptPOAnalysisByItem;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+
+  <!ENTITY % BIMode.Payable SYSTEM "..\Include\BIMode.Payable">
+  %BIMode.Payable;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    &ReportDataTypeField;
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+
+    <field name="ds_ma_ct" hidden="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="110: [ngay_tu].Label, [ngay_tu]"/>
+      <item value="110: [ngay_den].Label, [ngay_den]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000-1: [mau_bc].Label, [mau_bc], [ds_ma_ct]"/>
+      <item value="11000: [loai_du_lieu].Label, [loai_du_lieu]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 20, 80, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @message nvarchar(1024)
+select @message = ''
+]]>
+        &GetTransactionParameter;
+        &BI.GetReportFormStockRight;
+        <![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @isFC bit
+select @isFC = (case when @mau_bc = '10' then 0 else 1 end)
+select @ngay_tu as date_from, @ngay_den as date_to
+exec rs_rptPOAnalysisByObject @ngay_tu, @ngay_den, @ma_dvcs, @ds_ma_ct, @loai_du_lieu, 2, @isFC, @@language, @@userID, @@admin, ']]>&Controller;<![CDATA[', '@@sysDatabaseName'
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &ScriptQueryFilterString;
+      &SetReportFormStockRight;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');]]>&FilterExpression;<![CDATA[
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,c){var a=c.object,e=c.type.Context,h=c.type.Result;switch(e){case"Checking":var b=a.grid,d=a.getItemValue("mau_bc"),f=a.getItem("ngay_tu").value,g=a.getItem("ngay_den").value;b._alterTitle=[null,[["%d1",f,true],["%d2",g,true]]];b._hiddenFields=[{Fields:"tien_nt2, tien_cd_nt, ty_le_nt, ty_le_nt_cd",Value:d=="10"},{Fields:"tien2, tien_cd, ty_le, ty_le_cd",Value:d=="20"}];b._queryFilterString=getQueryFilterString(a,"ngay_tu, ngay_den, ma_dvcs, ds_ma_ct, loai_du_lieu, mau_bc");remove$GridReport$Filter(b)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

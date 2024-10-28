@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select replace(replace(@message, '&#37;s1', rtrim(str(@i))), '&#37;s2', @@delta + @r) as message
+  return
+end
+">
+  <!ENTITY EmployeeIDError "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="5"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$ShiftScheduleImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$ShiftScheduleImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrca$000000, hrnv"/>
+    <table value="hrca$000000" alias="a"/>
+    <temporary value="@@table" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="A" isPrimaryKey="true" allowNulls="false" reference="1" check="ma_nv not in (select ma_nv from hrnv)" insertValue="None" updateValue="None" errorCode="00001"/>
+    <field name="n01" column="D"/>
+    <field name="n02" column="E"/>
+    <field name="n03" column="F"/>
+    <field name="n04" column="G"/>
+    <field name="n05" column="H"/>
+    <field name="n06" column="I"/>
+    <field name="n07" column="J"/>
+    <field name="n08" column="K"/>
+    <field name="n09" column="L"/>
+    <field name="n10" column="M"/>
+    <field name="n11" column="N"/>
+    <field name="n12" column="O"/>
+    <field name="n13" column="P"/>
+    <field name="n14" column="Q"/>
+    <field name="n15" column="R"/>
+    <field name="n16" column="S"/>
+    <field name="n17" column="T"/>
+    <field name="n18" column="U"/>
+    <field name="n19" column="V"/>
+    <field name="n20" column="W"/>
+    <field name="n21" column="X"/>
+    <field name="n22" column="Y"/>
+    <field name="n23" column="Z"/>
+    <field name="n24" column="AA"/>
+    <field name="n25" column="AB"/>
+    <field name="n26" column="AC"/>
+    <field name="n27" column="AD"/>
+    <field name="n28" column="AE"/>
+    <field name="n29" column="AF"/>
+    <field name="n30" column="AG"/>
+    <field name="n31" column="AH"/>
+
+    <field name="status" column="None" insertValue="None" updateValue="case when rtrim(b.n01 + b.n02 + b.n03 + b.n04 + b.n05 + b.n06 + b.n07 + b.n08 + b.n09 + b.n10 + b.n11 + b.n12 + b.n13 + b.n14 + b.n15 + b.n16 + b.n17 + b.n18 + b.n19 + b.n20 + b.n21 + b.n22 + b.n23 + b.n24 + b.n25 + b.n26 + b.n27 + b.n28 + b.n29 + b.n30 + b.n31) &lt;&gt; '''' then ''1'' else '''' end"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @q nvarchar(4000), @d nvarchar(4000), @day int, @p varchar(32), @partition varchar(32), @field varchar(32), @c varchar(32), @i int, @r int
+select @message = case when @@language = 'v' then N'Giá trị tại ngày <span class="Highlight">%s1</span> dòng <span class="Highlight">%s2</span> không đúng.' else 'Invalid value in column <span class="Highlight">%s1</span>, row <span class="Highlight">%s2</span>.' end
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+-- Delete
+delete @@table from @@table a left join hrnv b on a.ma_nv = b.ma_nv where ((b.ma_nv is null) or (b.bp_ref not like @$bp_ref + '%'))
+
+select @p = rtrim(@$nam) + replace(str(@$thang, 2), ' ', '0')
+select @partition = 'hrca$' +  @p
+select @day = day(dateadd(month, 1, convert(smalldatetime, @p + '01')) - 1)
+select @d = '', @c = '', @i = 1
+
+create table #k(ma_ca varchar(48), ln int, i int)
+while @i <= @day begin
+  delete #k
+  select @c = 'n' + replace(str(@i, 2), ' ', '0'), @d = @d + @c + ' = b.' + @c + ', '
+  select @q = 'update @@table set ' + @c + ' = upper(replace(replace(' + @c + ', '' '', ''''), '','', '', ''))'
+  select @c = 'isnull(' + @c + ', '''')'
+  select @q = @q + char(13) + ' insert into #k (ma_ca, ln, i) select ' + @c + ', stt, charindex('','', ' + @c + ') from #table where ' + @c + ' <> '''''
+  exec sp_executesql @q
+
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(@i, 2), ' ', '0'), ln, '00002' from #k where left(ma_ca, 1) = ',' or right(rtrim(ma_ca), 1) = ',' or charindex(', ,', ma_ca) > 0
+    ]]>&w1;<![CDATA['n' + replace(str(@i, 2), ' ', '0')]]>&w2;<![CDATA[ln]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(ln) from #k where left(ma_ca, 1) = ',' or right(rtrim(ma_ca), 1) = ',' or charindex(', ,', ma_ca) > 0]]>&Error;<![CDATA[
+  end
+
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(@i, 2), ' ', '0'), ln, '00001' from #k where i = 0 and (ma_ca = '' or ma_ca not in (select ma_ca from hrdmca))
+    ]]>&w1;<![CDATA['n' + replace(str(@i, 2), ' ', '0')]]>&w2;<![CDATA[ln]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(ln) from #k where i = 0 and (ma_ca = '' or ma_ca not in (select ma_ca from hrdmca))]]>&Error;<![CDATA[
+  end
+
+  delete #k where i = 0
+  while exists(select 1 from #k) begin
+    update #k set ma_ca = ltrim(right(ma_ca, len(ma_ca) - i))
+    update #k set i = charindex(',', ma_ca)
+
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(@i, 2), ' ', '0'), ln, '00001' from #k where i = 0 and (ma_ca = '' or ma_ca not in (select ma_ca from hrdmca))
+      ]]>&w1;<![CDATA['n' + replace(str(@i, 2), ' ', '0')]]>&w2;<![CDATA[ln]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(ln) from #k where i = 0 and (ma_ca = '' or ma_ca not in (select ma_ca from hrdmca))]]>&Error;<![CDATA[
+    end
+
+    delete #k where i = 0
+  end
+  select @i = @i + 1
+end
+]]>&EndErrorMode;<![CDATA[
+
+create index i on #table (ma_nv)
+select @q = 'update ' + @partition + ' set @@list'
+select @q = @q + ' from ' + @partition + ' a join hrnv e on a.stt_rec_nv = e.stt_rec join @@table b on e.ma_nv = b.ma_nv'
+select @q = @q + case when @type = 0 then ' where a.status <> ''1''' else '' end
+exec sp_executesql @q
+]]>
+    </text>
+  </processing>
+
+</import>

@@ -1,0 +1,113 @@
+﻿<!ENTITY % Conditional.ListEditLog SYSTEM "..\Include\ListEditLog.txt">
+
+<![%Conditional.ListEditLog;[
+  <!ENTITY Controller "''">
+  <!ENTITY PrimeField "''">
+  <!ENTITY PrimeFieldOldValue "''">
+  <!ENTITY PrimeFieldNewValue "''">
+  <!ENTITY TableDestination "">
+  <!ENTITY TableDateEdit "default">
+  <!ENTITY ListEditLogParameter "select @$prime$Field = &PrimeField;, @$old$Value = &PrimeFieldOldValue;, @$new$Value = &PrimeFieldNewValue;">
+  <!ENTITY ListEditLogParameterDelete "select @$prime$Field = &PrimeField;, @$old$Value = &PrimeFieldNewValue;, @$new$Value = &PrimeFieldNewValue;">
+
+  <!ENTITY ListEditLogEmployeeSetDateEdit "update hrnv set datetime2 = @$d$2, user_id2 = @@userID where stt_rec = @stt_rec">
+  <!ENTITY ListEditLogEmployeeGetDateEdit "update hrnv set datetime2 = getdate(), user_id2 = @@userID where stt_rec = @stt_rec">
+
+  <!ENTITY ListWhenBeforeUpdateLogAction "exec AI_ERP$App$List$EditLog @$prime$Field, @$old$Value, @$new$Value, '&Controller;', '1', '&TableDestination;', &TableDateEdit;">
+  <!ENTITY ListWhenBeforeDeleteLogAction "exec AI_ERP$App$List$EditLog @$prime$Field, @$old$Value, @$new$Value, '&Controller;', '2'">
+
+  <!ENTITY ListWhenBeforeUpdateLog "
+declare @$prime$Field varchar(1024), @$old$Value varchar(1024), @$new$Value varchar(1024)
+&ListEditLogParameter;
+&ListWhenBeforeUpdateLogAction;
+">
+  <!ENTITY ListWhenBeforeImportUpdateLog "exec AI_ERP$App$List$Import$EditLog '&TableNameImport;', '&PrimeFieldImport;', '&Controller;', '&TypeImport;', '&TableDestinationImport;'">
+  <!ENTITY ListWhenBeforeImportUpdateLogEmployeeSetDateEdit "update hrnv set datetime2 = &ImportDateEdit;, user_id2 = &ImportUserEdit; from hrnv a join (select distinct stt_rec from &TableNameImport;) b on a.stt_rec = b.stt_rec">
+
+  <!ENTITY ListWhenBeforeDeleteLog "
+declare @$prime$Field varchar(1024), @$old$Value varchar(1024), @$new$Value varchar(1024)
+&ListEditLogParameterDelete;
+&ListWhenBeforeDeleteLogAction;
+">
+  <!ENTITY ListWhenBeforeUpdateLog.hrEmployeeSIHistory.Declare "
+declare @$prime$Field varchar(1024), @$old$Value varchar(1024), @$new$Value varchar(1024)
+&ListEditLogParameter;
+">
+  <!ENTITY ListWhenBeforeUpdateLog.hrEmployeeSIHistory.Before "exec AI_ERP$App$List$EditLog @$prime$Field, @$old$Value, @$old$Value, '&Controller;', '1', '&TableDestination;', &TableDateEdit;">
+  <!ENTITY ListWhenBeforeUpdateLog.hrEmployeeSIHistory.After "
+select @$new$Value = @saveId
+exec AI_ERP$App$List$EditLog @$prime$Field, @$new$Value, @$new$Value, '&Controller;', '1', '&TableDestination;', &TableDateEdit;
+">
+  <!ENTITY ListWhenBeforeUpdateLog.hrEmployeeSIHistory.SetDateEdit "update hrnv set datetime2 = @$d$2, user_id2 = @@userID where stt_rec = @saveId">
+
+  <!ENTITY ListWhenBeforeUpdateLog.EmployeeCardInfoInput "
+if not exists(select 1 from hrchamcong where stt_rec = @stt_rec) begin
+  declare @$d$2 datetime
+  select @$d$2 = getdate()
+  insert into hrchamcong (stt_rec, datetime0, datetime2, user_id0, user_id2) select @stt_rec, null, @$d$2, 0, @@userID
+  insert into hrchamcong$log (idlog, datetime_log, stt_rec, datetime0, datetime2, user_id0, user_id2) select 1, @$d$2, @stt_rec, null, @$d$2, 0, @@userID
+end else begin
+  &ListWhenBeforeUpdateLog;
+  update hrchamcong set datetime2 = getdate(), user_id2 = @@userID where stt_rec = @stt_rec
+end
+">
+  <!ENTITY ListWhenBeforeImportUpdateLog.EmployeeCardInfoInput.Insert "insert into hrchamcong (stt_rec, datetime0, datetime2, user_id0, user_id2) select a.stt_rec, @datetime0, @datetime0, @user, @user from #r a where not exists(select 1 from hrchamcong b where a.stt_rec = b.stt_rec)">
+  <!ENTITY ListWhenBeforeImportUpdateLog.EmployeeCardInfoInput.Update "update hrchamcong set datetime2 = @datetime0, user_id2 = @user from hrchamcong a join (select distinct stt_rec from &TableNameImport;) b on a.stt_rec = b.stt_rec">
+  <!ENTITY ListWhenBeforeUpdateLog.EmployeeInsuranceAndUnionDueInformation "
+if not exists(select 1 from hrttbh where stt_rec = @stt_rec) begin
+  declare @$d$2 datetime
+  select @$d$2 = getdate()
+  insert into hrttbh (stt_rec, ma_so_bhxh, ma_so_hgd, si_no, si_date, si_date2, hi_no, hi_date, hi_date2, noi_kham, quyen_loi, datetime0, datetime2, user_id0, user_id2) select @stt_rec, '', '', '', null, null, '', null, null, '', '', null, @$d$2, 0, @@userID
+  insert into hrttbh$log (idlog, datetime_log, stt_rec, ma_so_bhxh, ma_so_hgd, si_no, si_date, si_date2, hi_no, hi_date, hi_date2, noi_kham, quyen_loi, datetime0, datetime2, user_id0, user_id2) select 1, @$d$2, @stt_rec, '', '', '', null, null, '', null, null, '', '', null, @$d$2, 0, @@userID
+end else begin
+  &ListWhenBeforeUpdateLog;
+end
+">
+  <!ENTITY GroupListEditLog "1">
+]]>
+
+<!ENTITY And " + char(253) + ">
+<!ENTITY TableDestination "">
+<!ENTITY ListEditLogParameter "">
+<!ENTITY ListEditLogParameterDelete "">
+
+<!ENTITY ListEditLogEmployeeDateEdit "">
+
+<!ENTITY ListWhenBeforeUpdateLogAction "">
+<!ENTITY ListWhenBeforeDeleteLogAction "">
+
+<!ENTITY ListWhenBeforeUpdateLog "">
+<!ENTITY ListWhenBeforeDeleteLog "">
+<!ENTITY ListWhenBeforeImport "">
+<!ENTITY ListWhenBeforeImportDelete "">
+
+<!ENTITY TypeImport "1">
+<!ENTITY TableDestinationImport "">
+<!ENTITY TableNameImport "#k">
+<!ENTITY PrimeFieldImport "@@primaryKeyList">
+<!ENTITY ListWhenBeforeImportUpdateLog "">
+
+<!ENTITY ImportDateEdit "@datetime0">
+<!ENTITY ImportUserEdit "@user">
+
+<!ENTITY List.Form.Button.Name "New">
+<!ENTITY List.Form.Button.Focus "Edit">
+<!ENTITY List.Form.Button.Hidden "
+var button = f._findButton('&List.Form.Button.Name;');
+Sys.UI.DomElement.addCssClass(button, 'hiddenButton');
+if (button.accessKey) button.removeAttribute('accesskey');
+">
+
+<!ENTITY ListWhenBeforeUpdateLog.hrEmployeeSIHistory.Declare "">
+<!ENTITY ListWhenBeforeUpdateLog.hrEmployeeSIHistory.Before "">
+<!ENTITY ListWhenBeforeUpdateLog.hrEmployeeSIHistory.After "">
+<!ENTITY ListWhenBeforeUpdateLog.EmployeeCardInfoInput "">
+<!ENTITY ListWhenBeforeUpdateLog.EmployeeInsuranceAndUnionDueInformation "">
+<!ENTITY ListWhenBeforeImportUpdateLog.EmployeeCardInfoInput.Insert "">
+<!ENTITY ListWhenBeforeImportUpdateLog.EmployeeCardInfoInput.Update "">
+
+<!ENTITY List.Form.Button.Css ".hiddenButton{visibility:hidden!important;}">
+<!ENTITY List.Form.Button.Updated "select @script = @script + 'this._findButton(''&List.Form.Button.Focus;'').focus();'">
+<!ENTITY List.Form.Button.Shown "f._findButton('&List.Form.Button.Focus;').focus();">
+
+<!ENTITY GroupListEditLog "0">

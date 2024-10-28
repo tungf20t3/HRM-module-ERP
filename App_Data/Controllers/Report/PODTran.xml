@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE report [
+  <!ENTITY b SYSTEM ".\Include\BaseCurrency.xml">
+  <!ENTITY f SYSTEM ".\Include\ForeignCurrency.xml">
+  <!ENTITY s SYSTEM ".\Include\Separate.xml">
+
+  <!ENTITY d SYSTEM ".\Include\Download\SVTran.xml">
+  <!ENTITY p "../images/pdf.gif">
+  <!ENTITY e "../images/excel.gif">
+  <!ENTITY bi "../images/bilingual.png">
+  <!ENTITY be "../images/combine.png">
+
+  
+  <!ENTITY % Profile SYSTEM ".\Config\Profile.ent">
+  %Profile;
+]>
+
+<report xmlns="urn:schemas-ai-erp:data-report">
+  <query>
+    <text>
+      &Conditional.Unit.Profile.Query.Declare;
+      &Conditional.Unit.Profile.Query.Select;
+      <![CDATA[
+if dbo.AI_ERP$Function$CheckSQLInjection(@stt_rec) = 0 return
+declare @m_ma_nt0 varchar(10), @key varchar(128)
+select @key = 'a.stt_rec = ''' + @stt_rec + ''''
+declare @stt int, @bilingual tinyint, @l char(1)
+if @@form in ('011', '021', '031', '041', '150', '160', '170', '180') select @bilingual = 1, @l = 'V' else select @bilingual = 0, @l = @@language 
+
+select top 1 @stt = stt from dlx$$partition$current where stt_rec = @stt_rec order by line_nbr
+
+select @stt as stt, a.nguoi_lap, a.cv_trong_ngay, a.yc_thuc_hien, a.bien_phap_an_toan, b.ghi_chu, b.ky_nhan, b.cv_thuc_hien, a.ngay_ct, a.so_ct
+  ,	replace(str(day(a.ngay_ct),2),' ','0') day, replace(str(month(a.ngay_ct),2),' ','0') month, cast(year(a.ngay_ct) as char(4)) year
+from @@prime$partition$current a with(nolock) left join dlx$$partition$current b with(nolock) on a.stt_rec = b.stt_rec                                                                                        
+where a.stt_rec = @stt_rec
+
+exec rs_PrintPODTran @@language, @key, 'dlx$$partition$current', @@id, @bilingual
+select cast(null as image) as logo, 'Logo.png' as file_name]]>&Conditional.Unit.Profile.Value.Result;<![CDATA[]]>
+    </text>
+  </query>
+  
+  <forms>
+    <form id="010" reportFile="PODTran_01" templateFile="" commandArgument="Pdf" urlImage="&p;">
+      <header v="Báo cáo lệnh sản xuất theo ngày" e="Production order report by date"></header>
+      <download>
+        <header v="Báo cáo lệnh sản xuất theo ngày" e="Production order report by date"/>
+      </download>
+    </form>
+    <form id="020" reportFile="PODTran_02" templateFile="" commandArgument="Pdf" urlImage="&p;">
+      <header v="Báo cáo lệnh sản xuất theo tháng" e="Monthly production order report"></header>
+      <download>
+        <header v="Báo cáo lệnh sản xuất theo tháng" e="Monthly production order report"/>
+      </download>
+    </form>
+
+    &s;
+    
+    <form id="110" reportFile="" templateFile="PODTran_01" commandArgument="Excel" urlImage="&e;">
+      <header v="Báo cáo lệnh sản xuất theo ngày &lt;span style=&quot;color:#42842C;&quot;/&gt;(Excel)&lt;/span&gt;" e="Production order report by date"></header>
+      <download>
+        <header v="Báo cáo lệnh sản xuất theo ngày" e="Production order report by date"/>
+      </download>
+    </form>
+    
+    <form id="120" reportFile="PODTran_02" commandArgument="Excel" urlImage="&e;">
+      <header v="Báo cáo lệnh sản xuất theo tháng &lt;span style=&quot;color:#42842C;&quot;/&gt;(Excel)&lt;/span&gt;" e="Monthly production order report"></header>
+      <download>
+        <header v="Báo cáo lệnh sản xuất theo tháng" e="Monthly production order report"/>
+      </download>
+    </form>
+  </forms>
+
+  <fields>
+    <field name="title" type="String">
+      <header v="LỆNH SẢN XUẤT" e="PRODUCTION ORDER"/>
+    </field>
+    <field name="h_cv_trong_ngay" type="String">
+      <header v="Nội dung công việc" e="Job in day"/>
+    </field>
+    <field name="h_yc_thuc_hien" type="String">
+      <header v="Yêu cầu thực hiện" e="Request to perform"/>
+    </field>
+    <field name="h_bien_phap_an_toan" type="String">
+      <header v="Biện pháp an toàn" e="Safety measures"/>
+    </field>
+    
+    <field name="h_stt" type="String">
+      <header v="STT" e="No."/>
+    </field>
+    <field name="h_nguoi_lap" type="String">
+      <header v="Họ và tên" e="Name"/>
+    </field>
+    <field name="h_cv_thuc_hien" type="String">
+      <header v="Công việc" e="Note"/>
+    </field>
+    <field name="h_ky_nhan" type="String">
+      <header v="Ký tên" e="Note"/>
+    </field>
+    <field name="h_ghi_chu" type="String">
+      <header v="Ghi chú" e="Note"/>
+    </field>
+
+    
+    <field name="h_day" type="String">
+      <header v="Ngày" e="Date"/>
+    </field>
+    <field name="h_month" type="String">
+      <header v="Tháng " e="Month"/>
+    </field>
+    <field name="h_year" type="String">
+      <header v="năm" e="Year"/>
+    </field>
+    <field name="h_slash" type="String">
+      <header v="/" e="/"/>
+    </field>
+    <field name="h_dash" type="String">
+      <header v="- " e="- "/>
+    </field>
+  </fields>
+</report>

@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select replace(replace(@message, '&#37;s1', rtrim(str(day(dateadd(day, @i - 1, @$tu_ngay_ex))))), '&#37;s2', @@delta + @r) as message
+  return
+end
+">
+
+  <!ENTITY InvalidDate "
+begin
+  select @invalidMessage as message
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="5"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$ShiftScheduleImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$ShiftScheduleImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+
+    &UploadModeProcess;
+  </setting>
+
+  <parameters>
+    <parameter name="tu_ngay_ex" cell="B2" type="DateTime"/>
+    <parameter name="den_ngay_ex" cell="B3" type="DateTime"/>
+  </parameters>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="A" isPrimaryKey="true" allowNulls="false" maxLength="16" check="ma_nv not in (select ma_nv from hrnv)" insertValue="None" updateValue="None" errorCode="00001"/>
+    <field name="n01" column="D" maxLength="48"/>
+    <field name="n02" column="E" maxLength="48"/>
+    <field name="n03" column="F" maxLength="48"/>
+    <field name="n04" column="G" maxLength="48"/>
+    <field name="n05" column="H" maxLength="48"/>
+    <field name="n06" column="I" maxLength="48"/>
+    <field name="n07" column="J" maxLength="48"/>
+    <field name="n08" column="K" maxLength="48"/>
+    <field name="n09" column="L" maxLength="48"/>
+    <field name="n10" column="M" maxLength="48"/>
+    <field name="n11" column="N" maxLength="48"/>
+    <field name="n12" column="O" maxLength="48"/>
+    <field name="n13" column="P" maxLength="48"/>
+    <field name="n14" column="Q" maxLength="48"/>
+    <field name="n15" column="R" maxLength="48"/>
+    <field name="n16" column="S" maxLength="48"/>
+    <field name="n17" column="T" maxLength="48"/>
+    <field name="n18" column="U" maxLength="48"/>
+    <field name="n19" column="V" maxLength="48"/>
+    <field name="n20" column="W" maxLength="48"/>
+    <field name="n21" column="X" maxLength="48"/>
+    <field name="n22" column="Y" maxLength="48"/>
+    <field name="n23" column="Z" maxLength="48"/>
+    <field name="n24" column="AA" maxLength="48"/>
+    <field name="n25" column="AB" maxLength="48"/>
+    <field name="n26" column="AC" maxLength="48"/>
+    <field name="n27" column="AD" maxLength="48"/>
+    <field name="n28" column="AE" maxLength="48"/>
+    <field name="n29" column="AF" maxLength="48"/>
+    <field name="n30" column="AG" maxLength="48"/>
+    <field name="n31" column="AH" maxLength="48"/>
+    <field name="n32" column="AI" maxLength="48"/>
+    <field name="n33" column="AJ" maxLength="48"/>
+    <field name="n34" column="AK" maxLength="48"/>
+    <field name="n35" column="AL" maxLength="48"/>
+    <field name="n36" column="AM" maxLength="48"/>
+  </fields>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @q nvarchar(4000), @d nvarchar(4000), @day int, @field varchar(32), @c varchar(32), @i int, @r int, @invalidMessage nvarchar(512)
+declare @d1 smalldatetime, @lastDateFrom smalldatetime, @currentday int, @countMonth int, @maxDay int, @s nvarchar(4000), @k nvarchar(32)
+
+select @countMonth = datediff(month, @$tu_ngay, @$den_ngay), @maxDay = 35
+select @message = case when @@language = 'v' then N'Giá trị tại ngày <span class="Highlight">%s1</span> dòng <span class="Highlight">%s2</span> không đúng.' else 'Invalid value in column <span class="Highlight">%s1</span>, row <span class="Highlight">%s2</span>.' end
+select @invalidMessage = case when @@language = 'v' then N'Giá trị tại ô <span class="Highlight">B2</span> hoặc <span class="Highlight">B3</span> không đúng.' else 'Invalid value in cell <span class="Highlight">B2</span> or <span class="Highlight">B3</span>.' end
+
+-- Check
+  if @$mode = 1 begin
+    if @$tu_ngay <> @$tu_ngay_ex or @$den_ngay <> @$den_ngay_ex or @$tu_ngay_ex is null or @$den_ngay_ex is null begin
+      select @invalidMessage = case when @@language = 'v' then N'Giá trị tại ô B2 hoặc B3 không đúng.' else 'Invalid value in cell B2 or B3.' end
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTableCell;<![CDATA[ select 'B', 2, @invalidMessage
+      ]]>&InsertErrorTableCell;<![CDATA[ select 'B', 3, @invalidMessage
+      ]]>&EndErrorCount;<![CDATA[
+    end
+  end else begin
+    if @$tu_ngay <> @$tu_ngay_ex or @$den_ngay <> @$den_ngay_ex or @$tu_ngay_ex is null or @$den_ngay_ex is null ]]>&InvalidDate;<![CDATA[
+  end
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+-- Delete
+delete @@table from @@table a left join hrnv b on a.ma_nv = b.ma_nv where ((b.ma_nv is null) or (b.bp_ref not like @$bp_ref + '%'))
+
+select @day = datediff(day, @$tu_ngay, @$den_ngay) + 1
+select @d = '', @c = '', @i = 1
+
+create table #k(ma_ca varchar(48), ln int, i int)
+while @i <= @day begin
+  delete #k
+  select @c = 'n' + replace(str(@i, 2), ' ', '0'), @d = @d + @c + ' = b.' + @c + ', '
+  select @q = 'update @@table set ' + @c + ' = upper(replace(replace(' + @c + ', '' '', ''''), '','', '', ''))'
+  select @c = 'isnull(' + @c + ', '''')'
+  select @q = @q + char(13) + ' insert into #k (ma_ca, ln, i) select ' + @c + ', stt, charindex('','', ' + @c + ') from #table where ' + @c + ' <> '''''
+  exec sp_executesql @q
+
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(@i, 2), ' ', '0'), ln, '00002' from #k where left(ma_ca, 1) = ',' or right(rtrim(ma_ca), 1) = ',' or charindex(', ,', ma_ca) > 0
+    ]]>&w1;<![CDATA['n' + replace(str(@i, 2), ' ', '0')]]>&w2;<![CDATA[ln]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(ln) from #k where left(ma_ca, 1) = ',' or right(rtrim(ma_ca), 1) = ',' or charindex(', ,', ma_ca) > 0]]>&Error;<![CDATA[
+  end
+
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(@i, 2), ' ', '0'), ln, '00001' from #k where i = 0 and (ma_ca = '' or ma_ca not in (select ma_ca from hrdmca))
+    ]]>&w1;<![CDATA['n' + replace(str(@i, 2), ' ', '0')]]>&w2;<![CDATA[ln]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(ln) from #k where i = 0 and (ma_ca = '' or ma_ca not in (select ma_ca from hrdmca))]]>&Error;<![CDATA[
+  end
+
+  delete #k where i = 0
+  while exists(select 1 from #k) begin
+    update #k set ma_ca = ltrim(right(ma_ca, len(ma_ca) - i))
+    update #k set i = charindex(',', ma_ca)
+
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select 'n' + replace(str(@i, 2), ' ', '0'), ln, '00001' from #k where i = 0 and (ma_ca = '' or ma_ca not in (select ma_ca from hrdmca))
+      ]]>&w1;<![CDATA['n' + replace(str(@i, 2), ' ', '0')]]>&w2;<![CDATA[ln]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(ln) from #k where i = 0 and (ma_ca = '' or ma_ca not in (select ma_ca from hrdmca))]]>&Error;<![CDATA[
+    end
+
+    delete #k where i = 0
+  end
+  select @i = @i + 1
+end
+]]>&EndErrorMode;<![CDATA[
+
+create index i on #table (ma_nv)
+if datediff(day,@$tu_ngay, @$den_ngay) > @maxDay select @$den_ngay = dateadd(day, @maxDay, @$tu_ngay)
+select @lastDateFrom = dateadd(d, -1, dateadd(mm, datediff(m, 0, @$tu_ngay) + 1,0))
+if @lastDateFrom > @$den_ngay select @lastDateFrom = @$den_ngay
+select @d1 = @$tu_ngay, @currentday= day(@$tu_ngay), @i = 1, @q = '', @k = ''
+
+while @countMonth >= 0 begin
+  if @d1 > @lastDateFrom select @lastDateFrom = @$den_ngay
+  select @s = ''
+  while @currentday <= day(@lastDateFrom) begin
+    select @k = replace(str(@i, 2), ' ', 0)
+    select @s = @s + replace('n' + replace(str(@currentday, 2), ' ', 0) + ' = b.n%f, ', '%f', @k)
+    select @currentday = @currentday + 1, @i = @i + 1
+  end
+  select @s = substring(rtrim(@s), 0, len(@s))
+  select @q = 'update hrca$' + convert(char(6), @d1, 112) + ' set ' + @s + ', status = ''1'', datetime2 = getdate(), user_id2 = ' + rtrim(@@userID)
+  select @q = @q + ' from hrca$' + convert(char(6), @d1, 112) + ' a join hrnv e on a.stt_rec_nv = e.stt_rec join @@table b on e.ma_nv = b.ma_nv'
+  select @q = @q + case when @type = 0 then ' where a.status <> ''1''' else '' end
+  select @d1 = dateadd(month, 1, @d1), @currentday = 1, @countMonth = @countMonth - 1
+  exec sp_executesql @q
+end
+]]>
+    </text>
+  </processing>
+
+</import>

@@ -1,0 +1,49 @@
+﻿<!ENTITY % Conditional.BIMode SYSTEM "..\Include\BIMode.txt">
+
+<![%Conditional.BIMode;[
+  <!ENTITY BI.PickPrice.Vendor "Vendor">
+  <!ENTITY BI.PickPrice.Css SYSTEM "..\Include\XML\BI.PickPrice.Css.txt">
+  <!ENTITY BI.PickPrice.Button SYSTEM "..\Include\XML\BI.PickPrice.Toolbar.txt">
+  <!ENTITY BI.PickPrice.Retrieve "
+    case 'PickPrice':
+      if (f._action == 'View') break;
+      &BI.PickPrice.Retrieve.Show.Break;
+      if (f.validFields('&BI.PickPrice.Retrieve.Show.ValidFields;ngay_lct')) {
+        var v = f._language == 'v';
+        if (g._activeRow &lt; 0) {
+          var msg = (v ? 'Chưa chọn dòng trong thông tin chi tiết.' : 'No detail line selected, please select one to process.');
+          $message.show(msg);
+          break;
+        }
+        &BI.PickPrice.Retrieve.Show.Check;
+        var c = g._getColumnOrder('ma_vt'), item = g._getItem(g._activeRow, c), chk = g._getItem(g._activeRow, g._getColumnOrder('ten_vt&#37;l'));
+        if (item.value == '' || (chk.Checked &amp;&amp; !chk.checked)) {
+          g._errorObject = item;
+          return $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), g._fields[c - 1].Label), String.format('$find(\'{0}\').focus(\'&BI.PickPrice.ParentGridField;\');$find(\'{1}\')._errorObject.focus()', f.get_id(), g.get_id()));
+        } else {
+          g._detailInfo = {handle: &BI.PickPrice.RetrieveFunction;, ParentController: '&BI.PickPrice.ParentController;'};
+          g.showForm('&BI.PickPrice.ID;');
+        }
+      }
+      break;
+">
+
+]]>
+
+<!ENTITY BI.PickPrice.Vendor "Supplier">
+<!ENTITY BI.PickPrice.Css "">
+<!ENTITY BI.PickPrice.Button "">
+<!ENTITY BI.PickPrice.Retrieve "">
+<!ENTITY BI.PickPrice.Retrieve.Show.Break "">
+<!ENTITY BI.PickPrice.Retrieve.Show.ValidFields "">
+<!ENTITY BI.PickPrice.Retrieve.Show.Check "">
+
+<!ENTITY BI.PickPrice.MultiGrid.Finding.Ext "">
+
+<!ENTITY BI.PickPrice.MultiGrid.Field SYSTEM "..\Include\XML\BI.PickPrice.MultiGrid.Field.txt">
+<!ENTITY BI.PickPrice.MultiGrid.View SYSTEM "..\Include\XML\BI.PickPrice.MultiGrid.View.txt">
+
+<!ENTITY BI.PickPrice.MultiGrid.Finding SYSTEM "..\Include\XML\BI.PickPrice.MultiGrid.Finding.txt">
+<!ENTITY BI.PickPrice.MultiGrid.Script SYSTEM "..\Include\Javascript\BI.PickPrice.MultiGrid.Script.txt">
+
+<!ENTITY BI.PickPrice.MultiForm.Script SYSTEM "..\Include\Javascript\BI.PickPrice.MultiForm.Script.txt">

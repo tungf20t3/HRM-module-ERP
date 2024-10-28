@@ -1,0 +1,1 @@
+﻿<%@ WebService Class="ViewPanel.ViewPanel.ViewPanel" %>

@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="JRTran.doc" />
+<title>Misc. Receivable Transaction, AR-AP Interface</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+
+</head>
+<body>
+
+<p id="td1">Misc. Receivable Transaction, AP-AR Interface</p>
+<p id="p1">Misc. Receivable, Debit/Credit Memo between 2 customers is used to update other receivable amounts which do not belong
+ to sale invoice. </p>
+<p class="e">For example: FC Exchange Rate Transaction, small debit balance adjustment, AP-AR Interface between 2 customers or between
+ 1 customer and 1 supplier.</p>
+<p id="td2">“Misc. Receivable Transaction, AP-AR Interface” screen</p>
+<p id="pic"><img src="eng/JRtran.png"/></p>
+
+<p id="td3">Field descriptions - format view </p>
+<p class="node">	Voucher Number</p>
+<p class="node_d">
+It is automatically increased by one value when a new voucher entered but editable. The program will check the coincidence of voucher when saving. 
+</p>
+<p class="node">	Voucher Date</p>
+<p class="node_d">
+The date the voucher is created; reference information only. Program will use GL Date in calculation.</p>
+<p class="node">	Posting Date</p>
+<p class="node_d">
+The date the voucher is posted; default as created date in calculation and must be after closing date.
+</p>
+<p class="node">	Ex. Rate</p>
+<p class="node_d">
+If currency is GL currency, exchange rate will be 1 and this field will not be updated. If exchange rate is changed, program will 
+recalculate necessary amount related to foreign currency and GL currency.</p>
+
+<p class="node">Status</p>
+<p class="node_d">There are 3 statuses:</p>
+<ul class="lo_2">
+- No Action: the voucher has not been posted to book;<br/>
+- Release Later: If there is VAT, invoice will be posted to VAT books, reports. If this voucher is AR/AP invoice, it will be recorded in AR/AP books;<br/>
+- Release: the voucher has been posted to all related books.
+</ul>
+
+<p id="td3">Field descriptions - “Details’ Tab</p>
+<p class="node">	Account</p>
+<p class="node_d">
+Extracted from Chart of Accounts 
+</p>
+<p class="node">	Customer</p>
+<p class="node_d">
+Customer ID, extracted from Customer/Supplier List, is usually used in debt control in case of Issue related to debt
+ transactions as lending items from other units. </p>
+
+<p class="node">	FC Debit / FC Credit</p>
+<p class="node_d">
+Debit amount in transaction currency. If FC debit amount is not 0, FC credit amount will be 0. If there is change of FC debit, Debit will be recalculated=FC debit </p>
+<p class="node_d"> Ex. Rate. 
+</p>
+<p class="node">	Debit / Credit</p>
+<p class="node_d">
+Debit in GL currency. This field will not be displayed if transaction currency is GL currency. Its value is equal to FC debit multiplied with exchange rate, but changeable. 
+</p>
+<p class="node">	Description</p>
+<p class="node_d">
+Transaction reasons/ memo. 
+</p>
+<p class="node">Payment Term /Invoice Number/Invoice Date </p>
+<p class="node_d">These fields only display when the parameter “Advanced Payment Control” is "Yes".<br/>
+If this parameter is "Yes", corresponding to following cases: <br/>
+- Account input in column “Account” (Detail grid) is “AR Account” in list of parameter
+“Accounts Receivable” and “Debit” not equal 0 , AR Invoice will be posted to AR report;<br/>
+- Account input in column “Account” (Detail grid) is “AP Account” in list of parameter
+“Accounts Payable” and “Credit” not equal 0 , AP Invoice will be posted to AP report.</p>
+
+<p class="node">	Group</p>
+<p class="node_d">
+Used in case you enter many debit and credit accounts in one voucher. Then, you must divide into groups of 1 debit/ many credits or many debits/ 1 credit. This grouping aims at helping create ref. account of an account report. You must number groups to distinguish group of account. One simple way is gradually increase 1, 2, 3…
+
+</p>
+<p id="td3">"Input VAT" information</p>
+<p id="p3">Please refer to <a href=Cdtran.htm> Cash Disbursement</a> for more details </p>
+
+<p id="td2"> Some tasks in voucher entry
+</p>
+<p class="node"> Create different groups of account in transaction
+</p>
+<p class="node_d">Input debit and credit accounts in one same field, amount field show that account is debit or credit. 
+Accounts in groups have only correspondence 1-1 or 1-many, total amount of debit and credit in group must be equal.
+
+</p>
+<p class="node"> Import data from excel file
+</p>
+<p class="node_d">
+The system is enabled to import data from excel spreadsheet to save hours of manual effort.
+</p>
+<p class="e">
+For example: There are only account code, customer ID... in excel file. After importing data from the excel file, 
+the voucher will be auto-updated with account name, customer name...
+
+</p>
+<p class="node_d">The data importing process:</p>
+
+<ul class="lo_2">
+	- Enter Voucher;<br/>
+	- Click the icon <img src="eng/download.png"/>, the system allows user to download template file to put data in;<br/>
+	- After keying data in the spreadsheet, to up data to the system, click the icon <img src="eng/upload.png"/>, 
+	select the file, the system will get data from this file to grid view of the voucher.
+</ul>
+<p class="note">The system will give error message in some following cases:<br/>
+
+	- Data in columns containing codes of related objects do not exist in current lists (Customer, Account, Job...). 
+	In this case, the system will indicate the specific invalid cell;<br/>
+	- String data is longer than the available length of field.
+</p>
+<p class="note">Other notes:<br/>
+
+- The function is only supported to get data for each voucher, used in case of frequently inputting the similar periodic transactions.<br/>
+- If you do not have the "New" right, you cannot import new data to voucher detail grid;<br/>
+- If you do not have the "Edit" right, you cannot edit data in voucher detail grid;<br/>
+- It is not required to keying object name in lists, the system will auto update following their codes.
+</p>
+<p class="node"> Import data from excel file (mass importing)
+</p>
+<p class="node_d">The same as importing data for each voucher with some following notes:</p>
+
+<p class="note">Notes of inputting data in template file:<br/>
+- Unit: must be one of the assigned units with unit locking date before invoice date;<br/> 
+- Account: must be detailed account;<br/>
+- Customer: required field if the account is foreign currency account;<br/>
+- Currency: if voucher consists of many rows, the currency of the first row will be considered as currency of the voucher;<br/>
+- Exchange Rate: to foreign currency vouchers, it is required to define exchange rate in detailed rows, the system will not generate exchange rate for details;<br/>
+- Voucher Date: input in date format. Voucher date must be after data closing date and voucher locking date;<br/>
+- Debit/Credit Amount: input in number format, 14 digits maximum and 2 decimal digits (standard format). The system will import the right amount input in the template file, not recalculate;<br/>
+- Group (of double entries): there can be 1-1 or 1-multiple entries only, total debit and credit amount in a group must be balanced.
+</p>
+<p class="note">The system will give error message in some following cases:<br/>
+	- Data in column containing customer, account do not exist in the corresponding lists. Account is general account.
+	In this case, the system will indicate the specific invalid cell;<br/>
+	- The required fields (Voucher Number, Unit...) are blank;<br/>
+	- String data is longer than the available length of field; the field length is the same as one manually input.
+
+</p>
+<p class="note">Other notes:<br/>
+- Cannot import data after system data closing, unit or voucher locking date (the data closing date after the beginning input date);<br/>
+- The current user must have the "New" right in "General Voucher" menu;<br/>
+- The current user must have the "New" right in "Access Right by Unit" menu;<br/>
+- Enable to import data for many units. If the data of the current unit has been closed, the system will give warning message when you click the  <img src="eng/download.png"/> icon; if data of other units has been closed, the system will also give warning message during importing process and indicate the specific invalid cell;<br/>
+- Check the duplicate vouchers by number only (if available);<br/>
+- Cannot import data from spreadsheet with macro;<br/>
+- Only support for spreadsheet in Excel 2007 or higher.
+</p>
+
+<p id="p1"> Please refer to <a href=GeneralVouchertask.htm> “Hints and Tips in Voucher Entry”</a> for more details </p>
+
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>
+

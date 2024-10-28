@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY BI.Report.Filter.Categories.Index "1">
+  <!ENTITY % BIMode.Report SYSTEM "..\Include\BIMode.Report">
+  %BIMode.Report;
+
+  <!ENTITY LineCounter "5">
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày lập từ" e="Invoice Date from"></header>
+      <footer v="Ngày lập từ/đến" e="Invoice Date from/to"></footer>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày lập đến" e="Date to"></header>
+    </field>
+    <field name="ngay_yc_tu" type="DateTime" dataFormatString="@datetimeFormat" defaultValue="new Date()">
+      <header v="Ngày yêu cầu từ" e="PR Date from"></header>
+      <footer v="Ngày yêu cầu từ/đến" e="PR Date from/to"></footer>
+    </field>
+    <field name="ngay_yc_den" type="DateTime" dataFormatString="@datetimeFormat" defaultValue="new Date()">
+      <header v="Ngày yêu cầu đến" e="PR Date to"></header>
+    </field>
+    <field name="ma_bp" categoryIndex="1">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="Department" reference="ten_bp%l" key="status ='1'"  check="1 = 1"></items>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" categoryIndex="1">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status ='1'" check="1 = 1"></items>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Theo bộ phận" e="By Department"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    &BI.Report.Filter.Plant.Fields;
+
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 60, 40, 100, 100, 130"/>
+      <item value="1101--: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="1101--: [ngay_yc_tu].Description, [ngay_yc_tu], [ngay_yc_den]"/>
+
+      &BI.Report.Filter.Plant.Views;
+
+      <item value="110100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000-: [mau_bc].Label, [mau_bc]"/>
+
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 20, 80, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select cast(@ngay_tu as smalldatetime) as tu_ngay, cast(@ngay_den as smalldatetime) as den_ngay
+exec rs_rptPR2POReport @ngay_tu, @ngay_den, @ngay_yc_tu, @ngay_yc_den, @ma_bp, @ma_vt, @mau_bc, @ma_dvcs, @@language, @@userID, @@admin]]>&BI.Report.Plant.Parameter;<![CDATA[
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,c){var a=c.object,e=c.type.Context,h=c.type.Result;switch(e){case"Checking":var b=a.grid,f=a.getItem("ngay_tu").value,g=a.getItem("ngay_den").value,d=a.getItemValue("mau_bc");b._hiddenFields=[{Fields:"ma_bp",Value:d=="10"}];b._hiddenForms=[{Form:[1,4],Value:d=="10"},{Form:[0,3],Value:d=="20"}];b._alterTitle=[null,[["%d1",f,true],["%d2",g,true]]];remove$GridReport$Filter(b)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

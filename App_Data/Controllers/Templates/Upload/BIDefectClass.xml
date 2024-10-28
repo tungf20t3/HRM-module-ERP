@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+
+  <!ENTITY Controller "BIDefectClass">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % Nested SYSTEM "..\..\Include\BIDefectClass.Nested">
+  %Nested;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BIDefectClassImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BIDefectClassImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="bikddmphloailoi"/>
+    <table value="bikddmphloailoi" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="00003">
+      <header v="Giá trị &Nested.Message.v;." e="The value is &Nested.Message.e;." />
+    </var>
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_ph_loai" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ten_ph_loai" column="." allowNulls="false"/>
+    <field name="ten_ph_loai2" column="."/>
+    <field name="diem_so" column="." type="Decimal"/>
+    <field name="thong_bao_yn" column="." type="Boolean"/>
+    <field name="stt_sx" column="." relation="stt" type="Decimal" check="stt_sx > 9999" errorCode="00002"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục phân loại lỗi kiểm định" e="Defect Class"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_ph_loai" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã phân loại" e="Code"/>
+      </field>
+      <field name="ten_ph_loai" width ="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên phân loại" e="Description"/>
+      </field>
+      <field name="ten_ph_loai2" width ="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="diem_so" width ="16">
+        <text v="Điểm" e="Quality Score"/>
+      </field>
+      <field name="thong_bao_yn" width ="16">
+        <text v="Thông báo" e="Notify"/>
+      </field>
+      <field name="stt_sx" width ="16">
+        <text v="Stt sắp xếp" e="Ordinal Number"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'BIDefectClass', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @r int, @d datetime
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[, @d = getDate()
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> ]]>&Nested.Message.v;<![CDATA[.' else 'The value of cell <span class="Highlight">%invalidCell</span> is ]]>&Nested.Message.e;<![CDATA[.' end
+
+create index i on @@table (ma_ph_loai)
+
+-- Delete
+if @type = '0' delete @@table from @@table a join bikddmphloailoi b on a.ma_ph_loai = b.ma_ph_loai
+
+-- Checking
+select @field = 'ma_ph_loai'
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, @message from @@table where ma_ph_loai like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table where ma_ph_loai like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+-- Gather
+select a.* into #k from @@table a join bikddmphloailoi b on a.ma_ph_loai = b.ma_ph_loai
+delete @@table from @@table a join #k b on a.ma_ph_loai = b.ma_ph_loai
+
+-- Checking
+select @field = 'ma_ph_loai'
+]]>&Nested.Key.b;<![CDATA[
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_ph_loai <> b.ma_ph_loai and a.ma_ph_loai like rtrim(b.ma_ph_loai) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, bikddmphloailoi b with (index(PK_bikddmphloailoi)) where a.ma_ph_loai like rtrim(b.ma_ph_loai) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from bikddmphloailoi a, @@table b with (index(i)) where a.ma_ph_loai like rtrim(b.ma_ph_loai) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_ph_loai <> b.ma_ph_loai and a.ma_ph_loai like rtrim(b.ma_ph_loai) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select top 1 @r = a.stt from @@table a, bikddmphloailoi b with (index(PK_bikddmphloailoi)) where a.ma_ph_loai like rtrim(b.ma_ph_loai) + '%']]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = b.stt from bikddmphloailoi a, @@table b with (index(i)) where a.ma_ph_loai like rtrim(b.ma_ph_loai) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+</import>

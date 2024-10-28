@@ -1,0 +1,70 @@
+<query event="Loading">
+    <text>
+      &CheckRelativeProcess;
+      &EnvironmentTaxInheritanceQuery;
+      <![CDATA[
+declare @$stock$View$Type char(1)
+if ']]>&Tag;<![CDATA[' = '2' and exists(select 1 from options where name = 'm_instock_split' and val = '1')
+  select @$stock$View$Type = rtrim(val) from options where name = 'm_instock_view2'
+else 
+  select @$stock$View$Type = rtrim(val) from options where name = 'm_instock_view'
+
+select @$stock$View$Type = isnull(@$stock$View$Type, '1')
+
+if not exists(select 1 from options where name = 'm_instock_onhand' and val = '1') begin
+  if @$stock$View$Type = '1' select @@fieldExternal from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ a left join dmvt b on a.ma_vt = b.ma_vt left join cdvt]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho ]]>&GridStockQueryLoadingJoin;<![CDATA[ where ]]>&GridStockQueryLoadingWhere;<![CDATA[ ]]>&EnvironmentTaxWhereClause;<![CDATA[ order by @@orderByClause
+  else if @$stock$View$Type = '2' select @@fieldExternal from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ a left join dmvt b on a.ma_vt = b.ma_vt left join cdvitri]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_vi_tri = e.ma_vi_tri ]]>&GridStockQueryLoadingJoin;<![CDATA[ where ]]>&GridStockQueryLoadingWhere;<![CDATA[ ]]>&EnvironmentTaxWhereClause;<![CDATA[ order by @@orderByClause
+  else if @$stock$View$Type = '3' select @@fieldExternal from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ a left join dmvt b on a.ma_vt = b.ma_vt left join cdklo]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_lo = e.ma_lo ]]>&GridStockQueryLoadingJoin;<![CDATA[ where ]]>&GridStockQueryLoadingWhere;<![CDATA[ ]]>&EnvironmentTaxWhereClause;<![CDATA[ order by @@orderByClause
+  else if @$stock$View$Type = '4' select @@fieldExternal from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ a left join dmvt b on a.ma_vt = b.ma_vt left join cdlo]]>&Tag;<![CDATA[13 e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_lo = e.ma_lo and a.ma_vi_tri = e.ma_vi_tri ]]>&GridStockQueryLoadingJoin;<![CDATA[ where ]]>&GridStockQueryLoadingWhere;<![CDATA[ ]]>&EnvironmentTaxWhereClause;<![CDATA[ order by @@orderByClause
+end else begin
+  select top 0 ma_kho, ma_vi_tri, ma_vt, ma_lo, so_luong as ton13 into #xcd from cdvt73
+  select top 0 ma_kho, ma_vi_tri, ma_vt, ma_lo into #d from ]]>&EnvironmentTaxPrimeTableStruct;<![CDATA[
+  
+  if @$stock$View$Type = '1' insert into #d select distinct ma_kho, '', ma_vt, '' from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ where ]]>&EnvironmentTaxWhereClause;<![CDATA[
+  else if @$stock$View$Type = '2' insert into #d select distinct ma_kho, ma_vi_tri, ma_vt, '' from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ where ]]>&EnvironmentTaxWhereClause;<![CDATA[
+  else if @$stock$View$Type = '3' insert into #d select distinct ma_kho, '', ma_vt, ma_lo from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ where ]]>&EnvironmentTaxWhereClause;<![CDATA[
+  else if @$stock$View$Type = '4' insert into #d select distinct ma_kho, ma_vi_tri, ma_vt, ma_lo from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ where ]]>&EnvironmentTaxWhereClause;<![CDATA[
+
+  if @$stock$View$Type = '1' begin
+    insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(ton13) from #d d join cdvt]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho group by a.ma_kho, a.ma_vt
+    if ']]>&Tag;<![CDATA[' = ''
+      insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(a.so_luong) from #d d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho group by a.ma_kho, a.ma_vt
+    else
+      insert into #xcd select a.ma_kho, '', a.ma_vt, '', sum(a.so_luong) from #d d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho group by a.ma_kho, a.ma_vt
+
+    select @@fieldExternal from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ a left join dmvt b on a.ma_vt = b.ma_vt left join (select ma_kho, ma_vt, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho ]]>&GridStockQueryLoadingJoin;<![CDATA[ where ]]>&GridStockQueryLoadingWhere;<![CDATA[ ]]>&EnvironmentTaxWhereClause;<![CDATA[ order by @@orderByClause
+  end
+
+  if @$stock$View$Type = '2' begin
+    insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(ton13) from #d d join cdvitri]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri group by a.ma_kho, a.ma_vi_tri, a.ma_vt
+    if ']]>&Tag;<![CDATA[' = ''
+      insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(a.so_luong) from #d d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri group by a.ma_kho, a.ma_vi_tri, a.ma_vt
+    else
+      insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, '', sum(a.so_luong) from #d d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri group by a.ma_kho, a.ma_vi_tri, a.ma_vt
+
+    select @@fieldExternal from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ a left join dmvt b on a.ma_vt = b.ma_vt left join (select ma_kho, ma_vt, ma_vi_tri, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_vi_tri) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_vi_tri = e.ma_vi_tri ]]>&GridStockQueryLoadingJoin;<![CDATA[ where ]]>&GridStockQueryLoadingWhere;<![CDATA[ ]]>&EnvironmentTaxWhereClause;<![CDATA[ order by @@orderByClause
+  end
+
+  if @$stock$View$Type = '3' begin
+    insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(ton13) from #d d join cdklo]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_lo
+    if ']]>&Tag;<![CDATA[' = ''
+      insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(a.so_luong) from #d d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_lo
+    else
+      insert into #xcd select a.ma_kho, '', a.ma_vt, a.ma_lo, sum(a.so_luong) from #d d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_lo
+
+    select @@fieldExternal from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ a left join dmvt b on a.ma_vt = b.ma_vt left join (select ma_kho, ma_vt, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_lo) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_lo = e.ma_lo ]]>&GridStockQueryLoadingJoin;<![CDATA[ where ]]>&GridStockQueryLoadingWhere;<![CDATA[ ]]>&EnvironmentTaxWhereClause;<![CDATA[ order by @@orderByClause
+  end
+
+  if @$stock$View$Type = '4' begin
+    insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(ton13) from #d d join cdlo]]>&Tag;<![CDATA[13 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_vi_tri, a.ma_lo
+    if ']]>&Tag;<![CDATA[' = ''
+      insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(a.so_luong) from #d d join cdvt73 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_vi_tri, a.ma_lo
+    else
+      insert into #xcd select a.ma_kho, a.ma_vi_tri, a.ma_vt, a.ma_lo, sum(a.so_luong) from #d d join cdvt93 a on a.ma_vt = d.ma_vt and a.ma_kho = d.ma_kho and a.ma_vi_tri = d.ma_vi_tri and a.ma_lo = d.ma_lo group by a.ma_kho, a.ma_vt, a.ma_vi_tri, a.ma_lo
+
+    select @@fieldExternal from ]]>&EnvironmentTaxPrimePartitionCurrent;<![CDATA[ a left join dmvt b on a.ma_vt = b.ma_vt left join (select ma_kho, ma_vt, ma_vi_tri, ma_lo, sum(ton13) as ton13 from #xcd group by ma_kho, ma_vt, ma_vi_tri, ma_lo) e on a.ma_vt = e.ma_vt and a.ma_kho = e.ma_kho and a.ma_lo = e.ma_lo and a.ma_vi_tri = e.ma_vi_tri ]]>&GridStockQueryLoadingJoin;<![CDATA[ where ]]>&GridStockQueryLoadingWhere;<![CDATA[ ]]>&EnvironmentTaxWhereClause;<![CDATA[ order by @@orderByClause
+  end
+end
+]]>
+    </text>
+  </query>

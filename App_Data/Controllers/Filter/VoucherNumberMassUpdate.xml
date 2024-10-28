@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+
+  <!ENTITY % VoucherNumberMassUpdate SYSTEM "..\Include\VoucherNumberMassUpdate.ent">
+  %VoucherNumberMassUpdate;
+]>
+
+<dir id="1" type="Report" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="period" allowNulls="false" type="Decimal" dataFormatString="#0">
+      <header v="Kỳ" e="Period"></header>
+      <footer v="Kỳ/năm" e="Period/Year"></footer>
+      <items style="Numeric"></items>
+      <clientScript><![CDATA[onchange=onChange$Period(this);]]></clientScript>
+    </field>
+    <field name="year" allowNulls="false" type="Decimal" dataFormatString="###0">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"></items>
+      <clientScript><![CDATA[onchange=onChange$Year(this);]]></clientScript>
+    </field>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"/>
+      <footer v="Từ/đến ngày" e="Date from/to"/>
+      <clientScript><![CDATA[onchange=onChange$DateFrom(this);]]></clientScript>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"/>
+    </field>
+
+    <field name="loai" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Loại" e="Type"></header>
+      <footer v="1 - Theo chứng từ, 2 - Theo quyển chứng từ" e="1 - By Voucher, 2 - By Voucher Book"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange=onChange$Item(this);]]></clientScript>
+    </field>
+    <field name="ma_quyen" filterSource="Optional">
+      <header v="Mã quyển" e="Book Code"/>
+      <items style="AutoComplete" controller="VoucherBook" reference="ten_quyen%l" key="status = '1' and (ngay_ph is null or ngay_ph &lt;= case when replace('{$%c[tu_ngay]}', ' ', '') = '//' then '' else convert(smalldatetime, '{$%c[tu_ngay]}', 103) end) and ma_nk in (select ma_nk from v20dmctnk b where ma_ct in (select distinct ma_ct from dmct8) and not exists(select 1 from v20dmctnk c where c.ma_nk = b.ma_nk and c.ma_ct not in (select distinct ma_ct from dmct8)))" check="(ngay_ph is null or ngay_ph &lt;= case when replace('{$%c[tu_ngay]}', ' ', '') = '//' then '' else convert(smalldatetime,replace(replace('{$%c[tu_ngay]}', '$%c[tu_ngay]', ''), '{}', ''), 103) end) and ma_nk in (select ma_nk from v20dmctnk b where ma_ct in (select distinct ma_ct from dmct8) and not exists(select 1 from v20dmctnk c where c.ma_nk = b.ma_nk and c.ma_ct not in (select distinct ma_ct from dmct8)))" information="ma_nk$v20dmnk.ten_nk%l"/>
+      <clientScript><![CDATA[onchange=onChange$VoucherBook(this);]]></clientScript>
+    </field>
+    <field name="ten_quyen%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+    <field name="so_ct_des" readOnly="true" external="true" disabled="true" hidden="true">
+      <header v="" e=""/>
+    </field>
+
+    <field name="ds_ma_ct" filterSource="Optional">
+      <header v="Danh sách chứng từ" e="Voucher List"/>
+      <items style="Lookup" controller="VoucherExtension" key="wedition &lt;&gt; '9' and status = '1' and ma_ct in (select distinct ma_ct from dmct8)" check="wedition &lt;&gt; '9' and ma_ct in (select distinct ma_ct from dmct8)"/>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"/>
+      <items style="Lookup" controller="Unit" key="(@@admin = 1) or (ma_dvcs in (select ma_dvcs from sysunitrights r where r.user_id = @@userID and r.r_edit = 1) and status = '1')" check="(@@admin = 1) or (ma_dvcs in (select ma_dvcs from sysunitrights r where r.user_id = @@userID and r.r_edit = 1))"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 40, 30, 100, 100, 130, 0"/>
+      <item value="111: [period].Description, [period], [year]"/>
+      <item value="11001---: [tu_ngay].Description, [tu_ngay], [den_ngay]"/>
+      <item value="1110000-: [loai].Label, [loai], [loai].Description"/>
+      <item value="11001001: [ma_quyen].Label, [ma_quyen], [ten_quyen%l], [so_ct_des]"/>
+      <item value="110000--: [ds_ma_ct].Label, [ds_ma_ct]"/>
+      <item value="110000--: [ma_dvcs].Label, [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    &FormShowing;
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @rangeFrom smalldatetime, @rangeTo smalldatetime
+select @rangeFrom = ngay_gh1, @rangeTo = ngay_gh2 from dmstt
+select 'this._$d1 = $func.formatStringToDate(''' + convert(char(8), @rangeFrom, 112) + ''');this._$d2 = $func.formatStringToDate(''' + convert(char(8), @rangeTo, 112) + ''');active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterClosing;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if exists(select 1 from options where name = 'm_hddt_cnsct' and val = '1') begin
+  declare @v nvarchar(4000), @c nvarchar(4000), @$exists nvarchar(4000)
+
+  select @v = replace(@ds_ma_ct, ' ', '')
+  select @c = replace(replace(val, '''', ''), ' ', '') from options b where b.name = 'm_ct_hddt'
+
+  select rtrim(data) as code into #v from dbo.AI_ERP$Function$System$Split(@v, ',')
+  select rtrim(data) as code into #c from dbo.AI_ERP$Function$System$Split(@c, ',')
+
+  if exists(select 1 from #v a where exists(select 1 from #c b where b.code = a.code)) begin
+    select @$exists = case when @@language = 'v' then N'<span class="Highlight">Danh sách chứng từ</span> không đúng.' else N'<span class="Highlight">Voucher List</span> is invalid.' end
+    select 'ds_ma_ct' as field, @$exists as message
+    return
+  end
+
+  if exists(select 1 from v20dmctnk a where a.ma_nk = @ma_quyen and exists(select 1 from #c b where b.code = a.ma_ct)) begin
+    select @$exists = case when @@language = 'v' then N'<span class="Highlight">Mã quyển</span> không đúng.' else N'<span class="Highlight">Book Code</span> is invalid.' end
+    select 'ma_quyen' as field, @$exists as message
+    return
+  end
+end
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select cast(@tu_ngay as smalldatetime) as date_from, cast(@den_ngay as smalldatetime) as date_to
+declare @$size int
+select @$size = [length] from syscolumns where id = object_id('wrkgl') and name = 'so_ct'
+exec rs_VoucherNumberMassUpdate @tu_ngay, @den_ngay, @ma_quyen, @ds_ma_ct, '', @ma_dvcs, 1, @$size, 0, @@language , @@userID, @@admin
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,id=f.get_id(),v=f._language=="v",p=f.getItemValue("period"),y=f.getItemValue("year"),o1=f.getItemValue("tu_ngay",null,null,true),o2=f.getItemValue("den_ngay",null,null,true),d1=new Date(o1.getFullYear(),o1.getMonth(),o1.getDate()),d2=new Date(o2.getFullYear(),o2.getMonth(),o2.getDate()),e=v?'Trường <span class="Highlight">Từ/đến ngày</span> giá trị nhập không hợp lệ.':'Field <span class="Highlight">Date from/to</span> has invalid value.';if(d1>d2||d1<f._$d1||d1>f._$d2||d2<f._$d1||d2>f._$d2||!f._hiddenPeriod&&(d2.getMonth()!=d1.getMonth()||d1.getFullYear()!=d2.getFullYear())||f._hiddenPeriod&&(d2.getFullYear()-d1.getFullYear())*12+d2.getMonth()-d1.getMonth()+1>24){$func.hideWait(id);$message.show(e,String.format("$find('{0}').getItem('tu_ngay').focus()",id));f._checked=false}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  onChange$Item(f.getItem('loai'));
+  f.setReferenceKeyFilter('ma_quyen');
+  var d = new Date();
+  f.setItemValues('period, year', [d.getMonth() + 1, d.getFullYear()]);
+  setDefaul$LastDateMonth(f);
+
+  changeLookupReadonly(f, 'ds_ma_ct', true);
+  changeLookupReadonly(f, 'ma_dvcs', true);
+
+  ]]>&FormActive;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,c){var a=c.object,f=c.type.Context,d=c.type.Result;switch(f){case"Checking":var b=a.grid;b._loai=a.getItemValue("loai");b._ma_quyen=a.getItemValue("ma_quyen");b._ten_quyen=a.getItemValue("ten_quyen%l");b._so_ct_des=a.getItemValue("so_ct_des");b._ds_ma_ct=a.getItemValue("ds_ma_ct");b._ma_dvcs=a.getItemValue("ma_dvcs");b._dFrom=a.getItemValue("tu_ngay");b._dTo=a.getItemValue("den_ngay");var g=a.getItem("tu_ngay").value,h=a.getItem("den_ngay").value;b._alterTitle=[null,[["%d1",g,true],["%d2",h,true]]];break;case"VoucherBook":var e=a._language=="v"?"Số bắt đầu từ %s1 đến %s2.":"Number from %s1 to %s2.";a.setItemValue("so_ct_des",e.replace("%s1",d[0].Value).replace("%s2",d[1].Value))}}function onChange$Item(b){var a=b.parentForm;a.setItemValue("ds_ma_ct","");a.setItemControlBehavior("ma_quyen","","",null,true);window.setTimeout(String.format("onFocus$Type('{0}', true);",a._id),2)}function onChange$VoucherBook(b){var a=b.parentForm;a._VoucherDes&&a.setItemValue("so_ct_des","...");a.request("VoucherBook","VoucherBook",["ma_quyen"])}function onFocus$Type(g,f){var a=$find(g),b=a.getItem("loai").value=="1",c=a.getItem("ma_quyen"),d=a.getItem("ds_ma_ct");if(f){var e=setItemLive(c,d,!b);if(e)a.live(e);else a.live(a.getItem("period"))}else if(b)a.live(d);else a.live(c);setItemDisable(a,"ma_quyen",b);setItemDisable(a,"ds_ma_ct",!b);c.field.AllowNulls=b;d.field.AllowNulls=!b}function setItemLive(a,b,c){if(c){if(b.live){a.disabled=false;a.focus();return a}}else if(a.live){b.disabled=false;b.focus();return b}return null}function setItemDisable(f,e,d){for(var c=e.split(","),a=0;a<c.length;a++){var b=f.getItem($func.trim(c[a]));b.a&&$common.setVisible(b.a,!d);b.disabled=d}}function setItemFormVisible(c,b,d){var a=c.getItem(b);$common.setVisible(c.getItem(b).parentNode.parentNode.parentNode,d);if(a.field.Type=="Decimal")a.value=0;else a.value=""}function onChange$Period(a){setDefaul$LastDateMonth(a.parentForm)}function onChange$Year(b){var a=b.parentForm;setDefaul$LastDateMonth(a);a.live(a.getItem("tu_ngay"))}function onChange$DateFrom(b){var a=b.parentForm;a.setReferenceKeyFilter("ma_quyen")}function setDefaul$LastDateMonth(a){var d=a.getItemValue("period"),e=a.getItemValue("year"),b=new Date(e,d-1,1),c=new Date(b.getFullYear(),b.getMonth()+1,0);a.setItemValues("tu_ngay, den_ngay",[b,c]);a.setReferenceKeyFilter("ma_quyen")}function setObjectFilterHidden(a,e,c){var b=a.getItem(e);b.field.AllowNulls=!c;if(c){var d=b.parentNode.parentNode;Sys.UI.DomElement.addCssClass(d,"Required");Sys.UI.DomElement.addCssClass(d,a._id)}if(c){if(!a._controlFocus)a._controlFocus=b}else $common.setVisible(b.parentNode.parentNode.parentNode,false)}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="VoucherBook">
+      <text>
+        <![CDATA[
+if exists (select 1 from v20dmnk where ma_nk = @ma_quyen) begin
+  declare @c1 varchar(33), @c2 varchar(33)
+  select top 1 @c1 = so_ct1, @c2 = so_ct2 from v20dmnk where ma_nk = @ma_quyen
+  select ltrim(rtrim(isnull(@c1, ''))) as c1, ltrim(rtrim(isnull(@c2, ''))) as c2
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

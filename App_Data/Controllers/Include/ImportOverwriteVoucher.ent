@@ -1,0 +1,305 @@
+﻿<!ENTITY % Conditional.ImportOverwrite SYSTEM "..\Include\ImportOverwriteVoucher.txt">
+<!ENTITY % Conditional.Authentication SYSTEM "..\Include\Authentication.txt">
+<!ENTITY % Conditional.VoucherEditLog SYSTEM "..\Include\VoucherEditLog.txt">
+<!ENTITY % Conditional.VoucherDeleteLog SYSTEM "..\Include\VoucherDeleteLog.txt">
+
+<![%Conditional.VoucherEditLog;[
+  <!ENTITY ImportOverwriteVoucherLogDeleting "if exists(select 1 from dmct4 where ma_ct = '&Code;') exec AI_ERP$App$Voucher$Import$EditLog '#owdata', '&Code;', '#owpartition', '1'">
+]]>
+<!ENTITY ImportOverwriteVoucherLogDeleting "">
+
+<![%Conditional.VoucherDeleteLog;[
+  <!ENTITY ImportOverwriteVoucherLogImportKey " where b.status &lt;&gt; ''*''">
+]]>
+<!ENTITY ImportOverwriteVoucherLogImportKey "">
+
+<!ENTITY ImportOverwriteMemvar.Ext ", type">
+
+<![%Conditional.ImportOverwrite;[
+
+  <!ENTITY ImportOverwriteField SYSTEM "..\Include\Xml\ImportOverwriteVoucherField.txt">
+  <!ENTITY ImportOverwriteView SYSTEM "..\Include\Xml\ImportOverwriteVoucherView.txt">
+  <!ENTITY ImportOverwriteMemvar ", type">
+  <!ENTITY ImportOverwriteMemvarValue ", f.getItemValue('type')">
+  <!ENTITY ImportOverwriteMemvarValue.Ext "&ImportOverwriteMemvarValue;">
+
+  <!ENTITY ImportOverwriteNotAuthorized "
+  if @$mode = 1 begin
+    &StartErrorCount;
+    &InsertErrorTableCell; select 'E', 1, 'notAuthorized'
+    set @$errorCount = @$errorCount - @@rowcount; set rowcount 0;
+    &EndErrorMode;
+  end else begin
+    select @notAuthorized as message
+  end
+  return
+">
+
+  <!ENTITY ImportOverwriteDouble "
+if @r is not null begin
+  declare @$owDuplicate nvarchar(512)
+  if @check$Unit = '1' begin
+    set @$owDuplicate = case when @@language = 'v' then N'Tồn tại nhiều chứng từ trùng số &lt;span class=&quot;Highlight&quot;&gt;$s1&lt;/span&gt;, ngày &lt;span class=&quot;Highlight&quot;&gt;$s2&lt;/span&gt; và đơn vị &lt;span class=&quot;Highlight&quot;&gt;$s3&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;$s4&lt;/span&gt;; không thể ghi đè.'
+      else 'Violation of the primary key constrain number &lt;span class=&quot;Highlight&quot;&gt;$s1&lt;/span&gt;, dated &lt;span class=&quot;Highlight&quot;&gt;$s2&lt;/span&gt; and unit &lt;span class=&quot;Highlight&quot;&gt;$s3&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;$s4&lt;/span&gt;; the data cannot be overwritten.' end
+    select replace(replace(replace(replace(@$owDuplicate, '$s1', so_ct), '$s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '$s3', rtrim(ma_dvcs)), '$s4', @@delta + @r) as message from #owdata where stt = @r
+  end else begin
+    set @$owDuplicate = case when @@language = 'v' then N'Tồn tại nhiều chứng từ trùng số &lt;span class=&quot;Highlight&quot;&gt;$s1&lt;/span&gt; và ngày &lt;span class=&quot;Highlight&quot;&gt;$s2&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;$s3&lt;/span&gt;, không thể ghi đè.'
+      else 'Violation of the primary key constrain number &lt;span class=&quot;Highlight&quot;&gt;$s1&lt;/span&gt; and dated &lt;span class=&quot;Highlight&quot;&gt;$s2&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;$s3&lt;/span&gt;, the data cannot be overwritten.' end
+    select replace(replace(replace(@$owDuplicate, '$s1', so_ct), '$s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '$s3', @@delta + @r) as message from #owdata where stt = @r
+  end
+  return
+end
+">
+
+  <!ENTITY ImportOverwriteData "
+declare @$owq nvarchar(4000), @$owp char(6)
+select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, status, loai_ct, user_id0, datetime0, cast('' as char(6)) as p, cast(0 as int) as stt into #owdata from wrkgl
+select top 0 cast('' as char(6)) as p into #owpartition
+if @type = '1' begin
+  declare @$owdiff int, @$owFromDate smalldatetime
+  set @$owdiff = isnull((select top 1 val from options where name = 'import_overwrite_daydiff'), 0)
+  if @$owdiff &gt; 0 begin
+    set @$owFromDate = dateadd(day, -@$owdiff, convert(char(8), getdate(), 112))
+    delete &ImportOverwriteLogTable; where datetime0 &lt; @$owFromDate
+  end
+  insert into #owpartition select distinct convert(char(6), ngay_ct, 112) from @@table
+
+  declare @$owstr nvarchar(4000)
+  set @$owstr = 'insert into #owdata select b.stt_rec, b.ngay_ct, b.so_ct, b.ma_dvcs, b.status, b.loai_ct, b.user_id0, b.datetime0, ''$partition'', min(a.stt)'
+    + ' from @@table a' &ImportOverwriteMatchData;
+    + ' join &ImportOverwriteLogTable; o with(nolock) on b.stt_rec = o.stt_rec &ImportOverwriteVoucherLogImportKey;'
+    + ' group by b.stt_rec, b.ngay_ct, b.so_ct, b.ma_dvcs, b.status, b.loai_ct, b.user_id0, b.datetime0'
+
+  create index stt_rec on #owdata(stt_rec)
+  create index ngay_so on #owdata(ngay_ct, so_ct)
+  create index dv_ngay_so on #owdata(ma_dvcs, ngay_ct, so_ct)
+
+  if charindex('$partition', '&ImportOverwriteMainTable;') &gt;= 1 begin
+    select @$owp = min(p) from #owpartition
+    while @$owp is not null begin
+      set @$owq = replace(@$owstr, '$partition', @$owp)
+      exec sp_executesql @$owq
+      select @$owp = min(p) from #owpartition where p &gt; @$owp
+    end
+  end else begin
+    set @$owstr = replace(@$owstr, '''$partition''', 'convert(char(6), b.ngay_ct, 112)')
+    exec sp_executesql @$owstr
+  end
+
+  if exists(select 1 from #owdata) begin
+    if exists(select 1 from #owdata a join dmttct b on a.status = b.status where b.ma_ct = '&Code;' and b.xedit = 1) begin
+      &ImportOverwriteNotAuthorized;
+    end
+
+    if @@admin &lt;&gt; 1 begin
+      if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, '&TransferID;', 'Edit') = 0 begin
+        &ImportOverwriteNotAuthorized;
+      end
+
+      select distinct ma_dvcs into #owunit from #owdata
+      if (select count(ma_dvcs) from #owunit) &lt;&gt; (select count(b.ma_dvcs) from #owunit a left join sysunitrights b on a.ma_dvcs = b.ma_dvcs where b.user_id = @@userID and b.r_edit = 1) begin
+        &ImportOverwriteNotAuthorized;
+      end
+
+      select a.stt_rec, b.status into #owstatusright from #owdata a join dmttct b on a.status = b.status where b.ma_ct = '&Code;' and b.right_yn = 1
+      if exists(select 1 from #owstatusright) begin
+        if exists(select 1 from #owstatusright a where not exists (select 1 from @@sysDatabaseName..sysactionrights b where b.action_id = a.status and b.user_id = @@userID and b.ma_ct = '&Code;' and b.right_yn = 1)) begin
+          &ImportOverwriteNotAuthorized;
+        end
+        if exists(select 1 from #owstatusright a join @@sysDatabaseName..sysstatusrights b on b.status_id = a.status where b.user_id = @@userID and b.ma_ct = '&Code;' and b.r_edit = 1) begin
+          &ImportOverwriteNotAuthorized;
+        end
+      end
+
+      if exists(select 1 from #owdata where user_id0 &lt;&gt; @@userID) begin
+        declare @fullEdit bit
+        exec @@sysDatabaseName.dbo.AI_ERP$System$GetShareAccess '&Code;', @@userID, @@admin, 1, @fullEdit output
+        if (@fullEdit = 0) begin
+          &ImportOverwriteNotAuthorized;
+        end
+      end
+    end
+
+    if @check$Unit = '0' begin
+      if @$mode = 1 begin
+        &StartErrorCount;
+        &InsertErrorTable; select 'ngay_ct', a.stt, 'LD003' from #owdata a, dmdvcsks b where b.ma_dvcs = a.ma_dvcs and a.ngay_ct &lt;= b.ngay_ks
+        &w1;'ngay_ct'&w2;a.stt&w3;'LD003'&w4;
+        &EndErrorCount;
+      end else begin
+        select @r = min(stt) from #owdata a, dmdvcsks b where b.ma_dvcs = a.ma_dvcs and a.ngay_ct &lt;= b.ngay_ks&ImportLockedDateUnit;
+      end
+    end
+
+    select top 0 ngay_ct, so_ct, ma_dvcs into #owdouble from #owdata
+    if @check$Unit = '1' begin
+      insert into #owdouble select ngay_ct, so_ct, ma_dvcs from #owdata group by ngay_ct, so_ct, ma_dvcs having count(stt_rec) > 1
+    end else begin
+      insert into #owdouble select ngay_ct, so_ct, '' from #owdata group by ngay_ct, so_ct having count(stt_rec) > 1
+    end
+    if exists(select 1 from #owdouble) begin
+      if @$mode = 1 begin
+          &StartErrorCount;
+          &InsertErrorTable; select 'so_ct', a.stt, case when @check$Unit = '1' then 'OW03' else 'OW02' end from #owdata a join #owdouble b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and b.ma_dvcs = case when @check$Unit = '1' then a.ma_dvcs else '' end
+          &w1;'so_ct'&w2;a.stt&w3;case when @check$Unit = '1' then 'OW03' else 'OW02' end&w4;
+          &EndErrorCount;
+      end else begin
+        select @r = min(a.stt) from #owdata a join #owdouble b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and b.ma_dvcs = case when @check$Unit = '1' then a.ma_dvcs else '' end
+        &ImportOverwriteDouble;
+      end
+     end
+  end
+end else begin
+  create index stt_rec on #owdata(stt_rec)
+  create index ngay_so on #owdata(ngay_ct, so_ct)
+  create index dv_ngay_so on #owdata(ma_dvcs, ngay_ct, so_ct)
+end
+">
+
+  <!ENTITY ImportOverwriteCheckKey " and (@type = '0' or (@type = '1' and not exists(select 1 from #owdata o where b.stt_rec = o.stt_rec)))">
+  <!ENTITY ImportOverwriteJoinKey " join #owdata o on a.stt_rec = o.stt_rec">
+
+  <!ENTITY ImportOverwriteVariable SYSTEM "..\Include\Xml\ImportOverwriteVariable.txt">
+  <!ENTITY ImportOverwriteChecking "
+if @type = '1' begin
+  declare @$owConflict nvarchar(128)
+  set @$owConflict = case when @@language = 'v' then N'Tồn tại chứng từ đã có phát sinh liên quan, không thể ghi đè.' else 'There existed a voucher has data constraints, the data cannot be overwritten.' end
+
+  &ImportOverwriteDeleting;
+  &ImportOverwriteVoucherLogDeleting;
+end
+">
+
+  <!ENTITY ImportOverwriteIdentiyDataCondition " left join #owdata o on a.ngay_ct = o.ngay_ct and a.so_ct = o.so_ct where o.stt_rec is null">
+  <!ENTITY ImportOverwriteDeleteMultiVoucher "exec AI_ERP$App$Voucher$Delete '&Code;', '', '#owdata', null, @@userID, @@language, 1, @$condition">
+  <!ENTITY ImportOverwriteProcess "
+if @type = '1' begin
+  declare @$condition nvarchar(4000)
+  set @$condition = ''
+  &ImportOverwriteDeleted;
+  insert into #id(stt_rec, ngay_ct, so_ct, stt) select stt_rec, ngay_ct, so_ct, stt from #owdata
+end
+insert into &ImportOverwriteLogTable; select stt_rec, getdate() from #id
+">
+
+  <!ENTITY ImportOverwriteError "
+if @r is not null begin
+  select @$owConflict as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY ImportOverwriteUpdateByPart "
+if @type = '1' begin
+  set @$owq = 'update ' + @masterTable + ' set user_id0 = o.user_id0, datetime0 = o.datetime0 from ' + @masterTable + ' a join #owdata o on a.stt_rec = o.stt_rec where o.p = ''' + @p + ''''
+    + char(13) + 'update ' + @inquiryTable + ' set user_id0 = o.user_id0 from ' + @inquiryTable + ' a join #owdata o on a.stt_rec = o.stt_rec where o.p = ''' + @p + ''''
+  exec sp_executesql @$owq
+end
+">
+  <!ENTITY ImportOverwriteInserting "
+if @type = '1' begin
+  update c&Detail;$000000 set user_id0 = o.user_id0 from c&Detail;$000000 a join #owdata o on a.stt_rec = o.stt_rec
+end
+">
+
+  <![%Conditional.Authentication;[
+    <!ENTITY ImportOverwriteEITableCheckReplace "hddt01">
+    <!ENTITY ImportOverwriteUseEI "
+declare @$usedEI char(1)
+set @$usedEI = isnull((select top 1 rtrim(val) from options where name = 'm_sd_hddt'), '0')
+">
+    <!ENTITY ImportOverwriteEIWhenBeforeDelete "
+if @$usedEI = '1' begin
+  select top 1 @r = min(o.stt) from #owdata o join &ImportOverwriteEITableCheckReplace; b on b.stt_rec1 = o.stt_rec
+  &ImportOverwriteError;
+end
+">
+    <!ENTITY ImportOverwriteEIWhenBeforeDeleteMultiError "
+if @$usedEI = '1' begin
+  &StartErrorCount;
+  &InsertErrorTable; select @field, o.stt, 'OW01' from #owdata o join &ImportOverwriteEITableCheckReplace; c on c.stt_rec1 = o.stt_rec
+  &w1;@field&w2;o.stt&w3;'OW01'&w4;
+  &EndErrorCount;
+end
+">
+    <!ENTITY ImportOverwriteEIWhenBeforeDeleteByPart "
+if @$usedEI = '1' begin
+  set @$owq = 'select top 1 @r = o.stt from #owdata o join hddt00$' + @$owp + ' b on b.stt_rec = o.stt_rec where b.tinh_trang_hddt &lt;&gt; 0 and o.p = ''' + @$owp + ''''
+  exec sp_executesql @$owq, N'@r int out', @r out
+  &ImportOverwriteError;
+end
+">
+    <!ENTITY ImportOverwriteEIWhenBeforeDeleteByPartMultiError "
+if @$usedEI = '1' begin
+  &StartErrorCount;
+  select @$owq = '&InsertErrorTable; select @field, o.stt, ''OW01'' from #owdata o join hddt00$' + @$owp + ' b on b.stt_rec = o.stt_rec where b.tinh_trang_hddt &lt;&gt; 0 and o.p = ''' + @$owp + '''
+  &w1;@field&w2;o.stt&w3;''OW01''&w4; group by o.stt'
+  exec sp_executesql @$owq, N'@field varchar(32)', @field
+  &EndErrorCount;
+end
+">
+
+
+    <!ENTITY ImportOverwriteEIUpdateByPart "
+if @type = '1' begin
+  set @$owq = 'update hddt00$' + @p + ' set user_id0 = o.user_id0, datetime0 = o.datetime0 from hddt00$' + @p + ' a join #owdata o on a.stt_rec = o.stt_rec where o.p = ''' + @p + ''''
+  exec sp_executesql @$owq
+end
+  ">
+    <!ENTITY ImportOverwriteEIUpdate "
+select @$owp = min(p) from #owpartition
+while @$owp is not null begin
+  set @$owq = 'update hddt00$' + @$owp + ' set user_id0 = o.user_id0, datetime0 = o.datetime0 from hddt00$' + @$owp + ' a join #owdata o on a.stt_rec = o.stt_rec where o.p = ''' + @$owp + ''''
+  exec sp_executesql @$owq
+
+  select @$owp = min(p) from #owpartition where p > @$owp
+end
+  ">
+  ]]>
+
+  <!ENTITY ImportOverwriteUseES "&ImportOverwriteUseEI;">
+  <!ENTITY ImportOverwriteESWhenBeforeDelete "&ImportOverwriteEIWhenBeforeDelete;">
+  <!ENTITY ImportOverwriteESWhenBeforeDeleteMultiError "&ImportOverwriteEIWhenBeforeDeleteMultiError;">
+  <!ENTITY ImportOverwriteESWhenBeforeDeleteByPart "
+if @$usedEI = '1' begin
+  set @$owq = 'select top 1 @r = o.stt from #owdata o join hddt00$' + @$owp + ' b on b.stt_rec = o.stt_rec where b.tinh_trang_hddt &lt;&gt; 0'
+  exec sp_executesql @$owq, N'@r int out', @r out
+  &ImportOverwriteError;
+end
+">
+  <!ENTITY ImportOverwriteESWhenBeforeDeleteByPartMultiError "
+if @$usedEI = '1' begin
+  &StartErrorCount;
+  select @$owq = '&InsertErrorTable; select @field, o.stt, ''OW01'' from #owdata o join hddt00$' + @$owp + ' b on b.stt_rec = o.stt_rec where b.tinh_trang_hddt &lt;&gt; 0
+  &w1;@field&w2;o.stt&w3;''OW01''&w4; group by o.stt'
+  exec sp_executesql @$owq, N'@field varchar(32)', @field
+  &EndErrorCount;
+end
+">
+]]>
+
+<!ENTITY ImportOverwriteField "">
+<!ENTITY ImportOverwriteView "">
+
+<!ENTITY ImportOverwriteMemvar "">
+<!ENTITY ImportOverwriteMemvarValue "">
+<!ENTITY ImportOverwriteMemvarValue.Ext ", '0'">
+
+<!ENTITY ImportOverwriteData "">
+<!ENTITY ImportOverwriteCheckKey "">
+<!ENTITY ImportOverwriteVariable "">
+<!ENTITY ImportOverwriteChecking "">
+<!ENTITY ImportOverwriteIdentiyDataCondition "">
+<!ENTITY ImportOverwriteProcess "insert into &ImportOverwriteLogTable; select stt_rec, getdate() from #id">
+<!ENTITY ImportOverwriteError "">
+<!ENTITY ImportOverwriteUpdateByPart "">
+<!ENTITY ImportOverwriteInserting "">
+
+<!ENTITY ImportOverwriteUseEI "">
+<!ENTITY ImportOverwriteEIWhenBeforeDelete "">
+<!ENTITY ImportOverwriteEIWhenBeforeDeleteMultiError "">
+<!ENTITY ImportOverwriteEIWhenBeforeDeleteByPart "">
+<!ENTITY ImportOverwriteEIWhenBeforeDeleteByPartMultiError "">
+
+<!ENTITY ImportOverwriteEIUpdateByPart "">
+<!ENTITY ImportOverwriteEIUpdate "">

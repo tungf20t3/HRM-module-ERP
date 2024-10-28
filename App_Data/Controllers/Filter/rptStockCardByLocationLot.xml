@@ -1,0 +1,276 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "rptStockCardByLocationLot">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY XMLWhenFilterQuerying SYSTEM "..\Include\XML\WhenFilterQuerying.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY ReportDataTypeField SYSTEM "..\Include\XML\ReportDataTypeField.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY GetReportFormLimitRight SYSTEM "..\Include\Command\GetReportFormLimitRight.txt">
+  <!ENTITY SetReportFormLimitRight SYSTEM "..\Include\Javascript\SetReportFormLimitRight.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY Controller "rptStockCardByLocationLot">
+  <!ENTITY DynamicReportFields ", '#$query'">
+  <!ENTITY % ReferenceNumber SYSTEM "..\Include\ReferenceNumber.ent">
+  %ReferenceNumber;
+
+  <!ENTITY LineCounter "5">
+  <!ENTITY ExtensionCounter "4">
+  <!ENTITY CircularCategoryIndex "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_vt" allowNulls="false" aliasName="defaultItem">
+      <header v="Mã vật tư" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+      <clientScript><![CDATA[onchange=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho">
+      <header v="Mã kho" e="Site"/>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="status = '1'" check="1 = 1" />
+      <clientScript><![CDATA[onchange="onchange$Site(this);"]]></clientScript>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vi_tri">
+      <header v="Vị trí" e="Location"/>
+      <items style="AutoComplete" controller="Location" reference="ten_vi_tri%l" key="ma_kho = '{$%c[ma_kho]}' and status = '1'" check="ma_kho = '{$%c[ma_kho]}'" information="ma_vi_tri$dmvitri.ten_vi_tri%l"/>
+    </field>
+    <field name="ten_vi_tri%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+    <field name="ma_lo">
+      <header v="Mã lô" e="Lot"/>
+      <items style="AutoComplete" controller="Lot" reference="ten_lo%l" key="ma_vt = '{$%c[ma_vt]}' and status = '1'" check="ma_vt = '{$%c[ma_vt]}'" information="ma_lo$dmlo.ten_lo%l"/>
+    </field>
+    <field name="ten_lo%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Từ/đến ngày" e="Date from/to"></footer>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+
+    <field name="ngay3" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="Ngày mở sổ" e="Date Opened"></header>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="tinh_ps" clientDefault="1"  categoryIndex="1">
+      <header v="Tính ps điều chuyển" e="Include Transfers"/>
+      <items style="DropDownList">
+        <item value="0">
+          <text v="Không tính phát sinh điều chuyển kho" e="No Include Transfers"/>
+        </item>
+        <item value="1">
+          <text v="Tính phát sinh điều chuyển kho" e="Include Transfers"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="chon_tt" clientDefault="1" aliasName="circularType" categoryIndex="&CircularCategoryIndex;">
+      <header v="Kiểu báo cáo" e="Report Type"/>
+      <items style="DropDownList">
+        <item value="1">
+          <text v="Thông tư số 200" e="Circular No. 200"/>
+        </item>
+        <item value="2">
+          <text v="Thông tư số 133" e="Circular No. 133"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Sổ chi tiết vật tư" e="Inventory Item Ledger"/>
+        </item>
+        <item value="20">
+          <text v="Sổ chi tiết vật tư tiền ngoại tệ" e="Inventory Item Ledger in Foreign Currency"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    &ReportDataTypeField;
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+
+    <field name="ten_dvt%l" external="true" hidden="true" filterSource="Cache" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="110100: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="110100: [ma_vi_tri].Label, [ma_vi_tri], [ten_vi_tri%l]"/>
+      <item value="110100: [ma_lo].Label, [ma_lo], [ten_lo%l]"/>
+      <item value="1101--: [tu_ngay].Description, [tu_ngay], [den_ngay]"/>
+      <item value="110---: [ngay3].Label, [ngay3]"/>
+      <item value="11000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000-: [tinh_ps].Label, [tinh_ps]"/>
+      <item value="11000-: [chon_tt].Label, [chon_tt]"/>
+      <item value="11000-: [mau_bc].Label, [mau_bc]"/>
+      <item value="11000-1: [loai_du_lieu].Label, [loai_du_lieu], [ten_dvt%l]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130, 0">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message nvarchar(1024), @reportType char(1)
+select @message = '', @reportType = rtrim(val) from options where name = 'm_kieu_bc'
+select @message = 'this._reportType=' + rtrim(@reportType) + ';init$FormFilter(this);'
+]]>&GetReportFormLimitRight;<![CDATA[
+select @message + 'active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterClosing;
+    &XMLWhenFilterQuerying;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @ItemName nvarchar(1024), @ItemName2 nvarchar(1024), @SiteName nvarchar(1024), @SiteName2 nvarchar(1024),
+  @LocationName nvarchar(1024), @LocationName2 nvarchar(1024), @LotName nvarchar(1024), @LotName2 nvarchar(1024), @UOMName nvarchar(1024),
+  @h_line1 as nvarchar(128), @h_line2 as nvarchar(128), @h_line3 as nvarchar(128), @h_line4 as nvarchar(128),
+  @h_line5 as nvarchar(128), @h_line6 as nvarchar(128), @h_line7 as nvarchar(128), @h_line8 as nvarchar(128)
+
+select @h_line1 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC089'
+select @h_line2 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC090'
+select @h_line3 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC091'
+select @h_line4 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC092'
+select @h_line5 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC121'
+select @h_line6 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC122'
+select @h_line7 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC123'
+select @h_line8 = case when @@language = 'V' then cname else cname2 end from reports where ccode = 'DEC124'
+
+select @ItemName = ten_vt, @ItemName2 = ten_vt2 from dmvt where ma_vt = @ma_vt
+select @UOMName = case when @@language = 'V' then b.ten_dvt else b.ten_dvt2 end from dmvt a, dmdvt b where a.dvt = b.dvt and a.ma_vt = @ma_vt
+select @SiteName = ten_kho, @SiteName2 = ten_kho2 from dmkho where ma_kho = @ma_kho
+select @LocationName = ten_vi_tri, @LocationName2 = ten_vi_tri2 from dmvitri where ma_kho = @ma_kho and ma_vi_tri = @ma_vi_tri
+select @LotName = ten_lo, @LotName2 = ten_lo2 from dmlo where ma_vt = @ma_vt and ma_lo = @ma_lo
+
+select cast(@tu_ngay as smalldatetime) as date_from, cast(@den_ngay as smalldatetime) as date_to, cast(@ngay3 as smalldatetime) as ngay_ms,
+  @ma_kho as ma_kho, isnull(@SiteName, '') as ten_kho, isnull(@SiteName2, '') as ten_kho2, @ma_vt as ma_vt, @ItemName as ten_vt, @ItemName2 as ten_vt2 , @UOMName as dvt,
+  @ma_vi_tri as ma_vi_tri, isnull(@LocationName, '') as ten_vi_tri, isnull(@LocationName2, '') as ten_vi_tri2,
+  @ma_lo as ma_lo, isnull(@LotName, '') as ten_lo, isnull(@LotName2, '') as ten_lo2,
+  @h_line1 as h_line1, @h_line2 as h_line2, @h_line3 as h_line3, @h_line4 as h_line4, @h_line5 as h_line5, @h_line6 as h_line6, @h_line7 as h_line7, @h_line8 as h_line8
+exec rs_rptStockCardByLocationLot @tu_ngay, @den_ngay, @ma_kho, @ma_vt, @ma_vi_tri, @ma_lo, @ma_dvcs, @tinh_ps, @loai_du_lieu, @@language, @@userID, @@admin, ']]>&Controller;<![CDATA[', '@@sysDatabaseName'
+]]>&DynamicReportFields;&ReferenceParameters;
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &SetReportFormLimitRight;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  var a = ['ma_kho', 'ma_vt', 'ma_vi_tri', 'ma_lo'];
+  if (!f._extensions) f.request('GetDefaultValue', 'SetDefaultValue', a);
+
+  if (f._convection) f._convection = null;
+  else {
+    changeLookupReadonly(f, 'ma_dvcs');
+    if (f._extensions) setReferenceValue(f, a);
+  }
+
+  if (!f.getItemValue('ngay3')) f.setItemValue('ngay3', new Date());
+  f.setReferenceKeyFilter('ma_vi_tri');
+  f.setReferenceKeyFilter('ma_lo');
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(u,n){var a=n.object,q=n.type.Context,b=n.type.Result;switch(q){case"Checking":var d=a.grid,o=a.getItemValue("mau_bc"),v=a.getItemValue("chon_tt"),r=a.getItem("tu_ngay").value,s=a.getItem("den_ngay").value,t=$func.trim(a.getItemValue("ten_dvt%l")),l=a.getItemValue("ma_kho"),g=a.getItemValue("ten_kho%l"),k=a.getItemValue("ma_vt"),f=a.getItemValue("ten_vt%l"),j=a.getItemValue("ma_vi_tri"),e=a.getItemValue("ten_vi_tri%l"),m=a.getItemValue("ma_lo"),h=a.getItemValue("ten_lo%l"),p="",c="",i=a._language=="v";if(k!="")p=i?"Vật tư: "+k+(f==""?"":" - "+f):"Item: "+k+(f==""?"":" - "+f);if(l!="")c=c+(i?", kho: "+l+(g==""?"":" - "+g):", Site: "+l+(g==""?"":" - "+g));if(j!="")c=c+(i?", vị trí: "+j+(e==""?"":" - "+e):", Location: "+j+(e==""?"":" - "+e));if(m!="")c=c+(i?", lô: "+m+(h==""?"":" - "+h):", Lot: "+m+(h==""?"":" - "+h));d._alterTitle=[null,[["%d1",r,true],["%d2",s,true],["%t1",t,true],["%s0",p,true],["%s",c,true]]];d._hiddenFields=[{Fields:"gia_nt, tien_nt_n, tien_nt_x, so_du_nt",Value:o=="10"}];d._hiddenForms=[{Form:[1,3,6,8],Value:o=="10"},{Form:[0,2,5,7],Value:o=="20"}];a._hidden$GridForm&&d._hiddenForms.push({Form:a._hidden$GridForm,Value:1});remove$GridReport$Filter(d);break;case"SetDefaultValue":a.setItemControlBehavior("ten_kho%l",b[0].Value,null,true);b[5].Value&&a.setItemValue("ma_kho","");a.setItemControlBehavior("ten_vt%l",b[1].Value,null,true);b[6].Value&&a.setItemValue("ma_vt","");a.setItemControlBehavior("ten_dvt%l",b[2].Value,null,true);a.setItemControlBehavior("ten_vi_tri%l",b[3].Value,null,true);b[7].Value&&a.setItemValue("ma_vi_tri","");a.setItemControlBehavior("ten_lo%l",b[4].Value,null,true);b[8].Value&&a.setItemValue("ma_lo","");break;case"SetUOM":a.getItem("ten_dvt%l").value=b[0].Value}}function onchange$Item(b){var a=b.parentForm;a.setReferenceKeyFilter("ma_lo");a.request("GetUOMName","SetUOM",["ma_vt"])}function onchange$Site(a){a.parentForm.setReferenceKeyFilter("ma_vi_tri")}function setReferenceValue(a,c){for(var b=0;b<c.length;b++){var d=$func.findField(c[b],a._fields).ItemReference;a.setItemValue(d,$func.findMemvar(d,a._extensions).NewValue)}}function init$FormFilter(a){var b=a.getItem("chon_tt");switch(a._reportType){case 1:b.remove(1);break;case 2:b.remove(0)}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetDefaultValue">
+      <text>
+        <![CDATA[
+declare @c0 nvarchar(1024), @c1 nvarchar(1024), @c2 nvarchar(1024), @c3 nvarchar(1024), @c4 nvarchar(1024)
+select @c0 = ten_kho%l from dmkho where ma_kho = @ma_kho
+select @c1 = ten_vt%l from dmvt where ma_vt = @ma_vt
+select @c2 = ten_dvt%l from dmvt a left join dmdvt b on a.dvt = b.dvt where a.ma_vt = @ma_vt
+select @c3 = ten_vi_tri%l from dmvitri where ma_kho = @ma_kho and ma_vi_tri = @ma_vi_tri
+select @c4 = ten_lo%l from dmlo where ma_vt = @ma_vt and ma_lo = @ma_lo
+select isnull(@c0, '') as c0, isnull(@c1, '') as c1, isnull(@c2, '') as c2, isnull(@c3, '') as c3, isnull(@c4, '') as c4,
+  cast(case when @c0 is null then 1 else 0 end as bit) as c5, cast(case when @c1 is null then 1 else 0 end as bit) as c6,
+  cast(case when @c3 is null then 1 else 0 end as bit) as c7, cast(case when @c4 is null then 1 else 0 end as bit) as c8
+return
+        ]]>
+      </text>
+    </action>
+
+    <action id="GetUOMName">
+      <text>
+        <![CDATA[
+declare @c nvarchar(1024)
+select @c = ten_dvt%l from dmvt a left join dmdvt b on a.dvt = b.dvt where a.ma_vt = @ma_vt
+select isnull(@c, '') as c
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &OutlineCss;
+</dir>

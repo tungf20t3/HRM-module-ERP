@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="d1" database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Ẩn các chức năng" e="Hide Menus"></title>
+  <fields>
+    <field name="name" hidden="true" readOnly="true" dataFormatString="@upperCaseFormat">
+      <header v="" e=""></header>
+      <footer v="&lt;div id=&quot;treeviewPanel&quot; style=&quot;width: 542px; height: 480px;&quot; &gt;&lt;/div&gt;" e="&lt;div id=&quot;treeviewPanel&quot; style=&quot;width: 542px; height: 480px;&quot; &gt;&lt;/div&gt;"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="id" type="Int32" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="flag" external="true" defaultValue="0" allowContain="true" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="r1" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r2" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r3" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r4" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r5" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r6" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r7" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r8" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r9" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r10" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r11" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r12" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r13" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r14" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r15" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r16" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r17" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r18" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r19" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+    <field name="r20" external="true" defaultValue="''" allowContain="true" hidden="true" readOnly="true" filterSource="Encoding">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 100, 100, 130, 0, 0, 0, 0, 0"/>
+      <item value="10000111: [name].Description, [name], [id], [flag]"/>
+      <item value="11111111111111111111: [r1], [r2], [r3], [r4], [r5], [r6], [r7], [r8], [r9], [r10], [r11], [r12], [r13], [r14], [r15], [r16], [r17], [r18], [r19], [r20]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select '$get(''treeviewPanel'').parentNode.style.maxHeight = ''none'';' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message varchar(8000)
+select @message = 'this._app = ''' + '@@appDatabaseName' + ''';this._creatorID = ''' + rtrim(@@userID) + ''';loadForm(this);'
+select @message as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'closeForm(this)' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[for(var c=20,v=this._treeView.getAllCheckedBranches(),l=0,i=0;i<c;i++){l=i*3999;this.getItem(String.format("r{0}",i+1)).value=v.substring(l,l+3999)}]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+select @$r1 = replace(@$r1, ',', char(255)), @$r2 = replace(@$r2, ',', char(255)), @$r3 = replace(@$r3, ',', char(255)), @$r4 = replace(@$r4, ',', char(255)), @$r5 = replace(@$r5, ',', char(255)), @$r6 = replace(@$r6, ',', char(255)), @$r7 = replace(@$r7, ',', char(255)), @$r8 = replace(@$r8, ',', char(255)), @$r9 = replace(@$r9, ',', char(255)), @$r10 = replace(@$r10, ',', char(255))
+select @$r11 = replace(@$r11, ',', char(255)), @$r12 = replace(@$r12, ',', char(255)), @$r13 = replace(@$r13, ',', char(255)), @$r14 = replace(@$r14, ',', char(255)), @$r15 = replace(@$r15, ',', char(255)), @$r16 = replace(@$r16, ',', char(255)), @$r17 = replace(@$r17, ',', char(255)), @$r18 = replace(@$r18, ',', char(255)), @$r19 = replace(@$r19, ',', char(255)), @$r20 = replace(@$r20, ',', char(255))
+
+update userinfo9 set r1 = @$r1, r2 = @$r2, r3 = @$r3, r4 = @$r4, r5 = @$r5, r6 = @$r6, r7 = @$r7, r8 = @$r8 ,r9 = @$r9, r10 = @$r10 where id = @@userID
+
+declare @p binary(16), @k int
+select @p = textptr(r10) from userinfo9 where id = @@userID
+
+if @$r11 <> '' begin
+  select @k = datalength(r10) from userinfo9 where id = @@userID
+  updatetext userinfo9.r10 @p @k null @$r11
+end
+if @$r12 <> '' begin
+  select @k = datalength(r10) from userinfo9 where id = @@userID
+  updatetext userinfo9.r10 @p @k null @$r12
+end
+if @$r13 <> '' begin
+  select @k = datalength(r10) from userinfo9 where id = @@userID
+  updatetext userinfo9.r10 @p @k null @$r13
+end
+if @$r14 <> '' begin
+  select @k = datalength(r10) from userinfo9 where id = @@userID
+  updatetext userinfo9.r10 @p @k null @$r14
+end
+if @$r15 <> '' begin
+  select @k = datalength(r10) from userinfo9 where id = @@userID
+  updatetext userinfo9.r10 @p @k null @$r15
+end
+if @$r16 <> '' begin
+  select @k = datalength(r10) from userinfo9 where id = @@userID
+  updatetext userinfo9.r10 @p @k null @$r16
+end
+if @$r17 <> '' begin
+  select @k = datalength(r10) from userinfo9 where id = @@userID
+  updatetext userinfo9.r10 @p @k null @$r17
+end
+if @$r18 <> '' begin
+  select @k = datalength(r10) from userinfo9 where id = @@userID
+  updatetext userinfo9.r10 @p @k null @$r18
+end
+if @$r19 <> '' begin
+  select @k = datalength(r10) from userinfo9 where id = @@userID
+  updatetext userinfo9.r10 @p @k null @$r19
+end
+if @$r20 <> '' begin
+  select @k = datalength(r10) from userinfo9 where id = @@userID
+  updatetext userinfo9.r10 @p @k null @$r20
+end
+select '' as message, 'UAC.UAC.UpdateLimitReportAccessRight.Update(' + rtrim(@@userID) + ', ' + rtrim(@@userID) + ', ' + '@@appDatabaseName' + ', ' + '@@sysDatabaseName, 2)' as invoke
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function loadForm(a){$func.enableButtons(false);$func.showWait(a.get_id());var b,c;c=a.getItem("id").value;if(window.XMLHttpRequest)b=new XMLHttpRequest;else try{b=new ActiveXObject("Msxml2.XMLHTTP")}catch(d){b=new ActiveXObject("Microsoft.XMLHTTP")}b.onreadystatechange=function(){if(b.readyState==4&&b.status==200){a._treeView=new TreeView("treeviewPanel","100%","100%",0);a._treeView.set_path("../Images/Tree/");a._treeView.enableCheckBoxes(true);a._treeView.loadXMLString(b.responseText);$func.hideWait(a.get_id());$func.enableButtons(true)}};b.open("GET","~/AppHandler/LimitReportAccessRight.ashx?id="+a._creatorID+"&appdb="+a._app+"&lang="+a._language+"&user="+a._creatorID+"&admin=0&type=allow&func=2&r="+ +new Date);b.send(null);a.getItem("flag").value=1}function closeForm(a){a._treeView.dispose()}]]>
+    </text>
+  </script>
+</dir>

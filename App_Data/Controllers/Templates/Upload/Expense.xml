@@ -1,0 +1,200 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % Nested SYSTEM "..\..\Include\Nested.ent">
+  %Nested;
+  <!ENTITY Controller "Expense">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'Expense' else 'Expense2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$ExpenseImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$ExpenseImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmphi"/>
+    <table value="dmphi" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <var id="00003">
+    <header v="Giá trị &Expense.Nested.Message.v;." e="The value is &Expense.Nested.Message.e;." />
+  </var>
+
+  <fields identity="true" name="stt">
+    <field name="ma_phi" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ten_phi" column="B" allowNulls="false"/>
+    <field name="ten_phi2" column="C"/>
+    <field name="ma_bp" column="D" upperCase="true" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from dmbp)" errorCode="00001"/>
+    <field name="nh_phi1" column="E" upperCase="true" check="nh_phi1 &lt;&gt; '' and nh_phi1 not in (select ma_nh from dmnhphi where loai_nh = 1)" errorCode="00001"/>
+    <field name="nh_phi2" column="F" upperCase="true" check="nh_phi2 &lt;&gt; '' and nh_phi2 not in (select ma_nh from dmnhphi where loai_nh = 2)" errorCode="00001"/>
+    <field name="nh_phi3" column="G" upperCase="true" check="nh_phi3 &lt;&gt; '' and nh_phi3 not in (select ma_nh from dmnhphi where loai_nh = 3)" errorCode="00001"/>
+
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục phí" e="Expense List"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_phi" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã phí" e="Expense Code"/>
+      </field>
+      <field name="ten_phi" width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên phí" e="Description"/>
+      </field>
+      <field name="ten_phi2" width="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="ma_bp" width="16">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="nh_phi1" width="16">
+        <text v="Nhóm 1" e="Group 1"/>
+      </field>
+      <field name="nh_phi2" width="16">
+        <text v="Nhóm 2" e="Group 2"/>
+      </field>
+      <field name="nh_phi3" width="16">
+        <text v="Nhóm 3" e="Group 3"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'Expense', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @r int
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> ]]>&Expense.Nested.Message.v;<![CDATA[.' else 'The value of cell <span class="Highlight">%invalidCell</span> is ]]>&Expense.Nested.Message.e;<![CDATA[.' end
+
+create index i on @@table (ma_phi)
+
+-- Delete
+if @type = '0' delete @@table from @@table a join dmphi b on a.ma_phi = b.ma_phi
+
+-- Checking
+]]>&Checking;<![CDATA[
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_phi', stt, @message from @@table where ma_phi like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_phi', @r = min(stt) from @@table where ma_phi like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+-- Gather
+select a.* into #k from @@table a join dmphi b on a.ma_phi = b.ma_phi
+
+-- Do not delete following line
+-- #OverwriteChecking
+
+if @type = '1' delete @@table from @@table a where exists(select 1 from #k b where a.ma_phi = b.ma_phi)
+
+-- Checking
+select @field = 'ma_phi'
+]]>&Expense.Nested.Key.b;<![CDATA[
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, @@table b with (index(i)) where a.ma_phi <> b.ma_phi and a.ma_phi like rtrim(b.ma_phi) + ''%''
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from @@table a, dmphi b with (index(PK_dmphi)) where a.ma_phi like rtrim(b.ma_phi) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from dmphi a, @@table b with (index(i)) where a.ma_phi like rtrim(b.ma_phi) + ''%''
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @q = 'select top 1 @r = a.stt from @@table a, @@table b with (index(i)) where a.ma_phi <> b.ma_phi and a.ma_phi like rtrim(b.ma_phi) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = a.stt from @@table a with (index(i)), dmphi b with (index(PK_dmphi)) where a.ma_phi like rtrim(b.ma_phi) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = b.stt from dmphi a with (index(PK_dmphi)), @@table b with (index(i)) where a.ma_phi like rtrim(b.ma_phi) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  end
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  ]]>&Updating;<![CDATA[
+end
+]]>
+    </text>
+  </processing>
+
+</import>

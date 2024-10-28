@@ -1,0 +1,120 @@
+﻿<!ENTITY % Conditional.Unite  SYSTEM "..\Include\Import.Unite.PMTran.txt">
+<!ENTITY % Conditional.ImportTax SYSTEM "..\Include\ImportTax.PMTran.txt">
+<!ENTITY % Conditional.GenerateImportTemplate SYSTEM "..\Include\GenerateImportTemplate.txt">
+<!ENTITY % Conditional.BaseCurrency SYSTEM "..\Include\BaseCurrency.txt">
+
+<![%Conditional.GenerateImportTemplate;[
+  <!ENTITY DownloadExcludeColumn ", @$excludeColumns as exclude_column">
+
+  <![%Conditional.ImportTax;[
+    <![%Conditional.BaseCurrency;[
+      <!ENTITY ListFieldDetailValues.ImportTax.ImportTaxAmount.Base ", a.nk">
+      <!ENTITY ListFieldDetailValues.ImportTax.ExciseTaxAmount.Base ", a.ttdb">
+      <!ENTITY ListFieldDetailValues.ImportTax.VATAmount.Base ", a.thue">
+      <!ENTITY ListFieldDetailValues.ImportTax.Base ",nk, ttdb, thue">
+
+      <!ENTITY ImportTaxExcludeColumns.ImportTax.BaseCurrency "">
+    ]]>
+    <!ENTITY ListFieldDetailValues.ImportTax.ImportTaxAmount.Base ", round(a.nk_nt * a.ty_gia, @roundAmount)">
+    <!ENTITY ListFieldDetailValues.ImportTax.ExciseTaxAmount.Base ", round(a.ttdb_nt * a.ty_gia, @roundAmount)">
+    <!ENTITY ListFieldDetailValues.ImportTax.VATAmount.Base ", round(a.thue_nt * a.ty_gia, @roundAmount)">
+    <!ENTITY ListFieldDetailValues.ImportTax.Base ", round(a.nk_nt * a.ty_gia, @roundAmount), round(a.ttdb_nt * a.ty_gia, @roundAmount), round(a.thue_nt * a.ty_gia, @roundAmount)">
+
+    <!ENTITY ListFieldDetailValues.ImportTax.ImportTaxAmount ", nk_nt&ListFieldDetailValues.ImportTax.ImportTaxAmount.Base;">
+    <!ENTITY ListFieldDetailValues.ImportTax.ExciseTaxAmount ", ttdb_nt&ListFieldDetailValues.ImportTax.ExciseTaxAmount.Base;">
+    <!ENTITY ListFieldDetailValues.ImportTax.VATAmount ", thue_nt&ListFieldDetailValues.ImportTax.VATAmount.Base;">
+
+    <!ENTITY ImportTaxExcludeColumns.ImportTax.BaseCurrency "nk, ttdb, thue">
+    <!ENTITY ImportTaxExcludeColumns.ImportTax.FCCurrency "">
+
+    <!ENTITY ImportTax.ConditionUpdateBegin "if 1 = 0 begin">
+    <!ENTITY ImportTax.ConditionUpdateEnd "end">
+  ]]>
+
+  <![%Conditional.BaseCurrency;[
+    <!ENTITY Unite.ExcludeColumns.BaseCurrency "">
+  ]]>
+  <!ENTITY Unite.ExcludeColumns.BaseCurrency "tien_cp, gia0, tien0, gia3, tien3, t_tien, t_thue, tien_cp">
+  <!ENTITY ImportTaxExcludeColumns.ImportTax.BaseCurrency "nk, ttdb, thue">
+  <!ENTITY ImportTaxExcludeColumns.ImportTax.FCCurrency "nk_nt, ttdb_nt, thue_nt">
+]]>
+<!ENTITY DownloadExcludeColumn "">
+
+<!ENTITY ListFieldDetailValues.ImportTax.ImportTaxAmount ", 0, 0">
+<!ENTITY ListFieldDetailValues.ImportTax.ExciseTaxAmount ", 0, 0">
+<!ENTITY ListFieldDetailValues.ImportTax.VATAmount ", 0, 0">
+
+<!ENTITY ImportTax.ConditionUpdateBegin "">
+<!ENTITY ImportTax.ConditionUpdateEnd "">
+
+
+<!ENTITY Unite.ExcludeColumns.Import "
+if '&Unite.ExcludeColumns.BaseCurrency;&ImportTaxExcludeColumns.ImportTax.BaseCurrency;&ImportTaxExcludeColumns.ImportTax.FCCurrency;' &lt;&gt; '' begin
+  if '&Unite.ExcludeColumns.BaseCurrency;' &lt;&gt; '' select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end + '&Unite.ExcludeColumns.BaseCurrency;'
+  if '&ImportTaxExcludeColumns.ImportTax.BaseCurrency;' &lt;&gt; '' select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end + '&ImportTaxExcludeColumns.ImportTax.BaseCurrency;'
+  if '&ImportTaxExcludeColumns.ImportTax.FCCurrency;' &lt;&gt; '' select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end + '&ImportTaxExcludeColumns.ImportTax.FCCurrency;'
+end
+">
+
+<![%Conditional.Unite;[
+  <!ENTITY PMTranViewIndex "9">
+  <!ENTITY PMTranFields.f SYSTEM "..\Templates\Upload\Include\PMTranFields.f">
+  <!ENTITY Unite.Command "
+declare @compactMode char(1)
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') set @compactMode = '1' else set @compactMode = '0'
+declare @exciseTax char(1)
+select @exciseTax = rtrim(val) from options where name = 'm_thue_ttdb'
+
+declare @$excludeColumns varchar(512)
+set @$excludeColumns = ''
+&Unite.ExcludeColumns.Import;
+if @exciseTax = '0' select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end + 'ma_thue_ttdb, ttdb_nt, ttdb'
+if exists(select 1 from options where name = 'm_compact_mode' and rtrim(val) = '1') begin
+  select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end + 'ma_lo, ma_vi_tri'
+end else begin
+  if exists(select 1 from options where name = 'm_instock_split' and val = '1') begin
+    declare @$locationExt bit, @$lotExt bit
+    if '&Code;' &lt;&gt; '' and object_id('dmctvtrlo') is not null begin
+      exec sp_executesql N'select @location = vi_tri_yn, @lot = lo_yn from dmctvtrlo where ma_ct = ''&Code;''', N'@location bit output, @lot bit output', @$locationExt output, @$lotExt output
+    end
+    if @$locationExt is null select @$locationExt = cast(rtrim(val) as bit) from options where name = 'm_kt_td_vitri_yn'
+    if @$lotExt is null select @$lotExt = cast(rtrim(val) as bit) from options where name = 'm_kt_td_lo_yn'
+
+    if @$locationExt = 0 or @$lotExt = 0 begin
+      select @$excludeColumns = @$excludeColumns + case when @$excludeColumns &lt;&gt; '' then ',' else '' end +
+        case
+          when @$locationExt = 0 and @$lotExt = 0 then 'ma_vi_tri, ma_lo'
+          when @$locationExt = 1 and @$lotExt = 0 then 'ma_lo'
+          when @$locationExt = 0 and @$lotExt = 1 then 'ma_vi_tri'
+        end
+    end
+  end
+end
+select &PMTranViewIndex; as view_index&DownloadExcludeColumn;
+return
+    ">
+]]>
+
+<!ENTITY PMTranFields.f "">
+<!ENTITY Unite.Command "
+declare @filename varchar(128), @compactMode char(1)
+if exists(select 1 from options where name = 'm_compact_mode' and val = '1') select @compactMode = '1' else select @compactMode = '0'
+if @@language = 'v' select @filename = case when @compactMode = '0' then '&FileName.v.ext;' else '&FileName.Compact.v.ext;' end
+else select @filename = case when @compactMode = '0' then '&FileName.e.ext;' else '&FileName.Compact.e.ext;' end
+
+if not exists(select 1 from options where name = 'm_instock_split' and val = '1')
+  if @compactMode = '1' select '&Tag.Compact.ext;' as view_index&ExportImportTemplateQueryReturnFileName; else select '&Tag.ext;' as view_index&ExportImportTemplateQueryReturnFileName;
+else begin
+
+    &ControlLocationLotLoading;
+    &ExportImportTemplateQuery;
+
+    select case
+      when @$location = 0 and @$lot = 0 then &Tag.Compact.ext;
+      when @$location = 1 and @$lot = 0 then &Tag.Location.ext;
+      when @$location = 0 and @$lot = 1 then &Tag.Lot.ext;
+      when @$location = 1 and @$lot = 1 then &Tag.ext;
+    end as view_index&ExportImportTemplateQueryReturnFileName;
+  end
+end
+">

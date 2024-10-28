@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "PAInvoice">
+  <!ENTITY DetailTable "d83">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Supplier">
+  <!ENTITY c21 "Số hóa đơn">
+  <!ENTITY c22 "Invoice Number">
+  <!ENTITY c31 "Ngày hóa đơn">
+  <!ENTITY c32 "Invoice Date">
+]>
+
+<dir table="m83$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Hóa đơn" e="Invoice"></title>
+  <fields>
+    &XMLFlowFormFields;
+  </fields>
+
+  <views>
+    &XMLFlowFormViews;
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFormFunction;
+      <![CDATA[
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+  var g = f.getItem('d83')._controlBehavior, z = f.grid, w = z.get_element().parentForm, l = g._getColumnOrder('chon'), f1 = 'so_luong0, stt_rec, stt_rec0, line_nbr', f2 = 'so_luong, stt_rec_hd, stt_rec0hd, hd_ln';  
+  var first = true, l0 = z._getColumnOrder('ma_vt'), l1 = z._getColumnOrder('dvt'), l2 = g._getColumnOrder('nhieu_dvt');  
+  var m = f.getItemValue('ma_kh'), l3 = z._getColumnOrder('ma_vi_tri'), l4 = g._getColumnOrder('vi_tri_yn'), l5 = z._getColumnOrder('ma_lo'), l6 = g._getColumnOrder('lo_yn');
+  var l7 = z._getColumnOrder('tk_vt'), l8 = g._getColumnOrder('sua_tk_vt');
+  var k0 = g._getColumnOrder('so_luong0'), k1 = g._getColumnOrder('so_luong');
+  var fields = 'ma_vt, ten_vt%l, dvt, ma_kho, ma_vi_tri, ma_lo, tk_vt, ]]>&XMLHiddenFields;<![CDATA[, he_so, hd_so';
+  for (var r = 1; r <= g._rowCount; r++) {
+    if (g._getItemValue(r, l)) {      
+      var ins = true, row = z._rowCount;
+      if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) z._appendRow(null, true);
+      row = z._rowCount;
+      z._getItem(row, 1)._customerIdentity = m;
+      var o = z._getItem(row, l0);
+      o.row = row;
+      if (g._getItemValue(r, k0) > g._getItemValue(r, k1)) g._setItemValue(r, k0, g._getItemValue(r, k1));
+      if (g._getItemValue(r, k0) < 0) g._setItemValue(r, k0, 0);
+      insert$Retrieve$Items(g, r, z, row, fields, f1, f2);
+      
+      $func.setObjectWhen(z._getItem(row, l1), g._getItemValue(r, l2));
+      $func.setObjectWhen(z._getItem(row, l3), g._getItemValue(r, l4));
+      $func.setObjectWhen(z._getItem(row, l5), g._getItemValue(r, l6));
+      $func.setObjectWhen(z._getItem(row, l7), g._getItemValue(r, l8));
+    }
+  }
+  z._focusWhenTabChanged();
+}
+]]>
+    </text>
+  </script>
+</dir>

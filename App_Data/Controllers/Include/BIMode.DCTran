@@ -1,0 +1,63 @@
+﻿<![%Conditional.BIMode;[
+  
+  <!ENTITY BI.DCDetail.Grid.Fields SYSTEM "..\Include\XML\BI.DCDetail.Grid.Fields.xml">
+  <!ENTITY BI.DCDetail.Grid.Views SYSTEM "..\Include\XML\BI.DCDetail.Grid.Views.xml">
+  <!ENTITY BI.DCDetail.Finding SYSTEM "..\Include\XML\BI.DCDetail.Finding.txt">
+  <!ENTITY BI.DCDetail.Toolbar.Retrieve SYSTEM "..\Include\XML\BI.DCDetail.Toolbar.Retrieve.txt">
+  <!ENTITY BI.DCDetail.Scattering SYSTEM "..\Include\XML\BI.DCDetail.Scattering.txt">
+  
+  <!ENTITY BI.DCDetail.Load.Render "
+g._rowChange = false;
+g.add_onRender(on$GridVoucherDetail$Grid$Render);
+retrieve$GridVoucherDetail(g);
+">
+  <!ENTITY BI.DCDetail.Dispose "
+try {g.remove_onRender(on$GridVoucherDetail$Grid$Render);} catch (ex) {}
+">
+  <!ENTITY BI.DCDetail.Function "
+function scatter$GridVoucherDetail$(g) {retrieve$GridVoucherDetail(g);}    
+function on$GridVoucherDetail$Grid$Render(sender, eventArgs) {
+  var g = eventArgs.grid, f = g.get_element().parentForm;
+  if (g._rowChange) on$GridVoucherDetail$RowChange(g, f);
+  g._rowChange = false;
+}
+function retrieve$GridVoucherDetail(g) {
+  var o = g.get_toolbarButton('Search'), f = g.get_element().parentForm;
+  if (!o._$addHandler) {
+    o.onclick = function() {
+      if (!f.validFields('ngay_lct, ma_kh') || (f.getItemValue('loai_ct') != '2')) return false;
+      g.executeCommand({commandName:'Search', commandArgument:'0'});
+    }
+    o._$addHandler = true;
+  }
+}
+">
+
+  <!ENTITY BI.DCDetail.BeforeClone "
+case 'BeforeCloneRow':
+  if (g._getItemValue(g._activeRow, g._getColumnOrder('stt_rec_dh')) != '') e.type.cancelEvent = true;
+  break;
+">
+
+  <!ENTITY BI.DCDetail.Copying "
+case 'Copying':
+  set$Voucher$EmptyExternalField(g, 'dh_so, dh_ln, stt_rec_dh, stt_rec0dh');
+  break;
+">
+
+  <!ENTITY BI.DCTran.Hidden.Fields ", 'dh_so', 'dh_ln'">
+]]>
+
+<!ENTITY BI.DCDetail.Grid.Fields "">
+<!ENTITY BI.DCDetail.Grid.Views "">
+<!ENTITY BI.DCDetail.Finding "">
+<!ENTITY BI.DCDetail.Toolbar.Retrieve  "">
+<!ENTITY BI.DCDetail.Scattering "">
+
+<!ENTITY BI.DCDetail.Load.Render  "">
+<!ENTITY BI.DCDetail.Dispose  "">
+<!ENTITY BI.DCDetail.Function  "">
+<!ENTITY BI.DCDetail.BeforeClone "">
+<!ENTITY BI.DCDetail.Copying  "">
+
+<!ENTITY BI.DCTran.Hidden.Fields "">

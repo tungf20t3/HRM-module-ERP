@@ -1,0 +1,216 @@
+<config xmlns="urn:schemas-ai-erp:data-client-bankhub">
+
+  <!-- Định dạng các parameter trong query giao diện truyền lên khi gọi service Client.asmx
+  Ví dụ: declare @$UnitCode nvarchar(4000)
+  -->
+  <datatype sqlType="nvarchar(4000)"/>
+
+  <commands method="300" descript="Chuyển giao dịch lên ngân hàng">
+    <params>
+      <parameter name="unit" type="varchar(32)"/>
+    </params>
+
+    <!-- Kết quả trả về bảng: result = 0/1 có lỗi hay thành công, code: mã lỗi, field: trường lỗi, message: nội dung mô tả lỗi -->
+    <command event="Loading" descript="Loading kiểm tra số liệu">
+      <text>
+        <![CDATA[
+exec AI_ERP$BankHub$BeforeTransferTransaction @$dFrom, @$dTo, @$bankCode, @$idNumber, @$voucherDate, @$listDays, @$unit, '@@language', @@userID, @@admin
+]]>
+      </text>
+    </command>
+
+    <!-- Kết quả trả về 2 bảng.
+    - Bảng 1 là các cột sẽ truyền header gói tin
+    - Bảng 2 là dữ liệu truyền lên bankhub. tên cột chính là tên thẻ json sẽ truyền đi. -->
+    <command event="Processing" descript="Lấy dữ liệu truyền lên proxy">
+      <text>
+        <![CDATA[declare @clientCode varchar(32)
+select @clientCode = rtrim(val) from options where name = 'm_client_code_nhdt'
+
+select @clientCode as clientCode, @$bankCode as bankCode, '1' as version, @$connectionCode as connectionCode
+
+exec AI_ERP$BankHub$TransferTransaction @$dFrom, @$dTo, @$bankCode, @$idNumber, @$voucherDate, @$listDays, @$unit, '@@language', @@userID, @@admin
+]]>
+      </text>
+    </command>
+
+    <command event="Updating" descript="Xử lý dữ liệu kết quả nhận được từ proxy trả về">
+      <table>
+        <parameter name="IdNumber" type="varchar(32)"/>
+      </table>
+
+      <text>
+        <![CDATA[
+if @$_status = 1 and @$_count = 0 return
+
+exec AI_ERP$BankHub$AfterTransferTransaction @$dFrom, @$dTo, @$bankCode, @$idNumber, @$voucherDate, @$listDays, @$unit, '#bankHubResult', @$_status, @$_code, @$_message, '@@language', @@userID, @@admin
+        ]]>
+      </text>
+    </command>
+  </commands>
+
+  <commands method="400" descript="Truy vấn kết quả giao dịch">
+    <params>
+      <parameter name="unit" type="varchar(1023)"/>
+    </params>
+
+    <command event="Loading" descript="Loading kiểm tra số liệu">
+      <text>
+        <![CDATA[
+select 1 as result, 0 as code, '' as field, '' as message
+]]>
+      </text>
+    </command>
+
+    <command event="Processing" descript="Lấy dữ liệu truyền lên proxy">
+      <text>
+        <![CDATA[declare @clientCode varchar(32), @q nvarchar(4000), @d2 datetime, @key nvarchar(4000), @unitKey nvarchar(4000)
+select @clientCode = rtrim(val) from options where name = 'm_client_code_nhdt'
+select @clientCode as clientCode, @$bankCode as bankCode, '1' as version, @$connectionCode as connectionCode
+
+select top 0 a.stt_rec, a.ma_dvcs, b.tk, a.tk_nh, a.chu_tk, a.ma_gd, a.ma_tt_nh, a.datetime2, a.tinh_trang
+  into #t from knnh00$000000 a, m56$000000 b
+
+set @key = ' a.status = ''1'' and a.tinh_trang <> ''0'' and a.nh_dt_yn = ''1'''
+if @$customer <> '' set @key = @key + ' and b.ma_kh like ''' + replace(rtrim(@$customer), '''', '''''') + '%'''
+if @$bankAccount <> '' set @key = @key + ' and c.tknh like ''' + replace(rtrim(@$bankAccount), '''', '''''') + '%'''
+if @$invoicefrom <> '' set @key = @key + ' and b.so_ct >= ''' + dbo.ff_padl(replace(rtrim(@$invoiceFrom), '''', ''''''), @$size) + ''''
+if @$invoiceto <> '' set @key = @key + ' and b.so_ct <= ''' + dbo.ff_padl(replace(rtrim(@$invoiceTo), '''', ''''''), @$size) + ''''
+
+select @unitKey = dbo.AI_ERP$Function$System$GetUnitFilter('a.ma_dvcs', @$unit, @@userID, @@admin)
+if @unitKey is not null set @key = @key + ' and ' + @unitKey
+
+declare @connectType char(1)
+select @connectType = loai_kn from dmnhdt where ma_nh_dt = @$bankCode
+
+set @q = N'
+insert into #t select a.stt_rec, a.ma_dvcs, b.tk, a.tk_nh, a.chu_tk, a.ma_gd, a.ma_tt_nh, a.datetime2, a.tinh_trang
+  from knnh00$%Partition a with(nolock) join m56$%Partition b with(nolock) on a.stt_rec = b.stt_rec
+  join dmtknh c with(nolock) on b.tk = c.tk and b.ma_dvcs = c.ma_dvcs
+  where %[' + @key + ']%
+'
+exec AI_ERP$Partition$Execute @q, null, 'a.ngay_ct', @$dFrom, @$dTo, @@userID, @@admin
+
+select @d2 = dateadd(second, -180, getdate())
+
+delete #t where datetime2 > @d2
+delete #t from #t a join dmknnhtt d with(nolock) on a.ma_tt_nh =  d.ma_tt and d.ma_nh_dt = @$bankCode and d.hoan_thanh_yn = 1
+if @connectType = '2' delete #t where tinh_trang = '2'
+
+select stt_rec as IdNumber, a.ma_dvcs as UnitCode, c.cif_code as CIFCode, c.user_nh as BankUserName, b.tknh as SenderAccount, b.chu_tk as SenderName, a.ma_gd as ClientTransID, @$dFrom as DateFrom, @$dTo as DateTo
+  from #t a join dmtknh b with(nolock) on a.tk = b.tk and a.ma_dvcs = b.ma_dvcs
+    join dmknnh c with(nolock) on b.tknh = c.so_tk_nh and c.ma_nh_dt = @$bankCode
+    join dmtknhnsd d with(nolock) on c.ma_kn = d.ma_kn and d.user_id = @@userID
+]]>
+      </text>
+    </command>
+
+    <command event="Updating" descript="Xử lý dữ liệu kết quả nhận được từ proxy trả về">
+      <text>
+        <![CDATA[
+if @$_status = 0 or @$_count = 0 return
+
+declare @q nvarchar(4000)
+select cast(IdNumber as varchar(32)) as stt_rec, TransactionStatus as ma_tt_nh, Success as status, Message as nd_loi_nh, cast(isnull(ClientTransID, '') as varchar(32)) as ma_gd, 0 as gui_lai_yn into #tmp from #bankHubResult
+
+update #tmp set gui_lai_yn = 1 from #tmp a join dmknnhtt d with(nolock) on a.ma_tt_nh = d.ma_tt and d.ma_nh_dt = @$bankCode and d.gui_lai_yn = 1
+update #tmp set gui_lai_yn = 2 from #tmp a where not exists( select 1 from dmknnhtt d with(nolock) where a.ma_tt_nh = d.ma_tt and d.ma_nh_dt = @$bankCode )
+
+declare @connectType char(1)
+select @connectType = loai_kn from dmnhdt where ma_nh_dt = @$bankCode
+
+--- Success
+if @connectType <> '2' begin
+  set @q = N'
+  update knnh00$%Partition set ma_tt_nh = b.ma_tt_nh, nd_loi_nh = case when b.nd_loi_nh <> '''' then b.nd_loi_nh else '''' end, datetime3 = getdate(),
+      tinh_trang = case when a.tinh_trang = ''2'' and b.gui_lai_yn = 1 then ''4'' when a.tinh_trang in ( ''1'', ''3'') and b.gui_lai_yn = 1 then ''0'' when a.tinh_trang in ( ''1'', ''3'') and b.gui_lai_yn = 0 and isnull(b.ma_tt_nh, '''') <> '''' then ''2'' else a.tinh_trang end,
+      ma_gd = case when a.tinh_trang = ''1'' and a.ma_gd <> b.ma_gd and b.ma_gd <> '''' then b.ma_gd else a.ma_gd end
+    from knnh00$%Partition a with(nolock) join #tmp b with(nolock) on a.stt_rec = b.stt_rec
+    where %[a.nh_dt_yn = ''1'']%'
+  exec AI_ERP$Partition$Execute @q, null, 'a.ngay_ct', @$dFrom, @$dTo, @@userID, @@admin
+end else begin
+  set @q = N'
+  update knnh00$%Partition set ma_tt_nh = b.ma_tt_nh, nd_loi_nh = case when b.nd_loi_nh <> '''' then b.nd_loi_nh else '''' end, datetime3 = getdate(),
+      tinh_trang = case when b.status = ''1'' then ''2'' else ''0'' end
+    from knnh00$%Partition a with(nolock) join #tmp b with(nolock) on a.stt_rec = b.stt_rec
+    where %[a.nh_dt_yn = ''1'']%'
+  exec AI_ERP$Partition$Execute @q, null, 'a.ngay_ct', @$dFrom, @$dTo, @@userID, @@admin
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <commands method="200" descript="Lấy số dư tài khoản">
+    <command event="Loading" descript="Loading kiểm tra số liệu">
+      <text>
+        <![CDATA[
+select 1 as result, 0 as code, '' as message
+]]>
+      </text>
+    </command>
+
+    <command event="Processing" descript="Lấy dữ liệu truyền lên proxy">
+      <text>
+        <![CDATA[
+declare @clientCode varchar(32), @q nvarchar(4000)
+select @clientCode = rtrim(val) from options where name = 'm_client_code_nhdt'
+select @clientCode as clientCode, @$bankCode as bankCode, '1' as version, @$connectionCode as connectionCode
+
+select '@@unit' as UnitCode, a.cif_code as CIFCode, a.user_nh as BankUserName, a.so_tk_nh as AccountNumber, 'T' as AccountType
+  from dmknnh a with(nolock) join dmtknhnsd b with(nolock) on a.ma_kn = b.ma_kn and b.user_id = @@userID
+   where a.ma_nh_dt = @$bankCode
+]]>
+      </text>
+    </command>
+
+    <command event="Updating" descript="Xử lý dữ liệu kết quả nhận được từ proxy trả về">
+      <text>
+        <![CDATA[
+if @$_status = 0 or @$_count = 0 return
+
+update dmknnh set so_du_tt = b.WorkingBalance, so_du_kd = b.AvailableBalance, ngay_sd = getdate() from dmknnh a join #bankHubResult b on a.so_tk_nh = b.AccountNumber where a.ma_nh_dt = @$bankCode and b.Success = '1'
+        ]]>
+      </text>
+    </command>
+  </commands>
+
+  <commands method="110" descript="Cập nhật thông tin tài khoản lên bank-hub">
+    <params>
+      <parameter name="account" type="varchar(32)"/>
+      <parameter name="oldAccount" type="varchar(32)"/>
+    </params>
+
+    <command event="Loading" descript="Loading kiểm tra số liệu">
+      <text>
+        <![CDATA[
+select 1 as result, 0 as code, '' as message
+]]>
+      </text>
+    </command>
+
+    <command event="Processing" descript="Lấy dữ liệu truyền lên proxy">
+      <text>
+        <![CDATA[
+declare @clientCode varchar(32), @q nvarchar(4000)
+select @clientCode = rtrim(val) from options where name = 'm_client_code_nhdt'
+select @clientCode as clientCode, @$bankCode as bankCode, '1' as version
+
+if @$action in ('1', '2') begin
+  select @$account as Code, @$oldAccount as OldCode, ten_kn as Description, user_nh as [User], @$hash as [Hash], status as Status,
+    convert(varchar(32), datetime0, 121) as DateTime0, convert(varchar(32), datetime2, 121) as DateTime2, user_id0 as UserID0, user_id2 as UserID2, @$action as Action
+    from dmknnh where ma_kn = @$account
+  return
+end
+if @$action = '3' select @$account as Code, @$oldAccount as OldCode, @$action as Action
+]]>
+      </text>
+    </command>
+
+    <command event="Updating" descript="Xử lý dữ liệu kết quả nhận được từ proxy trả về">
+      <text>
+        <![CDATA[]]>
+      </text>
+    </command>
+  </commands>
+</config>

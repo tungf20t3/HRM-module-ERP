@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+
+  <!ENTITY Identity "hrTMCourseResult">
+]>
+
+<dir table="hrdtkh" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Thông tin khóa học" e="Training Course Information"></title>
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_khoa" dataFormatString="@upperCaseFormat" allowNulls="false">
+      <header v="Khóa học" e="Course Code"></header>
+      <items style="AutoComplete" controller="hrTMCourseInformation" reference="ten_khoa%l" key="(ma_khoa = '{$%c[t_khoa]}' and status = '3') or (status = '2')" check="(ma_khoa = '{$%c[t_khoa]}' and status = '3') or (status = '2')" information="ma_khoa$hrdtkh.ten_khoa%l"/>
+    </field>
+    <field name="ten_khoa%l" external="true" defaultValue="''" readOnly="true">
+      <header v="Tên khóa học" e="Course Name"></header>
+    </field>
+    <field name="ma_mh">
+      <header v="Môn học" e="Subject"></header>
+      <items style="AutoComplete" controller="hrTMSubjectList" reference="ten_mh%l" key="status='1'" check="1=1" information="ma_mh$hrdmmh.ten_mh%l"/>
+    </field>
+    <field name="ten_mh%l" external="true" defaultValue="''" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" disabled="true">
+      <header v="Ngày lập" e="Create Date"></header>
+    </field>
+    <field name="d09" external="true" clientDefault="0" defaultValue="0" rows="208" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="&Identity;Grid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="6" split="10">
+      <item value="100, 100, 100, 137, 100, 8, 58, 42, 8, 100, 0, 0"/>
+      <item value="11100010-11-: [ma_khoa].Label, [ma_khoa], [ten_khoa%l], [ngay_ct].Label, [ngay_ct], [stt_rec]"/>
+      <item value="111000000000: [ma_mh].Label, [ma_mh], [ten_mh%l]"/>
+      <item value="100000000000: [d09]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+
+    </view>
+  </views>
+
+  <commands>
+    &XMLFlowFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+	f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+	f.setReadOnlyFields('ma_khoa, ma_mh, ngay_ct');
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid, p = g.get_element().parentForm, z = p.grid;
+  f._denyFocus = true;
+	f.setItemValue('stt_rec', p.getItemValue('stt_rec_kh'));
+	f.setItemValue('ma_khoa', p.getItemValue('ma_khoa'));
+	f.getItem('ten_khoa%l').value = p.getItemValue('ten_khoa%l');
+	f.setItemValue('ma_mh', p.getItemValue('ma_mh'));
+	f.getItem('ten_mh%l').value = p.getItemValue('ten_mh%l');
+	f.setItemValue('ngay_ct', p.getItemValue('ngay_ct_kh'));
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':		
+      set$]]>&Identity;<![CDATA[Form$FlowScript(f);			
+      break;
+    default:
+      break;
+  }
+}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(f) {
+	var g = f.getItem('d09')._controlBehavior, z = f.grid, w = z.get_element().parentForm, f1 = '', f2 = '';
+	var l0 = z._getColumnOrder('ma_nv'), l1 = g._getColumnOrder('chon'), l2 = g._getColumnOrder('ma_nv')
+	var fields = 'ma_nv, ten, ten_bp%l, ten_vtr%l, line_nbr, stt_rec_nv', first = true;
+	for (var r = 1; r <= g._rowCount; r++) {
+		if (g._getItemValue(r, l1) && check$]]>&Identity;<![CDATA[Form$EmployeeID(z, l0, g._getItemValue(r, l2)) == 1) {
+			var ins = true, row = z._rowCount;
+			if (first && row > 0) if (z.blankMemvar(row)) {ins = false; first = false;}
+			if (ins) z._appendRow(null, true);
+			row = z._rowCount;
+			var o = z._getItem(row, l0);
+			o.row = row;		
+			insert$Retrieve$Items(g, r, z, row, fields, f1, f2);		
+			z._setItemValue(z._rowCount, z._getColumnOrder('dat_yn'), true);
+		}
+	}
+  z._focusWhenTabChanged();
+}
+function check$]]>&Identity;<![CDATA[Form$EmployeeID(z, i, v) {
+  for (var r = 1; r <= z._rowCount; r++) {
+    if (z._getItemValue(r, i) == v) return 0;
+  }
+  return 1;
+}
+]]>
+    </text>
+  </script>
+</dir>

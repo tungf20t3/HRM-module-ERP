@@ -1,0 +1,267 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select @message as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Enter "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY Controller "BIMaintainMarketPrice">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+
+  <!ENTITY % Conditional.BIMode "INCLUDE">
+  <!ENTITY % BIMode SYSTEM "..\..\Include\BIMode.ent">
+  %BIMode;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BIScoreByItemImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BIScoreByItemImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="bim04$000000, bid04$000000"/>
+    <dependence value="bim04$000000, bid04$000000, bii04$000000" alias="m, d, i"/>
+    <listTable value="#m04, #d04, #i04"/>
+    <alias value="master, detail, inquiry"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C002">
+      <header v="Tồn tại khai báo đã có phát sinh liên quan, không thể ghi đè." e="There existed a declaration has data constraints, the data cannot be overwritten."/>
+    </var>
+    <var id="C003">
+      <header v="Nhà cung cấp chưa khai báo đánh giá nhà cung cấp." e="Vendor has not been configured for vendor evaluation."/>
+    </var>
+    <var id="C004">
+      <header v="Mã hàng chưa khai báo đánh giá nhà cung cấp." e="Item has not been configured for vendor evaluation."/>
+    </var>
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_bp0" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" resource="master, inquiry" check="ma_bp0 not in (select ma_bp from bidmbp0)&Enter;not exists(select 1 from bisyspurorgrights b where @@table.ma_bp0 = b.ma_bp0 and b.user_id = @@userID and b.r_new = 1)" condition="&Enter;if @@admin &lt;&gt; 1 begin" tag="&Enter;end" errorCode="00001&Enter;00002"/>
+    <field name="ma_kh" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" resource="master" check="ma_kh not in (select ma_kh from &VendorList;)" errorCode="00001"/>
+    <field name="ma_vt" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" resource="master" check="ma_vt not in (select ma_vt from dmvt)" errorCode="00001"/>
+    <field name="ngay_ct"  column="." isPrimaryKey="true" type="DateTime" updateValue="None" allowNulls="false" resource="master, inquiry"/>
+    <field name="so_tham_chieu" column="." isPrimaryKey="true" upperCase="true" resource="master"/>
+    <field name="ngay_tham_chieu" type="DateTime" column="." isPrimaryKey="true"  resource="master"/>
+    <field name="dien_giai" column="." resource="master"/>
+
+    <field name="ma_chi_tieu" reference="1" column="." isPrimaryKey="true" allowNulls="false" upperCase="true" resource="detail" check="ma_chi_tieu &lt;&gt; '' and ma_chi_tieu not in (select ma_ct from bidmctdg where kieu_tinh = '2')" errorCode="00001"/>
+    <field name="trong_so" reference="1" column="." type="Decimal" resource="detail"/>
+    <field name="diem_so" reference="1" column="." type="Decimal" resource="detail"/>
+    <field name="ghi_chu" reference="1" column="." resource="detail"/>
+
+    <field name="stt_rec" column="None" resource="master, detail, inquiry"/>
+    <field name="stt_rec0" column="None" resource="detail"/>
+    <field name="line_nbr" column="None" type="Int" resource="detail"/>
+    <field name="ma_dvcs" column="None" insertValue="@ma_dvcs" updateValue="None" resource="master, inquiry"/>
+    <field name="ma_ct" column="None" resource="master, detail"/>
+    <field name="so_ct" column="None" insertValue="so_tham_chieu" updateValue="so_tham_chieu" resource="master, inquiry"/>
+    <field name="status" column="None" resource="master, inquiry"/>
+
+    <field name="c$" column="None" resource="inquiry"/>
+    <field name="m$" column="None" resource="inquiry"/>
+    <field name="d$" column="None" resource="inquiry"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None" resource="master, inquiry"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()" resource="master, inquiry"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None" resource="master, inquiry"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID" resource="master, inquiry"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật điểm phát sinh theo vật tư" e="Enter Score by Item"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_bp0" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị mua" e="Purchasing Org."/>
+      </field>
+      <field name="ma_kh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhà cung cấp" e="Vendor ID"/>
+      </field>
+      <field name="ten_kh" afterField="ma_kh" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên nhà cung cấp" e="Vendor Name"/>
+      </field>
+      <field name="ma_vt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã hàng" e="Item"/>
+      </field>
+      <field name="ten_vt" width ="32" afterField="ma_vt" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên mặt hàng" e="Item Name"/>
+      </field>
+      <field name="ngay_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày phát sinh" e="Scoring Date"/>
+      </field>
+      <field name="so_tham_chieu" width="16">
+        <text v="Số tham chiếu" e="Reference Number"/>
+      </field>
+      <field name="ngay_tham_chieu" width="16">
+        <text v="Ngày tham chiếu" e="Reference Date"/>
+      </field>
+      <field name="dien_giai" width="50">
+        <text v="Diễn giải" e="Memo"/>
+      </field>
+
+      <field name="ma_chi_tieu" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã chỉ tiêu" e="Sub Criterion Code"/>
+      </field>
+      <field name="ten_ct" afterField="ma_chi_tieu" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên chỉ tiêu" e="Description"/>
+      </field>
+      <field name="trong_so" width="16" textColor="&EIT.TextColor.Sub;">
+        <text v="Trọng số" e="Weight"/>
+      </field>
+      <field name="diem_so" width="16">
+        <text v="Điểm" e="Score"/>
+      </field>
+      <field name="ghi_chu" width="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @field varchar(32), @wsID varchar(1), @datetime0 datetime, @size int
+declare @user int, @admin bit, @r int, @k int, @voucherID varchar(8), @message nvarchar(4000), @vendorNotConfig nvarchar(4000), @itemNotConfig nvarchar(4000)
+
+select @wsID = rtrim(val) from options where rtrim(name) = 'm_ws_id'
+select @admin = @@admin, @user = @@userID, @voucherID = 'P04', @datetime0 = getdate()
+select top 1 @size = length from syscolumns where name = 'so_ct' and id = object_id('bim04$000000')
+
+update @@table set so_tham_chieu = dbo.ff_PadL(so_tham_chieu, @size)
+
+select @vendorNotConfig = case @@language when 'v' then N'Nhà cung cấp tại ô <span class="Highlight">%invalidCell</span> chưa khai báo đánh giá nhà cung cấp.' else 'The vendor of cell <span class="Highlight">%invalidCell</span> has not been configured for vendor evaluation.' end
+select @itemNotConfig = case @@language when 'v' then N'Mã hàng tại ô <span class="Highlight">%invalidCell</span> chưa khai báo đánh giá nhà cung cấp.' else 'The item of cell <span class="Highlight">%invalidCell</span> has not been configured for vendor evaluation.' end
+
+-- Check
+@@checking
+
+if @admin <> 1 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'BIScoreByItem', 'Edit') = 0 select @type = '0'
+end
+
+if @type = '0' delete @@table from @@table a join bim04$000000 b on a.ma_bp0 = b.ma_bp0 and a.ma_kh = b.ma_kh and a.ma_vt = b.ma_vt and a.ngay_ct = b.ngay_ct and a.so_tham_chieu = b.so_tham_chieu and (a.ngay_tham_chieu = b.ngay_tham_chieu or (a.ngay_tham_chieu is null and b.ngay_tham_chieu is null))
+
+-- stt_rec0, line_nbr
+select identity(int, 1, 1) as id, cast(stt as int) as stt, rtrim(ma_bp0) + rtrim(ma_kh) + rtrim(ma_vt) + convert(char(10), ngay_ct, 112) + dbo.ff_PadL(so_tham_chieu, 12) + case when ngay_tham_chieu is not null then convert(char(10), ngay_tham_chieu, 112) else space(10) end as c, cast(0 as int) as ln into #ln from @@table order by ma_bp0, ma_kh, ma_vt, ngay_ct, so_tham_chieu, ngay_tham_chieu, stt
+exec AI_ERP$App$UpdateLineNumber
+create index i on #ln(stt)
+
+select a.ma_bp0, max(b.ngay_hieu_luc) as ngay_hieu_luc into #m03hl from #table a join bim03$000000 b on a.ma_bp0 = b.ma_bp0 and b.ngay_hieu_luc <= a.ngay_ct group by a.ma_bp0
+select b.ma_bp0, a.ma_loai, a.ma_chi_tieu, a.trong_so into #e03 from bie03$000000 a join (select a.ma_bp0, stt_rec from bim03$000000 a join #m03hl b on a.ma_bp0 = b.ma_bp0 and a.ngay_hieu_luc = b.ngay_hieu_luc) b on a.stt_rec = b.stt_rec
+update @@table set trong_so = b.trong_so from @@table a join #e03 b on a.ma_bp0 = b.ma_bp0 and a.ma_chi_tieu = b.ma_chi_tieu
+update @@table set trong_so = 0 where trong_so is null
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_kh', stt, 'C003' from @@table a where not exists(select 1 from bidmncctsbp0 b where a.ma_kh = b.ma_kh and a.ma_bp0 = b.ma_bp0 and b.name = 'danh_gia_ncc' and b.val = '1') and not exists(select 1 from bidmnccts b where a.ma_kh = b.ma_kh and b.name = 'danh_gia_ncc' and b.val = '1')
+  ]]>&w1;<![CDATA['ma_kh']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C003']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_vt', stt, 'C004' from @@table a where not exists(select 1 from bidmvttsbp0 b where a.ma_vt = b.ma_vt and a.ma_bp0 = b.ma_bp0 and b.name = 'danh_gia_ncc' and b.val = '1') and not exists(select 1 from bidmvtts b where a.ma_vt = b.ma_vt and b.name = 'danh_gia_ncc' and b.val = '1')
+  ]]>&w1;<![CDATA['ma_vt']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C004']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_kh', @message = @vendorNotConfig, @r = min(stt) from @@table a where not exists(select 1 from bidmncctsbp0 b where a.ma_kh = b.ma_kh and a.ma_bp0 = b.ma_bp0 and b.name = 'danh_gia_ncc' and b.val = '1') and not exists(select 1 from bidmnccts b where a.ma_kh = b.ma_kh and b.name = 'danh_gia_ncc' and b.val = '1')]]>&Error;<![CDATA[
+  select @field = 'ma_vt', @message = @itemNotConfig, @r = min(stt) from @@table a where not exists(select 1 from bidmvttsbp0 b where a.ma_vt = b.ma_vt and a.ma_bp0 = b.ma_bp0 and b.name = 'danh_gia_ncc' and b.val = '1') and not exists(select 1 from bidmvtts b where a.ma_vt = b.ma_vt and b.name = 'danh_gia_ncc' and b.val = '1')]]>&Error;<![CDATA[
+end
+
+select a.*, b.stt_rec into #k from @@table a join bim04$000000 b on a.ma_bp0 = b.ma_bp0 and a.ma_kh = b.ma_kh and a.ma_vt = b.ma_vt and a.ngay_ct = b.ngay_ct and a.so_tham_chieu = b.so_tham_chieu and (a.ngay_tham_chieu = b.ngay_tham_chieu or (a.ngay_tham_chieu is null and b.ngay_tham_chieu is null))
+delete @@table from @@table a join #k b on a.ma_bp0 = b.ma_bp0 and a.ma_kh = b.ma_kh and a.ma_vt = b.ma_vt and a.ngay_ct = b.ngay_ct and a.so_tham_chieu = b.so_tham_chieu and (a.ngay_tham_chieu = b.ngay_tham_chieu or (a.ngay_tham_chieu is null and b.ngay_tham_chieu is null))
+
+if @@admin = 0 and @type = '1' begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'ma_bp0', stt, 'C002' from #k where not exists(select 1 from bisyspurorgrights b where #k.ma_bp0 = b.ma_bp0 and b.user_id = @user and b.r_edit = 1)
+    ]]>&w1;<![CDATA['ma_bp0']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['C002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @field = 'ma_bp0', @message = '', @r = min(stt) from #k where not exists(select 1 from bisyspurorgrights b where #k.ma_bp0 = b.ma_bp0 and b.user_id = @user and b.r_edit = 1)]]>&Error;<![CDATA[
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+
+select top 0 stt_rec, ma_ct, ma_bp0, ma_kh, ma_vt, ngay_ct, so_tham_chieu, ngay_tham_chieu, dien_giai, status into #m04 from bim04$000000
+select top 0 stt_rec, stt_rec0, line_nbr, ma_ct, ma_chi_tieu, trong_so, diem_so, ghi_chu into #d04 from bid04$000000
+select top 0 stt_rec, ngay_ct, so_ct, ma_bp0, c$, m$, d$, status, so_ct as so_tham_chieu, ngay_tham_chieu, identity(int, 1, 1) as id into #i04 from bii04$000000
+
+if exists(select 1 from @@table) begin
+  select top 0 stt_rec, ma_bp0, ma_kh, ma_vt, ngay_ct, so_tham_chieu, ngay_tham_chieu, cast(0 as int) as stt, identity(int, 1, 1) as id into #id1 from bim04$000000
+  insert into #id1 select '', ma_bp0, ma_kh, ma_vt, ngay_ct, so_tham_chieu, ngay_tham_chieu, min(stt) from @@table group by ma_bp0, ma_kh, ma_vt, ngay_ct, so_tham_chieu, ngay_tham_chieu
+
+  select @k = count(*) from #id1
+  exec AI_ERP$App$UpdateIdentityNumber @wsID, @voucherID, @k, @@userID, '#id1'
+
+  insert into #m04 select b.stt_rec, @voucherID, a.ma_bp0, a.ma_kh, a.ma_vt, a.ngay_ct, a.so_tham_chieu, a.ngay_tham_chieu, a.dien_giai, 1 from @@table a join #id1 b on a.stt = b.stt
+
+  insert into #d04
+    select b.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln), i.ln, @voucherID, a.ma_chi_tieu, a.trong_so, a.diem_so, a.ghi_chu
+      from @@table a join #id1 b on a.ma_bp0 = b.ma_bp0 and a.ma_kh = b.ma_kh and a.ma_vt = b.ma_vt and a.ngay_ct = b.ngay_ct and a.so_tham_chieu = b.so_tham_chieu and (a.ngay_tham_chieu = b.ngay_tham_chieu or (a.ngay_tham_chieu is null and b.ngay_tham_chieu is null)) join #ln i on a.stt = i.stt
+end
+
+if exists(select 1 from #k) begin
+  select stt_rec, min(stt) as stt into #id2 from #k group by stt_rec
+
+  --
+  update bim04$000000 set so_tham_chieu = case when a.stt_rec_tc = '' then b.so_tham_chieu else a.so_tham_chieu end, ngay_tham_chieu = case when a.stt_rec_tc = '' then b.ngay_tham_chieu else a.ngay_tham_chieu end,
+    dien_giai = b.dien_giai, datetime2 = @datetime0, user_id2 = @user from bim04$000000 a join #k b on a.stt_rec = b.stt_rec join #id2 c on b.stt = c.stt
+  delete bii04$000000 from bii04$000000 a join #id2 b on a.stt_rec = b.stt_rec
+  delete bid04$000000 from bid04$000000 a join #id2 b on a.stt_rec = b.stt_rec
+
+  insert into #m04 select a.stt_rec, @voucherID, a.ma_bp0, a.ma_kh, a.ma_vt, a.ngay_ct, a.so_tham_chieu, a.ngay_tham_chieu, a.dien_giai, 1 from #k a join #id2 b on a.stt = b.stt
+
+  insert into #d04
+    select b.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln), i.ln, @voucherID, a.ma_chi_tieu, a.trong_so, a.diem_so, a.ghi_chu
+      from #k a join #id2 b on a.stt_rec = b.stt_rec join #ln i on a.stt = i.stt
+end
+
+--
+
+insert into #i04 select stt_rec, ngay_ct, '', ma_bp0, rtrim(ma_bp0) + rtrim(ma_kh) + rtrim(ma_vt) + convert(char(10), ngay_ct, 112) + dbo.ff_PadL(so_tham_chieu, @size) + case when ngay_tham_chieu is not null then convert(char(10), ngay_tham_chieu, 112) else space(10) end  + stt_rec,
+    '#10$' + rtrim(ma_bp0) + '#15$' + rtrim(ma_kh) + '#20$' + rtrim(ma_vt), '', status, dbo.ff_PadL(so_tham_chieu, @size), ngay_tham_chieu from #m04
+select @q = dbo.AI_ERP$Function$Update$Inquiry('#i04', '#d04', 'd$', 'ma_chi_tieu', '#10$', 'stt_rec', default, default, default, default, default)
+exec sp_executesql @q
+--
+delete #m04 from #m04 a join #k b on a.stt_rec = b.stt_rec
+
+-- Insert/Update
+@@inserting(master);
+@@inserting(detail);
+@@inserting(inquiry);
+
+]]>
+    </text>
+  </processing>
+</import>

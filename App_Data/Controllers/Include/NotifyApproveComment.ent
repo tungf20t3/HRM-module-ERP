@@ -1,0 +1,30 @@
+﻿<!ENTITY % Conditional.NotifyApproveComment SYSTEM "..\Include\APVComment.txt">
+
+<![%Conditional.NotifyApproveComment;[
+  <!ENTITY NotifyApproveCommentInput SYSTEM "..\Include\XML\NotifyApproveCommentInput.xml">
+
+  <!ENTITY NotifyApproveQuery "
+var baseEl = o.parentElement, baseObj = (typeof baseEl == 'object' ? baseEl : document.getElementById(baseEl));
+var commentEl = baseObj.querySelector('#NotifyApproveComment'), comment = commentEl.value;
+var query = Sys.Serialization.JavaScriptSerializer.serialize({
+    'IDNumber': refCode,
+    'Priority': priority,
+    'Comment': comment
+  });
+">
+
+  <!ENTITY NotifyApproveCss "
+input.NotifyCommentInput{width:175px;margin-top:3px;border:none;border-bottom:1px solid #c0cfdc;outline:none;font-size:11px;font-style:italic;background-color:transparent;}
+.NotifyToolbarInput{float:right;padding-left:0;text-indent:0;}
+.TextNotifyToolbarInput{float:right;padding-left:0;text-indent:0;}
+">
+]]>
+
+<!ENTITY NotifyApproveCommentInput "">
+<!ENTITY NotifyApproveQuery "
+var query = Sys.Serialization.JavaScriptSerializer.serialize({
+    'IDNumber': refCode,
+    'Priority': priority
+  });
+">
+<!ENTITY NotifyApproveCss "">

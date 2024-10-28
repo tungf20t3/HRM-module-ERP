@@ -1,0 +1,17 @@
+<field name="so_the_ts" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="so_the_ts not in (select so_the_ts from dmts)&And;so_the_ts in (select so_the_ts from dmts a left join dmdvcsks b on a.ma_dvcs = b.ma_dvcs where b.ngay_ks >= @dateCurrent)&And;not exists(select 1 from cthspbts b where @@table.so_the_ts = b.so_the_ts and @@table.tk_kh = b.tk_kh and @@table.tk_cp = b.tk_cp and @@table.ma_bp_ts = b.ma_bp_ts and @@table.ma_vv = b.ma_vv and @@table.ma_bp = b.ma_bp and @@table.ma_hd = b.ma_hd and @@table.so_lsx = b.so_lsx and b.nam = @$nam and b.ky = @$ky) and not exists(select 1 from dmts c where @@table.so_the_ts = c.so_the_ts and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1))&And;exists(select 1 from cthspbts b where @@table.so_the_ts = b.so_the_ts and @@table.tk_kh = b.tk_kh and @@table.tk_cp = b.tk_cp and @@table.ma_bp_ts = b.ma_bp_ts and @@table.ma_vv = b.ma_vv and @@table.ma_bp = b.ma_bp and @@table.ma_hd = b.ma_hd and @@table.so_lsx = b.so_lsx and b.nam = @$nam and b.ky = @$ky) and not exists(select 1 from dmts c where @@table.so_the_ts = c.so_the_ts and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_edit = 1))" condition="&And;&And;if @@admin &lt;&gt; 1 begin&And;if @@admin &lt;&gt; 1 begin if @type = '1' begin" tag="&And;&And;end&And;end end" errorCode="00001&And;00002&And;00002&And;00002"/>
+<field name="tk_kh" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="tk_kh not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+<field name="tk_cp" column="D" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="tk_cp not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+<field name="ma_bp_ts" column="E" isPrimaryKey="true" upperCase="true" updateValue="None" check="ma_bp_ts &lt;&gt; '' and ma_bp_ts not in (select ma_bp from dmbpts)" errorCode="00001"/>
+<field name="ma_kh" column="F" isPrimaryKey="true" upperCase="true" updateValue="None" check="ma_kh &lt;&gt; '' and ma_kh not in (select ma_kh from dmkh)" errorCode="00001"/>
+<field name="ma_vv" column="G" isPrimaryKey="true" upperCase="true" updateValue="None" check="ma_vv &lt;&gt; '' and ma_vv not in (select ma_vv from dmvv)" errorCode="00001"/>
+<field name="ma_bp" column="H" isPrimaryKey="true" upperCase="true" updateValue="None" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from dmbp)" errorCode="00001"/>
+<field name="ma_hd" column="I" isPrimaryKey="true" upperCase="true" updateValue="None" check="ma_hd &lt;&gt; '' and ma_hd not in (select ma_hd from dmhd)" errorCode="00001"/>
+<field name="so_lsx" column="J" isPrimaryKey="true" upperCase="true" updateValue="None" check="so_lsx &lt;&gt; '' and so_lsx not in (select so_lsx from phlsx)" errorCode="00001"/>
+<field name="he_so" column="K" type="Decimal"/>
+
+<field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+<field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+<field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+<field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+<field name="ky" column="None" type="Decimal" insertValue="@$ky" updateValue="None"/>
+<field name="nam" column="None" type="Decimal" insertValue="@$nam" updateValue="None"/>

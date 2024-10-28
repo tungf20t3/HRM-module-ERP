@@ -1,0 +1,713 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY CheckVoucherRightBeforeProcess SYSTEM "Include\CheckVoucherRightBeforeProcess.txt">
+  <!ENTITY Detail "95">
+  <!ENTITY Code "PO2">
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY LockedDate "
+if @r is not null begin
+  select replace(@locked, '&#37;s', @@delta + @r) as message
+  return
+end
+">
+  <!ENTITY s1 "Đơn hàng số &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; ngày &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;&#37;s3&lt;/span&gt;">
+  <!ENTITY s2 "The voucher number &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; dated &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;&#37;s3&lt;/span&gt;">
+  <!ENTITY SiteRight "
+exec AI_ERP$System$CheckImportSiteRights '@@table', 'ma_kho', 'stt', @user, @admin, @r output, default, @$mode, @$errorCount output
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  &Error;
+end">
+
+  <!ENTITY % VoucherDeleteLog SYSTEM "..\..\Include\VoucherDeleteLog.ent">
+  %VoucherDeleteLog;
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "
+    declare @filename varchar(128)
+if @@language = 'v' select @filename = '&FileName.v.ext;'
+else select @filename = '&FileName.e.ext;'
+">
+
+  <!ENTITY % ImportSqlCondition SYSTEM "..\..\Include\ImportSqlCondition.ent">
+  %ImportSqlCondition;
+
+  <!ENTITY TransferID "BIPITran">
+  <!ENTITY ImportOverwriteMainTable "m&Detail;$$partition">
+  <!ENTITY ImportOverwriteLogTable "o&Detail;$000000">
+  <!ENTITY % ImportOverwriteCommand SYSTEM "..\..\Include\ImportOverWriteVoucher.BIPITran">
+  %ImportOverwriteCommand;
+  <!ENTITY % ImportOverwrite SYSTEM "..\..\Include\ImportOverwriteVoucher.ent">
+  %ImportOverwrite;
+
+  <!ENTITY % Conditional.BIMode "INCLUDE">
+  <!ENTITY % BIMode SYSTEM "..\..\Include\BIMode.ent">
+  %BIMode;
+  <!ENTITY % BIMode.PITran SYSTEM "..\..\Include\BIMode.PITran">
+  %BIMode.PITran;
+
+  <!ENTITY EnvironmentTax.UpdateImport.Key "">
+  <!ENTITY % EnvironmentTax SYSTEM "..\..\Include\BIEnvironmentTax.ent">
+  %EnvironmentTax;
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Voucher"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1940"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$BIPITranImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$BIPITranImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="m&Detail;$000000, d&Detail;$000000"/>
+    <dependence value="m&Detail;$000000, d&Detail;$000000, i&Detail;$000000, c&Detail;$000000" alias="m, d, i, g"/>
+    <listTable value="#m&Detail;, #d&Detail;, #i&Detail;, #i&Detail;"/>
+    <alias value="master, detail, inquiry, general"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C001">
+      <header v="Số chứng từ và ngày đã tồn tại." e="The voucher number and dated already exists." />
+    </var>
+    <var id="C002">
+      <header v="Số chứng từ, ngày và đơn vị đã tồn tại." e="The voucher number, dated and unit already exists." />
+    </var>
+    <var id="C003">
+      <header v="Đã khóa số liệu, kiểm tra lại ngày chứng từ." e="Data is locked, please check the date of voucher." />
+    </var>
+    <var id="C004">
+      <header v="Thông tin nhà cung cấp và đơn vị mua không hợp lệ." e="Vendor information and Purchasing Organization are invalid."/>
+    </var>
+    <var id="C005">
+      <header v="Ngày giao phải lớn hơn hoặc bằng ngày lập." e="Delivery date must be larger than or equal to voucher date."/>
+    </var>
+    <var id="C006">
+      <header v="Nhà cung cấp đã bị chặn đặt hàng." e="Vendor was blocked."/>
+    </var>
+    <var id="C007">
+      <header v="Mã hàng đã bị chặn đặt hàng." e="Item was blocked."/>
+    </var>
+    <var id="C008">
+      <header v="Mã hàng của nhà cung cấp đã bị chặn đặt hàng." e="Item of vendor was blocked."/>
+    </var>
+    <var id="C009">
+      <header v="Ngày hiệu lực đến phải lớn hơn hoặc bằng ngày hiệu lực từ." e="Effective date to must be larger than or equal to effective date from."/>
+    </var>
+    <var id="C010">
+      <header v="Mã hàng bị giới hạn nguồn cung ứng." e="The source list of item is restricted."/>
+    </var>
+    <var id="C011">
+      <header v="Chênh lệch giá mua của mã hàng vượt quá giới hạn cho phép." e="Purchase price variance of the item exceeds the allowable."/>
+    </var>
+    &ImportOverwriteVariable;
+    &ImportLockedDateVariable;
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="." allowNulls="false" upperCase="true" resource="master, inquiry, general" check="ma_dvcs not in (select ma_dvcs from dmdvcs)&And;exists(select 1 from #unit b where @@table.ngay_ct = b.ngay_ct and @@table.so_ct = b.so_ct having count(b.ma_dvcs) > 1)&And;not exists(select 1 from sysunitrights b where @@table.ma_dvcs = b.ma_dvcs and b.user_id = @user and b.r_new = 1)" condition="&And;&And;if @admin &lt;&gt; 1 begin" tag="&And;&And;end" errorCode="00001&And;00002&And;00002" category="1"/>
+    <field name="ma_bp0" column="." allowNulls="false" upperCase="true" resource="master, inquiry, general" check="ma_bp0 not in (select ma_bp from bidmbp0)&And;not exists(select 1 from bisyspurorgrights b where @@table.ma_bp0 = b.ma_bp0 and b.user_id = @user and b.r_new = 1)" condition="&And;if @admin &lt;&gt; 1 begin" tag="&And;end" errorCode="00001&And;00002" category="1"/>
+    <field name="ma_nh0" column="." allowNulls="false" upperCase="true" resource="master, inquiry, general" check="ma_nh0 not in (select ma_nh from bidmnhom0 where @admin = 1 or not exists(select 1 from bisyspurgrouprights where user_id = @user) or ma_nh in (select ma_nh0 from bisyspurgrouprights where user_id = @user))" errorCode="00001" category="1"/>
+    <field name="ma_gd" column="." allowNulls="false" upperCase="true" resource="master" check="ma_gd not in (select ma_gd from dmmagd where ma_ct = @voucherID)" errorCode="00001" category="1"/>
+    <field name="ma_kh" column="." allowNulls="false" upperCase="true" resource="master" check="ma_kh not in (select ma_kh from dmkh)" errorCode="00001" category="1"/>
+    <field name="ma_tt" column="." upperCase="true" resource="master" check="ma_tt not in (select ma_tt from dmtt)" errorCode="00001" category="1"/>
+    <field name="ngay_hl_tu" column="." type="DateTime" resource="master" check="ngay_hl_tu is null and exists(select 1 from dmmagd b where @@table.ma_gd = b.ma_gd and ma_ct = @voucherID and loai_ct = '9')" errorCode="00001" category="1"/>
+    <field name="ngay_hl_den" column="." type="DateTime" resource="master" check="ngay_hl_den is null and exists(select 1 from dmmagd b where @@table.ma_gd = b.ma_gd and ma_ct = @voucherID and loai_ct = '9')&And;ngay_hl_tu is not null and ngay_hl_den is not null and ngay_hl_tu > ngay_hl_den" errorCode="00001&And;C009" category="1"/>
+    <field name="ngay_ct" column="." allowNulls="false" type="DateTime" resource="master, detail, inquiry, general"/>
+    <field name="so_ct" column="." allowNulls="false" upperCase="true" resource="master, detail, inquiry, general"/>
+    <field name="dien_giai" column="." resource="master"/>
+    <field name="ma_dc" column="." upperCase="true" resource="master" check="ma_dc &lt;&gt; '' and ma_dc not in(select ma_dc from dmdc where (not exists(select 1 from syssiterights where user_id = @@userID) or ma_kho in (select ma_kho from syssiterights where user_id = @@userID)))" errorCode="00001" category="1"/>
+    <field name="ma_htvc" column="." upperCase="true" resource="master" check="ma_htvc &lt;&gt; '' and ma_htvc not in(select ma_htvc from dmhtvc)" errorCode="00001" category="1"/>
+    <field name="ma_nv" column="." upperCase="true" resource="master" check="ma_nv &lt;&gt; '' and ma_nv not in (select ma_nvmh from dmnvmh)" errorCode="00001" category="1"/>
+
+    <field name="tien_ut" column="." type="Decimal" resource="master"/>
+    <field name="ngay_ut" column="." type="DateTime" resource="master" check="ngay_ut is null and tien_ut &lt;&gt; 0" errorCode="00001" category="1"/>
+    <field name="ghi_chu_ut" column="." resource="master"/>
+
+    <field name="gt_toi_da" column="." type="Decimal" resource="master"/>
+
+    <field name="ma_vt" column="." allowNulls="false" reference="1" upperCase="true" resource="detail" check="ma_vt not in (select ma_vt from dmvt)" errorCode="00001" category="1"/>
+    <field name="loai_hang" column="." allowNulls="false" reference="1" resource="detail" check="loai_hang not in (select ma_loai from dmloai where nhom = '01')" errorCode="00001" category="1"/>
+    <field name="dvt" column="." reference="1" resource="detail"/>
+    <field name="ma_vung" column="." upperCase="true" relation="ma_vung" allowNulls="false" reference="1.ma_vung" insertValue="ma_vung" resource="detail" check="ma_vung not in (select ma_vung from bidmvung where ma_dvcs = @@table.ma_dvcs and (@admin = 1 or not exists(select 1 from bisysplantrights where user_id = @user) or ma_vung in (select ma_vung from bisysplantrights where user_id = @user)) and (not exists(select 1 from bidmbp0g1 where ma_vung = bidmvung.ma_vung) or ma_vung in (select ma_vung from bidmbp0g1 where ma_bp0 = @@table.ma_bp0 and status = '1')))" errorCode="00001" category="1"/>
+    <field name="ma_kho" column="." reference="1" upperCase="true" resource="detail" check="ma_kho &lt;&gt; '' and (ma_kho not in (select ma_kho from dmkho where ma_dvcs = @@table.ma_dvcs and ma_vung = @@table.ma_vung and (not exists(select 1 from syssiterights where user_id = @user) or ma_kho in (select ma_kho from syssiterights where user_id = @user))))" errorCode="00001" category="1"/>
+
+    <field name="so_luong" column="." type="Decimal" resource="detail" check="exists(select 1 from dmvt b where @@table.ma_vt = b.ma_vt and b.gia_ton = 3 and @@table.so_luong = 0)" errorCode="00002" category="2"/>
+    <field name="gia_nt" column="." type="Decimal" resource="detail"/>
+    <field name="tien_nt0" column="." type="Decimal" resource="detail"/>
+    <field name="tien_nt" column="." type="Decimal" resource="detail"/>
+
+    <field name="ma_thue_nk" column="." reference="1" upperCase="true" resource="detail" check="ma_thue_nk &lt;&gt; '' and ma_thue_nk not in (select ma_thue from dmthuenk)" errorCode="00001" category="1"/>
+    <field name="nk_nt" column="." reference="1" type="Decimal" resource="detail" category="1"/>
+    <field name="ma_thue_ttdb" column="&ExciseTax.Show;" reference="1" upperCase="true" resource="detail" check="ma_thue_ttdb &lt;&gt; '' and ma_thue_ttdb not in (select ma_thue from dmthuettdb)" errorCode="00001" category="1"/>
+    <field name="ttdb_nt" column="&ExciseTax.Show;" reference="1" type="Decimal" resource="detail" category="1"/>
+    <field name="bvmt_nt" column="&EnvironmentTax.Show;" reference="1" type="Decimal" resource="detail" category="1"/>
+    <field name="ma_thue" column="." reference="1" upperCase="true" resource="detail" check="ma_thue &lt;&gt; '' and ma_thue not in (select ma_thue from dmthue)" errorCode="00001" category="1"/>
+    <field name="thue_nt" column="." reference="1" type="Decimal" resource="detail"/>
+
+    <field name="ma_nt" column="." upperCase="true" resource="master" check="ma_nt not in (select ma_nt from dmnt)" errorCode="00001" category="2"/>
+    <field name="ty_gia" column="." type="Decimal" resource="master" defaultValue="1"/>
+    <field name="ngay_giao" column="." type="DateTime" resource="detail" check="ngay_giao is not null and ngay_ct > ngay_giao" errorCode="C005" category="1"/>
+    <field name="ma_vt0" column="." upperCase="true" reference="1" resource="detail"/>
+    <field name="ma_rb" column="." upperCase="true" reference="1" resource="detail" check="ma_rb &lt;&gt; '' and ma_rb not in (select ma_rb from bidmrbmh)" errorCode="00001" category="1"/>
+
+    <field name="ma_vv" column="." reference="1" upperCase="true" resource="detail" check="ma_vv &lt;&gt; '' and ma_vv not in (select ma_vv from dmvv)" errorCode="00001" category="2"/>
+    <field name="ma_bp" column="." reference="1" upperCase="true" resource="detail" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from dmbp)" errorCode="00001" category="2"/>
+    <field name="so_lsx" column="." reference="1" upperCase="true" resource="detail" check="so_lsx &lt;&gt; '' and so_lsx not in (select so_lsx from phlsx)" errorCode="00001" category="2"/>
+    <field name="ma_sp" column="." reference="1" upperCase="true" resource="detail" check="ma_sp &lt;&gt; '' and ma_sp not in (select ma_vt from vdmsp)" errorCode="00001" category="2"/>
+    <field name="ma_hd" column="." reference="1" upperCase="true" resource="detail" check=" ma_hd &lt;&gt; '' and ma_hd not in (select ma_hd from dmhd)" errorCode="00001" category="2"/>
+    <field name="ma_phi" column="." reference="1" upperCase="true" resource="detail" check="ma_phi &lt;&gt; '' and ma_phi not in (select ma_phi from dmphi)" errorCode="00001" category="2"/>
+    <field name="ma_ku" column="." reference="1" upperCase="true" resource="detail" check="ma_ku &lt;&gt; '' and ma_ku not in (select ma_ku from dmku)" errorCode="00001" category="2"/>
+
+    <field name="stt_rec" column="None" resource="master, detail, inquiry, general"/>
+    <field name="stt_rec0" column="None" resource="detail"/>
+    <field name="ma_ct" column="None" insertValue="@voucherID" expression="''' + @voucherID + '''" resource="master, detail"/>
+    <field name="loai_ct" column="None" resource="master"/>
+    <field name="ngay_lct" column="None" type="DateTime" insertValue="ngay_ct" resource="master"/>
+    <field name="ma_kho0" column="None" resource="master"/>
+    <field name="ma_vung0" column="None" resource="master"/>
+    <field name="so_theo_doi" column="None" resource="detail"/>
+    <field name="cn_tt_gia" column="None" insertValue="'0'" expression="''0''" resource="detail"/>
+
+    <field name="t_tien_nt0" column="None" type="Decimal" resource="master"/>
+    <field name="t_tien0" column="None" type="Decimal" resource="master"/>
+    <field name="t_tien_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_tien" column="None" type="Decimal" resource="master"/>
+    <field name="t_so_luong" column="None" type="Decimal" resource="master"/>
+
+    <field name="t_nk_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_nk" column="None" type="Decimal" resource="master"/>
+    <field name="t_ttdb_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_ttdb" column="None" type="Decimal" resource="master"/>
+    <field name="t_bvmt_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_bvmt" column="None" type="Decimal" resource="master"/>
+    <field name="t_gtgt_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_gtgt" column="None" type="Decimal" resource="master"/>
+    <field name="t_thue_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_thue" column="None" type="Decimal" resource="master"/>
+    <field name="t_tt" column="None" insertValue="t_tien0 + t_thue" type="Decimal" resource="master"/>
+    <field name="t_tt_nt" column="None" insertValue="t_tien_nt0 + t_thue_nt" type="Decimal" resource="master"/>
+
+    <field name="he_so" column="" type="Decimal" resource="detail" defaultValue="1"/>
+    <field name="gia" column="" type="Decimal" resource="detail"/>
+    <field name="tien" column="None" type="Decimal" resource="detail"/>
+    <field name="tien0" column="None" type="Decimal" resource="detail"/>
+    <field name="thue_suat_nk" column="None" type="Decimal" resource="detail"/>
+    <field name="nk" column="None" type="Decimal" resource="detail"/>
+    <field name="thue_suat_ttdb" column="None" type="Decimal" resource="detail"/>
+    <field name="bvmt" column="None" type="Decimal" resource="detail"/>
+    <field name="ttdb" column="None" type="Decimal" resource="detail"/>
+    <field name="thue_suat" column="None" type="Decimal" resource="detail"/>
+    <field name="thue" column="None" type="Decimal" resource="detail"/>
+    <field name="line_nbr" column="None" type="Int" resource="detail"/>
+
+    <field name="muc_thue" column="None" type="Decimal" resource="detail"/>
+    <field name="tl_chiu_thue" column="None" type="Decimal" resource="detail"/>
+    <field name="he_so_mt" column="None" type="Decimal" resource="detail"/>
+
+    <field name="sai_can_duoi" column="" type="Decimal" resource="detail"/>
+    <field name="sai_can_tren" column="" type="Decimal" resource="detail"/>
+
+    <field name="c$" column="None" resource="inquiry"/>
+    <field name="m$" column="None" resource="inquiry"/>
+    <field name="d$" column="None" resource="inquiry"/>
+    <field name="e$" column="None" resource="inquiry"/>
+    <field name="f$" column="None" resource="inquiry"/>
+    <field name="ngay_giao1" column="None" resource="inquiry"/>
+    <field name="ngay_giao2" column="None" resource="inquiry"/>
+
+    <field name="status" column="None" insertValue="@status" expression="' + @status + '" resource="master, inquiry, general"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="@datetime0" expression="''' + @datetime0 + '''" resource="master"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="@datetime0" expression="''' + @datetime0 + '''" resource="master"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master, inquiry, general"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Đơn hàng nhập khẩu" e="Import Purchase Order"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"></text>
+      </field>
+      <field name="ma_bp0" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị mua" e="Purchasing Org."></text>
+      </field>
+      <field name="ma_nh0" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Nhóm mua" e="Purchasing Group"></text>
+      </field>
+
+      <field name="ma_kh" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã ncc" e="Supplier"/>
+      </field>
+      <field name="ten_kh" width ="32" afterField="ma_kh" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên nhà cung cấp" e="Vendor Name"/>
+      </field>
+      <field name="ma_tt" width ="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã thanh toán" e="Credit Term"/>
+      </field>
+      <field name="ngay_hl_tu" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hiệu lực từ" e="Effective Date from"></text>
+      </field>
+      <field name="ngay_hl_den" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày hiệu lực đến" e="Effective Date to"></text>
+      </field>
+      <field name="ma_gd" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã giao dịch" e="Transaction Code"/>
+      </field>
+      <field name="ngay_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày lập" e="Order Date"/>
+      </field>
+      <field name="so_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số đơn hàng" e="Order Number"/>
+      </field>
+      <field name="dien_giai" width ="50">
+        <text v="Diễn giải" e="Memo"/>
+      </field>
+      <field name="ma_dc" width ="16">
+        <text v="Nơi nhận" e="Ship-to"></text>
+      </field>
+      <field name="ma_htvc" width ="16">
+        <text v="H.thức v.chuyển" e="Ship via"></text>
+      </field>
+      <field name="ma_nv" width ="16">
+        <text v="Nhân viên mua" e="Purchase Employee"></text>
+      </field>
+
+      <field name="tien_ut" width ="16">
+        <text v="Yêu cầu ứng trước" e="Down Payment Required Amount"></text>
+      </field>
+      <field name="ngay_ut" width ="16">
+        <text v="Hạn ứng trước" e="Down Payment Due Date"></text>
+      </field>
+      <field name="ghi_chu_ut" width ="50">
+        <text v="Ghi chú ứng trước" e="Down Payment Note"></text>
+      </field>
+
+      <field name="gt_toi_da" width="16">
+        <text v="Giá trị tối đa" e="Maximum Amount"></text>
+      </field>
+
+      <field name="ma_vt" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã hàng" e="Item Code"/>
+      </field>
+      <field name="ten_vt" width ="32" afterField="ma_vt" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên mặt hàng" e="Item Description"/>
+      </field>
+      <field name="loai_hang" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại" e="Type"></text>
+      </field>
+      <field name="dvt" width ="10">
+        <text v="Đvt" e="UOM"/>
+      </field>
+      <field name="ma_vung" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã vùng" e="Plant"></text>
+      </field>
+      <field name="ma_kho" width ="16">
+        <text v="Mã kho" e="Site"/>
+      </field>
+      <field name="so_luong" width ="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="gia_nt" width ="16">
+        <text v="Giá" e="Sales Price"/>
+      </field>
+      <field name="tien_nt0" width="16">
+        <text v="Tiền" e="Amount"/>
+      </field>
+      <field name="tien_nt" width="16">
+        <text v="Tiền tính thuế nk" e="Import Taxed Amount"/>
+      </field>
+      <field name="ma_thue_nk" width="16">
+        <text v="Mã thuế nk" e="Import Tax Code"/>
+      </field>
+      <field name="nk_nt" width="16">
+        <text v="Thuế nk" e="Import Tax"/>
+      </field>
+      <field name="ma_thue_ttdb" width="16">
+        <text v="Mã thuế ttđb" e="Excise Tax Code"/>
+      </field>
+      <field name="ttdb_nt" width="16">
+        <text v="Thuế ttđb" e="Excise Tax"/>
+      </field>
+      <field name="bvmt_nt" width="16">
+        <text v="Thuế mt" e="EPT Amount"/>
+      </field>
+      <field name="ma_thue" width ="16">
+        <text v="Mã thuế gtgt" e="VAT Code"/>
+      </field>
+      <field name="thue_nt" width ="16">
+        <text v="Thuế gtgt" e="VAT Amount"/>
+      </field>
+      <field name="ma_nt" width ="16">
+        <text v="Mã nt" e="Currency"/>
+      </field>
+      <field name="ty_gia" width ="16">
+        <text v="Tỷ giá" e="Ex. Rate"/>
+      </field>
+      <field name="ngay_giao" width ="16">
+        <text v="Ngày giao" e="Delivery Date"/>
+      </field>
+      <field name="ma_vt0" width ="16">
+        <text v="Mã của nhà cung cấp" e="Vendor Item Code"/>
+      </field>
+      <field name="ma_rb" width="16">
+        <text v="Mã ràng buộc" e="Key Configuration"></text>
+      </field>
+
+      <field name="ma_vv" width ="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_bp" width ="16">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="so_lsx" width ="16">
+        <text v="Lsx" e="MO"/>
+      </field>
+      <field name="ma_sp" width ="16">
+        <text v="Sản phẩm" e="Product"/>
+      </field>
+      <field name="ma_hd" width ="16">
+        <text v="Hợp đồng" e="Contract"/>
+      </field>
+      <field name="ma_phi" width ="16">
+        <text v="Phí" e="Expense"/>
+      </field>
+      <field name="ma_ku" width ="16">
+        <text v="Khế ước" e="Loan Contract"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      &CheckVoucherRightBeforeProcess;
+      <![CDATA[
+declare @q nvarchar(4000), @duplicate nvarchar(512), @$checkPurOrg nvarchar(512), @locked nvarchar(512), @field varchar(32), @wsID varchar(8), @voucherID varchar(8)
+declare @master varchar(16), @detail varchar(16), @inquiry varchar(16), @general varchar(16), @baseCurrency varchar(8), @datetime0 char(21), @d0 datetime
+declare @user int, @admin bit, @r int, @m int, @y int, @max1 int, @max2 int, @count int, @roundPrice int, @roundAmount int
+declare @$checkVendorBlocked nvarchar(512), @$checkItemBlocked nvarchar(512), @$checkItemVendorBlocked nvarchar(512), @$checkSourceList nvarchar(512), @$checkPriceToleranceLimits nvarchar(512)
+
+select @d0 = getdate(), @datetime0 = convert(char(8), @d0, 112) + ' ' + convert(char(12), @d0, 114), @status = left(replace(@status, '''', '') , 1)
+select @admin = @@admin, @user = @@userID, @master = 'm]]>&Detail;<![CDATA[$', @detail = 'd]]>&Detail;<![CDATA[$', @inquiry = 'i]]>&Detail;<![CDATA[$', @general = 'c]]>&Detail;<![CDATA[$000000', @voucherID = ']]>&Code;<![CDATA['
+
+select @locked = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày chứng từ tại dòng <span class="Highlight">%s</span>.' else N'Data is locked, please check the date of voucher at row <span class="Highlight">%s</span>.' end
+select @duplicate = case when @@language = 'v' then N']]>&s1;<![CDATA[ đã tồn tại.' else ']]>&s2;<![CDATA[ already exists.' end
+select @$checkPurOrg = case when @@language = 'v' then N'Thông tin nhà cung cấp <span class="Highlight">%s1</span> và đơn vị mua <span class="Highlight">%s2</span> tại dòng <span class="Highlight">%s3</span> không hợp lệ.'
+  else 'Vendor information <span class="Highlight">%s1</span> and Purchasing Organization <span class="Highlight">%s2</span> at row <span class="Highlight">%s3</span> are invalid.' end
+
+select @$checkVendorBlocked = case when @@language = 'v' then N'Nhà cung cấp <span class="Highlight">%s1</span> tại dòng <span class="Highlight">%s2</span> đã bị chặn đặt hàng.'
+  else 'Vendor <span class="Highlight">%s1</span> at row <span class="Highlight">%s2</span> was blocked.' end
+select @$checkItemBlocked = case when @@language = 'v' then N'Mã hàng <span class="Highlight">%s1</span> tại dòng <span class="Highlight">%s2</span> đã bị chặn đặt hàng.'
+  else 'Item <span class="Highlight">%s1</span> at row <span class="Highlight">%s2</span> was blocked.' end
+select @$checkItemVendorBlocked = case when @@language = 'v' then N'Mã hàng <span class="Highlight">%s1</span> của nhà cung cấp <span class="Highlight">%s2</span> tại dòng <span class="Highlight">%s3</span> đã bị chặn đặt hàng.'
+  else 'Item <span class="Highlight">%s1</span> of vendor <span class="Highlight">%s2</span> at row <span class="Highlight">%s3</span> was blocked.' end
+select @$checkSourceList = case when @@language = 'v' then N'Mã hàng <span class="Highlight">%s1</span> tại dòng <span class="Highlight">%s2</span> bị giới hạn nguồn cung ứng.'
+  else 'The source list of item <span class="Highlight">%s1</span> at row <span class="Highlight">%s2</span> is restricted.' end
+select @$checkPriceToleranceLimits = case when @@language = 'v' then N'Chênh lệch giá mua của mã hàng <span class="Highlight">%s1</span> tại dòng <span class="Highlight">%s2</span> vượt quá giới hạn cho phép.'
+  else 'Purchase price variance of the item <span class="Highlight">%s1</span> at row <span class="Highlight">%s2</span> exceeds the allowable.' end
+
+select @wsID = rtrim(val) from options where name = 'm_ws_id'
+select @baseCurrency = rtrim(val) from options where name = 'm_ma_nt0'
+select @roundPrice = cast(rtrim(val) as int) from options where name = 'm_round_gia'
+select @roundAmount = cast(rtrim(val) as int) from options where name = 'm_round_tien'
+
+select @max1 = character_maximum_length from information_schema.columns where table_name = @master + '000000' and column_name = 'so_ct'
+select @max2 = character_maximum_length from information_schema.columns where table_name = @detail + '000000' and column_name = 'so_lsx'
+
+-- Checking
+update @@table set so_ct = space(@max1 - len(rtrim(ltrim(so_ct)))) + rtrim(ltrim(so_ct))
+]]>&ImportOverwriteData;<![CDATA[
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C001' from @@table a join c]]>&Detail;<![CDATA[$000000 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct]]>&ImportSqlWhere;&VoucherLogImportExtendKey;&ImportOverwriteCheckKey;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table a join c]]>&Detail;<![CDATA[$000000 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct]]>&ImportSqlWhere;&VoucherLogImportExtendKey;&ImportOverwriteCheckKey;<![CDATA[
+  if @r is not null begin
+    select replace(replace(replace(@duplicate, '%s1', so_ct), '%s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_kh', stt, 'C006' from @@table a join bidmncctsbp0 b on a.ma_kh = b.ma_kh and a.ma_bp0 = b.ma_bp0 where b.name = 'chan_dat_hang' and rtrim(b.val) = '1'
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_kh', stt, 'C006' from @@table a join bidmnccts b on a.ma_kh = b.ma_kh where b.name = 'chan_dat_hang' and rtrim(val) = '1' and not exists(select 1 from bidmncctsbp0 c where a.ma_kh = c.ma_kh and c.name = 'chan_dat_hang')
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_vt', stt, 'C007' from @@table a join bidmvttsvung b on a.ma_vt = b.ma_vt and a.ma_vung = b.ma_vung where b.name = 'chan_dat_hang' and rtrim(b.val) = '1'
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_vt', stt, 'C007' from @@table a join bidmvtts b on a.ma_vt = b.ma_vt where b.name = 'chan_dat_hang' and rtrim(val) = '1' and not exists(select 1 from bidmvttsvung c where a.ma_vt = c.ma_vt and a.ma_vung = c.ma_vung and c.name = 'chan_dat_hang')
+  ]]>&EndErrorCount;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_vt', stt, 'C008' from @@table a join bikbcdhtvt b on b.ma_vt = a.ma_vt where a.ma_kh = b.ma_kh and a.ma_bp0 = b.ma_bp0 and a.ma_dvcs = b.ma_dvcs and b.status = '1'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table a join bidmncctsbp0 b on a.ma_kh = b.ma_kh and a.ma_bp0 = b.ma_bp0 where b.name = 'chan_dat_hang' and rtrim(b.val) = '1'
+  if @r is not null begin
+    select replace(replace(@$checkVendorBlocked, '%s1', ma_kh), '%s2', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+  select @r = min(stt) from @@table a join bidmnccts b on a.ma_kh = b.ma_kh where b.name = 'chan_dat_hang' and rtrim(val) = '1' and not exists(select 1 from bidmncctsbp0 c where a.ma_kh = c.ma_kh and a.ma_bp0 = c.ma_bp0 and c.name = 'chan_dat_hang')
+  if @r is not null begin
+    select replace(replace(@$checkVendorBlocked, '%s1', ma_kh), '%s2', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+  --
+  select @r = min(stt) from @@table a join bidmvttsvung b on a.ma_vt = b.ma_vt and a.ma_vung = b.ma_vung where b.name = 'chan_dat_hang' and rtrim(b.val) = '1'
+  if @r is not null begin
+    select replace(replace(@$checkItemBlocked, '%s1', ma_vt), '%s2', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+  select @r = min(stt) from @@table a join bidmvtts b on a.ma_vt = b.ma_vt where b.name = 'chan_dat_hang' and rtrim(val) = '1' and not exists(select 1 from bidmvttsvung c where a.ma_vt = c.ma_vt and a.ma_vung = c.ma_vung and c.name = 'chan_dat_hang')
+  if @r is not null begin
+    select replace(replace(@$checkItemBlocked, '%s1', ma_vt), '%s2', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+  --
+  select @r = min(stt) from @@table a join bikbcdhtvt b on b.ma_vt = a.ma_vt where a.ma_kh = b.ma_kh and a.ma_bp0 = b.ma_bp0 and a.ma_dvcs = b.ma_dvcs and b.status = '1'
+  if @r is not null begin
+    select replace(replace(replace(@$checkItemVendorBlocked, '%s1', ma_vt), '%s2', ma_kh), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+-- Source List
+create table #dataCheckSourceList (ma_vt varchar(32), ma_vung varchar(32), ma_bp0 varchar(32), ma_kh varchar(32), ngay_ct smalldatetime, stt int, cd_yn bit)
+insert into #dataCheckSourceList select ma_vt, ma_vung, ma_bp0, ma_kh, ngay_ct, stt, 0 from @@table a
+update #dataCheckSourceList set cd_yn = 1 from #dataCheckSourceList a join bidmvttsvung b on a.ma_vt = b.ma_vt and a.ma_vung = b.ma_vung where b.name = 'cd_yn' and b.val = '1'
+update #dataCheckSourceList set cd_yn = 1
+  from #dataCheckSourceList a join bidmvtts b on a.ma_vt = b.ma_vt where b.name = 'cd_yn' and b.val = '1'
+   and not exists(select 1 from bidmvttsvung b where b.ma_vt = a.ma_vt and b.ma_vung = a.ma_vung and b.name = 'cd_yn')
+delete #dataCheckSourceList where cd_yn = 0
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_vt', stt, 'C010' from #dataCheckSourceList a where not exists (select 1 from bim01$000000 b join bid01$000000 c on c.stt_rec = b.stt_rec where b.ma_vt = a.ma_vt and c.ma_kh = a.ma_kh and b.ma_vung = a.ma_vung and b.ma_bp0 = a.ma_bp0 and a.ngay_ct between c.ngay_hl_tu and c.ngay_hl_den)
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from #dataCheckSourceList a where not exists (select 1 from bim01$000000 b join bid01$000000 c on c.stt_rec = b.stt_rec where b.ma_vt = a.ma_vt and c.ma_kh = a.ma_kh and b.ma_vung = a.ma_vung and b.ma_bp0 = a.ma_bp0 and a.ngay_ct between c.ngay_hl_tu and c.ngay_hl_den)
+  if @r is not null begin
+    select replace(replace(@$checkSourceList, '%s1', ma_kh), '%s2', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+
+-- Update
+update @@table set so_lsx = space(@max2 - len(ltrim(rtrim(so_lsx)))) + ltrim(rtrim(so_lsx)),
+    dvt = case when a.dvt <> '' then a.dvt else isnull(d.val, isnull(e.val, b.dvt)) end,
+    ma_nt = case when a.ma_nt <> '' then a.ma_nt else @baseCurrency end,
+    ma_tt = case when a.ma_tt <> '' then a.ma_tt else c.ma_tt end,
+    sai_can_duoi = rb.sai_can_duoi, sai_can_tren = rb.sai_can_tren
+  from @@table a
+    left join dmvt b on a.ma_vt = b.ma_vt
+    left join ]]>&VendorList;<![CDATA[ c on a.ma_kh = c.ma_kh
+    left join bidmvttsvung d on a.ma_vt = d.ma_vt and a.ma_vung = d.ma_vung and d.name = 'dvt'
+    left join bidmvtts e on a.ma_vt = e.ma_vt and e.name = 'dvt'
+    left join bidmrbmh rb on a.ma_rb = rb.ma_rb
+
+select top 0 ma_dvcs, ngay_ct, so_ct into #unit from c]]>&Detail;<![CDATA[$000000
+insert into #unit select b.ma_dvcs, a.ngay_ct, a.so_ct from @@table a join dmkho b on a.ma_kho = b.ma_kho group by b.ma_dvcs, a.ngay_ct, a.so_ct
+
+-- Checking
+@@checking(1);
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'dvt', stt, '00001' from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt where b.dvt is null and c.dvt is null
+  ]]>&w1;<![CDATA['dvt']]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'dvt', @r = min(stt) from @@table a left join vdmvtqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt or b.ma_vt = '*') left join dmvt c on a.ma_vt = c.ma_vt and a.dvt = c.dvt where b.dvt is null and c.dvt is null]]>&Error;<![CDATA[
+end
+
+-- Locked Date
+]]>&ImportLockedDateCheck;<![CDATA[
+
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_kh', stt, 'C004' from @@table a where not exists (select 1 from bidmnccbp0 b where a.ma_kh = b.ma_kh and a.ma_bp0 = b.ma_bp0) and exists(select 1 from bidmnccbp0 c where a.ma_kh = c.ma_kh)
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from @@table a where not exists (select 1 from bidmnccbp0 b where a.ma_kh = b.ma_kh and a.ma_bp0 = b.ma_bp0) and exists(select 1 from bidmnccbp0 c where a.ma_kh = c.ma_kh)
+  if @r is not null begin
+    select replace(replace(replace(@$checkPurOrg, '%s1', ma_kh), '%s2', ma_bp0), '%s3', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+
+select @field = 'ma_kho'
+if @admin <> 1 begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table a where a.ma_kho <> '' and not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1))
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(stt) from @@table a where a.ma_kho <> '' and not exists(select 1 from dmkho c where a.ma_kho = c.ma_kho and c.ma_dvcs in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1))]]>&Error;<![CDATA[
+  end
+  ]]>&SiteRight;<![CDATA[
+end
+
+update @@table set gia = round(gia_nt * ty_gia, @roundPrice), he_so = 1
+update @@table set he_so = c.he_so from @@table a join dmvt b on a.ma_vt = b.ma_vt join vdmvtqddvt c on (a.ma_vt = c.ma_vt or c.ma_vt = '*') and a.dvt = c.dvt where b.nhieu_dvt = 1
+
+exec AI_ERP$BI$PriceToleranceLimits$CheckImport '@@table', 'ma_vt', 'C011', 'gia', @user, @admin, @r output, @$mode, @$errorCount output
+if @$mode = 1 begin
+  if @$errorCount = 0 begin select * from #errorTable order by id; return end;
+end else begin
+  if @r is not null begin
+    select replace(replace(@$checkPriceToleranceLimits, '%s1', ma_vt), '%s2', @@delta + @r) as message from @@table where stt = @r
+    return
+  end
+end
+
+@@checking(2);
+
+]]>
+      &ImportOverwriteChecking;
+      &EndErrorMode;<![CDATA[
+
+-- Gather
+select top 0 stt_rec, ngay_ct, so_ct, cast(0 as int) as stt, identity(int, 1, 1) as id into #id from m]]>&Detail;<![CDATA[$000000
+insert into #id(stt_rec, ngay_ct, so_ct, stt) select '', a.ngay_ct, a.so_ct, min(a.stt) from @@table a]]>&ImportOverwriteIdentiyDataCondition;<![CDATA[ group by a.ngay_ct, a.so_ct order by a.ngay_ct, a.so_ct
+
+select identity(int, 1, 1) as id, cast(stt as int) as stt, convert(varchar(8), ngay_ct, 112) + so_ct as c, cast(0 as int) as ln into #ln from @@table order by ngay_ct, so_ct, stt
+exec AI_ERP$App$UpdateLineNumber
+create index i on #ln(stt)
+
+select @count = count(*) from #id
+exec AI_ERP$App$UpdateIdentityNumber @wsID, @voucherID, @count, @@userID
+]]>&ImportOverwriteProcess;<![CDATA[
+
+select top 0 a.stt_rec, a.stt_rec0, a.line_nbr, a.ngay_ct, a.so_ct, a.ma_vt, a.loai_hang, a.loai_dt, a.ma_vung, a.ma_kho, a.dvt, b.nhieu_dvt, a.he_so, a.so_luong,
+    a.gia_nt, a.gia,
+    a.tien_nt0, a.tien0,
+    a.tien_nt, a.tien,
+    a.ma_thue_nk, a.thue_suat_nk, a.nk_nt, a.nk,
+    a.ma_thue_ttdb, a.thue_suat_ttdb, a.ttdb_nt, a.ttdb,
+    a.bvmt_nt, a.bvmt,
+    a.ma_thue, a.thue_suat, a.thue_nt, a.thue,
+    muc_thue, tl_chiu_thue, he_so_mt,
+    a.ngay_giao, a.so_theo_doi, a.ma_vt0, a.ma_rb, a.sai_can_duoi, a.sai_can_tren, a.ma_vv, a.ma_bp, a.so_lsx, a.ma_sp, a.ma_hd, a.ma_phi, a.ma_ku
+  into #d]]>&Detail;<![CDATA[ from d]]>&Detail;<![CDATA[$000000 a, dmvt b
+
+insert into #d]]>&Detail;<![CDATA[ select b.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln), i.ln, a.ngay_ct, a.so_ct, a.ma_vt, a.loai_hang, '', a.ma_vung, a.ma_kho,
+    a.dvt, c.nhieu_dvt, a.he_so, a.so_luong, a.gia_nt, gia,
+    a.tien_nt0, round(a.tien_nt0 * a.ty_gia, @roundAmount),
+    a.tien_nt, round(a.tien_nt * a.ty_gia, @roundAmount),
+    a.ma_thue_nk, isnull(e.thue_suat, 0), a.nk_nt, round(a.nk_nt * a.ty_gia, @roundAmount),
+    a.ma_thue_ttdb, isnull(f.thue_suat, 0), a.ttdb_nt, round(a.ttdb_nt * a.ty_gia, @roundAmount),
+    a.bvmt_nt, round(a.bvmt_nt * a.ty_gia, @roundAmount),
+    a.ma_thue, isnull(d.thue_suat, 0), a.thue_nt, round(a.thue_nt * a.ty_gia, @roundAmount),
+    0 as muc_thue, 0 as tl_chiu_thue, 0 as he_so_mt,
+    a.ngay_giao, '' as so_theo_doi, a.ma_vt0, a.ma_rb, a.sai_can_duoi, a.sai_can_tren, a.ma_vv, a.ma_bp, a.so_lsx, a.ma_sp, a.ma_hd, a.ma_phi, a.ma_ku
+  from @@table a
+    join #id b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct
+    left join dmvt c on a.ma_vt = c.ma_vt
+    left join dmthue d on a.ma_thue = d.ma_thue
+    left join dmthuenk e on a.ma_thue_nk = e.ma_thue
+    left join dmthuettdb f on a.ma_thue_ttdb = f.ma_thue
+    join #ln i on a.stt = i.stt
+  order by a.ngay_ct, a.so_ct, a.stt
+
+select case when dbo.AI_ERP$Function$CheckSiteRights (']]>&Code;<![CDATA[', '', b.ma_kho, @user, @admin) = 1 then b.ma_kho else '' end as ma_kho, a.ma_dc into #dmdc from @@table a join dmdc b on a.ma_dc = b.ma_dc
+select top 0 stt_rec, status, ma_dvcs, ma_bp0, ma_nh0, ngay_ct, so_ct, loai_ct, ma_kh, ma_tt, ma_gd, ngay_hl_tu, ngay_hl_den, dien_giai, ma_dc, ma_htvc, ma_nv, ma_kho0, ma_vung0, tien_ut, ngay_ut, ghi_chu_ut, ma_nt, ty_gia,
+    t_so_luong, t_tien_nt, t_tien, t_tien_nt0, t_tien0,
+    t_nk_nt, t_nk,
+    t_ttdb_nt, t_ttdb,
+    t_bvmt_nt, t_bvmt,
+    t_gtgt_nt, t_gtgt,
+    t_thue_nt, t_thue,
+    gt_toi_da
+  into #m]]>&Detail;<![CDATA[ from m]]>&Detail;<![CDATA[$000000
+
+insert into #m]]>&Detail;<![CDATA[ select b.stt_rec, @status, a.ma_dvcs, a.ma_bp0, a.ma_nh0, a.ngay_ct, a.so_ct, e.loai_ct, a.ma_kh, a.ma_tt, a.ma_gd, a.ngay_hl_tu, a.ngay_hl_den,
+    a.dien_giai, a.ma_dc, a.ma_htvc, a.ma_nv, f.ma_kho, g.ma_vung, a.tien_ut, a.ngay_ut, a.ghi_chu_ut, a.ma_nt, a.ty_gia,
+    d.t_so_luong, d.t_tien_nt, d.t_tien, d.t_tien_nt0, d.t_tien0,
+    d.t_nk_nt, d.t_nk,
+    d.t_ttdb_nt, d.t_ttdb,
+    d.t_bvmt_nt, d.t_bvmt,
+    d.t_gtgt_nt, d.t_gtgt,
+    d.t_nk_nt + d.t_ttdb_nt + d.t_bvmt_nt + d.t_gtgt_nt, d.t_nk + d.t_ttdb + d.t_bvmt + d.t_gtgt,
+    case when e.loai_ct <> '9' then 0 else case when a.gt_toi_da = 0 then d.t_tien_nt0 else a.gt_toi_da end end
+  from @@table a
+    join #id b on a.stt = b.stt
+    join (
+      select stt_rec, sum(so_luong) as t_so_luong, sum(tien_nt) as t_tien_nt, sum(tien) as t_tien, sum(tien_nt0) as t_tien_nt0, sum(tien0) as t_tien0,
+          sum(nk_nt) as t_nk_nt, sum(nk) as t_nk,
+          sum(ttdb_nt) as t_ttdb_nt, sum(ttdb) as t_ttdb,
+          sum(bvmt_nt) as t_bvmt_nt, sum(bvmt) as t_bvmt,
+          sum(thue_nt) as t_gtgt_nt, sum(thue) as t_gtgt
+        from #d]]>&Detail;<![CDATA[ group by stt_rec
+    ) d on b.stt_rec = d.stt_rec
+    join (select ma_gd, min(loai_ct) as loai_ct from dmmagd where ma_ct = @voucherID]]>&BI.RecordKey;<![CDATA[ group by ma_gd) e on a.ma_gd = e.ma_gd
+    left join (select ma_kho, ma_dc from #dmdc group by ma_kho, ma_dc) f on a.ma_dc = f.ma_dc
+    left join dmkho g on f.ma_kho = g.ma_kho
+
+select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, ma_bp0, ma_nh0, status, user_id0, c$, m$, d$, e$, f$, ngay_giao1, ngay_giao2, identity(int, 1, 1) as id into #i]]>&Detail;<![CDATA[ from i]]>&Detail;<![CDATA[$000000
+insert into #i]]>&Detail;<![CDATA[ select stt_rec, ngay_ct, so_ct, ma_dvcs, ma_bp0, ma_nh0, @status, @user, convert(varchar(12), ngay_ct, 112) + so_ct + stt_rec, '#10$' + rtrim(ma_gd) + '#15$' + rtrim(loai_ct) + '#20$' + rtrim(ma_kh) + '#25$' + rtrim(ma_bp0) + '#30$' + rtrim(ma_nt) + '#35$' + rtrim(ma_nh0), '', '', '', null, null from #m]]>&Detail;<![CDATA[
+declare @s varchar(8000)
+select @s = dbo.AI_ERP$Function$Update$Inquiry$Ex('#i]]>&Detail;<![CDATA[', '#d]]>&Detail;<![CDATA[', 'd$', 'ma_vt, so_theo_doi, ma_vt0, ma_vung, loai_hang, ma_kho, loai_dt', '#10$, #20$, #30$, #35$, #40$, #45$, #50$', 'stt_rec', default, default, ']]>&Code;<![CDATA[', 'e$,f$', 1)
+execute (@s)
+update #i]]>&Detail;<![CDATA[ set ngay_giao1 = b.ngay_giao1, ngay_giao2 = b.ngay_giao2 from #i]]>&Detail;<![CDATA[ a join (select min(ngay_giao) as ngay_giao1, max(ngay_giao) as ngay_giao2, stt_rec from #d]]>&Detail;<![CDATA[ group by stt_rec) b on a.stt_rec = b.stt_rec
+
+]]>&EnvironmentTax.UpdateImport;<![CDATA[
+
+-- Insert
+declare @p varchar(32), @masterTable varchar(32), @detailTable varchar(32), @inquiryTable varchar(32), @insertKey varchar(128)
+
+select distinct month(ngay_ct) as m, year(ngay_ct) as y into #k from #id
+select @r = min(y * 12 + m) from #k
+
+while @r is not null begin
+  select @m = m, @y = y from #k where y * 12 + m = @r
+  select @p = rtrim(@y) + replace(str(@m, 2), ' ', '0'), @insertKey = 'month(ngay_ct) = ' + rtrim(@m) + ' and year(ngay_ct) = ' + rtrim(@y)
+  select @masterTable = @master + @p, @detailTable = @detail + @p, @inquiryTable = @inquiry + @p
+
+  select @q = @@inserting(master, @masterTable, @insertKey);
+  exec sp_executesql @q
+
+  select @q = @@inserting(detail, @detailTable, @insertKey);
+  exec sp_executesql @q
+
+  select @q = @@inserting(inquiry, @inquiryTable, @insertKey);
+  exec sp_executesql @q
+
+  ]]>&ImportOverwriteInsertingByPart;<![CDATA[
+
+  select @r = min(y * 12 + m) from #k where y * 12 + m > @r
+end
+
+@@inserting(general);
+]]>&ImportOverwriteInserting;
+    </text>
+  </processing>
+
+</import>

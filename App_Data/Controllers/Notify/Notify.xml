@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<notify xmlns="urn:schemas-ai-erp:data-notify">
+
+  <commands>
+    <command name="Load">
+      <text>
+        <![CDATA[
+exec AI_ERP$Notify$Load @@userID, @@language, '', default, default, default, default, @$action, @$currentCode, @$previousCode, @$nextCode
+]]>
+      </text>
+    </command>
+
+    <command name="Update">
+      <text>
+        <![CDATA[
+if @$externalPara = '#Confirm' and not exists(select 1 from notifyuser where code = @$notifyCode and [user_id] = @@userID and [sent] = 0) begin
+  select case when @@language = 'V' then N'Thông báo này đã nhận hoặc thay đổi thông tin.' else N'This notification has been received or changed information.' end as message
+  return
+end
+exec AI_ERP$Notify$Update @$notifyCode, @@userID
+if @$externalPara <> '#Auto' select case when @@language = 'V' then N'Chương trình đã thực hiện xong.' else N'The process was completed successfully.' end as message
+return
+]]>
+      </text>
+    </command>
+
+    <command name="GetNotify">
+      <text>
+        <![CDATA[
+declare @c char(1)
+set @c = char(253)
+
+select a.code, a.group_code,
+    case when @@language = 'V' then a.title else a.title2 end as title,
+    case when @@language = 'V' then a.subtitle else a.subtitle2 end as subtitle,
+    case when @@language = 'V' then a.content else a.content2 end as content,
+    b.update_notify as status, b.color, b.controller, isnull(a.ref_code, '') as refCode,
+    isnull(a.s1, '') as s1, isnull(a.s2, '') as s2, isnull(a.s3, '') as s3, u.user_id,
+    case when @@language = 'V' then isnull(a.popup_title, a.title) else isnull(a.popup_title2, a.title2) end as popup_title,
+    case when @@language = 'V' then a.subtitle else a.subtitle2 end as popup_subtitle,
+    case when @@language = 'V' then isnull(a.popup_content, '') else isnull(a.popup_content2, '') end as popup_content,
+    isnull(e$, '') as e$,
+    a.user_id2 as sender_id, case when isnull(s.nickname, '') = '' then s.comment else s.nickname end as sender_name, isnull(e.rkey, '') as sender_imagekey
+  into #res from notify a join notifygroup b on b.code = a.group_code join notifyuser u on u.code = a.code
+    left join hreanh e on a.user_id2 = e.stt_rec left join userinfo2 s on a.user_id2 = s.id
+  where a.code = @$notifyCode
+
+update #res set popup_content = case when @@language = 'V' then N'Số: ' else N'Number: ' end + dbo.AI_ERP$Function$GetWordNum(e$, 1, @c)
+  where e$ <> '' and group_code in ('02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '13', '14')
+
+select code, group_code, title, subtitle, content, status, color, controller, refCode, s1, s2, s3, sender_id, sender_name, sender_imagekey, user_id, popup_title, popup_subtitle, popup_content, 1 as totalRecord from #res
+]]>
+      </text>
+    </command>
+  </commands>
+
+</notify>

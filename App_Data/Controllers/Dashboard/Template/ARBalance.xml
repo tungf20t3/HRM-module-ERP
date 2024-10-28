@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<template type="grid" xmlns="urn:schemas-ai-erp:data-dashboard">
+  <header v="" e=""></header>
+
+  <queries>
+    <query event="Loading">
+      <text>
+        <![CDATA[
+declare @d_acc varchar(4000)
+select @d_acc = d_acc from biform where form_id = '004'
+exec ds_Dashboard003 'G001', @d_acc, '', '1', default, @@language, @@userID, @@admin
+select filter_unit = ''
+]]>
+      </text>
+    </query>
+
+    <query event="Filtering">
+      <text>
+        <![CDATA[
+declare @d_acc varchar(4000)
+select @d_acc = d_acc from biform where form_id = '004'
+exec ds_Dashboard003 'G001', @d_acc, @@$unit, '1', default, @@language, @@userID, @@admin
+select filter_unit = @@$unit
+]]>
+      </text>
+    </query>
+  </queries>
+
+  <fields>
+    <field name="ma_kh" width="100">
+      <header v="Mã khách" e="Customer ID"></header>
+    </field>
+    <field name="ten_kh" width="300">
+      <header v="Tên khách" e="Customer Name"></header>
+    </field>
+    <field name="so_du" type="Decimal" width="120" dataFormartString="@baseCurrencyAmountViewFormat" align="right">
+      <header v="Số dư" e="Balance"></header>
+    </field>
+  </fields>
+</template>

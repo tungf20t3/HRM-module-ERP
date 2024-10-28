@@ -1,0 +1,14 @@
+﻿<![CDATA[
+if @usedEI = '1' begin
+  if @$sd_hddt_yn = 1 begin
+    insert into hddt00$$partition$current (stt_rec, ngay_ct, ma_ct, ma_dvcs, mau_hddt, so_seri_hddt, so_ct_hddt, tinh_trang_hddt, trang_thai_tt, status, datetime0, datetime2, user_id0, user_id2)
+      select @stt_rec, @ngay_ct, @ma_ct, @ma_dvcs, '', '', '', '0', '0', @status, @datetime0, @datetime0, @user_id0, @user_id0
+	
+    insert into hddt01$$partition$current (stt_rec, so_bi_mat) select @stt_rec, ''
+  end
+
+  if @$e_mail <> '' begin
+    insert into v05$$partition$current(stt_rec, ma_ct, e_mail) select @stt_rec, @@id, @$e_mail
+  end
+end
+]]>&EINotePostInsert;

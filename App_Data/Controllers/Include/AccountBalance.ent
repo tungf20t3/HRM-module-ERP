@@ -1,0 +1,80 @@
+﻿<!ENTITY % Conditional.AccountBalance SYSTEM "..\Include\AccountBalance.txt">
+
+<![%Conditional.AccountBalance;[
+  <!ENTITY AccountBalanceOption "1">
+  <!ENTITY AccountBalanceStoredConvert "">
+
+  <!ENTITY CommandWhenBalanceBeforeDelete SYSTEM "..\Include\Command\WhenBalanceBeforeDelete.txt">
+
+  <!ENTITY ToolbarNew SYSTEM "..\Include\XML\ToolbarNew.xml">
+  <!ENTITY ToolbarDelete SYSTEM "..\Include\XML\ToolbarDelete.xml">
+
+  <!ENTITY Bool "false">
+  <!ENTITY AccountBalanceKey "loai_tk = 1 and tk_cn = 0 and status = '1'">
+  <!ENTITY AccountBalanceCheck "loai_tk = 1 and tk_cn = 0">
+
+  <!ENTITY AccountBalanceInit "declare @startYear int, @unitName nvarchar(512)
+select @startYear = nam_bd from dmstt  
+select @unitName = case when @@language = 'v' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit
+select @message = @message + ';this._startYear=' + rtrim(@startYear) + ';this._unitCode=''' + @@unit + ''';this._unitName=''' + replace(replace(isnull(@unitName, ''), '\', '\\'), '''', '\''') + '''';">
+
+  <!ENTITY AccountBalanceQuery "select ten_tk&#37;l from dmtk where tk = @tk
+return">
+
+  <!ENTITY AccountBalanceScriptWhenAddNew "else if (f._action == 'New') {
+    f.setItemValues('nam, ma_dvcs, ten_dvcs&#37;l', [f._startYear, f._unitCode, f._unitName]);
+    f.getItem('tk').focus();
+  }">
+  <!ENTITY AccountBalanceScriptWhenEdit "f.setReadOnlyFields('tk');">
+  
+  <!ENTITY OverrideFieldImport SYSTEM "..\Include\XML\OverrideFieldImport.txt">
+  <!ENTITY OverrideViewImport SYSTEM "..\Include\XML\OverrideViewImport.txt">
+  <!ENTITY OverrideScriptImport "set$&Identity;Memvar(f, importMemvars, 'type');">
+
+  <!ENTITY AccountBalanceUploadCheck "
+if @admin &lt;&gt; 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'AccountBalance', 'Edit') = 0 select @type = '0'
+  end
+end
+if @type = '0' delete @@table from @@table a where exists(select 1 from cdtk b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and b.nam = @year)
+">
+  <!ENTITY AccountBalanceUploadInsert "insert into cdtk(
+    nam, ma_dvcs, tk, du_no00, du_co00, du_no_nt00, du_co_nt00, du_no1, du_co1, du_no_nt1, du_co_nt1, 
+    dien_giai, ma_nt, ty_gia, ma_kh, ma_vv, status, datetime0, datetime2, user_id0, user_id2, ma_td1, ma_td2, ma_td3, sl_td1, sl_td2, sl_td3, ngay_td1, ngay_td2, ngay_td3, s1, s2, s3, s4, s5, s6, s7, s8, s9
+  )
+  select
+      @year, a.ma_dvcs, a.tk, 0, 0, 0, 0, 0, 0, 0, 0, 
+      '', '', 0, '', '', '1', getdate(), getdate(), @@userID, @@userID, '', '', '', 0, 0, 0, null, null, null, '', '', '', 0, 0, 0, null, null, null
+    from @@table a where not exists(select 1 from cdtk b where a.ma_dvcs = b.ma_dvcs and a.tk = b.tk and b.nam = @year)
+">
+  <!ENTITY AccountBalanceUnitCondition "&And;if (@admin &lt;&gt; 1 and @type = '1') begin">
+  <!ENTITY AccountBalanceUnitTag "&And;end">
+]]>
+
+<!ENTITY AccountBalanceOption "0">
+<!ENTITY AccountBalanceStoredConvert "exec fs_Convert2AccountBalance">
+
+<!ENTITY CommandWhenBalanceBeforeDelete "">
+
+<!ENTITY ToolbarNew "">
+<!ENTITY ToolbarDelete "">
+
+<!ENTITY Bool "true">
+<!ENTITY AccountBalanceKey "">
+<!ENTITY AccountBalanceCheck "">
+
+<!ENTITY AccountBalanceInit "">
+<!ENTITY AccountBalanceQuery "">
+
+<!ENTITY AccountBalanceScriptWhenAddNew "">
+<!ENTITY AccountBalanceScriptWhenEdit "">
+
+<!ENTITY OverrideFieldImport "">
+<!ENTITY OverrideViewImport "">
+<!ENTITY OverrideScriptImport "">
+
+<!ENTITY AccountBalanceUploadCheck "">
+<!ENTITY AccountBalanceUploadInsert "">
+<!ENTITY AccountBalanceUnitCondition "">
+<!ENTITY AccountBalanceUnitTag "">

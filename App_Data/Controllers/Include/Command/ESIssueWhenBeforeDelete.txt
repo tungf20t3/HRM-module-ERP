@@ -1,0 +1,15 @@
+﻿<![CDATA[
+declare @usedEI char(1), @$pEI char(13), @$cEI tinyint
+select @usedEI = rtrim(val) from options where name = 'm_sd_hddt'
+select @usedEI = isnull(@usedEI, '0')
+if @usedEI = '1' begin
+  select @$pEI = 'hddt00$' + convert(char(6), ngay_ct, 112) from @@table where stt_rec = @stt_rec
+  set @q = 'select @$cEI = case when exists(select 1 from ' + @$pEI + ' where stt_rec = ''' + replace(@stt_rec, '''', '''''') + ''' and tinh_trang_hddt <> 0) or exists(select 1 from hddt05 where stt_rec1 = ''' + replace(@stt_rec, '''', '''''') + ''') then 1 else 0 end'
+  exec sp_executesql @q, N'@$cEI tinyint out', @$cEI out
+
+  if @$cEI = 1 begin
+    select case when @@language = 'v' then N'Phiếu xuất đang chờ xử lý hoặc đã xác thực, không thể xóa được.' else N'Can not delete this voucher, It''s in pending status or has been released.' end as message
+    return
+  end
+end
+]]>

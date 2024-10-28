@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="vhrdctcd" code="nam, ky, dot, stt_rec, ma_tc" order="nam, ky, dot, ma_nv, ma_tc" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="dot" type="Decimal" dataFormatString="#0">
+      <header v="Đợt" e="Time"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <header v="Tháng" e="Month"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="bo_phan" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+      <clientScript><![CDATA[onchange="onchange$Filter$SocialInsuranceBenefitsAdjustment$Deparment(this);"]]></clientScript>
+    </field>
+    <field name="ten_bp%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" onDemand="true">
+      <header v="Mã nhân viên" e="Employee ID"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 10, 60, 100, 100, 130, 0, 0"/>
+      <item value="110: [dot].Label, [dot]"/>
+      <item value="110: [ky].Label, [ky]"/>
+      <item value="110--1: [nam].Label, [nam], [bp_ref]"/>
+      <item value="11001000: [bo_phan].Label, [bo_phan], [ten_bp%l]"/>
+      <item value="11001000: [ma_nv].Label, [ma_nv], [ten]"/>
+    </view>
+  </views>
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @ngay_ks varchar(8)
+select @ngay_ks = convert(varchar(8), ngay_ks, 112) from dmstt
+select 'this._lockedDate = ''' + @ngay_ks + ''';active$Filter$SocialInsuranceBenefitsAdjustment(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$Filter$SocialInsuranceBenefitsAdjustment(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, id = f.get_id(), v = f._language == 'v', m = 'ky', p = f.getItemValue(m);
+if (p < 1 || p > 12) {
+	this._checked = false;
+	$func.hideWait(id);
+  $message.show(String.format($df.getResources(f._language, 'Message.RequiredField'), f.getItem(m).field.Label), String.format('$find(\'{0}\').getItem(\'{1}\').focus()', f.get_id(), m));
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$Filter$SocialInsuranceBenefitsAdjustment(f) {
+  f.add_onResponseComplete(on$Filter$SocialInsuranceBenefitsAdjustment$ResponseComplete);
+  f.getItem('ky').value = (new Date()).getMonth() + 1;
+  f.getItem('nam').value = (new Date()).getFullYear();
+  f.live(f.getItem('ky'));
+}
+function close$Filter$SocialInsuranceBenefitsAdjustment(f) {try {f.remove_onResponseComplete(on$Filter$SocialInsuranceBenefitsAdjustment$ResponseComplete);} catch (ex) {}}
+function onchange$Filter$SocialInsuranceBenefitsAdjustment$Deparment(o) {o.parentForm.request('Reference', 'Reference', ['bo_phan']);}
+function on$Filter$SocialInsuranceBenefitsAdjustment$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Reference':
+      f.setItemControlBehavior('bp_ref', result[0].Value, true);
+      break;
+    case 'Checking':
+      var g = f.grid, k = [];
+      g._month = f.getItemValue('ky');
+      g._year = f.getItemValue('nam');
+      var v = (f._lockedDate >= (g._year.toString() + (g._month > 9 ? g._month.toString() : '0' + g._month.toString()) + '01'));
+      g._denyNew = g._denyEdit = g._denyDelete = v;
+      if (v) g._denyMessage = ((f._language == 'v') ? 'Đã khóa số liệu, kiểm tra lại ngày khóa sổ.' : 'Data is locked, you must modify system locked date.');
+
+      Array.add(k, {Name: 'ky', Opr: '=', Value: f.getItemValue('ky'), Type: 'Decimal', Ignore: false});
+      Array.add(k, {Name: 'nam', Opr: '=', Value: f.getItemValue('nam'), Type: 'Decimal', Ignore: false});
+      if (f.getItemValue('dot')) Array.add(k, {Name: 'dot', Opr: '=', Value: f.getItemValue('dot'), Type: 'String', Ignore: false});
+      if (f.getItemValue('bo_phan')) Array.add(k, {Name: 'bp_ref', Opr: 'like', Value: $func.trim(f.getItemValue('bp_ref')) + '%', Type: 'String', Ignore: false});
+      if (f.getItemValue('ma_nv')) Array.add(k, {Name: 'ma_nv', Opr: '=', Value: f.getItemValue('ma_nv'), Type: 'String', Ignore: false});
+      g.set_externalKey(k);
+
+      g._alterTitle = [null, [['%p', g._month, true], ['%y', g._year, true]]];
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+  <response>
+    <action id="Reference">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrbp where ma_bp = @bo_phan) begin
+  select bp_ref from hrbp where ma_bp = @bo_phan
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

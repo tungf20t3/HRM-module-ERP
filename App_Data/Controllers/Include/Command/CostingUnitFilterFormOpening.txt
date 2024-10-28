@@ -1,0 +1,24 @@
+﻿  <command event="Showing">
+    <text>
+      <![CDATA[
+declare @$unitName nvarchar(1023), @$costDept char(1), @$costMO char(1), @$costUnit char(1), @$message nvarchar(4000)
+select @$unitName = case when @@language = 'v' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit
+
+select @$costUnit = case when exists(select 1 from options where name = 'm_gt_dvcs' and val = '1') then '1' else '0' end
+select @$costDept = case when exists(select 1 from options where name = 'x_dt_bp' and val = '1') then '1' else '0' end
+select @$costMO = case when exists(select 1 from options where name = 'x_dt_lsx' and val = '1') then '1' else '0' end
+
+if @$costUnit = '1' and exists(select 1 from options where name = 'm_dtgt_dvcs' and rtrim(val) = '1') begin
+  select @$message = 'var f = this;f._unitCode=f.grid._unitCode;f._unitName=f.grid._unitName;f._controlFocus = f.getItem('']]>&ControlFocus;<![CDATA['');setObjectFormHidden(f, ''ma_dvcs'', f.grid._costUnit);'
+  select @$message = @$message + 'setObjectFormHidden(f, ''ma_bp'', f.grid._objectDept);setObjectFormHidden(f, ''so_lsx'', f.grid._objectMO);'
+end
+else begin
+  select @$message = 'var f = this;f._unitCode=''' + @@unit + ''';f._unitName=''' + replace(replace(isnull(@$unitName, ''), '\', '\\'), '''', '\''') + ''';f._controlFocus = f.getItem('']]>&ControlFocus;<![CDATA['');setObjectFormHidden(f, ''ma_dvcs'', f.grid._costUnit);'
+  select @$message = @$message + 'setObjectFormHidden(f, ''ma_bp'', ' + case when @$costDept = '1' then 'true' else 'false' end + ');setObjectFormHidden(f, ''so_lsx'', ' + case when @$costMO = '1' then 'true' else 'false' end + ');'
+end
+
+select @$message as message
+return
+]]>
+    </text>
+  </command>

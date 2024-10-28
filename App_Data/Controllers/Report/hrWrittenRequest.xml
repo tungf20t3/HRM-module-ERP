@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE report [
+  <!ENTITY b SYSTEM ".\Include\BaseCurrency.xml">
+  <!ENTITY f SYSTEM ".\Include\ForeignCurrency.xml">
+  <!ENTITY s SYSTEM ".\Include\Separate.xml">
+
+  <!ENTITY p "../images/pdf.gif">
+  <!ENTITY e "../images/excel.gif">
+
+  <!ENTITY Controller "hrWrittenRequest">
+  <!ENTITY % Profile SYSTEM ".\Config\Profile.ent">
+  %Profile;
+]>
+<report xmlns="urn:schemas-ai-erp:data-report">
+  <query>
+    <text>
+      <![CDATA[
+if dbo.AI_ERP$Function$CheckSQLInjection(@stt_rec) = 0 return
+declare @key varchar(128)
+select stt_rec, ltrim(so_ct) as so_ct, ngay_ct, noi_lap, noi_dung + char(13) + noi_dung1 as noi_dung, ly_do + char(13) + ly_do1 as ly_do, hs_gk + char(13) + hs_gk1 as hs_gk, 
+    case when @@form = '010' then 0 else 1 end as kem_theo
+  from hrphsi01 with(nolock) where stt_rec = @stt_rec
+
+select @key = 'a.stt_rec = ''' + @stt_rec + ''''
+exec hs_PrintHRWrittenRequest @@language, @key, 'hrctsi01', @@id
+]]>
+      &Conditional.Unit.Profile.Query.Declare;
+      &Conditional.Unit.Profile.Query.Select;
+      &Conditional.Unit.Profile.Query.Result;
+    </text>
+  </query>
+
+  <forms>
+    <form id="010" reportFile="hrWrittenRequest_01" templateFile="" commandArgument="Pdf" urlImage="&p;">
+      <header v="Văn bản đề nghị" e="Written Request"></header>
+      <download>
+        <header v="Văn bản đề nghị" e="Written Request"></header>
+      </download>
+    </form>
+    <form id="020" reportFile="hrWrittenRequest_02" templateFile="" commandArgument="Pdf">
+      <header v="Văn bản kèm danh sách đề nghị" e="Written Request with Documents Request"></header>
+      <download>
+        <header v="Văn bản đề nghị" e="Written Request"></header>
+      </download>
+    </form>
+
+    &s;
+
+    <form id="110" reportFile="" templateFile="hrWrittenRequest_01" commandArgument="Excel" urlImage="&e;">
+      <header v="Văn bản kèm danh sách đề nghị dạng tệp xlsx &lt;span style=&quot;color:#42842C;&quot;/&gt;(Excel)&lt;/span&gt;" e="Written Request with Documents Request as Spreadsheet"></header>
+      <download>
+        <header v="Văn bản đề nghị" e="Written Request"></header>
+      </download>
+    </form>
+
+  </forms>
+  <fields>
+    <field name="title" type="String">
+      <header v="DANH SÁCH ĐỀ NGHỊ" e="REQUESTED LIST"/>
+    </field>
+    <field name="h_xhvn" type="String">
+      <header v="CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM" e="SOCIALIST REPUBLIC OF VIETNAM"/>
+    </field>
+    <field name="h_dltd" type="String">
+      <header v="Độc lập - Tự do - Hạnh phúc" e="Independence - Freedom - Happiness"/>
+    </field>
+    <field name="h_so" type="String">
+      <header v="Số:" e="No.:"/>
+    </field>
+    <field name="h_don_vi" type="String">
+      <header v="Đơn vị:" e="Unit:"/>
+    </field>
+    <field name="h_line1" type="String">
+      <header v="Mẫu số D01b-TS" e="Form: D01b-TS"/>
+    </field>
+    <field name="h_line2" type="String">
+      <header v="(Ban hành kèm theo QĐ số 1111/QĐ-BHXH" e="(Issued with Decision No. 1111/QD-BHXH"/>
+    </field>
+    <field name="h_line3" type="String">
+      <header v="Ngày 25/10/2011 của BHXH Việt Nam)" e="Dated 25 Oct 2011 of Vietnam Social Insurance)"/>
+    </field>
+    <field name="h_ngay" type="String">
+      <header v="ngày" e="day"/>
+    </field>
+    <field name="h_thang" type="String">
+      <header v="tháng" e="month"/>
+    </field>
+    <field name="h_nam" type="String">
+      <header v="năm" e="year"/>
+    </field>
+    <field name="h_kinh_gui" type="String">
+      <header v="Kính gửi:" e="Respectfully to:"/>
+    </field>
+    <field name="h_ten_dv" type="String">
+      <header v="- Tên đơn vị:" e="- Unit Name:"/>
+    </field>
+    <field name="h_ms_ql" type="String">
+      <header v="- Mã số quản lý:" e="- Unit Code:"/>
+    </field>
+    <field name="h_dia_chi" type="String">
+      <header v="- Địa chỉ:" e="- Address:"/>
+    </field>
+    <field name="h_ten_don_vi" type="String">
+      <header v="Tên đơn vị:" e="Unit Name:"/>
+    </field>
+    <field name="h_ms_don_vi" type="String">
+      <header v="Mã số:" e="Code:"/>
+    </field>
+    <field name="h_noi_dung" type="String">
+      <header v="Nội dung:" e="Content:"/>
+    </field>
+    <field name="h_ly_do" type="String">
+      <header v="Lý do:" e="Reason:"/>
+    </field>
+    <field name="h_gui_kem" type="String">
+      <header v="Hồ sơ gửi kèm:" e="Enclosed Documents:"/>
+    </field>
+    <field name="h_gt_hm_nt" type="String">
+      <header v="Giá trị nt hao mòn TSCĐ" e="Fixed Asset FC  Depreciation Value"/>
+    </field>
+    <field name="h_gt_hm2" type="String">
+      <header v="Giá trị hao mòn" e="Depreciation Value"/>
+    </field>
+    <field name="h_de_nghi" type="String">
+      <header v="Đề nghị cơ quan bảo hiểm xã hội xem xét, giải quyết theo quy định." e="Kindly propose that Social Insurance Agency consider and give solution in accordance with regulations."/>
+    </field>
+    <field name="h_stt" type="String">
+      <header v="Stt" e="No."/>
+    </field>
+    <field name="h_ho_ten" type="String">
+      <header v="Họ và tên" e="Full Name"/>
+    </field>
+    <field name="h_ma_so" type="String">
+      <header v="Mã số" e="Code"/>
+    </field>
+    <field name="h_nd" type="String">
+      <header v="Nội dung đề nghị" e="Content of Adjustment"/>
+    </field>
+    <field name="h_cu" type="String">
+      <header v="Cũ" e="Old"/>
+    </field>
+    <field name="h_moi" type="String">
+      <header v="Mới" e="New"/>
+    </field>
+    <field name="h_can_cu" type="String">
+      <header v="Căn cứ điều chỉnh" e="Basis of Change"/>
+    </field>
+    <field name="h_kem_theo" type="String">
+      <header v="(Kèm theo công văn số" e="(Enclosed with Document No."/>
+    </field>
+  </fields>
+</report>

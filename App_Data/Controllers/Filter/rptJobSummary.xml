@@ -1,0 +1,221 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ReportDataTypeFieldUOM SYSTEM "..\Include\XML\ReportDataTypeFieldUOM.xml">
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY LineCounter "13">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.rptSalesServiceInvoiceList SYSTEM "..\Include\ReportMargin.rptSalesServiceInvoiceList">
+  %ReportMargin.rptSalesServiceInvoiceList;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày từ" e="Date from"></header>
+      <footer v="Ngày từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày đến" e="Date to"></header>
+    </field>
+    <field name="so_ct1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Chứng từ từ số" e="Voucher No. from"></header>
+      <footer v="Chứng từ từ/đến số" e="Voucher No. from/to"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ct2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Chứng từ đến số" e="Voucher No. to"></header>
+      <items style="Mask"></items>
+    </field>
+
+    <field name="tk" categoryIndex="1">
+      <header v="Danh sách tài khoản" e="Account List"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ghi_no_co" dataFormatString="*, 1, 2" clientDefault="*" align="right" categoryIndex="1">
+      <header v="Ghi nợ/có" e="Debit/Credit"></header>
+      <footer v="1 - Nợ, 2 - Có, * - Tất cả" e="1 - Debit, 2 - Credit, * - All"/>
+      <items style="Mask"></items>
+    </field>
+    <field name="tk_du" categoryIndex="1">
+      <header v="Ds tài khoản đối ứng" e="Ref. Account List"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="tk_gt" categoryIndex="1">
+      <header v="Ds tk không tính gt" e="Non-deduction Acct. List"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    <field name="vu_viec_me" onDemand="true" categoryIndex="1">
+      <header v="Vụ việc mẹ" e="Parent Job Code"></header>
+      <items style="AutoComplete" controller="Job" reference="ten_vv_me%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vv_me%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="vu_viec" categoryIndex="1">
+      <header v="Vụ việc" e="Job"></header>
+      <items style="AutoComplete" controller="Job" reference="ten_vv%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vv%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom_vv1" categoryIndex="1">
+      <header v="Nhóm vụ việc" e="Job Group"></header>
+      <items style="AutoComplete" controller="JobGroup" key="status ='1' and loai_nh = 1" check="loai_nh = 1"/>
+    </field>
+    <field name="nhom_vv2" categoryIndex="1">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="JobGroup" key="status ='1' and loai_nh = 2" check="loai_nh = 2"/>
+    </field>
+    <field name="nhom_vv3" categoryIndex="1">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="JobGroup" key="status ='1' and loai_nh = 3" check="loai_nh = 3"/>
+    </field>
+
+    <field name="ma_kh" categoryIndex="1">
+      <header v="Mã khách" e="Customer"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kh%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_ct" categoryIndex="1">
+      <header v="Mã chứng từ" e="Voucher Code"></header>
+      <items style="AutoComplete" controller="Voucher" reference="ten_ct%l" key="wedition &lt;&gt; '9' and status = '1'" check="wedition &lt;&gt; '9'"/>
+    </field>
+    <field name="ten_ct%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nt" categoryIndex="1">
+      <header v="Ngoại tệ" e="Foreign Currency"></header>
+      <items style="AutoComplete" controller="Currency" reference="ten_nt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_nt%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="dien_giai" categoryIndex="1">
+      <header v="Diễn giải chứa" e="Description like"></header>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="maxLength" readOnly="true" hidden="true" maxLength="-100" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 25, 75, 100, 100, 130"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="11011: [so_ct1].Description, [so_ct1], [so_ct2], [maxLength]"/>
+      <item value="11000: [tk].Label, [tk]"/>
+      <item value="1110: [ghi_no_co].Label, [ghi_no_co], [ghi_no_co].Description"/>
+      <item value="11000: [tk_du].Label, [tk_du]"/>
+      <item value="11000: [tk_gt].Label, [tk_gt]"/>
+      <item value="110100: [vu_viec_me].Label, [vu_viec_me], [ten_vv_me%l]"/>
+      <item value="110100: [vu_viec].Label, [vu_viec], [ten_vv%l]"/>
+      <item value="11011: [nhom_vv1].Label, [nhom_vv1], [nhom_vv2] , [nhom_vv3]"/>
+      <item value="110100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="110100: [ma_ct].Label, [ma_ct], [ten_ct%l]"/>
+      <item value="110100: [ma_nt].Label, [ma_nt], [ten_nt%l]"/>
+      <item value="11000: [dien_giai].Label, [dien_giai]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 25, 75, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @account nvarchar(1024)
+if (@tk = '') select @account = case when upper(@@language) = 'V' then N'Tất cả các tài khoản' else N'All Accounts' end
+else select @account = ''
+select cast(@ngay_ct1 as smalldatetime) as tu_ngay, cast(@ngay_ct2 as smalldatetime) as den_ngay, case when @account <> '' then @account else @tk end as tk, @ghi_no_co as ghi_no_co
+exec rs_rptJobSummary @ngay_ct1, @ngay_ct2, @so_ct1, @so_ct2, @tk, @ghi_no_co, @tk_du, @tk_gt, @vu_viec_me, @vu_viec, @nhom_vv1, @nhom_vv2, @nhom_vv3,
+  @ma_kh, @ma_ct, @ma_nt, @dien_giai, @maxLength, @@language, @ma_dvcs, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptQueryFilterString;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  changeLookupReadonly(f, 'tk');
+  changeLookupReadonly(f, 'tk_du');
+  changeLookupReadonly(f, 'tk_gt');
+  var o = f.getItem('maxLength');
+  o.value = o.maxLength;
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,d){var a=d.object,e=d.type.Context,f=d.type.Result;switch(e){case"Checking":var c=a.grid,b=a.getItemValue("tk");c._hiddenFields=[{Fields:"ps_co_nt",Value:a.getItemValue("ghi_no_co")=="1"||a.getItemValue("mau_bc")=="10"},{Fields:"ps_no_nt",Value:a.getItemValue("ghi_no_co")=="2"||a.getItemValue("mau_bc")=="10"},{Fields:"ps_co",Value:a.getItemValue("ghi_no_co")=="1"},{Fields:"ps_no",Value:a.getItemValue("ghi_no_co")=="2"}];a.grid._hiddenForms=[{Form:[2,3,7,8,9,10],Value:a.getItemValue("ghi_no_co")=="1"},{Form:[2,3,5,6,9,10],Value:a.getItemValue("ghi_no_co")=="2"},{Form:[0,1,5,6,7,8],Value:a.getItemValue("ghi_no_co")=="*"}];if(b=="")b=a._language=="v"?"Tài khoản: tất cả các tài khoản":"Account: All Accounts";else b=(a._language=="v"?"Tài khoản: ":"Account: ")+b;c._alterTitle=[null,[["%d1",a.getItem("ngay_ct1").value,true],["%d2",a.getItem("ngay_ct2").value,true],["%s1",b,true]]];c._queryFilterString=getQueryFilterString(a,"ngay_ct1, ngay_ct2, so_ct1, so_ct2, maxLength, tk, ghi_no_co, tk_du, tk_gt, vu_viec_me, ma_kh, ma_ct, ma_nt, dien_giai*, ma_dvcs, mau_bc");remove$GridReport$Filter(c)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

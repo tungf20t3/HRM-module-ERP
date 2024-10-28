@@ -1,0 +1,139 @@
+﻿<!ENTITY % Conditional.EBanking SYSTEM "..\Include\EBanking.txt">
+<!ENTITY % Conditional.Tiny.External SYSTEM "..\Include\Tiny.External.txt">
+<!ENTITY % Conditional.PaymentApproval SYSTEM "..\Include\PaymentApproval.txt">
+<!ENTITY % Conditional.ImportOverwrite SYSTEM "..\Include\ImportOverwriteVoucher.txt">
+
+<![%Conditional.EBanking;[
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY EBankingFieldCPTran SYSTEM "..\Include\XML\EBankingFieldCPTran.xml">
+  <!ENTITY EBankingOutlineCss SYSTEM "..\Include\Javascript\EBankingOutlineCss.txt">
+  
+  <![%Conditional.Tiny.External;[
+    <!ENTITY EBankingFormView SYSTEM "..\Include\XML\EBankingFormView.Tiny.External.txt">
+    <!ENTITY EBankingViewCPTran SYSTEM "..\Include\XML\Tiny.External.Form.View.CPTran.Payment.EBanking.txt">
+    <!ENTITY EBankingActiveForm "$get(f.get_id() + '_form_f56').style.display = &quot;none&quot;;">
+  ]]>
+  <!ENTITY EBankingViewCPTran SYSTEM "..\Include\XML\Tiny.External.Form.View.CPTran.Payment.Default.EBanking.txt">
+
+  <![%Conditional.PaymentApproval;[
+    <!ENTITY EBankingInsert SYSTEM "..\Include\Command\EBankingPaymentApprovalInsert.txt">
+    <!ENTITY EBankingUpdated SYSTEM "..\Include\Command\EBankingPaymentApprovalUpdated.txt">
+  ]]>
+  <!ENTITY EBankingInsert SYSTEM "..\Include\Command\EBankingInsert.txt">
+  <!ENTITY EBankingUpdating SYSTEM "..\Include\Command\EBankingUpdating.txt">
+  <!ENTITY EBankingUpdated SYSTEM "..\Include\Command\EBankingUpdated.txt">
+  <!ENTITY EBankingBeforeDelete SYSTEM "..\Include\Command\EBankingBeforeDelete.txt">
+  <!ENTITY EBankingDelete SYSTEM "..\Include\Command\EBankingDelete.txt">
+
+  <!ENTITY CommandWhenVoucherBeforeEdit.EBanking SYSTEM "..\Include\Command\WhenVoucherBeforeEdit.EBanking.txt">
+  <!ENTITY CommandExternalFieldDeclare.EBanking SYSTEM "..\Include\Command\ExternalFieldDeclare.EBanking.txt">
+  <!ENTITY CommandExternalFieldSelect.EBanking SYSTEM "..\Include\Command\ExternalFieldSelect.EBanking.txt">
+  <!ENTITY CommandTaxGridDetailExternalFieldQuery.EBanking SYSTEM "..\Include\Command\TaxGridDetailExternalVoucherFieldQuery.EBanking.txt">
+  <!ENTITY EBankingXMLGetBankCode SYSTEM "..\Include\XML\EBankingGetBankCode.xml">
+  <!ENTITY EBankingResponseBankCode SYSTEM "..\Include\Javascript\EBankingWhenBankCodeResponse.txt">
+  <!ENTITY EBankingScript SYSTEM "..\Include\Javascript\EBankingScript.txt">
+  <!ENTITY EBankingCategory SYSTEM "..\Include\XML\EBankingCategory.xml">
+  <!ENTITY EBankingFormView SYSTEM "..\Include\XML\EBankingFormView.txt">
+
+  <!ENTITY EBankingSetMemoField "edien_giai">
+  <!ENTITY EBankingTabFieldFocus ", 'echu_tk'">
+  <!ENTITY EBankingResponseCustomerGetField ", rtrim(chi_nhanh) as chi_nhanh, rtrim(quoc_gia) as quoc_gia, rtrim(a.ma_nh_dt) as ma_nh_dt, rtrim(eb.citad) as ma_citad">
+  <!ENTITY EBankingCustomerTableJoin " left join dmmsnh eb with(nolock) on a.ma_nh_dt = eb.ma_nh_dt">
+  <!ENTITY EBankingResponseCustomer "
+    f.setItemControlBehavior('echu_tk', result[5].Value, null, true);
+    f.setItemControlBehavior('etk_nh', result[6].Value, null, true);
+    f.setItemControlBehavior('eten_nh', result[7].Value, null, true);
+    f.setItemControlBehavior('etinh_thanh', result[8].Value, null, true);
+    f.setItemControlBehavior('echi_nhanh', result[result.length - 4].Value, null, true);
+    f.setItemControlBehavior('equoc_gia', result[result.length - 3].Value, null, true);
+    f.setItemControlBehavior('ema_nh_dt', result[result.length - 2].Value, null, true);
+    f.setItemControlBehavior('ema_citad', result[result.length - 1].Value, null, true);
+    f.setReferenceKeyFilter('ema_citad');
+  ">
+  <!ENTITY EBankingWhenVoucherCopying "f.setItemValues('etinh_trang, eten_tinh_trang&#37;l', ['', '']);">
+
+  <!ENTITY EBankingReportsSelect "isnull(c.chu_tk, d.ten_kh) as ten_kh, isnull(c.tk_nh, d.tk_nh) as tk_nh, isnull(c.ten_nh, d.ngan_hang) as ngan_hang, isnull(c.tinh_thanh, d.tinh_thanh) as tinh_thanh, c.phi_nhan_yn,">
+  <!ENTITY EBankingReportsJoin "left join knnh00$$partition$current c with(nolock) on a.stt_rec = c.stt_rec">
+
+  <!ENTITY EBankingIDStatusName "&lt;div id='eid_ten_tt_unc'&gt;&lt;/div&gt;">
+  <!ENTITY EBankingSetStatusName "$get('eid_ten_tt_unc').innerHTML = f._$estates[f._$estateIndex > 4 ? f._$estateIndex - 3 : f._$estateIndex][(f._language == 'v') ? 0 : 1]">
+
+  <!ENTITY EBankingGetLengthColumn "select @s = case when @s is null then '[' else @s + ',' end + '[''e' + name + ''',' + rtrim(prec) + ']' from syscolumns where id = object_id('knnh00$000000') and name in ('chu_tk', 'tk_nh', 'ten_nh', 'chi_nhanh', 'tinh_thanh', 'quoc_gia', 'dien_giai')">
+  <!ENTITY EBankingTransactionType "
+declare @eTransactionType nvarchar(4000), @eTransactionTypeName nvarchar(4000), @eDefault varchar(2)
+select @eTransactionType = '', @eTransactionTypeName = '', @eDefault = ''
+select @eTransactionType = @eTransactionType + rtrim(ma_loai) + char(255), @eTransactionTypeName = @eTransactionTypeName + case when lower(@@language) = 'v' then rtrim(ten_loai) else rtrim(ten_loai2) end + char(255) from dmloaigdnh where status = '1' order by stt_sx
+select top 1 @eDefault = ma_loai from dmloaigdnh where status = '1' and ngam_dinh_yn = 1
+select @eTransactionType = left(@eTransactionType, len(@eTransactionType) - 1), @eTransactionTypeName = left(@eTransactionTypeName, len(@eTransactionTypeName) - 1)
+select @message = @message + 'this._eitemValue=''' + rtrim(@eTransactionType) + ''';this._eitemText=''' + dbo.AI_ERP$Function$EncodeScript(@eTransactionTypeName) + '''; this._edefaultForm = ''' + @eDefault + ''';init$Voucher$ETransactionType(this);'
+    ">
+
+  <![%Conditional.ImportOverwrite;[
+    <!ENTITY EBankingImportChecking "
+    if @type = '1' begin
+      if @$mode = 1 begin
+        select @$owp = min(p) from #owpartition
+        while @$owp is not null begin
+          &StartErrorCount;
+          select @q = '&InsertErrorTable; select @field, o.stt, ''OW01'' from #owdata o join knnh00$' + @$owp + ' b on b.stt_rec = o.stt_rec where (b.tinh_trang in(''1'', ''2'', ''3'')) and o.p = ''' + @$owp + '''
+          &w1;@field&w2;o.stt&w3;''OW01''&w4; group by o.stt'
+          exec sp_executesql @q, N'@field varchar(32)', @field
+          &EndErrorCount;
+          select @$owp = min(p) from #owpartition where p > @$owp
+        end
+      end else begin
+        declare @$eowConflict nvarchar(128)
+        set @$eowConflict = case when @@language = 'v' then N'Tồn tại chứng từ đã có phát sinh liên quan, không thể ghi đè.' else 'There existed a voucher has data constraints, the data cannot be overwritten.' end
+        select @$owp = min(p) from #owpartition
+        while @$owp is not null begin
+          set @q = 'select top 1 @r = min(o.stt) from #owdata o join knnh00$' + @$owp + ' b on b.stt_rec = o.stt_rec where (b.tinh_trang in(''1'', ''2'', ''3'')) and o.p = ''' + @$owp + ''''
+          exec sp_executesql @q, N'@r int out', @r out
+          if @r is not null begin
+            select @$eowConflict as message, @field as field, @r as record
+            return
+          end
+          select @$owp = min(p) from #owpartition where p > @$owp
+        end
+      end
+    end
+    ">
+  ]]>
+]]>
+<!ENTITY EBankingFieldCPTran SYSTEM "..\Include\XML\EBankingFieldCPTran.Default.xml">
+<!ENTITY EBankingOutlineCss "">
+<!ENTITY EBankingViewCPTran "&Tiny.External.Form.View.CPTran.Payment;">
+<!ENTITY EBankingInsert SYSTEM "..\Include\Command\EBankingInsert.Default.txt">
+<!ENTITY EBankingUpdating SYSTEM "..\Include\Command\EBankingUpdating.Default.txt">
+<!ENTITY EBankingUpdated "">
+<!ENTITY EBankingBeforeDelete "">
+<!ENTITY EBankingDelete SYSTEM "..\Include\Command\EBankingDelete.Default.txt">
+<!ENTITY CommandWhenVoucherBeforeEdit.EBanking "">
+<!ENTITY CommandExternalFieldDeclare.EBanking "">
+<!ENTITY CommandExternalFieldSelect.EBanking SYSTEM "..\Include\Command\ExternalFieldSelect.EBanking.Default.txt">
+<!ENTITY CommandTaxGridDetailExternalFieldQuery.EBanking ", @customerName as ten_dv, @bankAccount as tk_nh, @bankName as ngan_hang, @province as tinh_thanh, @note as noi_dung, @pay as phi_nhan_yn">
+<!ENTITY EBankingScript "">
+<!ENTITY EBankingXMLGetBankCode "">
+<!ENTITY EBankingResponseBankCode "">
+
+<!ENTITY EBankingCategory SYSTEM "..\Include\XML\EBankingCategory.Default.xml">
+<!ENTITY EBankingSetMemoField "noi_dung">
+<!ENTITY EBankingTabFieldFocus ", 'ten_dv'">
+<!ENTITY EBankingResponseCustomerGetField "">
+<!ENTITY EBankingResponseCustomer "
+f.setItemControlBehavior('ten_dv', result[5].Value, null, true);
+f.setItemControlBehavior('tk_nh', result[6].Value, null, true);
+f.setItemControlBehavior('ngan_hang', result[7].Value, null, true);
+f.setItemControlBehavior('tinh_thanh', result[8].Value, null, true);
+  ">
+<!ENTITY EBankingWhenVoucherCopying "">
+<!ENTITY EBankingReportsSelect "isnull(c.ten_kh, d.ten_kh) as ten_kh, isnull(c.tk_nh, d.tk_nh) as tk_nh, isnull(c.ngan_hang, d.ngan_hang) as ngan_hang, isnull(c.tinh_thanh, d.tinh_thanh) as tinh_thanh, c.phi_nhan_yn,">
+<!ENTITY EBankingReportsJoin "left join p56 c with(nolock) on a.stt_rec = c.stt_rec">
+<!ENTITY EBankingIDStatusName "">
+<!ENTITY EBankingSetStatusName "">
+<!ENTITY EBankingActiveForm "">
+
+<!ENTITY EBankingGetLengthColumn "select @s = case when @s is null then '[' else @s + ',' end + '[''' + name + ''',' + rtrim(prec) + ']' from syscolumns where id = object_id('p56') and name in ('tk_nh', 'ngan_hang', 'tinh_thanh')">
+<!ENTITY EBankingTransactionType "">
+<!ENTITY EBankingImportChecking "">

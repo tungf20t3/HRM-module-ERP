@@ -1,0 +1,200 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY % Tiny.External SYSTEM "..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.FADepartment;
+
+  <!ENTITY LineCounter "7">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.rptTSList SYSTEM "..\Include\ReportMargin.rptTSList">
+  %ReportMargin.rptTSList;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_loai" categoryIndex="1">
+      <header v="Loại tài sản" e="Asset Type"></header>
+      <items style="AutoComplete" controller="FAType" reference="ten_loai%l" key="status = '1'">
+      </items>
+    </field>
+    <field name="ten_loai%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_bp" categoryIndex="1">
+      <header v="Bộ phận sử dụng" e="Using Department"></header>
+      <items style="AutoComplete" controller="&Tiny.External.Lookup.DepartmentController;" reference="ten_bp%l" key="status = '1'">
+      </items>
+    </field>
+    <field name="ten_bp%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom_1" categoryIndex="1">
+      <header v="Nhóm tài sản 1" e="Asset Group 1"></header>
+      <items style="AutoComplete" controller="FAGroup" reference="ten_nh_1%l" key="status = '1' and loai_nh = 1" check="loai_nh = 1"></items>
+    </field>
+    <field name="ten_nh_1%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom_2" categoryIndex="1">
+      <header v="Nhóm tài sản 2" e="Asset Group 2"></header>
+      <items style="AutoComplete" controller="FAGroup" reference="ten_nh_2%l" key="status = '1' and loai_nh = 2" check="loai_nh = 2"></items>
+    </field>
+    <field name="ten_nh_2%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom_3" categoryIndex="1">
+      <header v="Nhóm tài sản 3" e="Asset Group 3"></header>
+      <items style="AutoComplete" controller="FAGroup" reference="ten_nh_3%l" key="status = '1' and loai_nh = 3" check="loai_nh = 3"></items>
+    </field>
+    <field name="ten_nh_3%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="dRptOpt" allowNulls="false" external="true" clientDefault="0" defaultValue="0" rows="&TabHeightFomula; - &Render.DeltaRowHeight;" categoryIndex="2">
+      <header v="" e=""></header>
+      <label v="" e=""></label >
+      <items style="Grid" controller="rptFASummaryReportFilter" row="1"/>
+    </field>
+    <field name="sRptOpt" readOnly="true" categoryIndex="2">
+      <header v="" e=""></header>
+    </field>
+
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;" anchor="5">
+      <item value="120, 40, 30, 30, 100, 100, 130"/>
+      <item value="11: [ky].Label, [ky]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="111000: [ma_loai].Label, [ma_loai], [ten_loai%l]"/>
+
+      <item value="111000: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="111000: [nhom_1].Label, [nhom_1], [ten_nh_1%l]"/>
+      <item value="111000: [nhom_2].Label, [nhom_2], [ten_nh_2%l]"/>
+      <item value="111000: [nhom_3].Label, [nhom_3], [ten_nh_3%l]"/>
+      <item value="1100: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="1100: [mau_bc].Label, [mau_bc]"/>
+
+      <item value="11: [dRptOpt], [sRptOpt]"/>
+
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+
+      <categories>
+        <category index="1" columns="120, 100, 100, 100, 130" anchor="5">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        <category index="2" columns="569, 0" anchor="1">
+          <header v="Thứ tự sắp xếp" e="Order"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @c varchar(1024), @iNum int
+select @iNum = 1, @c = '', @sRptOpt = replace(@sRptOpt, '''', '''''')
+while @inum <= dbo.ff_getwordcount(@sRptOpt)
+  begin
+    select @c = @c + case when @c <> '' then ',' else '' end + case dbo.ff_getwordnum(@sRptOpt, @iNum) when '1' then 'fa_ma_nv' when '2' then 'fa_ma_bp' when '3' then 'loai_ts' when '4' then 'fa_so_the_ts' else '' end
+    set @iNum = @iNum + 1
+  end
+if @c = '' set @c = 'fa_ma_nv'
+
+select dbo.ff_GetStartDateOfCycle(@ky,@nam) as date, @ky as ky, @nam as nam
+exec rs_rptFASummaryReport @ky, @nam, @ma_loai, @ma_bp, @nhom_1, @nhom_2, @nhom_3, @ma_dvcs, @c, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[onValidGrid$Filter$(this)]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  f._tabContainer.add_activeTabChanged(onChange$VoucherFilter$Tab);
+  f._tabContainer._loaded = true;
+  changeLookupReadonly(f, 'ma_dvcs');
+  if (!f._$cached) setDefault$Period(f);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function onChange$VoucherFilter$Tab(a){a.parentForm.focusWhenTabChanged(["ma_bp","dRptOpt"])}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}try{a._tabContainer.remove_activeTabChanged(onChange$VoucherFilter$Tab)}catch(b){}}function on$Filter$ResponseComplete(i,b){var a=b.object,e=b.type.Context,h=b.type.Result;switch(e){case"Checking":if(a.getItemValue("sRptOpt")==""){a._checked=false;var d=a.get_id();$func.hideWait(d);$message.show(String.format($df.getResources(a._language,"Message.RequiredField"),a.getItem("dRptOpt").field.Label),String.format("$find('{0}').focus('{1}');",d,"dRptOpt"));return}var c=a.grid;c._hiddenFields=[{Fields:"nguyen_gia_nt, gt_da_kh_nt, gt_cl_nt",Value:a.getItemValue("mau_bc")=="10"}];var f=a.getItem("ky").value,g=a.getItem("nam").value;c._alterTitle=[null,[["%d1",f,true],["%d2",g,true]]];cacheGrid$Information(a);remove$GridReport$Filter(c)}}function setDefault$Period(a){a.getItem("ky").value=(new Date).getMonth()+1;a.getItem("nam").value=(new Date).getFullYear();a.live(a.getItem("ky"))}function cacheGrid$Information(c){var d=c.getItem("dRptOpt");if(d){var a=d._controlBehavior,e=a._getColumnOrder("stt"),b=[];for(i=1;i<=a._rowCount;i++)Array.add(b,a._getItemValue(i,e));c._$cached=b}}function onValidGrid$Filter$(e){var a=e.getItem("dRptOpt")._controlBehavior,g=a._getColumnOrder("form_id"),d=a._getColumnOrder("stt"),b=[];for(i=1;i<=a._rowCount;i++){var h=a._getItemValue(i,d);if(h!=0){var f={form_id:a._getItemValue(i,g),stt:a._getItemValue(i,d)};b[b.length]=f}}b.sort(arraySort("stt"));var c="";for(i=0;i<b.length;i++)c+=(c==""?"":",")+b[i].form_id;e.setItemValue("sRptOpt",c)}function arraySort(a){return function(b,c){return b[a]<c[a]?-1:b[a]>c[a]?1:0}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

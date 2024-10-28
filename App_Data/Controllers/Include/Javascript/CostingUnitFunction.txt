@@ -1,0 +1,15 @@
+﻿<![CDATA[
+function setObjectFormHidden(f, c, b) {
+  var o = f.getItem(c);
+  o.field.AllowNulls = !b;
+  if (b) {
+    var grandNode = o.parentNode.parentNode;
+    Sys.UI.DomElement.addCssClass(grandNode, 'Required');
+    Sys.UI.DomElement.addCssClass(grandNode, f._id);
+  }
+  if (b) {if (!f._controlFocus) f._controlFocus = o;}
+  else $common.setVisible(o.parentNode.parentNode.parentNode, false);
+}
+
+function setUnitInformation(f) {if (f._action == 'New' && f.grid._costUnit) f.setItemValues('ma_dvcs, ten_dvcs%l', [f._unitCode, f._unitName]);}
+]]>

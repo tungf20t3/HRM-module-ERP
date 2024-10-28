@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="template" targetNamespace="urn:schemas-ai-erp:data-template" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-template" xmlns:a="urn:schemas-ai-erp:data-template" xmlns:mstns="urn:schemas-ai-erp:data-template" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="message" type="messageType">
+    <xs:key name="messages">
+      <xs:selector xpath="a:messages" />
+      <xs:field xpath="@id"/>
+    </xs:key>
+  </xs:element>
+
+  <xs:complexType name="messageType">
+    <xs:sequence>
+      <xs:element name="template" type="templateType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="templateType">
+    <xs:sequence>
+      <xs:element name="query" type="textType" />
+      <xs:element name="body" type="bodyType" />
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" />
+    <xs:attribute name="controller" type="xs:string" />
+    <xs:attribute name="v" type="xs:string" />
+    <xs:attribute name="e" type="xs:string" />
+    <xs:attribute name="prime" type="xs:string" />
+    <xs:attribute name="code" type="xs:string" />
+    <xs:attribute name="complete" type="xs:string" />
+    <xs:attribute name="init" type="xs:string" />
+    <xs:attribute name="fail" type="xs:string" />
+  </xs:complexType>
+
+  <xs:complexType name="bodyType">
+    <xs:sequence>
+      <xs:element name="v" type="textType" />
+      <xs:element name="e" type="textType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="textType">
+    <xs:sequence>
+      <xs:element name="text" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

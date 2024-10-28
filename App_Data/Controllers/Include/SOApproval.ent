@@ -1,0 +1,90 @@
+﻿<!ENTITY % Conditional.SOApproval SYSTEM "..\Include\CompactModeOrder.txt">
+
+<![%Conditional.SOApproval;[
+
+  <!ENTITY APVXMLFields "">
+  <!ENTITY APVSOXMLViews SYSTEM "..\Include\XML\APVSOXMLViewsCompact.txt">
+  <!ENTITY APVXMLCategoryIndex "">
+  <!ENTITY APVInitExternalFieldsDeclare "">
+  <!ENTITY APVInitExternalFieldsSelect "">
+  <!ENTITY APVCheckApprove "">
+  <!ENTITY APVApprove "">
+  <!ENTITY APVMailApproveInsert "">
+  <!ENTITY APVMailApproveUpdate "">
+  <!ENTITY APVDelete "">
+  <!ENTITY APVWhenVoucherCopying "">
+  <!ENTITY APVSetReadOnlyFields "">
+  <!ENTITY APVVisibleStatusNum "3">
+  <!ENTITY APVHiddenStatusNum "5">
+  <!ENTITY APVInitExternalFieldsSelectWithComma "">
+
+  <!ENTITY BeforeVoucherUpdate "if exists(select 1 from @@prime$partition$previous where stt_rec = @stt_rec and status = '2') exec AI_ERP$Voucher$BeforeUpdate$SO @@prime$partition$previous, d64$$partition$previous, @stt_rec, @@action, @@userID">
+  <!ENTITY AfterVoucherUpdate "if exists(select 1 from @@prime$partition$current where stt_rec = @stt_rec and status = '2') exec AI_ERP$Voucher$AfterUpdate$SO @@prime$partition$current, d64$$partition$current, @stt_rec, @@action, @@userID">
+  <!ENTITY CheckCredit "">
+  <!ENTITY UpdateCredit "">
+  <!ENTITY h2 "252">
+  <!ENTITY h1 "192">
+
+  <!ENTITY SOFilterStatus "*, 0, 1, 2, 4, 5, 6">
+  <!ENTITY SOFilterStatusField SYSTEM "..\Include\XML\SOFilterStatusCompact.xml">
+  <!ENTITY SOFilterStatusFieldExtend SYSTEM "..\Include\XML\SOFilterStatusCompactExtend.xml">
+  <!ENTITY SOStatusReportFilterHiddenField "{Fields: 'sl_hd, sl_tl0', Value: true},">
+
+  <!ENTITY SODetailRetrieve "">
+  <!ENTITY SVDetailRetrieve SYSTEM "..\Include\XML\SVDetailRetrieveCompact.txt">
+  <!ENTITY CompactModeOrderAnd " and ">
+  <!ENTITY CompactModeOrderKind "kind = 0">
+  <!ENTITY SVBeforeUpdatePara ", 1">
+  <!ENTITY SOReportForm030040 "">
+  <!ENTITY SOReportForm070080 "">
+  <!ENTITY SOReportForm130140 "">
+  <!ENTITY SOReportForm170180 "">
+
+  <!ENTITY APVHistoryToolbar "">
+]]>
+
+<!ENTITY APVXMLFields SYSTEM "..\Include\XML\APVSOXMLFields.txt">
+<!ENTITY APVSOXMLViews SYSTEM "..\Include\XML\APVSOXMLViews.txt">
+<!ENTITY APVCheckApprove SYSTEM "..\Include\Command\APVSOCheckApprove.txt">
+<!ENTITY APVApprove SYSTEM "..\Include\Command\APVSOApprove.txt">
+<!ENTITY APVMailApproveInsert SYSTEM "..\Include\Command\APVSOMailApproveInsert.txt">
+<!ENTITY APVMailApproveUpdate SYSTEM "..\Include\Command\APVSOMailApproveUpdate.txt">
+<!ENTITY APVInitExternalFieldsDeclare SYSTEM "..\Include\Command\APVInitExternalFieldsDeclare.txt">
+<!ENTITY APVInitExternalFieldsSelect SYSTEM "..\Include\Command\APVInitExternalFieldsSelect.txt">
+<!ENTITY APVDelete SYSTEM "..\Include\Command\APVDelete.txt">
+<!ENTITY APVWhenVoucherCopying SYSTEM "..\Include\Javascript\APVWhenVoucherCopying.txt">
+<!ENTITY APVSetReadOnlyFields SYSTEM "..\Include\Javascript\APVSetReadOnlyFields.txt">
+<!ENTITY APVVisibleStatusNum "4">
+<!ENTITY APVHiddenStatusNum "4">
+<!ENTITY APVInitExternalFieldsSelectWithComma ",&APVInitExternalFieldsSelect;">
+
+<!ENTITY BeforeVoucherUpdate "">
+<!ENTITY AfterVoucherUpdate "">
+<!ENTITY CheckCredit "
+  if (@status = '1' or @status = '2') and @loai_ct = '1' and @ma_tt &lt;&gt; '' and exists(select 1 from dmtt where ma_tt = @ma_tt and han_tt &lt;&gt; 0) begin
+  declare @credit tinyint, @idSalesOrder varchar(13)
+  select @idSalesOrder = case when @@action = 'New' then '' else @stt_rec end
+  exec AI_ERP$Voucher$SalesOrder$CheckCredit @idSalesOrder, @ma_kh, @ma_tt, @t_tt, @ngay_ct, @credit output
+  if @credit = 0 set @status = '3'
+end">
+<!ENTITY UpdateCredit "
+delete cddh13 where stt_rec = @stt_rec
+if @loai_ct = '1' and @status in ('1', '2', '4', '5', '9') and @ma_tt &lt;&gt; '' and exists(select 1 from dmtt where ma_tt = @ma_tt and han_tt &lt;&gt; 0) insert into cddh13 select @stt_rec, @ngay_ct, @ma_kh, @status">
+
+<!ENTITY h2 "228">
+<!ENTITY h1 "168">
+<!ENTITY SOFilterStatus "*, 0, 1, 2, 3, 4, 5, 6, 9">
+<!ENTITY SOFilterStatusField SYSTEM "..\Include\XML\SOFilterStatus.xml">
+<!ENTITY SOFilterStatusFieldExtend SYSTEM "..\Include\XML\SOFilterStatusExtend.xml">
+<!ENTITY SOStatusReportFilterHiddenField "">
+<!ENTITY SODetailRetrieve SYSTEM "..\Include\XML\SODetailRetrieve.txt">
+<!ENTITY SVDetailRetrieve SYSTEM "..\Include\XML\SVDetailRetrieve.txt">
+<!ENTITY CompactModeOrderAnd "">
+<!ENTITY CompactModeOrderKind "">
+<!ENTITY SVBeforeUpdatePara "">
+<!ENTITY SOReportForm030040 SYSTEM "..\Include\XML\SOReportForm030040.txt">
+<!ENTITY SOReportForm070080 SYSTEM "..\Include\XML\SOReportForm070080.txt">
+<!ENTITY SOReportForm130140 SYSTEM "..\Include\XML\SOReportForm130140.txt">
+<!ENTITY SOReportForm170180 SYSTEM "..\Include\XML\SOReportForm170180.txt">
+
+<!ENTITY APVHistoryToolbar SYSTEM "..\Include\XML\APVHistoryToolbar.xml">

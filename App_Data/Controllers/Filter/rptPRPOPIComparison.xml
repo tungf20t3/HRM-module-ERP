@@ -1,0 +1,226 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "rptPRPOPIComparison">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY GetReportFormLimitRight SYSTEM "..\Include\Command\GetReportFormLimitRight.f">
+  <!ENTITY SetReportFormLimitRight SYSTEM "..\Include\Javascript\SetReportFormLimitRight.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY LineCounter "7">
+  <!ENTITY ExtensionCounter "2">
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+
+  <!ENTITY BI.Report.Filter.Categories.Index "1">
+  <!ENTITY % BIMode.Report SYSTEM "..\Include\BIMode.Report">
+  %BIMode.Report;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu từ" e="PR Date from"></header>
+      <footer v="Ngày yêu cầu từ/đến" e="PR Date from/to"></footer>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu đến" e="PR Date to"></header>
+    </field>
+    <field name="po_ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày đơn hàng từ" e="PO Date from"></header>
+      <footer v="Ngày đơn hàng từ/đến" e="PO Date from/to"></footer>
+    </field>
+    <field name="po_ngay_den" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày đơn hàng đến" e="PO Date to"></header>
+    </field>
+    <field name="so_nc1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Nhu cầu từ số" e="PR No. from"></header>
+      <footer v="Số nhu cầu từ/đến" e="PR No. from/to"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_nc2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="voucherNumber">
+      <header v="Nhu cầu đến số" e="PR No. to"></header>
+      <items style="Mask"></items>
+    </field>
+
+    &BI.Report.Filter.Plant.Fields;
+
+    <field name="ma_bp" categoryIndex="1">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="Department" reference="ten_bp%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" categoryIndex="1">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="status" clientDefault="*" categoryIndex="1">
+      <header v="Trạng thái nhu cầu" e="PR Status"/>
+      <items style="DropDownList">
+        <item value="*">
+          <text v="Tất cả" e="All"/>
+        </item>
+        <item value="0">
+          <text v="Lập chứng từ" e="No Action"/>
+        </item>
+        <item value="1">
+          <text v="Chờ duyệt" e="Open"/>
+        </item>
+        <item value="2">
+          <text v="Đã duyệt" e="Approved"/>
+        </item>
+        <item value="3">
+          <text v="Đã đặt hàng" e="Ordered"/>
+        </item>
+        <item value="4">
+          <text v="Hoàn thành" e="Completed"/>
+        </item>
+        <item value="5">
+          <text v="Đóng" e="Closed"/>
+        </item>
+        <item value="9">
+          <text v="Đang duyệt" e="Pending"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" clientDefault="20" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu in chỉ có số lượng" e="Quantity Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu in số lượng và giá trị" e="Quantity and Values Form"/>
+        </item>
+        <item value="30">
+          <text v="Mẫu in số lượng và giá trị ngoại tệ" e="Quantity and FC Values Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="maxLength" readOnly="true" hidden="true" maxLength="-100" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_gd" categoryIndex="1">
+      <header v="Ds mã giao dịch" e="Transaction Code List"/>
+    </field>
+    <field name="ds_ma_ct" hidden="true" readOnly="true" clientDefault="PR1" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="1101: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="1101: [po_ngay_tu].Description, [po_ngay_tu], [po_ngay_den]"/>
+      <item value="1101--1: [so_nc1].Description, [so_nc1], [so_nc2], [maxLength]"/>
+
+      &BI.Report.Filter.Plant.Views;
+
+      <item value="110100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="110100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+
+      <item value="11000: [status].Label, [status]"/>
+      <item value="11000-1: [ma_gd].Label, [ma_gd], [ds_ma_ct]"/>
+
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 20, 80, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message nvarchar(1024)
+select @message = ''
+]]>&GetReportFormLimitRight;<![CDATA[
+select @message + 'active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @k varchar(32)
+if @status = '*' set @k = '0, 1, 2, 3, 4, 5, 9' else set @k = @status
+exec rs_rptPRPOPIComparison @ngay_tu, @ngay_den, @po_ngay_tu, @po_ngay_den, @so_nc1, @so_nc2, @ma_bp, @ma_vt, @k, @maxLength, @ma_gd, @ds_ma_ct, @ma_dvcs, @@language, @@userID, @@admin, ']]>&Controller;<![CDATA[', '@@sysDatabaseName']]>&BI.Report.Plant.Parameter;<![CDATA[
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &SetReportFormLimitRight;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  var o = f.getItem('maxLength');
+  o.value = o.maxLength;
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,d){var a=d.object,e=d.type.Context,f=d.type.Result;switch(e){case"Checking":var b=a.grid,c=a.getItemValue("mau_bc");b._alterTitle=[null,[["%d1",a.getItem("ngay_tu").value,true],["%d2",a.getItem("ngay_den").value,true]]];b._hiddenFields=[{Fields:"gia_nt, tien_nt, ma_nt, ty_gia",Value:c=="10"||c=="20"},{Fields:"gia, tien",Value:c=="30"||c=="10"}];if(a._hidden$GridForm)b._grid$IdHidden$FormReport=a._hidden$GridForm;remove$GridReport$Filter(b)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

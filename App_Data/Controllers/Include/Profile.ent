@@ -1,0 +1,101 @@
+﻿<!ENTITY % Conditional.Profile SYSTEM "..\Include\Profile.txt">
+
+<![%Conditional.Profile;[
+  <!ENTITY ProfileField SYSTEM "..\Include\XML\ProfileField.txt">
+  <!ENTITY ProfileView SYSTEM "..\Include\XML\ProfileViews.xml">
+
+  <!ENTITY ProfileViewPost SYSTEM "..\Include\XML\ProfilePostViews.xml">
+  <!ENTITY ProfileCategory SYSTEM "..\Include\XML\ProfileCategory.xml">
+  <!ENTITY ProfileTab " null,">
+
+  <!ENTITY ProfileScript SYSTEM "..\Include\Javascript\ProfileScript.txt">
+  <!ENTITY ProfileDeclareVar "declare @cticket varchar(32); select @cticket = lower(replace(newid(),'-',''));">
+  <!ENTITY ProfileCreateTicketWhenReturn "
+insert into @@sysDatabaseName..ticket(ticket, user_id, data, datetime0) values(@cticket, @@userID, '@@appDatabaseName', getdate())">
+
+  <!ENTITY ProfileCreateTicket "declare @ticket varchar(32)
+select @ticket = '';select @ticket = lower(replace(newid(),'-',''));
+insert into @@sysDatabaseName..ticket(ticket, user_id, data, datetime0) values(@ticket, @@userID, '@@appDatabaseName', getdate());">
+
+  <!ENTITY ProfileInitExternalFields "if @@action = 'Edit' begin
+  &ProfileCreateTicket;
+  declare @rkey varchar(32), @imageUrl varchar(4000), @eid varchar(32)
+  select @eid = rtrim(id) from @@sysDatabaseName..userinfo2 where name = @name
+  select @rkey = rkey from @@sysDatabaseName..hreanh where stt_rec = @eid
+  if isnull(@rkey, '') = '' select @imageUrl = ''
+  else select @imageUrl = '../AppHandler/Image.ashx?s=1&amp;c=ProfileImage&amp;t=show&amp;k=' + @eid + '&amp;d=' + '@@appDatabaseName' + '&amp;r=' + isnull(@rkey, '')
+  select @ticket as ticket, isnull(@rkey, '') as rkey, @imageUrl as imageurl
+  return
+end">
+  <!ENTITY ProfileShowing "
+  declare @fileTicket nvarchar(256)
+  select @fileTicket = lower(replace(newid(),'-',''));
+  if @@action = 'New' insert into @@sysDatabaseName..ticket(ticket, user_id, data, datetime0) values(@fileTicket, @@userID, '@@appDatabaseName', getdate());
+  select @message = 'this._ticket = ''' + @fileTicket + ''';' + @message + ';loadUserImage(this);'
+">
+  <!ENTITY ProfileScattering "loadUserImage(this);">
+  <!ENTITY ProfileInserted "if (@$rkey &lt;&gt; '') begin
+  select @invoke = @invoke + case when @invoke &lt;&gt; '' then '&amp;' + char(255) + ';' else '' end + 'Image.Image.Process.SaveSysImage(' + rtrim(@$rkey) + ',' + rtrim(@id) + ',' + '@@appDatabaseName' + ')'
+  end">
+
+  <!ENTITY ProfileDeleted "delete @@sysDatabaseName..hreanh where stt_rec = rtrim(@userID)
+  delete @@sysDatabaseName..hreanh2 where stt_rec = rtrim(@userID)">
+
+  <!ENTITY ProfileFixCss "var p = $get('empImage').parentNode;
+  p.style.maxHeight = 'none';">
+  <!ENTITY ProfileScriptLoad "if (f._action == 'New') f.setItemValues('ticket', [f._ticket]);
+  $addHandler($get('imageupload'), 'change', onFileSelected);">
+  <!ENTITY ProfileScriptClose "try {$removeHandler($get('imageupload'), 'change', onFileSelected);} catch (ex) {}">
+  <!ENTITY ProfileScriptChecking "var field = f.getItem('rkey').field;
+  var imgname = getFileName($get('imageupload').value), allowExt = 'gif,png,jpg,jpeg';
+  var err = (f._language == 'v' ? 'Định dạng tệp ảnh không đúng.' : 'Invalid image format.');
+  if (imgname != '') {
+    var ext = imgname.split('.').pop();
+    if (allowExt.indexOf(ext.toLowerCase()) &lt; 0) {
+      f._checked = false;
+      $message.show(err, String.format('revertPassword(\'{0}\', \'\', true);', f._id));
+    }
+    else {
+      var k = getRandomKey(12), h = f.getItemValue('ticket');
+      var form = $get('uploadForm');
+      f.setItemValue('rkey', k);
+      form.action = '../AppHandler/Image.ashx?s=1&amp;c=ProfileImage&amp;t=upload&amp;k=' + k + '&amp;h=' + h;
+      form.submit();
+    }
+    field.FilterSource = '';
+  }
+  else {
+    f.setItemValue('rkey', '');
+    field.FilterSource = 'Ignore';
+  }">
+
+  <!ENTITY ProfileCss ".ViewBlank{background-color:white;border:thin solid gray;width:78px;height:78px;}
+  .divUpload:hover{color:#3171c6;text-decoration:underline}
+  .divUpload{position:relative;width:84px!important;height:22px!important;overflow:hidden}
+  .divButton{color:#3171c6;font-family:verdana;font-size:11px;height:22px!important;margin-left:0!important}
+  .divInput{cursor:pointer;position:absolute;-moz-opacity:0;opacity:0;filter:alpha(opacity:0);top:0;right:0;padding:0}">
+]]>
+
+
+<!ENTITY ProfileField "">
+<!ENTITY ProfileView "">
+<!ENTITY ProfileViewPost "">
+<!ENTITY ProfileCategory "">
+
+<!ENTITY ProfileScript "">
+<!ENTITY ProfileTab "">
+
+<!ENTITY ProfileDeclareVar "">
+<!ENTITY ProfileCreateTicketWhenReturn "">
+<!ENTITY ProfileCreateTicket "">
+<!ENTITY ProfileInitExternalFields "">
+<!ENTITY ProfileShowing "">
+<!ENTITY ProfileScattering "">
+<!ENTITY ProfileInserted "">
+<!ENTITY ProfileDeleted "">
+<!ENTITY ProfileFixCss "">
+<!ENTITY ProfileScriptLoad "">
+<!ENTITY ProfileScriptClose "">
+<!ENTITY ProfileScriptChecking "">
+
+<!ENTITY ProfileCss "">

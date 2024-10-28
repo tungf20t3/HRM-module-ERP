@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY NotifyContentCss SYSTEM "..\Include\XML\NotifyContentCss.txt">
+
+  <!ENTITY Identity "rptNotifyListDetail">
+
+  <!ENTITY FormNoPaddingWidth "753">
+  <!ENTITY FormNoPaddingScript SYSTEM "..\Include\Javascript\FormNoPadding.txt">
+]>
+
+<dir id="0" type="Report" cache="true" database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chi tiết" e="Detail"></title>
+  <fields>
+    <field name="noi_dung" external="true" readOnly="true" defaultValue="''" filterSource="Plugin">
+      <header v="" e=""></header>
+      <footer v="&lt;div id=&quot;viewContent&quot; &gt;&lt;/div&gt;" e="&lt;div id=&quot;viewContent&quot; &gt;&lt;/div&gt;"></footer>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="279" anchor="1">
+      <item value="&FormNoPaddingWidth;"/>
+      <item value="1: [noi_dung].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'show$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function show$]]>&Identity;<![CDATA[$(f) {show$NoPadding$Form(f, 'viewContent');}
+function active$]]>&Identity;<![CDATA[$(f) {
+  active$NoPadding$Form(f);
+  var g = f.grid, vc = $get('viewContent');
+  if (g._currentContentObject) vc.appendChild(g._currentContentObject);
+  else vc.innerHTML = g._currentContent;
+  f._findButton('Close').focus();
+}
+
+function close$]]>&Identity;<![CDATA[$(f) {close$NoPadding$Form(f);}
+]]>
+      &FormNoPaddingScript;
+    </text>
+  </script>
+
+  <css>
+    <text>
+      &NotifyContentCss;
+    </text>
+  </css>
+</dir>

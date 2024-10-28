@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="vmctkhsx" code="ngay_ct, so_dh, so_lsx, ma_sp, ma_kho" order="ngay_ct, so_dh, so_lsx, ma_sp, ma_kho" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày từ" e="Date from"></header>
+      <footer v="Ngày từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày đến" e="Date to"></header>
+    </field>
+    <field name="so_dh1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="Số đơn hàng từ" e="Order No. from"></header>
+      <footer v="Số đơn hàng từ/đến" e="Order No. from/to"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_dh2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="Số đơn hàng đến" e="Order No. to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_lsx1" dataFormatString="@upperCaseFormat" align="right" maxLength="-109">
+      <header v="Số lsx từ" e="MO No. from"></header>
+      <footer v="Số lsx từ/đến" e="MO No. from/to"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_lsx2" dataFormatString="@upperCaseFormat" align="right" maxLength="-109">
+      <header v="Số lsx đến" e="MO No. to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="ma_sp">
+      <header v="Mã sản phẩm" e="Product"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_sp%l" key="status = '1' and loai_vt in ('41', '51', '61') and kieu_hd &lt;&gt; '0'" check="loai_vt in ('41', '51', '61') and kieu_hd &lt;&gt; '0'"/>
+    </field>
+    <field name="ten_sp%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+    <field name="ma_kho">
+      <header v="Mã kho" e="Site ID"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+    <field name="maxLength_dh" type="Int16" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+    <field name="maxLength_lsx" type="Int16" readOnly="true" hidden="true" maxLength="-109">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101--: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="1101-1: [so_dh1].Description, [so_dh1], [so_dh2], [maxLength_dh]"/>
+      <item value="1101-1: [so_lsx1].Description, [so_lsx1], [so_lsx2], [maxLength_lsx]"/>
+      <item value="110100: [ma_sp].Label, [ma_sp], [ten_sp%l]"/>
+      <item value="110100: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(sender) {sender.add_onResponseComplete(on$Filter$ResponseComplete);}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array();
+
+      var o1 = f.getItem('maxLength_dh'), o2 = f.getItem('maxLength_lsx'), d1 = f.getItemValue('ngay_tu'), d2 = f.getItemValue('ngay_den');
+      var c1 = f.getItemValue('so_dh1'), c2 = f.getItemValue('so_dh2'), l1 = f.getItemValue('so_lsx1'), l2 = f.getItemValue('so_lsx2');
+      var p = f.getItemValue('ma_sp'), site = f.getItemValue('ma_kho');
+
+      o1.value = o1.maxLength;
+      o2.value = o2.maxLength;
+
+      if (d1) Array.add(k, {Name: 'ngay_ct', Opr: '>=', Value: $func.formatDateOrder(d1), Type: 'String', Ignore: false});
+      if (d2) Array.add(k, {Name: 'ngay_ct', Opr: '<=', Value: $func.formatDateOrder(d2), Type: 'String', Ignore: false});
+      if (c1) Array.add(k, {Name: 'so_dh', Opr: '>=', Value: $func.padLeft(c1, o1.value), Type: 'String', Ignore: false});
+      if (c2) Array.add(k, {Name: 'so_dh', Opr: '<=', Value: $func.padLeft(c2, o1.value), Type: 'String', Ignore: false});
+      if (l1) Array.add(k, {Name: 'so_lsx', Opr: '>=', Value: $func.padLeft(l1, o2.value), Type: 'String', Ignore: false});
+      if (l2) Array.add(k, {Name: 'so_lsx', Opr: '<=', Value: $func.padLeft(l2, o2.value), Type: 'String', Ignore: false});
+
+      if (p) Array.add(k, {Name: 'ma_sp', Opr: 'like', Value: $func.trim(p) + '%', Type: 'String', Ignore: false});
+      if (site) Array.add(k, {Name: 'ma_kho', Opr: 'like', Value: $func.trim(site) + '%', Type: 'String', Ignore: false});
+      g.set_externalKey(k);
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+</dir>

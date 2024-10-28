@@ -1,0 +1,70 @@
+﻿<action id="VendorEvaluation">
+      <text>
+        <![CDATA[
+declare @result tinyint, @messeage nvarchar(512), @danh_gia_ncc char(1), @ma_bp0 varchar(32), @status varchar(32), @part varchar(6), @q nvarchar(4000), @authorize int
+select @result = ''
+
+select top 1 @ma_bp0 = ma_bp0, @part = convert(char(6), ngay_ct, 112), @status = status from ]]>&VendorEvaluation.Table;<![CDATA[000000 where stt_rec = @stt_rec
+select top 0 ma_vt into #t from ]]>&VendorEvaluation.TableDetail;<![CDATA[000000
+
+-- Check Authorize
+if @@admin <> 1 begin
+  select @authorize = @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'BIScoreByItem', 'New')
+  if @authorize = 0 or not exists(select 1 from bisyspurorgrights where user_id = @@userID and ma_bp0 = @ma_bp0 and r_new = 1) begin
+    select @result = '1', @messeage = '$NotAuthorized'
+    goto VendorEvaluationResult
+  end
+end
+
+-- Check Status
+if @status not in ]]>&VendorEvaluation.Status;<![CDATA[ begin
+  select @result = '1', @messeage = case when @@language = 'V' then N'Trạng thái đơn hàng hoặc hợp đồng không hợp lệ.' else N'Invalid status.' end
+  goto VendorEvaluationResult
+end
+
+-- Check Vendor
+select @danh_gia_ncc = val from bidmncctsbp0 where ma_kh = @ma_kh and ma_bp0 = @ma_bp0 and name = 'danh_gia_ncc'
+if @danh_gia_ncc is null and not exists (select 1 from bidmncctsbp0 where ma_kh = @ma_kh and name = 'danh_gia_ncc')begin
+  select top 1 @danh_gia_ncc = val from bidmnccts where ma_kh = @ma_kh
+end
+
+if isnull(@danh_gia_ncc, '0') = '0' begin
+  select @result = '1', @messeage = case when @@language = 'V' then N'Nhà cung cấp <span class="Highlight">' + rtrim(@ma_kh) + N'</span> chưa khai báo đánh giá nhà cung cấp.' else N'Vendor <span class="Highlight">' + rtrim(@ma_kh) + N'</span> has not been configured for vendor evaluation.' end
+  goto VendorEvaluationResult
+end
+
+select @q = 'insert into #t select ma_vt from ]]>&VendorEvaluation.TableDetail;<![CDATA[' + @part + ' where stt_rec = @stt_rec' + case when @ma_vt <> '' then ' and ma_vt = @ma_vt' else '' end
+exec sp_executesql @q, N'@stt_rec varchar(13), @ma_vt varchar(32)', @stt_rec, @ma_vt
+
+-- Check Item
+if exists (select 1 from #t a where exists(select 1 from bidmvttsbp0 b where a.ma_vt = b.ma_vt and b.ma_bp0 = @ma_bp0 and name = 'danh_gia_ncc' and val = 1)) begin
+  select @result = '', @messeage = ''
+  goto VendorEvaluationResult
+end
+
+if exists (select 1 from #t a where exists(select 1 from bidmvtts b where a.ma_vt = b.ma_vt and name = 'danh_gia_ncc' and val = 1) and not exists(select 1 from bidmvttsbp0 b where a.ma_vt = b.ma_vt and b.ma_bp0 = @ma_bp0 and name = 'danh_gia_ncc')) begin
+  select @result = '', @messeage = ''
+  goto VendorEvaluationResult
+end
+select @result = '1', @messeage = case when @@language = 'V' then N'Mã hàng <span class="Highlight">' + rtrim(@ma_vt) + N'</span> chưa khai báo đánh giá nhà cung cấp.' else N'Item <span class="Highlight">' + rtrim(@ma_vt) + N'</span> has not been configured for vendor evaluation.' end
+
+VendorEvaluationResult:
+if @result = '' begin
+  declare @language char(1), @ten_vt nvarchar(256)
+  select @language = case when @@language = 'v' then '' else '2' end
+  if @ma_vt <> '' select @ten_vt = case when @@language = 'v' then ten_vt else ten_vt2 end from dmvt where ma_vt = @ma_vt
+  select @q = '
+  select top 1 '''' as result, '''' as messeage, a.stt_rec, '''' as dien_giai, rtrim(ltrim(a.ma_kh)) as ma_kh, c.ten_kh' + @language + ', a.ma_bp0, b.ten_bp' + @language + ', a.ma_dvcs, rtrim(ltrim(a.so_ct)), a.ngay_ct, a.ma_ct, @ma_vt as ma_vt, isnull(@ten_vt, '''') as ten_vt
+    from ]]>&VendorEvaluation.TableMaster;<![CDATA[' + @part + ' a
+        left join bidmbp0 b on a.ma_bp0 = b.ma_bp
+        left join dmkh c on a.ma_kh = c.ma_kh
+      where a.stt_rec = @stt_rec
+  '
+  exec sp_executesql @q, N'@stt_rec varchar(13), @ma_vt varchar(13), @ten_vt nvarchar(256)', @stt_rec, @ma_vt, @ten_vt
+  return
+end
+select @result as result, @messeage as messeage
+return
+]]>
+      </text>
+    </action>

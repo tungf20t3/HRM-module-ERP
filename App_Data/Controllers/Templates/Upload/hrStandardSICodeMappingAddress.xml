@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrStandardSICodeMappingAddress' else 'hrStandardSICodeMappingAddress2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$hrStandardSICodeMappingAddressImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$hrStandardSICodeMappingAddressImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+    <baseTable value="hrmapbhdd"/>
+    <table value="hrmapbhdd" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_tc" isPrimaryKey="true" column="A" allowNulls="false" upperCase="true" updateValue="None" check="ma_tc &lt;&gt; '' and ma_tc not in (select ma_tc from hrmapbh)" errorCode="00001"/>
+    <field name="f_ma_tinh" isPrimaryKey="true" column="B" allowNulls="false" upperCase="true" updateValue="None" check="f_ma_tinh &lt;&gt; '' and f_ma_tinh not in (select ma_tinh from hrdmtinh)" errorCode="00001"/>
+    <field name="f_ma_quan" isPrimaryKey="true" column="D" allowNulls="false" upperCase="true" updateValue="None" check="f_ma_quan &lt;&gt; '' and not exists (select 1 from hrdmquan a where @@table.f_ma_tinh = a.ma_tinh and @@table.f_ma_quan = a.ma_quan)" errorCode="00001"/>
+    <field name="f_ma_phuong" isPrimaryKey="true" column="F" allowNulls="false" upperCase="true" updateValue="None" check="f_ma_phuong &lt;&gt; '' and not exists (select 1 from hrdmphuong a where @@table.f_ma_tinh = a.ma_tinh and @@table.f_ma_quan = a.ma_quan and @@table.f_ma_phuong = a.ma_phuong)" errorCode="00001"/>
+    <field name="tc_ma_tinh" allowNulls="false" column="H"/>
+    <field name="tc_ma_quan" allowNulls="false" column="I" upperCase="true"/>
+    <field name="tc_ma_phuong" allowNulls="false" column="J" upperCase="true"/>
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Khai báo tham chiếu mã địa chỉ BHXH" e="Standard SI Address Code Mapping"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_tc" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã tham chiếu" e="Mapping Code"/>
+      </field>
+      <field name="f_ma_tinh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã tỉnh/thành" e="Province/City"/>
+      </field>
+      <field name="ten_ma_tinh" width="32" afterField="f_ma_tinh" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên tỉnh/thành" e="Province/City Name"/>
+      </field>
+      <field name="f_ma_quan" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã quận/huyện" e="District"/>
+      </field>
+      <field name="ten_ma_quan" width="32" afterField="f_ma_quan" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên quận/huyện" e="District Name"/>
+      </field>
+      <field name="f_ma_phuong" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã xã/phường" e="Ward/Commune"/>
+      </field>
+      <field name="ten_ma_phuong" width="32" afterField="f_ma_phuong" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên xã/phường" e="Ward/Commune Name"/>
+      </field>
+      <field name="tc_ma_tinh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tỉnh/thành (BHXH)" e="Province/City (SI)"/>
+      </field>
+      <field name="tc_ma_quan" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Quận/huyện (BHXH)" e="District (SI)"/>
+      </field>
+      <field name="tc_ma_phuong" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Xã/phường (BHXH)" e="Ward/Commune (SI)"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'hrStandardSICodeMappingAddress', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @field varchar(32), @r int
+
+alter table @@table alter column ma_tc char(32)
+alter table @@table alter column f_ma_tinh char(32)
+alter table @@table alter column f_ma_quan char(32)
+alter table @@table alter column f_ma_phuong char(32)
+create index i on @@table (ma_tc, f_ma_tinh, f_ma_quan, f_ma_phuong)
+
+if @type = '0' delete @@table from @@table a join hrmapbhdd b on a.ma_tc = b.ma_tc and a.f_ma_tinh = b.f_ma_tinh and a.f_ma_quan = b.f_ma_quan and a.f_ma_phuong = b.f_ma_phuong
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+
+select a.* into #k from @@table a join hrmapbhdd b on a.ma_tc = b.ma_tc and a.f_ma_tinh = b.f_ma_tinh and a.f_ma_quan = b.f_ma_quan and a.f_ma_phuong = b.f_ma_phuong
+delete @@table from @@table a join #k b on a.ma_tc = b.ma_tc and a.f_ma_tinh = b.f_ma_tinh and a.f_ma_quan = b.f_ma_quan and a.f_ma_phuong = b.f_ma_phuong
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ end
+]]>
+    </text>
+  </processing>
+</import>

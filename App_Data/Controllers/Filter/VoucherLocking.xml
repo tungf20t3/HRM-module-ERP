@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir table="vsysvoucherlocking" code="user_id, ma_ct" order="name" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc dữ liệu" e="Voucher Locking Filter"></title>
+  <fields>
+    <field name="ma_ct">
+      <header v="Danh sách chứng từ" e="Voucher List"></header>
+      <items style="Lookup" controller="Voucher" key="wedition &lt;&gt; '9' and voucher_yn = 1 and status = '1'" check="wedition &lt;&gt; '9' and voucher_yn = 1"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 430"/>
+      <item value="11: [ma_ct].Label, [ma_ct]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$VoucherFilter$(sender) {
+  sender.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(sender, 'ma_ct', true);
+}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array();
+      var voucherCode = f.getItemValue('ma_ct');
+      if (voucherCode != '') Array.add(k, {Name: "dbo.ff_InList(ma_ct, '" + voucherCode + "')", Opr: '=', Value: 1, Type: 'String', Ignore: false});
+      g.set_externalKey(k);
+      g._alterTitle = [null, [['%s1', voucherCode ? $func.trim(voucherCode) : '*', true]]];
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+</dir>

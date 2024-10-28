@@ -1,0 +1,415 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE report [
+  <!ENTITY s SYSTEM ".\Include\Separate.xml">
+
+  <!ENTITY p "../images/pdf.gif">
+  <!ENTITY e "../images/excel.gif">
+]>
+
+<report xmlns="urn:schemas-ai-erp:data-report">
+  <query>
+    <text>
+      <![CDATA[
+select * into #$keys from @$keys          
+exec hs_rptCurriculumVitaeExport '', @@language, @@userID, @@admin
+]]>
+    </text>
+  </query>
+
+  <forms>
+    <form id="010" reportFile ="hrptCurriculumVitae_01" commandArgument="pdf" urlImage="&p;">
+      <header v="Sơ yếu lý lịch" e="Curriculum Vitae"/>
+      <download>
+        <header v="Sơ yếu lý lịch" e="Curriculum Vitae"/>
+      </download>
+    </form>
+
+    <form id="020" reportFile ="hrptCurriculumVitae_sn" commandArgument="pdf">
+      <header v="Sơ yếu lý lịch mẫu song ngữ" e="Curriculum Vitae in Bilingual Form"/>
+      <download>
+        <header v="Sơ yếu lý lịch" e="Curriculum Vitae"/>
+      </download>
+      <fields>
+        <field name="title2" type ="String">
+          <header v="CURRICULUM VITAE" e="SƠ YẾU LÝ LỊCH"/>
+        </field>
+
+        <field name="h_thong_tin2" type="String">
+          <header v="EMPLOYMENT INFORMATION" e="THÔNG TIN CÔNG VIỆC"/>
+        </field>
+        <field name="h_ten_nv2" type="String">
+          <header v="Full Name:" e="Họ và tên:"/>
+        </field>
+        <field name="h_ma_nv2" type="String">
+          <header v="Employee:" e="Mã nhân viên:"/>
+        </field>
+        <field name="h_ngay_vao2" type="String">
+          <header v="Join Date" e="Ngày vào công ty:"/>
+        </field>
+        <field name="h_bo_phan2" type="String">
+          <header v="Department:" e="Bộ phận:"/>
+        </field>
+        <field name="h_chuc_vu2" type="String">
+          <header v="Position:" e="Chức vụ:"/>
+        </field>
+
+        <field name="h_ban_than2" type="String">
+          <header v="PERSONAL" e="BẢN THÂN"/>
+        </field>
+        <field name="h_gioi_tinh2" type="String">
+          <header v="Gender:" e="Giới tính:"/>
+        </field>
+        <field name="h_ton_giao2" type="String">
+          <header v="Religion:" e="Tôn giáo:"/>
+        </field>
+        <field name="h_hon_nhan2" type="String">
+          <header v="Marital Status:" e="Tình trạng hôn nhân:"/>
+        </field>
+        <field name="h_ngay_sinh2" type="String">
+          <header v="Date of Birth:" e="Ngày sinh:"/>
+        </field>
+        <field name="h_noi_sinh2" type="String">
+          <header v="Place of Birth:" e="Nơi sinh:"/>
+        </field>
+        <field name="h_dien_thoai2" type="String">
+          <header v="Telephone:" e="Điện thoại:"/>
+        </field>
+        <field name="h_di_dong2" type="String">
+          <header v="Mobile:" e="Di động:"/>
+        </field>
+        <field name="h_email2" type="String">
+          <header v="Email:" e="Địa chỉ email:"/>
+        </field>
+        <field name="h_cmnd2" type="String">
+          <header v="ID Card:" e="Số CMND:"/>
+        </field>
+        <field name="h_ngay_cap_cmnd2" type="String">
+          <header v="Issued Date:" e="Ngày cấp:"/>
+        </field>
+        <field name="h_noi_cap_cmnd2" type="String">
+          <header v="Issued Place:" e="Nơi cấp:"/>
+        </field>
+        <field name="h_cho_o2" type="String">
+          <header v="Current Address:" e="Chỗ ở hiện tại:"/>
+        </field>
+
+        <field name="h_gia_dinh2" type="String">
+          <header v="FAMILY PARTICULARS (INCLUDING PARENTS, SPOUSE, CHILDREN, BROTHERS AND SISTERS)" e="GIA ĐÌNH (CHA MẸ, VỢ CHỒNG, CON CÁI, ANH CHỊ)"/>
+        </field>
+        <field name="h_ten_gd2" type="String">
+          <header v="Full Name" e="Họ và tên"/>
+        </field>
+        <field name="h_qh_gd2" type="String">
+          <header v="Relationship" e="Quan hệ"/>
+        </field>
+        <field name="h_ngay_sinh_gd2" type="String">
+          <header v="Date of Birth" e="Ngày sinh"/>
+        </field>
+        <field name="h_nghe_gd2" type="String">
+          <header v="Occupation" e="Nghề nghiệp"/>
+        </field>
+
+        <field name="h_hoc_van2" type="String">
+          <header v="EDUCATION" e="HỌC VẤN"/>
+        </field>
+        <field name="h_ngay_tu_hv2" type="String">
+          <header v="From (dd/mm/yy)" e="Từ (ngày/tháng/năm)"/>
+        </field>
+        <field name="h_ngay_den_hv2" type="String">
+          <header v="To (dd/mm/yy)" e="Đến (ngày/tháng/năm)"/>
+        </field>
+        <field name="h_truong_hv2" type="String">
+          <header v="Name of School" e="Tên trường"/>
+        </field>
+        <field name="h_bang_hv2" type="String">
+          <header v="Qualifications" e="Bằng cấp"/>
+        </field>
+
+        <field name="h_dt_ngan_han2" type="String">
+          <header v="TRAINING COURSES" e="CÁC KHÓA ĐÀO TẠO"/>
+        </field>
+        <field name="h_ngay_tu_dt2" type="String">
+          <header v="From (dd/mm/yy)" e="Từ (ngày/tháng/năm)"/>
+        </field>
+        <field name="h_ngay_den_dt2" type="String">
+          <header v="To (dd/mm/yy)" e="Đến (ngày/tháng/năm)"/>
+        </field>
+        <field name="h_khoa_hoc_dt2" type="String">
+          <header v="Name of Course" e="Tên khóa học"/>
+        </field>
+        <field name="h_truong_dt2" type="String">
+          <header v="Name of Training Provider" e="Tên trường đào tạo"/>
+        </field>
+
+        <field name="h_qt_lam_viec2" type="String">
+          <header v="WORKING HISTORY" e="QUÁ TRÌNH LÀM VIỆC"/>
+        </field>
+        <field name="h_phong_qt2" type="String">
+          <header v="Name of Department" e="Tên phòng ban"/>
+        </field>
+        <field name="h_ngay_qt2" type="String">
+          <header v="Date" e="Ngày"/>
+        </field>
+        <field name="h_tu_qt2" type="String">
+          <header v="From" e="Từ"/>
+        </field>
+        <field name="h_den_qt2" type="String">
+          <header v="To" e="Đến"/>
+        </field>
+        <field name="h_cong_viec_qt2" type="String">
+          <header v="Job Title" e="Tên công việc"/>
+        </field>
+        <field name="h_chuc_vu_qt2" type="String">
+          <header v="Position" e="Chức vụ"/>
+        </field>
+        <field name="h_ly_do_qt2" type="String">
+          <header v="Reason of Transfer (If any)" e="Lý do thay đổi (nếu có)"/>
+        </field>
+
+        <field name="h_thuong2" type="String">
+          <header v="REWARD" e="THƯỞNG"/>
+        </field>
+        <field name="h_hinh_thuc_thuong2" type="String">
+          <header v="Reward" e="Hình thức khen thưởng"/>
+        </field>
+        <field name="h_ngay_thuong2" type="String">
+          <header v="Date" e="Ngày"/>
+        </field>
+        <field name="h_tien_thuong2" type="String">
+          <header v="Reward Amount" e="Số tiền (nếu có)"/>
+        </field>
+        <field name="h_ly_do_thuong2" type="String">
+          <header v="Reward Reason" e="Lý do khen thưởng"/>
+        </field>
+        <field name="h_ghi_chu_thuong2" type="String">
+          <header v="Remarks" e="Ghi chú"/>
+        </field>
+
+        <field name="h_ky_luat2" type="String">
+          <header v="DISCIPLINE" e="KỶ LUẬT"/>
+        </field>
+        <field name="h_hinh_thuc_kl2" type="String">
+          <header v="Discipline Action" e="Hình thức kỷ luật"/>
+        </field>
+        <field name="h_ngay_kl2" type="String">
+          <header v="Date" e="Ngày"/>
+        </field>
+        <field name="h_tien_kl2" type="String">
+          <header v="Discipline Amount" e="Số tiền (nếu có)"/>
+        </field>
+        <field name="h_vi_pham_kl2" type="String">
+          <header v="Violation" e="Vi phạm"/>
+        </field>
+        <field name="h_ghi_chu_kl2" type="String">
+          <header v="Remarks" e="Ghi chú"/>
+        </field>
+
+        <field name="h_xac_nhan_ns2" type="String">
+          <header v="CONFIRM OF HUMAN RESOURCE DEPARTMENT" e="XÁC NHẬN CỦA PHÒNG NHÂN SỰ"/>
+        </field>
+        <field name="h_xac_nhan2" type="String">
+          <header v="Confirm by:" e="Xác nhận bởi:"/>
+        </field>
+        <field name="h_chuc_vu_xn2" type="String">
+          <header v="Position:" e="Chức vụ:"/>
+        </field>
+        <field name="h_ngay2" type="String">
+          <header v="Date:" e="Ngày:"/>
+        </field>
+      </fields>
+    </form>
+  </forms>
+
+  <fields>
+    <field name="title" type ="String">
+      <header v="SƠ YẾU LÝ LỊCH" e="CURRICULUM VITAE"/>
+    </field>
+
+    <field name="h_thong_tin" type="String">
+      <header v="THÔNG TIN CÔNG VIỆC" e="EMPLOYMENT INFORMATION"/>
+    </field>
+    <field name="h_ten_nv" type="String">
+      <header v="Họ và tên:" e="Full Name:"/>
+    </field>
+    <field name="h_ma_nv" type="String">
+      <header v="Mã nhân viên:" e="Employee:"/>
+    </field>
+    <field name="h_ngay_vao" type="String">
+      <header v="Ngày vào công ty:" e="Join Date"/>
+    </field>
+    <field name="h_bo_phan" type="String">
+      <header v="Bộ phận:" e="Department:"/>
+    </field>
+    <field name="h_chuc_vu" type="String">
+      <header v="Chức vụ:" e="Position:"/>
+    </field>
+
+    <field name="h_ban_than" type="String">
+      <header v="BẢN THÂN" e="PERSONAL"/>
+    </field>
+    <field name="h_gioi_tinh" type="String">
+      <header v="Giới tính:" e="Gender:"/>
+    </field>
+    <field name="h_ton_giao" type="String">
+      <header v="Tôn giáo:" e="Religion:"/>
+    </field>
+    <field name="h_hon_nhan" type="String">
+      <header v="Tình trạng hôn nhân:" e="Marital Status:"/>
+    </field>
+    <field name="h_ngay_sinh" type="String">
+      <header v="Ngày sinh:" e="Date of Birth:"/>
+    </field>
+    <field name="h_noi_sinh" type="String">
+      <header v="Nơi sinh:" e="Place of Birth:"/>
+    </field>
+    <field name="h_dien_thoai" type="String">
+      <header v="Điện thoại:" e="Telephone:"/>
+    </field>
+    <field name="h_di_dong" type="String">
+      <header v="Di động:" e="Mobile:"/>
+    </field>
+    <field name="h_email" type="String">
+      <header v="Địa chỉ email:" e="Email:"/>
+    </field>
+    <field name="h_cmnd" type="String">
+      <header v="Số CMND:" e="ID Card:"/>
+    </field>
+    <field name="h_ngay_cap_cmnd" type="String">
+      <header v="Ngày cấp:" e="Issued Date:"/>
+    </field>
+    <field name="h_noi_cap_cmnd" type="String">
+      <header v="Nơi cấp:" e="Issued Place:"/>
+    </field>
+    <field name="h_cho_o" type="String">
+      <header v="Chỗ ở hiện tại:" e="Current Address:"/>
+    </field>
+
+    <field name="h_gia_dinh" type="String">
+      <header v="GIA ĐÌNH (CHA MẸ, VỢ CHỒNG, CON CÁI, ANH CHỊ)" e="FAMILY PARTICULARS (INCLUDING PARENTS, SPOUSE, CHILDREN, BROTHERS AND SISTERS)"/>
+    </field>
+    <field name="h_ten_gd" type="String">
+      <header v="Họ và tên" e="Full Name"/>
+    </field>
+    <field name="h_qh_gd" type="String">
+      <header v="Quan hệ" e="Relationship"/>
+    </field>
+    <field name="h_ngay_sinh_gd" type="String">
+      <header v="Ngày sinh" e="Date of Birth"/>
+    </field>
+    <field name="h_nghe_gd" type="String">
+      <header v="Nghề nghiệp" e="Occupation"/>
+    </field>
+
+    <field name="h_hoc_van" type="String">
+      <header v="HỌC VẤN" e="EDUCATION"/>
+    </field>
+    <field name="h_ngay_tu_hv" type="String">
+      <header v="Từ (ngày/tháng/năm)" e="From (dd/mm/yy)"/>
+    </field>
+    <field name="h_ngay_den_hv" type="String">
+      <header v="Đến (ngày/tháng/năm)" e="To (dd/mm/yy)"/>
+    </field>
+    <field name="h_truong_hv" type="String">
+      <header v="Tên trường" e="Name of School"/>
+    </field>
+    <field name="h_bang_hv" type="String">
+      <header v="Bằng cấp" e="Qualifications"/>
+    </field>
+
+    <field name="h_dt_ngan_han" type="String">
+      <header v="CÁC KHÓA ĐÀO TẠO" e="TRAINING COURSES"/>
+    </field>
+    <field name="h_ngay_tu_dt" type="String">
+      <header v="Từ (ngày/tháng/năm)" e="From (dd/mm/yy)"/>
+    </field>
+    <field name="h_ngay_den_dt" type="String">
+      <header v="Đến (ngày/tháng/năm)" e="To (dd/mm/yy)"/>
+    </field>
+    <field name="h_khoa_hoc_dt" type="String">
+      <header v="Tên khóa học" e="Name of Course"/>
+    </field>
+    <field name="h_truong_dt" type="String">
+      <header v="Tên trường đào tạo" e="Name of Training Provider"/>
+    </field>
+
+    <field name="h_qt_lam_viec" type="String">
+      <header v="QUÁ TRÌNH LÀM VIỆC" e="WORKING HISTORY"/>
+    </field>
+    <field name="h_phong_qt" type="String">
+      <header v="Tên phòng ban" e="Name of Department"/>
+    </field>
+    <field name="h_ngay_qt" type="String">
+      <header v="Ngày" e="Date"/>
+    </field>
+    <field name="h_tu_qt" type="String">
+      <header v="Từ" e="From"/>
+    </field>
+    <field name="h_den_qt" type="String">
+      <header v="Đến" e="To"/>
+    </field>
+    <field name="h_cong_viec_qt" type="String">
+      <header v="Tên công việc" e="Job Title"/>
+    </field>
+    <field name="h_chuc_vu_qt" type="String">
+      <header v="Chức vụ" e="Position"/>
+    </field>
+    <field name="h_ly_do_qt" type="String">
+      <header v="Lý do thay đổi (nếu có)" e="Reason of Transfer (If any)"/>
+    </field>
+
+    <field name="h_thuong" type="String">
+      <header v="THƯỞNG" e="REWARD"/>
+    </field>
+    <field name="h_hinh_thuc_thuong" type="String">
+      <header v="Hình thức khen thưởng" e="Reward"/>
+    </field>
+    <field name="h_ngay_thuong" type="String">
+      <header v="Ngày" e="Date"/>
+    </field>
+    <field name="h_tien_thuong" type="String">
+      <header v="Số tiền (nếu có)" e="Reward Amount"/>
+    </field>
+    <field name="h_ly_do_thuong" type="String">
+      <header v="Lý do khen thưởng" e="Reward Reason"/>
+    </field>
+    <field name="h_ghi_chu_thuong" type="String">
+      <header v="Ghi chú" e="Remarks"/>
+    </field>
+
+    <field name="h_ky_luat" type="String">
+      <header v="KỶ LUẬT" e="DISCIPLINE"/>
+    </field>
+    <field name="h_hinh_thuc_kl" type="String">
+      <header v="Hình thức kỷ luật" e="Discipline Action"/>
+    </field>
+    <field name="h_ngay_kl" type="String">
+      <header v="Ngày" e="Date"/>
+    </field>
+    <field name="h_tien_kl" type="String">
+      <header v="Số tiền (nếu có)" e="Discipline Amount"/>
+    </field>
+    <field name="h_vi_pham_kl" type="String">
+      <header v="Vi phạm" e="Violation"/>
+    </field>
+    <field name="h_ghi_chu_kl" type="String">
+      <header v="Ghi chú" e="Remarks"/>
+    </field>
+
+    <field name="h_xac_nhan_ns" type="String">
+      <header v="XÁC NHẬN CỦA PHÒNG NHÂN SỰ" e="CONFIRM OF HUMAN RESOURCE DEPARTMENT"/>
+    </field>
+    <field name="h_xac_nhan" type="String">
+      <header v="Xác nhận bởi: _________________________" e="Confirm by: _________________________"/>
+    </field>
+    <field name="h_chuc_vu_xn" type="String">
+      <header v="Chức vụ: _________________________" e="Position: _________________________"/>
+    </field>
+    <field name="h_ngay" type="String">
+      <header v="Ngày: _________________________" e="Date: _________________________"/>
+    </field>
+    <field name="h_logo" type="String">
+      <header v="3 x 4" e="3 x 4"/>
+    </field>
+  </fields>
+</report>

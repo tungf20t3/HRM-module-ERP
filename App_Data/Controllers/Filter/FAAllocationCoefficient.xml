@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY CommandCheckLockedDate SYSTEM "..\Include\Command\FixedAssetLockedDate.txt">
+
+  <!ENTITY ValueDate "dateadd(m, 1, cast(str(@nam, 4) + replace(str(@ky, 2), ' ', '0') + '01' as smalldatetime)) - 1">
+  <!ENTITY FieldFocus "ky">
+]>
+
+<dir table="vcthspbtsfc" code="nam, ky" order="nam, ky" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc số liệu" e="Filter Data"></title>
+  <fields>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false" align="right" aliasName="Period" defaultValue="(new Date()).getMonth() + 1">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="so_the_ts" dataFormatString="@upperCaseFormat">
+      <header v="Số thẻ tài sản" e="Fixed Asset"></header>
+      <items style="AutoComplete" controller="FixedAsset" reference="ten_ts%l" key="1 = 1" check="1 = 1"/>
+    </field>
+    <field name="ten_ts%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="copy" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Sao chép dữ liệu" e="Copy"></header>
+      <footer v="1 - Lấy dữ liệu từ kỳ trước, 0 - Không" e="1 - Copy data from previous period, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 230"/>
+      <item value="11---: [ky].Label, [ky]"/>
+      <item value="11---: [nam].Label, [nam]"/>
+      <item value="11010: [so_the_ts].Label, [so_the_ts], [ten_ts%l]"/>
+      <item value="11100: [copy].Label, [copy], [copy].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @$lockedDate smalldatetime, @$lockedDateUnit smalldatetime
+select @$lockedDate = convert(varchar(10), ngay_ks, 111) from dmstt
+select @$lockedDateUnit = convert(varchar(10), ngay_ks, 111) from dmdvcsks where ma_dvcs = @@unit
+select 'this._lockedDate = ''' + convert(varchar(10), @$lockedDate, 111) + ''';this._lockedDateUnit = ''' + isnull(convert(varchar(10), @$lockedDateUnit, 111), '') + ''';' as message
+return
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @copy = '1' begin
+  declare @$lockedDate nvarchar(512), @$checkLockedDate smalldatetime
+  select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+  select @$checkLockedDate = ]]>&ValueDate;<![CDATA[
+  if @$checkLockedDate is not null begin
+    if not exists(select 1 from dmstt where @$checkLockedDate between ngay_gh1 and ngay_gh2) begin
+      select ']]>&FieldFocus;<![CDATA[' as field, @$lockedDate as message
+      return
+    end
+    if exists (select 1 from dmstt where @$checkLockedDate <= ngay_ks) begin
+      select ']]>&FieldFocus;<![CDATA[' as field, @$lockedDate as message
+      return
+    end
+  end
+  if exists (select 1 from dmdvcsks where @$checkLockedDate <= ngay_ks and ma_dvcs = @@unit) begin
+    select ']]>&FieldFocus;<![CDATA[' as field, @$lockedDate as message
+    return
+  end
+  exec fs20_FaInsertAllocCoeffFromPrePeriod @ky, @nam, @@userID, @@admin
+end
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(sender) {sender.add_onResponseComplete(on$Filter$ResponseComplete);}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array();
+      g._refreshMemvars = true;
+      g._year = f.getItemValue('nam');
+      g._period = f.getItemValue('ky');
+      g._fixedAsset = f.getItemValue('so_the_ts');
+
+      var v = $func.trim(g._fixedAsset), msg = checkFilterLockedDate(f, g._period, g._year);
+      if (msg != '') g._denyMessage = msg;
+
+      Array.add(k, {Name: 'nam', Opr: '=', Value: g._year, Type: 'Numeric', Ignore: false});    
+      Array.add(k, {Name: 'ky', Opr: '=', Value: g._period, Type: 'Numeric', Ignore: false});          
+      if (v != '')  Array.add(k, {Name: 'so_the_ts', Opr: 'like', Value: v += '%', Type: 'String', Ignore: false});
+      g.set_externalKey(k);      
+      g._alterTitle = [null, [['%s1', g._period, true], ['%s2', g._year, true]]];
+      break;    
+    default:
+      break;
+  }
+}
+
+function checkFilterLockedDate(f, p, y, force) {
+  var g = f.grid, d = force ? new Date(y, p - 1, 1) : new Date(y, p, 0);
+  var r = ((new Date(f._lockedDate)) >= d);
+  g._denyNew = g._deny$Unit;
+  g._denyMessage = null;
+  if (!g._denyNew) g._denyNew = r;
+  g._denyEdit = g._denyDelete = r;
+  if (f._lockedDateUnit) {
+    var u = ((new Date(f._lockedDateUnit)) >= d)
+    if (!r && !g._denyNew) g._denyNew = u;
+  }
+  if (r || u) return f._language == 'v' ? 'Đã khóa số liệu, kiểm tra lại ngày khóa sổ.' : 'Data is locked, you must modify system locked date.';
+    else return '';
+}
+]]>
+    </text>
+  </script>
+
+</dir>

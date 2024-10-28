@@ -1,0 +1,46 @@
+﻿<![CDATA[/* <flatten type="Javascript"> */
+function upload$ProcessFailDetail(el, responseObject) {
+  var f = el.form, a = responseObject, g = f.grid;
+  var group, prev = '', cell, note, message, v = '', content = '';
+
+  if (g._importForm) return;
+
+  var wait = $get(f.get_id() + '_Wait');
+  if (wait) wait._oldWaitHTML = ' ';
+  f._busy = false;
+  $func.hideWait(f.get_id());
+
+  for (var i = 0; i < a.length; i++) {
+    group = a[i][0];
+    cell = a[i][1];
+    message = a[i][2];
+    note = a[i][3];
+
+    if (group != prev) {
+      prev = group;
+      if (content != '') {
+        v += '<div class="ime-content" style="display:none">' + content + '</div>';
+        content = '';
+      }
+      v += '<div class="ime-header" onclick="onErrorGroupClick(this);"' + (i == 0 ? 'style="border-top:none"' : '') + '>' + message + '</div>';
+    }
+    content += (content != '' ? ', ' : '') + cell + note;
+  }
+  if (content != '') {
+    v += '<div class="ime-content" style="display:none">' + content + '</div>';
+    content = '';
+  }
+
+  g._currentContent = '<div style="overflow-y:auto;height:100%">' + v + '</div>';
+  g._importForm = f;
+  g.showForm('ImportModeErrorDetail');
+}
+
+function onErrorGroupClick(sender) {
+  var content = sender.nextElementSibling, style = content.style, list = sender.classList, b = 'block', c = 'ime-active', v = style.display == b;
+
+  if (v) list.remove(c);
+    else list.add(c);
+  style.display = (v ? 'none' : b);
+}
+/* </flatten> */]]>

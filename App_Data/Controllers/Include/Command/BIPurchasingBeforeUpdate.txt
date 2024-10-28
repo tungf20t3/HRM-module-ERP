@@ -1,0 +1,45 @@
+﻿<![CDATA[
+if @@admin = 0 begin
+  if $]]>&BIPurchasingTable;<![CDATA[.NewValue <> $]]>&BIPurchasingTable;<![CDATA[.OldValue begin
+    if exists(select 1 from ]]>&BIPurchasingTable;<![CDATA[ a where ]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue and not exists(select 1 from @]]>&BIPurchasingTable;<![CDATA[ b where b.ma_vung = a.ma_vung) and not exists(select 1 from bidmvung c where a.ma_vung = c.ma_vung and (not exists(select 1 from bisysplantrights where user_id = @@userID) or ma_vung in (select ma_vung from bisysplantrights where user_id = @@userID)))) begin
+      select ']]>&BIPurchasingTable;<![CDATA[' as field, case when @@language = 'v' then N'Tồn tại mã vùng trong các mã vùng bị xóa không hợp lệ, không thể lưu được.' else N'Some plant codes might not be removed or you are not authorized to execute this function.' end as message
+      return
+    end
+    if exists(select 1 from @]]>&BIPurchasingTable;<![CDATA[ a where not exists(select 1 from @]]>&BIPurchasingTable;<![CDATA[ b where b.]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue and b.ma_vung = a.ma_vung) and not exists(select 1 from bidmvung c where a.ma_vung = c.ma_vung and (not exists(select 1 from bisysplantrights where user_id = @@userID) or ma_vung in (select ma_vung from bisysplantrights where user_id = @@userID)))) begin
+      select ']]>&BIPurchasingTable;<![CDATA[' as field, case when @@language = 'v' then N'Tồn tại mã vùng trong các mã vùng vừa cập nhật không hợp lệ, không thể lưu được.' else N'Some plant codes are invalid or you are not authorized to execute this function.' end as message
+      return
+    end
+  end
+end
+if @]]>&BIFieldKey;<![CDATA[ <> $]]>&BIFieldKey;<![CDATA[.OldValue begin
+  if $]]>&BIPurchasingTable;<![CDATA[.NewValue = $]]>&BIPurchasingTable;<![CDATA[.OldValue
+  update ]]>&BIPurchasingTable;<![CDATA[ set ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[ where ]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue
+end
+
+update @]]>&BIPurchasingTable;<![CDATA[ set ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[
+if $]]>&BIPurchasingTable;<![CDATA[.NewValue <> $]]>&BIPurchasingTable;<![CDATA[.OldValue
+  delete ]]>&BIPurchasingTable;<![CDATA[ where ]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue
+]]>
+
+<![CDATA[
+if @@admin = 0 begin
+  if $]]>&BIPurchasingOrganizationTable;<![CDATA[.NewValue <> $]]>&BIPurchasingOrganizationTable;<![CDATA[.OldValue begin
+    if exists(select 1 from ]]>&BIPurchasingOrganizationTable;<![CDATA[ a where ]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue and not exists(select 1 from @]]>&BIPurchasingOrganizationTable;<![CDATA[ b where b.ma_bp0 = a.ma_bp0) and not exists(select 1 from bidmbp0 c where a.ma_bp0 = c.ma_bp and (not exists(select 1 from bisyspurorgrights where user_id = @@userID) or ma_bp0 in (select ma_bp0 from bisyspurorgrights where user_id = @@userID)))) begin
+      select ']]>&BIPurchasingOrganizationTable;<![CDATA[' as field, case when @@language = 'v' then N'Tồn tại đơn vị mua trong các đơn vị mua bị xóa không hợp lệ, không thể lưu được.' else N'Some purchasing organization might not be removed or you are not authorized to execute this function.' end as message
+      return
+    end
+    if exists(select 1 from @]]>&BIPurchasingOrganizationTable;<![CDATA[ a where not exists(select 1 from @]]>&BIPurchasingOrganizationTable;<![CDATA[ b where b.]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue and b.ma_bp0 = a.ma_bp0) and not exists(select 1 from bidmbp0 c where a.ma_bp0 = c.ma_bp and (not exists(select 1 from bisyspurorgrights where user_id = @@userID) or ma_bp0 in (select ma_bp0 from bisyspurorgrights where user_id = @@userID)))) begin
+      select ']]>&BIPurchasingOrganizationTable;<![CDATA[' as field, case when @@language = 'v' then N'Tồn tại đơn vị mua trong các đơn vị mua vừa cập nhật không hợp lệ, không thể lưu được.' else N'Some purchasing organization are invalid or you are not authorized to execute this function.' end as message
+      return
+    end
+  end
+end
+if @]]>&BIFieldKey;<![CDATA[ <> $]]>&BIFieldKey;<![CDATA[.OldValue begin
+  if $]]>&BIPurchasingOrganizationTable;<![CDATA[.NewValue = $]]>&BIPurchasingOrganizationTable;<![CDATA[.OldValue
+  update ]]>&BIPurchasingOrganizationTable;<![CDATA[ set ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[ where ]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue
+end
+
+update @]]>&BIPurchasingOrganizationTable;<![CDATA[ set ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[
+if $]]>&BIPurchasingOrganizationTable;<![CDATA[.NewValue <> $]]>&BIPurchasingOrganizationTable;<![CDATA[.OldValue
+  delete ]]>&BIPurchasingOrganizationTable;<![CDATA[ where ]]>&BIFieldKey;<![CDATA[ = $]]>&BIFieldKey;<![CDATA[.OldValue
+]]>

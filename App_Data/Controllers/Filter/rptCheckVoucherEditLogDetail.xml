@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+
+  <!ENTITY k " and ma_ct not in ('CR1','DM1','H02','H08','H09','H11','SF2','SF3')">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="thay_doi" allowNulls="false" type="Decimal" dataFormatString="##0" clientDefault="1">
+      <header v="Lần thay đổi" e="Revision"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_ct" allowNulls="false">
+      <header v="Mã chứng từ" e="Voucher Code"></header>
+      <items style="AutoComplete" controller="VoucherExtension" reference="ten_ct%l" key="exists(select 1 from @@sysDatabaseName..syscheckfields b where b.ma_ct = dmct.ma_ct)&k; and wedition &lt;&gt; '9' and status = '1'" check="exists(select 1 from @@sysDatabaseName..syscheckfields b where b.ma_ct = dmct.ma_ct)&k; and wedition &lt;&gt; '9'"/>
+    </field>
+    <field name="ten_ct%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Ngày chứng từ" e="Voucher Date"></header>
+    </field>
+    <field name="so_ct" allowNulls="false" align="right" dataFormatString="@upperCaseFormat" maxLength="-100" filterSource="voucherNumber">
+      <header v="Chứng từ số" e="Voucher No."/>
+      <items style="AutoComplete" controller="VoucherLogLookup" reference="stt_rec_ct"/>
+    </field>
+    <field name="stt_rec_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs" allowNulls="false">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status = '1'" check="1 = 1"/>
+      <clientScript><![CDATA[onchange="onChange$CheckVoucherEditLogDetail$Voucher(this);"]]></clientScript>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="maxLength" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="11-----: [thay_doi].Label, [thay_doi]"/>
+      <item value="1101001: [ma_ct].Label, [ma_ct], [ten_ct%l], [maxLength]"/>
+      <item value="110----: [ngay_ct].Label, [ngay_ct]"/>
+      <item value="110---1: [so_ct].Label, [so_ct], [stt_rec_ct]"/>
+      <item value="110100-: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$CheckVoucherEditLogDetail$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+#IF @@admin <> 1 #THEN
+  select '' as field, '$NotAuthorized' as message
+  return
+#END
+declare @unitName nvarchar(256)
+select @unitName = case when @@language = 'v' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit
+select 'this._unitCode=''' + @@unit + ''';this._unitName=''' + replace(replace(isnull(@unitName, ''), '\', '\\'), '''', '\''') + ''';active$CheckVoucherEditLogDetail$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$CheckVoucherEditLogDetail$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @stt_rec_ct = '' begin
+  declare @$none nvarchar(512)
+  select @$none = case when @@language = 'v' then N'Không có chứng từ theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+
+  if exists(select 1 from dmct4 where ma_ct = @ma_ct]]>&k;<![CDATA[) begin
+    declare @q nvarchar(4000), @id$Voucher varchar(32), @vcNumber varchar(32), @i int, @l int, @m$ varchar(32)
+
+    select @m$ = rtrim(xtable) + case right(rtrim(xtable), 1) when '$' then convert(varchar(6), @ngay_ct, 112) else '' end from dmct4 where ma_ct = @ma_ct
+    select @vcNumber = ltrim(rtrim(@so_ct)), @i = len(@vcNumber), @l = character_maximum_length from information_schema.columns where table_name = @m$ and column_name = 'so_ct'
+    select @vcNumber = space(@l - @i) + @vcNumber
+
+    select @q = 'select top 1 @id$Voucher = stt_rec from ' + rtrim(@m$) + ' where ma_dvcs = @ma_dvcs ' + case when @vcNumber <> '' then 'and so_ct = @vcNumber' else '' end + ' and ngay_ct = @ngay_ct'
+    exec sp_executesql @q, N'@id$Voucher varchar(32) output, @vcNumber varchar(32), @ma_dvcs varchar(32), @ngay_ct smalldatetime', @id$Voucher output, @vcNumber, @ma_dvcs, @ngay_ct
+
+    if isnull(@id$Voucher, '') = '' begin
+      select 'so_ct' as field, @$none as message
+      return
+    end
+  end else begin
+    select 'ma_ct' as field, @$none as message
+    return
+  end
+end
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @q nvarchar(4000), @id$Voucher varchar(32), @vcNumber varchar(32), @i int, @l int, @m$ varchar(32)
+if @stt_rec_ct = '' begin
+  select @m$ = rtrim(xtable) + case right(rtrim(xtable), 1) when '$' then convert(varchar(6), @ngay_ct, 112) else '' end from dmct4 where ma_ct = @ma_ct
+  select @vcNumber = ltrim(rtrim(@so_ct)), @i = len(@vcNumber), @l = character_maximum_length from information_schema.columns where table_name = @m$ and column_name = 'so_ct'
+  select @vcNumber = space(@l - @i) + @vcNumber
+
+  select @q = 'select top 1 @id$Voucher = stt_rec from ' + rtrim(@m$) + ' where ma_dvcs = @ma_dvcs ' + case when @vcNumber <> '' then 'and so_ct = @vcNumber' else '' end + ' and ngay_ct = @ngay_ct order by ma_dvcs, ngay_ct' + case when @vcNumber <> '' then ', so_ct' else '' end
+  exec sp_executesql @q, N'@id$Voucher varchar(32) output, @vcNumber varchar(32), @ma_dvcs varchar(32), @ngay_ct smalldatetime', @id$Voucher output, @vcNumber, @ma_dvcs, @ngay_ct
+end else select @id$Voucher = @stt_rec_ct, @vcNumber = @so_ct
+
+exec rs_rptCheckVoucherEditLogDetailView @thay_doi, @ma_ct, @ngay_ct, @vcNumber, @id$Voucher, @ma_dvcs, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function init$CheckVoucherEditLogDetail$(a){a.getItem("so_ct")._idle}function active$CheckVoucherEditLogDetail$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);a._looking=a.getItem("so_ct")._controlBehavior;a._looking.add_loading(on$CheckVoucherEditLogDetail$Before$Loading);if(a._convection)a._convection=null;else{var c=["ma_dvcs"];if(!a._extensions)a.setItemControlBehavior("ma_dvcs",a._unitCode,a._unitName,null);else setReferenceValue(a,c)}var b=a.getItem("maxLength");b.value=b.maxLength}function close$CheckVoucherEditLogDetail$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(f,b){var a=b.object,c=b.type.Context,d=b.type.Result,e=a.grid;switch(c){case"IDNumber":a.setItemValue("stt_rec_ct",d[0].Value);break;case"Checking":e._alterTitle=[null,[["%i",a.getItemValue("thay_doi"),true],["%c",a.getItemValue("ma_ct"),true],["%n",a.getItemValue("ten_ct%l"),true],["%v",a.getItemValue("so_ct"),true],["%d",a.getItem("ngay_ct").value,true]]]}}function on$CheckVoucherEditLogDetail$Before$Loading(c,d){var b=c._element.parentForm;if(!b.validFields("ma_ct, ngay_ct, ma_dvcs"))d.type.cancelEvent=true;else{a=[{Name:"ngay_ct",Type:"DateTime",Value:b.getItemValue("ngay_ct")},{Name:"ma_ct",Type:"String",Value:b.getItemValue("ma_ct")},{Name:"ma_dvcs",Type:"String",Value:b.getItemValue("ma_dvcs")}];c.set_memvars(a)}}function setReferenceValue(a,c){for(var b=0;b<c.length;b++){var d=$func.findField(c[b],a._fields).ItemReference;a.setItemValue(d,$func.findMemvar(d,a._extensions).NewValue)}}function onChange$CheckVoucherEditLogDetail$Voucher(a){a.parentForm.setItemValue("so_ct","")}]]>
+    </text>
+  </script>
+
+
+  &ScriptFlowFilterCss;
+</dir>

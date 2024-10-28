@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BICharacteristicsResultForm">
+  <!ENTITY FormTask.HiddenOrChangeCaption SYSTEM "..\Include\Javascript\Button.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Kết quả chi tiết theo đặc tính" e="Result by Characteristics"></title>
+  <fields>
+    <field name="stt_rec" external="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dac_tinh" external="true" disabled="true">
+      <header v="Mã đặc tính" e="Characteristic"></header>
+    </field>
+    <field name="ten_dac_tinh" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="sl_mau" type="Decimal" dataFormatString="@quantityInputFormat" external="true" disabled="true">
+      <header v="Số lượng mẫu" e="Sample Size (Q'ty)"></header>
+      <items style="Numeric"/>
+    </field>
+
+
+    <field name="bia12" external="true" clientDefault="0" defaultValue="0" rows="208" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="BICharacteristicsResultGrid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="6" split="10">
+      <item value="100, 100, 137, 100, 100, 8, 88, 20, 100, 0"/>
+      <item value="1110000001: [ma_dac_tinh].Label, [ma_dac_tinh], [ten_dac_tinh], [stt_rec]"/>
+      <item value="11--------: [sl_mau].Label, [sl_mau]"/>
+
+      <item value="1: [bia12]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &FormTask.HiddenOrChangeCaption;
+      <![CDATA[
+function load$]]>&Identity;<![CDATA[$Form(f) {
+  f.add_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);
+  var z = f.grid, d = z._detailInfo;
+  f.setItemValues('ma_dac_tinh, ten_dac_tinh, sl_mau', [d.ma_dac_tinh, d.ten_dac_tinh, d.sl_mau]);
+
+  if (z._readOnly) {
+    form$Button$SetCaption(f, [['Ok', null], ['Cancel', f._language == 'v' ? 'Đón<u>g</u>' : 'C<u>l</u>ose']]);
+    form$Dialog$SetTitle(f, f._language == 'v' ? 'Xem kết quả chi tiết theo đặc tính' : 'View Result by Characteristics');
+    f._action = 'View';
+  }
+}
+function close$]]>&Identity;<![CDATA[$Form(f) {try {f.remove_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}}
+function onForm$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.getItem('bia12')._controlBehavior;
+      f.grid._formScript = 'onForm$]]>&Identity;<![CDATA[$RetrieveScript(this)';
+      if (g._readOnly) return;
+      var z = f.grid, jData = bi$CharacteristicsResult$TransferData(f, g, f._dataIndex), jref = '', w = z.get_element().parentForm;
+      var l0 = z._getColumnOrder('so_luong'), l1 = z._getColumnOrder('ket_qua'), l2 = z._getColumnOrder('danh_gia'), l3 = z._getColumnOrder('ma_loi'), l4 = z._getColumnOrder('sl_kd_nh2');
+      jData = (jData ? jData : '');
+      z._detailInfo.data = jData;
+      var d = z._detailInfo;
+      if (d.handle) d.handle.call(this, z, {data: jData});
+
+      if (jData) {
+        var eData = eval(jData);
+        var s0 = 0, s1 = 0, s2 = '', s3 = '', s4 = 0;
+        for (var i = 0; i < eData.length; i++) {
+          s0 = s0 + eData[i][0]; // Inspection Quantity
+          s1 = s1 + eData[i][1]; // Result
+          s4 = s4 + eData[i][4]; // Rejected Quantity
+        }
+
+        for (var i = 0; i < eData.length; i++) {
+          if (s2 == '' && s2 != eData[i][3]) s2 = eData[i][3]
+          if (s2 != '' && eData[i][3] != '' && s2 != eData[i][3]) {
+            s2 = '';
+            break;
+          }
+        }
+
+        for (var i = 0; i < eData.length; i++) {
+          if (s3 == '' && s3 != eData[i][5]) s3 = eData[i][5]
+          if (s3 != '' && eData[i][5] != '' && s3 != eData[i][5]) {
+            s3 = '';
+            break;
+          }
+        }
+        s1 = s1 / eData.length;
+
+        if (z._getItemValue(z._activeRow, l0) == 0) z.setItemGridBehavior({row: z._activeRow}, [['so_luong', s0, '', null]]);
+        if (z._getItemValue(z._activeRow, l1) == 0) z.setItemGridBehavior({row: z._activeRow}, [['ket_qua', s1, '', null]]);
+        if (z._getItemValue(z._activeRow, l2) == '') z.setItemGridBehavior({row: z._activeRow}, [['danh_gia', s2, '', null]]);
+        if (z._getItemValue(z._activeRow, l3) == '') z.setItemGridBehavior({row: z._activeRow}, [['ma_loi', s3, '', null]]);
+        if (z._getItemValue(z._activeRow, l4) == 0) z.setItemGridBehavior({row: z._activeRow}, [['sl_kd_nh2', s4, '', null]]);
+
+        z._getItem(z._activeRow, l0).focus();
+        onChange$GridVoucherDetail$Quantity(z._getItem(z._activeRow, l0));
+      }
+      break;
+    default:
+      break;
+  }
+}
+function onForm$]]>&Identity;<![CDATA[$RetrieveScript(z) {
+  if (z._detailInfo.data == '') {
+    var r = z._activeRow;
+    z.setItemGridBehavior({row: r}, [['ct_cd_dt', '', null, null]]);
+  }
+}
+function form$Dialog$SetTitle(d,b){var c=d.get_id(),a=$get(String.format("{0}_updateDlgTitleText",c));if(a)a.innerText=b}]]>
+    </text>
+  </script>
+
+</dir>

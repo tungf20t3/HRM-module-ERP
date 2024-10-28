@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY LineCounter "11">
+  <!ENTITY ExtensionCounter "2">
+  <!ENTITY Delta14 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tu_ky" type="Decimal" dataFormatString="#0" allowNulls="false" aliasName="fromPeriod" defaultValue="(new Date()).getMonth() + 1;">
+      <header v="Từ kỳ" e="From Period"></header>
+      <footer v="Từ kỳ/năm" e="From Period/Year"></footer>
+      <items style="Numeric"></items>
+    </field>
+    <field name="den_ky" type="Decimal" dataFormatString="#0" allowNulls="false" aliasName="toPeriod" defaultValue="(new Date()).getMonth() + 1;">
+      <header v="Đến kỳ" e="To Period"></header>
+      <footer v="Đến kỳ/năm" e="To Period/Year"></footer>
+      <items style="Numeric"></items>
+    </field>
+    <field name="tu_nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Từ năm" e="From Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="den_nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Đến năm" e="To Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_ld" categoryIndex="1">
+      <header v="Mã tăng/giảm" e="Reason"></header>
+      <items style="AutoComplete" controller="TSAcquisition" reference="ten_ld%l" key="status = '1'" check="1 = 1"/>
+      <clientScript><![CDATA[onchange=onChange$TS2DetailIncreaseDecrease$Reason$(this);]]></clientScript>
+    </field>
+    <field name="ten_ld%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_loai" categoryIndex="1">
+      <header v="Loại CCDC" e="Tool &amp; Supply Type"></header>
+      <items style="AutoComplete" controller="TSType" reference="ten_loai%l" key="status ='1'">
+      </items>
+    </field>
+    <field name="ten_loai%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" categoryIndex="1">
+      <header v="Bộ phận sử dụng" e="Using Department"></header>
+      <items style="AutoComplete" controller="TSDepartment" reference="ten_bp%l" key="status ='1'">
+      </items>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="nhom_1" categoryIndex="1">
+      <header v="Nhóm CCDC 1" e="Tool &amp; Supply Group 1"></header>
+      <items style="AutoComplete" controller="TSGroup" reference="ten_nh_1%l" key="status ='1' and loai_nh = 1" check="loai_nh = 1"></items>
+    </field>
+    <field name="ten_nh_1%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom_2" categoryIndex="1">
+      <header v="Nhóm CCDC 2" e="Tool &amp; Supply Group 2"></header>
+      <items style="AutoComplete" controller="TSGroup" reference="ten_nh_2%l" key="status ='1' and loai_nh = 2" check="loai_nh = 2"></items>
+    </field>
+    <field name="ten_nh_2%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom_3" categoryIndex="1">
+      <header v="Nhóm CCDC 3" e="Tool &amp; Supply Group 3"></header>
+      <items style="AutoComplete" controller="TSGroup" reference="ten_nh_3%l" key="status ='1' and loai_nh = 3" check="loai_nh = 3"></items>
+    </field>
+    <field name="ten_nh_3%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="isdetail" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="1">
+      <header v="Chi tiết theo bộ phận" e="Detailed by Department"/>
+      <footer v="1 - Có chi tiết, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="type" dataFormatString="1, 2" clientDefault="1" align="right" categoryIndex="1">
+      <header v="Tăng/giảm" e="Increase/Decrease"></header>
+      <footer v="1 - Tăng, 2 - Giảm" e="1 - Increase , 2 - Decrease"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="nhom_theo" categoryIndex="1">
+      <header v="Nhóm theo" e="Group by"/>
+      <items style="DropDownList" >
+        <item value="">
+          <text v="Không nhóm" e="No Group"/>
+        </item>
+        <item value="1">
+          <text v="Loại CCDC" e="Tool &amp; Supply Type"/>
+        </item>
+        <item value="2">
+          <text v="Bộ phận sử dụng" e="Using Department"/>
+        </item>
+        <item value="3">
+          <text v="Bộ phận sử dụng - Loại CCDC" e="Using Department - Tool &amp; Supply Type"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="111----: [tu_ky].Description, [tu_ky], [tu_nam]"/>
+      <item value="111----: [den_ky].Description, [den_ky], [den_nam]"/>
+
+      <item value="1100100: [ma_ld].Label, [ma_ld], [ten_ld%l]"/>
+      <item value="1100100: [ma_loai].Label, [ma_loai], [ten_loai%l]"/>
+      <item value="1100100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+
+      <item value="1100100: [nhom_1].Label, [nhom_1], [ten_nh_1%l]"/>
+      <item value="1100100: [nhom_2].Label, [nhom_2], [ten_nh_2%l]"/>
+      <item value="1100100: [nhom_3].Label, [nhom_3], [ten_nh_3%l]"/>
+
+      <item value="111000: [type].Label, [type], [type].Description"/>
+      <item value="111000: [isdetail].Label, [isdetail], [isdetail].Description"/>
+      <item value="110000: [nhom_theo].Label, [nhom_theo]"/>
+
+      <item value="110000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110000-: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 40, 30, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+
+      <text>
+        <![CDATA[
+select dbo.ff_GetStartDateOfCycle(@tu_ky,@tu_nam) as tu_ky, dbo.ff_GetStartDateOfCycle(@den_ky,@den_nam) as den_ky, @type as type
+declare @c varchar(1024)
+select @c = case @nhom_theo when '1' then 'loai_dc' when '2' then 'ma_bp_dc' when '3' then 'ma_bp_dc, loai_dc' else '' end
+exec rs_rptTS2DetailIncreaseDecrease @tu_ky, @tu_nam, @den_ky, @den_nam, @ma_ld, @ma_loai, @ma_bp, @nhom_1, @nhom_2, @nhom_3, @type, @isdetail, @c, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  if (!f.getItemValue('tu_nam')) {
+    f.getItem('tu_nam').value = (new Date()).getFullYear();
+    f.getItem('den_nam').value = (new Date()).getFullYear();
+  }
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(){try{sender.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(a){}}function on$Filter$ResponseComplete(m,e){var a=e.object,f=e.type.Context,g=e.type.Result;switch(f){case"ReasonType":a.setItemValues("type",[g[0].Value]);break;case"Checking":var c=a.grid,d=a.getItemValue("type"),l=a.getItemValue("mau_bc"),b=a.getItemValue("isdetail"),h=a.getItem("tu_ky").value,i=a.getItem("den_ky").value,j=a.getItem("tu_nam").value,k=a.getItem("den_nam").value;c._alterTitle=[null,[["%p1",h,true],["%y1",j,true],["%p2",i,true],["%y2",k,true]]];c._hiddenFields=[{Fields:"nguyen_gia_nt, gt_da_pb_nt, gt_cl_nt, ma_nt, ty_gia",Value:l=="10"},{Fields:"ma_bp_dc",Value:b=="0"}];c._hiddenForms=[{Form:[2,3,4,5,6,7,11,12,13,14,15,16],Value:d=="1"&&b=="0"},{Form:[0,1,4,5,6,7,9,10,13,14,15,16],Value:d=="2"&&b=="0"},{Form:[0,1,2,3,6,7,9,10,11,12,15,16],Value:d=="1"&&b=="1"},{Form:[0,1,2,3,4,5,9,10,11,12,13,14],Value:d=="2"&&b=="1"}];remove$GridReport$Filter(c)}}function onChange$TS2DetailIncreaseDecrease$Reason$(a){a.parentForm.request("ReasonType","ReasonType",["ma_ld"])}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="ReasonType">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmtgcc where ma_tg_ts = @ma_ld) begin
+  select rtrim(loai_tg_ts) as value from dmtgcc where ma_tg_ts = @ma_ld
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+
+  &OutlineCss;
+</dir>

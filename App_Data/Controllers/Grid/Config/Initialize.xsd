@@ -1,0 +1,381 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="Initialize" targetNamespace="urn:schemas-ai-erp:grid-initialize" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:grid-initialize" xmlns:a="urn:schemas-ai-erp:grid-initialize" xmlns:mstns="urn:schemas-ai-erp:grid-initialize" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="initialize" type ="initializeType">
+    <xs:key name="controller">
+      <xs:selector xpath="a:controllers/a:controller" />
+      <xs:field xpath="@name"/>
+    </xs:key>
+
+    <xs:key name="group">
+      <xs:selector xpath="a:groups/a:group" />
+      <xs:field xpath="@id"/>
+    </xs:key>
+  </xs:element>
+
+  <xs:complexType name="initializeType">
+    <xs:all maxOccurs="1" minOccurs="0">
+      <xs:element name="controllers" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="controller" type="controllerType" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:element name="groups">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="group" type="groupType" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="groupType">
+    <xs:all maxOccurs="1" minOccurs="1">
+      <xs:element name="fields">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="field" type="fieldType" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+
+        <xs:key name="field">
+          <xs:selector xpath="a:field"/>
+          <xs:field xpath="@name"/>
+        </xs:key>
+      </xs:element>
+
+      <xs:element name="views">
+        <xs:annotation>
+          <xs:documentation>A collection of data presentation views.</xs:documentation>
+        </xs:annotation>
+
+        <xs:complexType>
+          <xs:sequence minOccurs="1" maxOccurs="unbounded">
+            <xs:element name="view" minOccurs="1" maxOccurs="unbounded">
+              <xs:annotation>
+                <xs:documentation>Defines the visual presentation of the data.</xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="field" type="fieldType" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:sequence>
+
+                <xs:attribute name="id" type="xs:string" use="required">
+                  <xs:annotation>
+                    <xs:documentation>The unique id of the view.</xs:documentation>
+                  </xs:annotation>
+                </xs:attribute>
+              </xs:complexType>
+              <xs:key name="name">
+                <xs:selector xpath="a:field"/>
+                <xs:field xpath="@name"/>
+              </xs:key>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+        <xs:unique name="viewIdUnique">
+          <xs:selector xpath="a:view"/>
+          <xs:field xpath="@id"/>
+        </xs:unique>
+      </xs:element>
+
+      <xs:element name="queries" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="query" type="queryType">
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+
+        <xs:key name="query">
+          <xs:selector xpath="a:query" />
+          <xs:field xpath="@event" />
+        </xs:key>
+      </xs:element>
+    </xs:all>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="queryType">
+    <xs:all maxOccurs="1" minOccurs="1">
+      <xs:element name="clauses" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="clause" type="clauseType" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+
+        <xs:key name="clause">
+          <xs:selector xpath="a:clause" />
+          <xs:field xpath="@type" />
+        </xs:key>
+      </xs:element>
+
+      <xs:element name="items" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="item" type="queryItemType" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:all>
+
+    <xs:attribute name="event" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Loading"/>
+          <xs:enumeration value="Finding"/>
+          <xs:enumeration value="Scattering"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="clauseType">
+    <xs:attribute name="type" type="typeList" use="required"/>
+    <xs:attribute name="statement" type="xs:string" use="required"/>
+    <xs:attribute name="mode" type="clauseMode" use="optional"/>
+    <xs:attribute name="override" type="xs:boolean" use="optional"/>
+  </xs:complexType>
+
+  <xs:simpleType name="typeList">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Select" />
+      <xs:enumeration value="From" />
+      <xs:enumeration value="Where" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="clauseMode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Append" />
+      <xs:enumeration value="Insert" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="queryItemType">
+    <xs:attribute name="source" type="xs:string" use="required"/>
+    <xs:attribute name="destination" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="controllerType">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="group" type="xs:string" use="required"/>
+    <xs:attribute name="description" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="fieldType">
+    <xs:all maxOccurs="1" minOccurs="1">
+      <xs:element name="header" type="headerType"  minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Specifies a default caption displayed in the grid.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+
+      <xs:element name="footer" type="headerType" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Defines an extended field description displayed under the field in the form view.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+
+      <xs:element name="label" type="headerType" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Specifies a default text label displayed in the corresponding data fields of presentation views.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+
+      <xs:element name="items" type="itemsType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="handle" type="handleType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="clientScript" type="xs:string" minOccurs="0" maxOccurs="1"/>
+    </xs:all>
+
+
+
+    <xs:attribute name="name" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>Matches the name of the column in the result set returned by query.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="aliasName" type="xs:string" use="optional"/>
+    <xs:attribute name="type" type="dataType" use="optional">
+      <xs:annotation>
+        <xs:documentation>Specifies the data type of the base column of this field.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="isPrimaryKey" type="xs:boolean" use="optional" default="false">
+      <xs:annotation>
+        <xs:documentation>Indicates if the field is based on the primary key column.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="onDemand" type="xs:boolean" use="optional"/>
+
+    <xs:attribute name="align" type="xs:string" use="optional"/>
+    <xs:attribute name="width" type="xs:int" use="optional"/>
+    <xs:attribute name="maxLength" type="xs:int" use="optional"/>
+    <xs:attribute name="dataFormatString" type="xs:string" use="optional"/>
+    <xs:attribute name="hyperlinkFormatString" type="xs:string" use="optional"/>
+    <xs:attribute name="columns" type="xs:int" use="optional">
+      <xs:annotation>
+        <xs:documentation>Specifies the number of columns in the text box when the field is presented for editing.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="rows" type="xs:int" use="optional">
+      <xs:annotation>
+        <xs:documentation>Specifies the number of rows in the text box when the field is presented for editing.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="aggregate" type="aggregateType" use="optional">
+      <xs:annotation>
+        <xs:documentation>Defines an aggregate function that is calculated for this field on the entire record set and is displayed in grid views.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="categoryIndex" type="xs:int" use="optional"/>
+
+    <xs:attribute name="readOnly" type="xs:boolean" use="optional" default="false">
+      <xs:annotation>
+        <xs:documentation>Indicates if the field is read-only.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="inactivate" type="xs:boolean" use="optional"/>
+    <xs:attribute name="hidden" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation>Hides the data field from user interface rendered in client browser. Hidden fields can be modified in custom action handlers.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+
+    <xs:attribute name="allowContain" type="xs:boolean" use="optional" default="false">
+      <xs:annotation>
+        <xs:documentation>Indicates if the field is allowed values that contain each other.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="allowQBE" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation>Controls if the query-by-example is allowed in the column of the grid view. Default value is 'true'.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="allowSorting" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation>Controls is sorting is allowed in the column of the grid view.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="allowFilter" type="xs:boolean" use="optional"/>
+    <xs:attribute name="allowNulls" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation>Default value is 'true'.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="defaultValue" type="xs:string" use="optional"/>
+    <xs:attribute name="clientDefault" type="xs:string" use="optional"/>
+    <xs:attribute name="when" type="xs:boolean" use="optional"/>
+
+    <xs:attribute name="external" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation>Specifies the external field does not exist in table. External fields can not be updated.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="operation" type="xs:string" use="optional"/>
+    <xs:attribute name="filterSource" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="itemsType">
+    <xs:sequence>
+      <xs:element name="item" type ="itemType" minOccurs="0" maxOccurs="unbounded">
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="style" use="required">
+      <xs:annotation>
+        <xs:documentation>Specifies a presentation style of field items.</xs:documentation>
+      </xs:annotation>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Numeric"/>
+          <xs:enumeration value="Mask"/>
+          <xs:enumeration value="AutoComplete"/>
+          <xs:enumeration value="Lookup"/>
+          <xs:enumeration value="CheckBox"/>
+          <xs:enumeration value="DropDownList"/>
+          <xs:enumeration value="ListBox"/>
+          <xs:enumeration value="RadioButtonList"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="controller" type="xs:string" use="optional"/>
+    <xs:attribute name="reference" type="xs:string" use="optional"/>
+    <xs:attribute name="key" type="xs:string" use="optional"/>
+    <xs:attribute name="check" type="xs:string" use="optional"/>
+    <xs:attribute name="new" type="xs:string" use="optional"/>
+    <xs:attribute name="row" type="xs:int" use="optional"/>
+    <xs:attribute name="normal" type="xs:boolean" use="optional"/>
+    <xs:attribute name="information" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="itemType">
+    <xs:all maxOccurs="1" minOccurs="1">
+      <xs:element name="text" type="headerType"/>
+    </xs:all>
+    <xs:attribute name="value" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="headerType">
+    <xs:attribute name="v" type="xs:string" use="required"/>
+    <xs:attribute name="e" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:simpleType name="aggregateType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="None" />
+      <xs:enumeration value="Sum" />
+      <xs:enumeration value="Count" />
+      <xs:enumeration value="Average" />
+      <xs:enumeration value="Max" />
+      <xs:enumeration value="Min" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="handleType">
+    <xs:attribute name="foreward" type="xs:boolean" use="optional"/>
+    <xs:attribute name="backward" type="xs:boolean" use="optional"/>
+    <xs:attribute name="source" type="xs:string" use="optional"/>
+    <xs:attribute name="key" type="xs:string" use="optional"/>
+    <xs:attribute name="field" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:simpleType name="dataType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="AnsiString"/>
+      <xs:enumeration value="Binary"/>
+      <xs:enumeration value="Byte"/>
+      <xs:enumeration value="Boolean"/>
+      <xs:enumeration value="Currency"/>
+      <xs:enumeration value="Date"/>
+      <xs:enumeration value="DateTime"/>
+      <xs:enumeration value="Decimal"/>
+      <xs:enumeration value="Double"/>
+      <xs:enumeration value="Guid"/>
+      <xs:enumeration value="Int16"/>
+      <xs:enumeration value="Int32"/>
+      <xs:enumeration value="Int64"/>
+      <xs:enumeration value="Object"/>
+      <xs:enumeration value="SByte"/>
+      <xs:enumeration value="Single"/>
+      <xs:enumeration value="String"/>
+      <xs:enumeration value="Time"/>
+      <xs:enumeration value="UInt16"/>
+      <xs:enumeration value="UInt32"/>
+      <xs:enumeration value="UInt64"/>
+      <xs:enumeration value="VarNumeric"/>
+      <xs:enumeration value="AnsiStringFixedLength"/>
+      <xs:enumeration value="StringFixedLength"/>
+      <xs:enumeration value="Xml"/>
+      <xs:enumeration value="DateTime2"/>
+      <xs:enumeration value="DateTimeOffset"/>
+      <xs:enumeration value="Byte[]"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

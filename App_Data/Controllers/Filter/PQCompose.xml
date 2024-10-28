@@ -1,0 +1,296 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY % CheckValidEmail SYSTEM "..\Include\CheckValidEmail.ent">
+  %CheckValidEmail;
+
+  <!ENTITY % Extender SYSTEM "..\Include\Extender.ent">
+  %Extender;
+  %Extender.Include.PQTran;
+  %Extender.Ignore;
+
+  <!ENTITY Identity "Compose">
+
+  <!ENTITY VoucherDate "{!ngay_ct}">
+  <!ENTITY VendorName "{!ten_kh}">
+  <!ENTITY UnitName "{!ten_dvcs}">
+
+  <!ENTITY ReplaceValue "replace(/&VoucherDate;/g, g._voucherDate).replace(/&VendorName;/g, g._vendorName).replace(/&UnitName;/g, g._unitName)">
+]>
+
+<dir cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Soạn thư (Email)" e="Compose"></title>
+  <fields>
+    <field name="mail_to" allowNulls="false">
+      <header v="Người nhận (To)" e="To"></header>
+    </field>
+    <field name="mail_cc">
+      <header v="Gửi kèm (Cc)" e="Cc"></header>
+    </field>
+    <field name="mail_bcc">
+      <header v="Gửi riêng (Bcc)" e="Bcc"></header>
+    </field>
+
+    <field name="mail_template" allowNulls="false">
+      <header v="Chọn mẫu" e="Select Template"></header>
+      <items style="DropDownList">
+        <item value="">
+          <text v="" e=""/>
+        </item>
+      </items>
+      <clientScript><![CDATA[onchange="onTemplateSelectedIndexChanged(this);"]]>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="mail_subject" allowNulls="false">
+      <header v="Tiêu đề" e="Subject"></header>
+    </field>
+
+    <field name="mail_container" external="true" filterSource="Plugin" categoryIndex="1">
+      <header v="&lt;form id=&quot;emailForm&quot; method=&quot;post&quot; target=&quot;&quot; enctype=&quot;multipart/form-data&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;query&quot; id=&quot;query&quot;/&gt; &lt;/form&gt; &lt;textarea id=&quot;mailComposer&quot; name=&quot;mailComposer&quot; spellcheck=&quot;false&quot;&gt;&lt;/textarea&gt;" e="&lt;form id=&quot;emailForm&quot; method=&quot;post&quot; target=&quot;&quot; enctype=&quot;multipart/form-data&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;query&quot; id=&quot;query&quot;/&gt; &lt;/form&gt; &lt;textarea id=&quot;mailComposer&quot; name=&quot;mailComposer&quot; spellcheck=&quot;false&quot;&gt;&lt;/textarea&gt;"></header>
+    </field>
+    <field name="reportIDGrid" external="true" clientDefault="0" defaultValue="0" rows="257" categoryIndex="5">
+      <header v="" e=""></header>
+      <label v="" e=""></label >
+      <items style="Grid" controller="ComposeGrid" row="1"/>
+    </field>
+    <field name="reportIDList" readOnly="true" categoryIndex="5">
+      <header v="" e=""></header>
+    </field>
+    <field name="reportIDListGrid" external="true" clientDefault="0" defaultValue="0" rows="257" categoryIndex="&ListIndex;">
+      <header v="" e=""></header>
+      <label v="" e=""></label >
+      <items style="Grid" controller="ComposeList" row="1"/>
+    </field>
+
+    <field name="reportIDAttach" readOnly="true" categoryIndex="&ListIndex;">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="317" anchor="6">
+      <item value="120, 30, 70, 50, 50, 433"/>
+      <item value="110000: [mail_to].Label, [mail_to]"/>
+      <item value="110000: [mail_cc].Label, [mail_cc]"/>
+      <item value="110000: [mail_bcc].Label, [mail_bcc]"/>
+      <item value="11000-: [mail_template].Label, [mail_template]"/>
+      <item value="110000: [mail_subject].Label, [mail_subject]"/>
+      <item value="1: [mail_container].Label"/>
+      <item value="11: [reportIDGrid], [reportIDList]"/>
+      &Compose.View;
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Nội dung" e="Body"/>
+        </category>
+        <category index="5" columns="769" anchor="1">
+          <header v="Mẫu in đính kèm" e="Form Template"/>
+        </category>
+        &Compose.Category;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @template nvarchar(4000), @name nvarchar(4000), @defaultForm varchar(33), @defaultContent varchar(8000), @defaultSubject nvarchar(4000)
+select @template = '', @name = '', @defaultForm = '', @defaultContent = '', @defaultSubject = ''
+
+select @defaultForm = rtrim(ma_mau) from bidmmauthu where (nd_yn = '1' and user_id0 = @@userID) and status = '1'
+if @defaultForm is null select top 1 @defaultForm = rtrim(ma_mau) from bidmmauthu where ((mc_yn = 1 and nd_yn = '1')) and status = '1' order by stt_sx, ma_mau
+select @defaultContent = rtrim(noi_dung), @defaultSubject = rtrim(tieu_de) from bidmmauthu where ma_mau = @defaultForm
+
+select @template = @template + rtrim(upper(ma_mau)) + char(255), @name = @name + case when lower(@@language) = 'v' then rtrim(ten_mau) else rtrim(ten_mau2) end + char(255) from bidmmauthu where ((mc_yn = 1) or (mc_yn = 0 and user_id0 = @@userID)) and status = '1' order by stt_sx, ma_mau
+select @template = case when @template = '' then '' else left(@template, len(@template) - 1) end, @name = case when @name = '' then '' else left(@name, len(@name) - 1) end
+select 'this._itemValue=''' + rtrim(@template) + ''';this._itemText=''' + dbo.AI_ERP$Function$EncodeScript(@name) + ''';this._defaultForm = ''' + @defaultForm + ''';this._defaultContent = ''' + @defaultContent + ''';this._defaultSubject = ''' + @defaultSubject + ''';initialize$]]>&Identity;<![CDATA[Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, id = f.get_id(), g = f.grid;
+]]>&CheckValidEmailCommandCheckingCompose;<![CDATA[
+if (f._checked) {
+  f._checked = false;
+  window.setTimeout(function() {f._busy = true; $func.showWait(id);}, 2);
+  request$]]>&Identity;<![CDATA[$Request(f, 'Send');
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function initialize$]]>&Identity;<![CDATA[Form(f) {
+  var o = f.getItem('mail_template'), value = f._itemValue.split(String.fromCharCode(255)), text = f._itemText.split(String.fromCharCode(255)), index;
+  var text0 = (f._language == 'v' ? 'Mẫu chuẩn' : 'Standard Form');
+  o.options[0] = new Option(text0, '0');
+  if (value[0] != '') {
+    for (var i = 0; i < value.length; i++) {
+      o.options[i + 1] = new Option(text[i], value[i]);
+      if (!index && f._defaultForm == value[i]) index = i + 1;
+    }
+  }
+  if (!index) index = 0;
+  o.options[index].selected = true;
+}
+function active$]]>&Identity;<![CDATA[Form(f) {
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete);
+  document._form = f;
+  f._resizableControlBehavior.add_resizing(resize$]]>&Identity;<![CDATA[Form);
+  init$]]>&Identity;<![CDATA[Form(f);
+  f._tabContainer.add_activeTabChanged(onChange$Voucher$]]>&Identity;<![CDATA[$Tab);
+  f._tabContainer._loaded = true;
+}
+function onTemplateSelectedIndexChanged(o) {
+  var f = o.parentForm;
+  x = f.getItem('mail_template').selectedIndex, y = f.getItem('mail_template').options;
+  if (x == 0) {
+    f._textEditor.doc.activeElement.innerHTML = Base64.decode(f._mailContent);
+    f.setItemValue('mail_subject', Base64.decode(f._subject));
+  } else f.request('GetTemplate', 'GetTemplate', [['ma_mau', 'String', y[x].value]]);
+}
+function init$]]>&Identity;<![CDATA[Form(f) {
+  var g = f.grid, o = f._findButton('Ok'), c = f._findButton('Cancel'), u = g._status == '2', v = f._language == 'v';
+  o.innerHTML = v ? 'Gửi' : 'Send';
+  c.innerHTML = v ? 'Đóng' : 'Close';
+  if (o.accessKey) o.removeAttribute('accesskey');
+  if (c.accessKey) c.removeAttribute('accesskey');
+
+  f.setItemValue('mail_to', (u ? g._mailTo : g._ownerMailTo));
+  if (!u) f.setReadOnlyFields('mail_to, mail_cc, mail_bcc');
+  f._textEditor = CreateTextEditor('mailComposer', f);
+  setTimeout(function() {resize$]]>&Identity;<![CDATA[Form(f);}, 200);
+  request$]]>&Identity;<![CDATA[$Request(f, 'Load');
+}
+function close$]]>&Identity;<![CDATA[Form(f) {
+  if (f._tabContainer) try {f._tabContainer.remove_activeTabChanged(onChange$Voucher$]]>&Identity;<![CDATA[$Tab);} catch (ex) {}
+  try {f._resizableControlBehavior.remove_resizing(resize$]]>&Identity;<![CDATA[Form)} catch (ex) {}
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[$ResponseComplete)} catch (ex) {}
+}
+function onChange$Voucher$]]>&Identity;<![CDATA[$Tab(sender, e) {
+  var f = sender.parentForm;
+  f.focusWhenTabChanged([null, 'reportIDGrid']]>&Compose.TabFocus;<![CDATA[]);
+  if (f._tabContainer._activeTabIndex == 0) $get('TextEditorIFrame').focus();
+}
+function on$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, id = f.get_id(), context = e.type.Context, result = e.type.Result, g = f.grid;
+  switch (context) {
+    case 'GetTemplate':
+      f.setItemValue('mail_subject', result[1].Value.]]>&ReplaceValue;<![CDATA[);
+      f._textEditor.doc.activeElement.innerHTML = Base64.decode(result[0].Value).]]>&ReplaceValue;<![CDATA[;
+      break;
+    default:
+      break;
+  }
+}
+function resize$]]>&Identity;<![CDATA[Form(f) {
+  var f = document._form;
+  var o = $get('emailForm'), k = $get('TextEditorIFrame');
+  o.parentNode.parentNode.style = 'outline:none;overflow:hidden;width:100%;padding:0px!important;';
+  o.parentNode.style = 'outline:none;width:100%;overflow:hidden;vertical-align:middle;';
+  k.style = 'width: 100%;height: calc(100% - 27px);';
+  k.parentNode.style.height = $func.measurementToNumber($get(f.get_id() + "_Tabs_body").style.height) + 'px';
+}
+function on$]]>&Identity;<![CDATA[$Retrieve$QueryComplete(f) {f.grid._formScript = 'show$]]>&Identity;<![CDATA[$Retrieve$QueryComplete(this)';}
+function show$]]>&Identity;<![CDATA[$Retrieve$QueryComplete(g) {g._focusWhenTabChanged();}
+
+function request$]]>&Identity;<![CDATA[$Request(f, c) {
+  var g = f.grid, id = f.get_id();
+  var mailTo = f.getItem('mail_to').value, mailCC = f.getItem('mail_cc').value, mailBCC = f.getItem('mail_bcc').value, mailSubject = f.getItem('mail_subject').value, mailBody = f._textEditor.getMailBody();
+  var mailController = g._controller, mailReportList = f.getItemValue('reportIDList'), mailFileList = ]]>&Compose.MailFileList;<![CDATA[, mailTicket = g._mailTicket;
+  var mailTemplate = g._mailTemplate, mailHash = g._mailHash;
+
+  var query = {Action: c, Hash: mailHash, MailTicket: mailTicket, MailTo: mailTo, MailCC: mailCC, MailBCC: mailBCC, MailSubject: mailSubject, MailBody: mailBody, MailReportList: mailReportList, MailFileList: mailFileList, MailTemplate: mailTemplate};
+
+  var frameName = g._controller + '_IFrame', z = $get(frameName);
+  if (!z) {
+    z = document.createElement('iframe');
+    z.src = 'about:blank';
+    z.id = z.name = frameName;
+    z.grid = g;
+    z.form = f;
+    z.setAttribute('style', 'display:none;width:0;height:0');
+    document.body.appendChild(z);
+  }
+
+  var form = $get('emailForm');
+  $get('query', form).value = Sys.Serialization.JavaScriptSerializer.serialize(query);
+  form.action = $func.resolveClientUrl('~/AppHandler/AI_ERP.Voucher.Mail.ashx', g._baseUrl);
+  form.target = g._controller + '_IFrame';
+  form.submit();
+}
+
+function on$]]>&Identity;<![CDATA[$Complete() {
+  var f = document._form, g = f.grid;
+  f._busy = false;
+  $func.hideWait(f.get_id());
+  f.completion(true);
+}
+function on$]]>&Identity;<![CDATA[$Init(r, subject) {
+  var f = document._form, g = f.grid;
+  f._mailContent = r;
+  f._subject = subject;
+  var mailContent = ((f._defaultForm == '') ? Base64.decode(r) : Base64.decode(f._defaultContent).]]>&ReplaceValue;<![CDATA[);
+  var subject = ((f._defaultForm == '') ? Base64.decode(subject) : f._defaultSubject.]]>&ReplaceValue;<![CDATA[);
+
+  f._busy = false;
+  $func.hideWait(f.get_id());
+  f._textEditor.doc.activeElement.innerHTML = mailContent;
+  f.setItemValue('mail_subject', subject);
+}
+function on$]]>&Identity;<![CDATA[$Fail() {
+ var f = document._form, g = f.grid;
+ f._busy = false;
+ $func.hideWait(f.get_id());
+ $message.show(f._language == 'v'? 'Có lỗi chưa xác định.': 'There was an unexpected error.');
+}
+var Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(e){var t="";var n,r,i,s,o,u,a;var f=0;e=Base64._utf8_encode(e);while(f<e.length){n=e.charCodeAt(f++);r=e.charCodeAt(f++);i=e.charCodeAt(f++);s=n>>2;o=(n&3)<<4|r>>4;u=(r&15)<<2|i>>6;a=i&63;if(isNaN(r)){u=a=64}else if(isNaN(i)){a=64}t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)}return t},decode:function(e){var t="";var n,r,i;var s,o,u,a;var f=0;e=e.replace(/[^A-Za-z0-9+/=]/g,"");while(f<e.length){s=this._keyStr.indexOf(e.charAt(f++));o=this._keyStr.indexOf(e.charAt(f++));u=this._keyStr.indexOf(e.charAt(f++));a=this._keyStr.indexOf(e.charAt(f++));n=s<<2|o>>4;r=(o&15)<<4|u>>2;i=(u&3)<<6|a;t=t+String.fromCharCode(n);if(u!=64){t=t+String.fromCharCode(r)}if(a!=64){t=t+String.fromCharCode(i)}}t=Base64._utf8_decode(t);return t},_utf8_encode:function(e){e=e.replace(/rn/g,"n");var t="";for(var n=0;n<e.length;n++){var r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r)}else if(r>127&&r<2048){t+=String.fromCharCode(r>>6|192);t+=String.fromCharCode(r&63|128)}else{t+=String.fromCharCode(r>>12|224);t+=String.fromCharCode(r>>6&63|128);t+=String.fromCharCode(r&63|128)}}return t},_utf8_decode:function(e){var t="";var n=0;var r=c1=c2=0;while(n<e.length){r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r);n++}else if(r>191&&r<224){c2=e.charCodeAt(n+1);t+=String.fromCharCode((r&31)<<6|c2&63);n+=2}else{c2=e.charCodeAt(n+1);c3=e.charCodeAt(n+2);t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);n+=3}}return t}}
+]]>
+      &CheckValidEmailFunction;
+    </text>
+  </script>
+
+  <response>
+    <action id="GetTemplate">
+      <text>
+        <![CDATA[
+if exists(select 1 from bidmmauthu where ma_mau = @ma_mau) begin
+  select noi_dung, rtrim(tieu_de) as tieu_de from bidmmauthu where ma_mau = @ma_mau
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+
+  &OutlineCss;
+</dir>

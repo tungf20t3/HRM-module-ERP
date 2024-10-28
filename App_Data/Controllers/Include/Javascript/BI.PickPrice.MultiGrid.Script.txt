@@ -1,0 +1,43 @@
+<![CDATA[
+function init$FlowMulti$GridQuery$]]>&Identity;<![CDATA[(g) {
+  var f = g._$parentForm, c = String.fromCharCode(253), c1 = String.fromCharCode(252), a = f._$queryFilterString.replaceAll(c1, "'").split(c);
+  g._alterTitle = [null, [['%s1', a[3], true], ['%s2', a[6], true], ['%s3', a[7], true], ['%d1', formatDateView(a[4]), true], ['%d2', formatDateView(a[5]), true]]];
+}
+
+function load$FlowMulti$GridQuery$]]>&Identity;<![CDATA[(g) {
+  g._$t = g._getColumnOrder('chon');
+  g._$k = [];
+  g._$f = ['stt_rec', 'stt_rec0', 'stt_rec1'];
+  g._$i = [g._getColumnOrder('stt_rec'), g._getColumnOrder('stt_rec0'), g._getColumnOrder('stt_rec1')];
+  g._$s = [g._getColumnOrder('so_luong')];
+}
+function dispose$FlowMulti$GridQuery$]]>&Identity;<![CDATA[(g) {g._$t = g._$k = g._$f = g._$i = g._$s = null;}
+function scatter$FlowMulti$GridQuery$]]>&Identity;<![CDATA[(g) {scatter$FlowMulti$GridQuery(g);}
+
+function toggle$FlowMulti$GridQuery$]]>&Identity;<![CDATA[(o) {return false;}
+
+function onClick$FlowMulti$GridQuery$]]>&Identity;<![CDATA[Calculate(o) {
+  var g = o.grid, a = o.id.split('_inputCell_'), r = a[1].split('.')[0];
+  if (!g) g = $find(a[0]);
+  if (o.checked) {
+    if (g._$k.length > 0) {
+      var x = g._$k[0], key1 = '', key2 = '', l1 = g._getColumnOrder('chon');
+      for (var k = 0; k < g._$i.length; k++) {
+        key1 += '#' + x[g._$i[k] - 1];
+      }
+      for (var i = 1; i <= g._rowCount; i++) {
+        key2 = '';
+        for (var k = 0; k < g._$f.length; k++) {
+          key2 += '#' + g._getItemValue(i, g._$i[k]);
+          if (key2 == key1) {
+            g._setItemValue(i, l1, false); 
+            break; 
+          }
+        }
+      }
+      g._$k = [];
+    }  
+    addTagRow$FlowMulti$(g, r);
+  } else removeTagRow$FlowMulti$(g, r);
+}
+]]>

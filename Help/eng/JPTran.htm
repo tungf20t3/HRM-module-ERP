@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="JPTran.doc" />
+<title>Misc. Payable Transaction, AP-AR Interface</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+<!--
+div.WebHelpPopupMenu { position:absolute;
+left:0px;
+top:0px;
+z-index:4;
+visibility:hidden; }
+-->
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+
+</head>
+<body>
+<p id="td1">Misc. Payable Transaction, AP-AR Interface</p>
+
+<p id="pic"><img src="eng/JPTran.png"/></p>
+<p id="p3">Misc. Payable, AP-AR Interface between 2 suppliers is used to update other payable amounts which do not belong to purchase invoice.</p>
+<p class="e"> For example: FC Exchange Rate Transaction, small debit balance adjustment, AP-AR Interface between 2 suppliers or between 1 supplier and 1 customer.</p>
+ 	
+<p id="td3">Field descriptions - format view </p>
+<p class="node">	Voucher Number</p>
+<p class="node_d">
+It is automatically increased 1 when a new voucher entered but editable. </p>
+<p class="node">	Voucher Date</p>
+<p class="node_d">
+The date the voucher is created; reference information only. Program will use GL Date in calculation.</p>
+<p class="node">	Posting Date</p>
+<p class="node_d">
+The date the voucher is posted; default as created date in calculation and greater than closing date.</p>
+<p class="node">	Ex. Rate</p>
+<p class="node_d">
+If currency is GL currency, exchange rate will be 1 and this field will not be updated. If exchange rate is changed, program will recalculate amount related to foreign currency and GL currency.</p>
+
+
+<p id="td3">	Field descriptions - “Details’ Tab</p>
+ 
+<p class="node">	Account</p>
+<p class="node_d">
+Extracted from Chart of Accounts 
+</p>
+<p class="node">	Customer</p>
+<p class="node_d">
+Customer ID, extracted from Customer/Supplier List, is usually used in debt control in case of Issue related to debt transactions as lending 
+items from other units.</p>
+
+<p class="node">	Debit / Credit </p>
+<p class="node_d">
+Debit/ Credit amount in GL currency
+</p>
+<p class="node">	Description</p>
+<p class="node_d">
+Transaction reasons/ memo. 
+</p>
+<p class="node">	Contract</p>
+<p class="node_d">
+Information of contracts related to voucher.
+</p>
+<p class="node">	Loan Contract</p>
+<p class="node_d">
+Information of loan contracts related to voucher.
+</p>
+<p class="node">	Job</p>
+<p class="node_d">
+Code of job related to service purchase, extracted from Job List.</p>
+
+<p class="node">Payment Term /Invoice Number/Invoice Date </p>
+<p class="node_d">These fields only display when the parameter “Advanced Payment Control” is "Yes".<br/>
+If this parameter is "Yes", corresponding to following cases: <br/>
+- Account input in column “Account” (Detail grid) is “AR Account” in list of parameter
+“Accounts Receivable” and “Debit” not equal 0 , AR Invoice will be posted to AR report;<br/>
+- Account input in column “Account” (Detail grid) is “AP Account” in list of parameter
+“Accounts Payable” and “Credit” not equal 0 , AP Invoice will be posted to AP report.</p>
+<p class="node">	Group</p>
+<p class="node_d">
+Used in case enter many debit and credit in one same voucher. At that time, you must divide into groups: 1 debit/ many credits or many debits/ 1 credit. This grouping aims at helping create reference account of an account report. You must number groups to distinguish group of account. The simple way is gradually increase 1, 2, 3…
+
+
+
+</p>
+<p id="td3">	Field descriptions - “Input VAT” Tab
+</p>
+<p id="p3">Tax information is extracted from format view but edited in some special cases.
+ 
+</p>
+<p class="node">	Report Form</p>
+<p class="node_d">
+Report forms are used as filter condition of reports in Tax Reports module;<br/>
+Consist of:</p>
+<ul class="lo_2">
+-	3 – VAT Invoice (default);<br/>
+-	4 – Goods, services purchased without invoice;<br/>
+-	5 – Common sales invoice.</ul>
+
+<p class="node">	Tax Type</p>
+<p class="node_d">
+VAT properties of purchased goods, services; used to classify taxes when reporting “Input VAT Invoice Listing” (Form 01-2/VAT)”.<br/>
+Consist of:</p>
+
+<ul class="lo_2">
+- 1 - Goods, Services used for taxable business activities with revenue;<br/>
+- 2 - Goods, Services which do not meet tax deduction condition; <br/>
+- 3 - Goods, Services used for both taxable and non-taxable business activities; <br/>
+- 4 - Goods, services used for investment projects which meet tax deduction condition;<br/>
+- 5 - Goods, services not be declared in Form No. 01/GTGT
+</ul>
+<p class="node">Invoice Form
+</p>
+<p class="node_d">
+This "Invoice Form" is default as one in optional parameter but editable.<br/>
+The "Invoice Form" will be used in tax reports by the following priority:</p>
+<ul class="lo_2">
+- The "Invoice Form" input in this voucher is the first priority;<br/>
+- If this field is blank, the system will get the "Default Input Invoice Form" in optional parameter;<br/>
+- If the "Default Input Invoice Form" parameter is also blank, there will be no "Invoice Form" in tax reports.
+</ul>
+
+<p class="node">	Inv. No. / Serial No./ Inv. Date</p>
+<p class="node_d">
+Invoice number, serial number and invoice date relating to arising transaction (if any)
+</p>
+<p class="node">	Supplier ID/ Supplier Name/ Supplier Tax Code/ Goods – services name</p>
+<p class="node_d">
+Information of supplier and goods in invoice
+</p>
+<p class="node">	Tax Code / Tax Acct./ Ref. Acct.</p>
+<p class="node_d">
+Tax code, tax account are extracted from VAT List. Reference account is used to enter the account corresponding to tax account.
+</p>
+<p class="node">	Tax Authority</p>
+<p class="node_d">
+State Tax authority, where company registers tax declaration
+</p>
+<p class="node">	Note</p>
+<p class="node_d">
+More description
+
+
+
+
+</p>
+<p id="td2">	Some common operations
+</p>
+<p class="node">	Create different groups of account in voucher</p>
+<p class="node_d">
+Input debit and credit accounts in one same field, amount field shows that account is debit or credit. Accounts in groups have only 1-1 or 1 - many correspondence, total debit and credit amount in group must be equal.<br/>
+
+</p>
+<p class="node"> Import data from excel file
+</p>
+<p class="node_d">
+The system is enabled to import data from excel spreadsheet to save hours of manual effort.
+</p>
+<p class="e">
+For example: There are only account code, customer ID... in excel file. After importing data from the excel file, 
+the voucher will be auto-updated with account name, customer name...
+
+</p>
+<p class="node_d">The data importing process:</p>
+<ul class="lo_2">
+	- Enter Voucher;<br/>
+	- Click the icon <img src="eng/download.png"/>, the system allows user to download template file to put data in;<br/>
+	- After keying data in the spreadsheet, to up data to the system, click the icon <img src="eng/upload.png"/>, 
+	select the file, the system will get data from this file to grid view of the voucher.<br/>
+</ul>
+<p class="note">The system will give error message in some following cases:<br/>
+
+	- Data in columns containing codes of related objects do not exist in current lists (Customer, Account, Job...). 
+	In this case, the system will indicate the specific invalid cell;<br/>
+	- String data is longer than the available length of field.
+
+</p>
+<p class="note">Other notes:<br/>
+
+- The function is only supported to get data for each voucher, used in case of frequently inputting the similar periodic transactions.<br/>
+- If you do not have the "New" right, you cannot import new data to voucher detail grid;<br/>
+- If you do not have the "Edit" right, you cannot edit data in voucher detail grid;<br/>
+- It is not required to keying object name in lists, the system will auto update following their codes.
+
+</p>
+<p class="node"> Import data from excel file (mass importing)
+</p>
+<p class="node_d">The same as importing data for each voucher with some following notes:
+</p>
+<p class="note">Notes of inputting data in template file:<br/>
+- Unit: must be one of the assigned units with unit locking date before invoice date;<br/> 
+- Account: must be detailed account;<br/>
+- Customer: required field if the account is foreign currency account;<br/>
+- Currency: if voucher consists of many rows, the currency of the first row will be considered as currency of the voucher;<br/>
+- Exchange Rate: to foreign currency vouchers, it is required to define exchange rate in detailed rows, the system will not generate exchange rate for details;<br/>
+- Voucher Date: input in date format. Voucher date must be after data closing date and voucher locking date;<br/>
+- Debit/Credit Amount: input in number format, 14 digits maximum and 2 decimal digits (standard format). The system will import the right amount input in the template file, not recalculate;<br/>
+- Group (of double entries): there can be 1-1 or 1-multiple entries only, total debit and credit amount in a group must be balanced.
+</p>
+<p class="note">The system will give error message in some following cases:<br/>
+	- Data in column containing customer, account do not exist in the corresponding lists. Account is general account.
+	In this case, the system will indicate the specific invalid cell;<br/>
+	- The required fields (Voucher Number, Unit...) are blank;<br/>
+	- String data is longer than the available length of field; the field length is the same as one manually input.
+
+</p>
+<p class="note">Other notes:<br/>
+- Cannot import data after system data closing, unit or voucher locking date (the data closing date after the beginning input date);<br/>
+- The current user must have the "New" right in "General Voucher" menu;<br/>
+- The current user must have the "New" right in "Access Right by Unit" menu;<br/>
+- Enable to import data for many units. If the data of the current unit has been closed, the system will give warning message when you click the  <img src="eng/download.png"/> icon; if data of other units has been closed, the system will also give warning message during importing process and indicate the specific invalid cell;<br/>
+- Check the duplicate vouchers by number only (if available);<br/>
+- Cannot import data from spreadsheet with macro;<br/>
+- Only support for spreadsheet in Excel 2007 or higher.
+</p>
+
+
+<p id="p1"> Please refer to <a href=GeneralVouchertask.htm> “Hints and Tips in Voucher Entry”</a> for more details</p>
+<!--
+
+-->
+
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>
+

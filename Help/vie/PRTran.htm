@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="PRTran.doc" />
+<title>Phiếu nhu cầu vật tư</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">    Phiếu nhu cầu vật tư</p>
+<p id="td2">    Quy trình của phiếu nhu cầu vật tư</p>
+<p id="p2">
+Bước lập phiếu nhu cầu vật tư là bước đầu tiên trong quy trình quản lý mua hàng. 
+Tuy nhiên, có thể không được dùng trong quy trình nếu doanh nghiệp chỉ quản lý từ bước mua hàng mà không có nhu cầu quản lý từ bước 
+lập phiếu nhu cầu.
+<ul class="lo_2">
+Bước trước: Các đơn hàng kế hoạch từ hoạch định nguyên liệu.
+<br/>
+Bước sau:        Duyệt phiếu nhu cầu (hoặc lập đơn hàng mua)
+<br/>
+Bộ phận lập:    Bộ phận yêu cầu vật tư
+</ul>
+<p id="td2">    Mô tả trạng thái của phiếu nhu cầu</p>
+<p class="node">         Lập chứng từ</p>
+<p class="node_d">
+Trạng thái đang lập phiếu, chưa hoàn thành để chuyển sang bước duyệt. Đây là trạng thái ngầm định khi tạo mới phiếu nhu cầu.
+<br/>
+Trạng thái này được xác lập ngay trên phiếu nhu cầu. Ở trạng thái này, phiếu nhu cầu được phép hiệu chỉnh.</p>
+<p class="node">        Chờ duyệt</p>
+<p class="node_d">
+Sau khi đã lập xong phiếu nhu cầu thì người lập phiếu sẽ chuyển phiếu sang trạng thái này để chờ duyệt ở bước tiếp theo.
+<br/>
+Trạng thái này được xác lập ngay trên phiếu nhu cầu. Ở trạng thái này, được hiệu chỉnh phiếu nhu cầu.</p>
+<p class="node">        Đang duyệt</p>
+<p class="node_d">Là trạng thái yêu cầu đã được duyệt bởi các cấp duyệt trung gian.</p>
+<p class="node">         Đã duyệt</p>
+<p class="node_d">
+Phiếu nhu cầu đã được duyệt và sẵn sàng chờ làm báo giá và đặt hàng. Khi lập đơn hàng, chương trình sẽ lọc những nhu cầu ở trạng thái “Đã duyệt”
+<br/>
+Trạng thái này được xác lập ở bước duyệt phiếu nhu cầu thuộc chức năng “Duyệt phiếu nhu cầu”. Nó cũng có thể được xác lập ngay trên phiếu nhu 
+cầu nếu người dùng được quyền duyệt nhu cầu. Ở trạng thái này, phiếu nhu cầu không được phép hiệu chỉnh nếu người dùng không được quyền duyệt.</p>
+<p class="node">         Đã đặt hàng</p>
+<p class="node_d">
+Vật tư trong phiếu nhu cầu đã được đặt hàng và sẵn sàng cho bước nhập hàng.
+<br/>
+Trạng thái này được xác lập ở bước duyệt đơn hàng khi có ít nhất 1 vật tư trong phiếu nhu cầu đã được lập đơn hàng và đơn hàng đó được duyệt. 
+Ở trạng thái này, phiếu nhu cầu không được phép hiệu chỉnh.</p>
+<p class="node">        Hoàn thành</p>
+<p class="node_d">
+Là trạng thái khi tất cả các vật tư trong phiếu nhu cầu đã được đặt hàng.
+<br/>
+Trạng thái này được xác lập khi đơn hàng được duyệt. Ở trạng thái này, phiếu nhu cầu không được phép hiệu chỉnh.</p>
+<p class="node">        Đóng</p>
+<p class="node_d">
+Là trạng thái kết thúc, phiếu nhu cầu sẽ không được tiếp tục đặt hàng nữa. Khi lập đơn hàng, sẽ không xuất hiện phiếu nhu cầu này trong 
+danh sách những phiếu nhu cầu cần đặt hàng.
+<br/>
+Trạng thái này được xác lập ở bước duyệt nhu cầu hoặc bước đóng nhu cầu. Ở trạng thái này, phiếu nhu cầu không được phép hiệu chỉnh.</p>
+<p id="td2">     Mô tả trạng thái của các dòng chi tiết</p>
+<p class="node">         Chưa duyệt</p>
+<p class="node_d">
+Là trạng thái vật tư yêu cầu chưa được duyệt. Đây là trạng thái ngầm định của dòng chi tiết khi tạo mới phiếu nhu cầu.
+<br/>
+Trạng thái này còn được xác lập cho những dòng vật tư có trong yêu cầu nhưng không được duyệt ở bước duyệt nhu cầu.</p>
+<p class="node">        Đã duyệt</p>
+<p class="node_d">Là trạng thái vật tư yêu cầu đã được duyệt.
+<br/>
+Trạng thái này được xác lập ở bước duyệt nhu cầu.
+<br/>
+Trạng thái này còn có thể xác lập ở bước lập nhu cầu nếu người dùng được quyền duyệt nhu cầu</p>
+<p class="node">         Đã đặt hàng</p>
+<p class="node_d">Là trạng thái mà vật tư yêu cầu đã được đặt hàng (đơn hàng đó đã được duyệt) và sẵn sàng cho bước nhập hàng.
+<br/>
+Trạng thái này được xác lập ở bước duyệt đơn hàng khi vật tư đã được lập đơn hàng và đơn hàng đó được duyệt.</p>
+<p class="node">        Không được duyệt</p>
+<p class="node_d">
+Là trạng thái vật tư yêu cầu không được duyệt.
+<br/>
+Trạng thái này được xác lập ở bước duyệt nhu cầu nếu chọn hủy ở bước duyệt nhu cầu hoặc ở bước đóng nhu cầu.</p>
+<p class="note">
+Lưu ý: <br/>
+Nếu trong một yêu cầu có nhiều vật tư mà chỉ có một số được duyệt còn số còn lại không chấp nhận duyệt mua (số lượng duyệt bằng 0) thì 
+không thể thực hiện được việc duyệt trong phiếu nhu cầu mà phải duyệt bằng chức năng duyệt. </p></p>
+<p id="td2"> Màn hình cập nhật phiếu nhu cầu vật tư</p>
+<p id="pic"><img src="vie/PRTran.png"/></p>
+
+<p id="td2">Mô tả các trường thông tin chung</p>
+<p class="node">        Bộ phận</p>
+<p class="node_d">
+Là bộ phận có nhu cầu vật tư, lấy từ Danh mục bộ phận (bắt buộc khai báo).</p>
+<p class="node">        Người yêu cầu</p>
+<p class="node_d">
+Là người yêu cầu mua vật tư, có thể là người lập phiếu nhu cầu, gõ tự do.</p>
+<p class="node">        Mã giao dịch</p>
+<p class="node_d">
+Chọn 1 – Nhu cầu (mã ngầm định)</p>
+<p class="node">        Mức độ</p>
+<p class="node_d">
+Mức độ xử lý yêu cầu, chọn 01 trong 03 loại: 1 - Khẩn cấp, 2 – Càng nhanh càng tốt, 3 – Bình thường (bắt buộc khai báo)</p>
+<p class="node">        Diễn giải</p>
+<p class="node_d">
+Thông tin thêm cho phiếu yêu cầu vật tư, gõ tự do.</p>
+<p class="node">        Số phiếu yêu cầu</p>
+<p class="node_d">
+Số phiếu nhu cầu, chương trình tự động đánh số hoặc người sử dụng có thể tự gõ lại theo hệ thống số đặc thù của đơn vị.</p>
+<p class="node">        Ngày lập</p>
+<p class="node_d">
+Là ngày lập phiếu nhu cầu.</p>
+<p class="node">        Tỷ giá</p>
+<p class="node_d">
+Tỷ giá giao dịch trong trường hợp yêu cầu vật tư bằng ngoại tệ. Chọn mã ngoại tệ và nhập tỷ giá. Tỷ giá được lấy mặc nhiên theo từng 
+loại ngoại tệ có trong danh mục tỷ giá quy đổi theo ngày gần nhất.</p>
+<p class="node">        Trạng thái</p>
+<p class="node_d">
+Trạng thái của phiếu nhu cầu. Phiếu nhu cầu có 06 trạng thái, tùy thuộc vào tiến trình thực hiện các bước sau phiếu nhu cầu. 
+(Xem thêm trong phần mô tả các trạng thái)
+ </p>
+<p id="td2"> Mô tả các trường ngăn Chi tiết   </p>
+<p class="node">        Mã hàng</p>
+<p class="node_d">
+Mã vật tư yêu cầu, lấy từ Danh mục vật tư (bắt buộc khai báo)</p>
+<p class="node">        Đvt</p>
+<p class="node_d">
+Đơn vị tính của vật tư hàng hóa, có thể được lấy mặc nhiên như trong danh mục vật tư nhưng cũng có thể thay đổi qua đơn vị 
+tính quy đổi trong những trường hợp đặc biệt.</p>
+<p class="node">        Ngày yêu cầu</p>
+<p class="node_d">
+Ngày yêu cầu – ngày người yêu cầu nhận vật tư.</p>
+<p class="node">        Số lượng</p>
+<p class="node_d">
+Số lượng vật tư yêu cầu (bắt buộc khai báo).</p>
+<p class="node">        Giá nguyên tệ</p>
+<p class="node_d">
+Đơn giá tham khảo của vật tư yêu cầu theo đồng ngoại tệ khai báo, trường này chỉ hiện lên nếu trong phần thông tin chung chọn 
+trường tiền là ngoại tệ, không phải tiền hạch toán.</p>
+<p class="node">        Tiền nguyên tệ</p>
+<p class="node_d">
+Thành tiền tham khảo của vật tư yêu cầu theo đồng ngoại tệ khai báo, trường này chỉ hiện lên nếu trong phần thông tin chung
+ chọn trường tiền là ngoại tệ, không phải tiền hạch toán.</p>
+<p class="node">        Địa chỉ</p>
+<p class="node_d">
+Địa chỉ nhận hàng dự kiến, lấy từ Danh mục địa chỉ.</p>
+<p class="node">        Kho hàng</p>
+<p class="node_d">
+Kho nhận hàng dự kiến, lấy ngầm định theo địa chỉ nhận hàng.</p>
+<p class="node">        Mã ncc</p>
+<p class="node_d">
+Mã nhà cung cấp tham khảo, lấy từ Danh mục nhà cung cấp.</p>
+<p class="node">        Ghi chú</p>
+<p class="node_d">
+Các ghi chú khác liên quan đến vật tư yêu cầu.</p>
+<p class="node">        Sl Duyệt</p>
+<p class="node_d">
+Số lượng vật tư yêu cầu được duyệt.</p>
+<p class="node">        Sl đặt hàng</p>
+<p class="node_d">
+Số lượng vật tư yêu cầu đã được đặt hàng.</p>
+<p class="node">        Trạng thái</p>
+<p class="node_d">
+Trạng thái của vật tư yêu cầu (chương trình tự xử lý). Vật tư yêu cầu có 04 trạng thái: “Chưa duyệt”, “Đã duyệt”, 
+“Đã đặt hàng” và “Không được duyệt”.</p>
+<p class="node">        Giá</p>
+<p class="node_d">
+Đơn giá tham khảo của vật tư yêu cầu theo tiền hạch toán, trường này sẽ thay vị trí trường Giá nguyên tệ nếu phần thông 
+tin chung chọn trường tiền là tiền hạch toán.</p>
+<p class="node">        Tiền</p>
+<p class="node_d">
+Thành tiền tham khảo của vật tư yêu cầu theo tiền hạch toán, trường này sẽ thay vị trí trường Tiền nguyên tệ nếu phần thông 
+tin chung chọn trường tiền là tiền hạch toán.</p>
+<p class="node">        Vụ việc</p>
+<p class="node_d">
+Vụ việc, dự án, công trình… liên quan đến yêu cầu về vật tư.</p>
+
+<p id="td2"> Ngăn "Ghi chú"</p>
+<p id="p2"> Ngăn "Ghi chú" dùng để chia sẻ thông tin và tương tác với những người dùng khác, cho phép người 
+sử dụng có thể khai thác các tính năng: <br/>
+    - Đăng tin, ảnh, đoạn phim ngắn, tải tập tin có tính chất chia sẻ chung cho mọi người;<br/>
+    - Xem nhanh thông tin tình hình phản hồi;
+</p>
+<p id="pic"><img src="vie/PRTran_ghichu.png"/></p>
+<p class="note">
+Lưu ý:<br/>
+- Những thông tin mang tính chất riêng tư không nên đăng trên chức năng này;<br/>
+- Chỉ người dùng có quyền "quản trị" mới xóa các nội dung  của người khác; Với người dùng thông thường, chỉ xóa các nội dung do người dùng đó tạo ra;<br/>
+- Khi xóa 1 dòng nội dung  thì các nội dung "trả lời" cũng bị xóa;<br/>
+- Khi xem vẫn cho nhập nội dung, kể cả không có quyền sửa chứng từ. Những người dùng có quyền truy nhập vào chứng từ có thể tham gia viết;<br/>
+- Khi có nhiều nội dung viết, muốn xem các nội dung bị che khuất, nhấn "Xem thêm...";<br/>
+- Sau khi nhập đoạn văn bản, chèn hình ảnh...phải nhấn "Gửi nội dung", nếu không, khi thoát chứng từ, các nội dung sẽ không được lưu.
+</p>
+
+<p id="td2"> Ngăn "Khác"</p>
+<p class="node">Người duyệt/trạng thái duyệt</p>
+<p class="node_d">Mã người duyệt và trạng thái duyệt nhu cầu gần nhất.</p>
+<p class="node">Mã kiểu duyệt</p>
+<p class="node_d">Mã kiểu duyệt phù hợp được trả về tự động. Xem "Danh mục kiểu duyệt" và "Khai báo kiểu duyệt" để hiểu thêm về kiểu duyệt.</p>
+<p class="note">Ghi chú<br/>
+Nếu một yêu cầu duyệt không được chuyển đến đúng người có thẩm quyền duyệt thích hợp. Trước tiên phải xem yêu cầu đã được xác định kiểu duyệt nào, để từ đó kiểm tra lại các khai báo liên quan quyền duyệt tượng ứng. 
+</p>
+
+<p id="td2"> Hướng dẫn sử dụng chức năng duyệt trực tuyến</p>
+
+<p id="td3"> Duyệt qua điện thoại di động</p>
+<p id="p3">Để dùng được chức năng này, cần đăng ký dịch vụ và sử dụng các thiết bị viễn thông liên quan tin nhắn SMS. 
+Các cấu hình liên quan đề nghị tham khảo nhân viên tư vấn trong quá trình triển khai thực hiện.<br/>
+Cách dùng: <br/>Chọn mức độ của nhu cầu là 1-Khẩn cấp, trạng thái "Chờ duyệt", nhập mã người duyệt và lưu phiếu yêu cầu. 
+Chương trình sẽ gửi yêu cầu duyệt tới điện thoại di động của người duyệt với nội dung tóm tắt gồm số phiếu yêu cầu, giá trị bằng tiền,
+ mã lệnh duyệt và mã lệnh hủy.
+Người duyệt chỉ cần trả lời tin nhắn bằng mã duyệt hoặc mã hủy, hệ thống sẽ chuyển nhu cầu sang tình trạng tương ứng "Đã Duyệt" hoặc "Đóng".</p>
+<p class="e">Ví dụ:<br/>
+Người duyệt nhận được tin nhắn có nội dung như sau:<br/></p>
+<p class="e2">
+"PYC so: NC4-01-12<br/>Tong tien: 24 000 000<br/>Ma duyet: 7529D7 <br/>Ma huy: 77AA9F"</p>
+<p class="e2">
+Để chấp nhận duyệt, nhắn trả lời "7529D7", nếu không chấp nhận duyệt, nhắn trả lời "77AA9F"</p>
+
+<p class="note">
+Lưu ý: <br/>
+Mã xác nhận là duy nhất, cho phép dùng điện thoại khác để nhắn về hệ thống, chương trình sẽ biết ai là người đã duyệt qua tin nhắn.
+</p>
+
+<p id="td3"> Duyệt qua thư điện tử</p>
+<p id="p3">
+Để dùng được chức năng này, giả định doanh nghiệp đã đăng ký sử dụng dịch vụ internet, các cấu hình liên quan đề nghị tham khảo nhân viên 
+tư vấn trong quá trình triển khai thực hiện.<br/>
+Cách dùng: <br/>
+Tạo mới phiếu nhu cầu, chọn trạng thái "Chờ duyệt" và lưu phiếu yêu cầu, chương trình sẽ gửi yêu cầu duyệt tới hộp thư của người duyệt.
+Người duyệt chỉ cần nhấn vào liên kết "Duyệt phiếu nhu cầu vật tư" để duyệt hoặc nhấn vào liên kết "Hủy phiếu nhu cầu vật tư" để hủy, hệ 
+thống sẽ chuyển nhu cầu sang tình trạng tương ứng "Đã Duyệt" hoặc "Đóng".</p>
+
+<p id="pic"><img src="vie\PRtran-email.png"/></p>
+<p class="note">
+- Khi chọn mức độ của nhu cầu là 1-Khẩn cấp, AI ERP sẽ gửi tin nhắn yêu cầu duyệt 
+qua điện thoại (SMS) đồng thời gửi yêu cầu duyệt đến hộp thư điện tử của người duyệt.
+<br/>
+- Khi chọn mức độ của nhu cầu là 2-Càng nhanh càng tốt hoặc 3-Bình thường, AI ERP sẽ chỉ gửi yêu cầu duyệt đến hộp thư điện
+ tử của người duyệt.</p>
+ 
+ <p class="note">Lưu ý chung về thông báo của người duyệt: <br/>
+ Số điện thoại, địa chỉ thư điện tử, và ngôn ngữ của thông báo đến người duyệt được khai báo trong "Khai báo người sử dụng"</p>
+ 
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>

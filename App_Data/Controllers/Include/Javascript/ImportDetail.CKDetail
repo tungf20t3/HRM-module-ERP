@@ -1,0 +1,48 @@
+﻿<![CDATA[
+function set$Grid$ImportResult(z) {
+  var g = z.grid, f = z.form, w = g.get_element().parentForm, result = z.result, row = g._rowCount, first = true, refIndex = 13;
+  var c0 = g._getColumnOrder('tk_no'), reference = g._getColumnOrder('ten_tk_no%l'), c1 = g._getColumnOrder('ma_kh_i'), extension = g._getColumnOrder('ten_kh_i%l');
+  ]]>&ImportUserDefinedDeclare;<![CDATA[
+  var beginUDIndex = 0;
+  var fields = 'tk_no, ten_tk_no%l, ma_kh_i, ten_kh_i%l, tien_nt, dien_giai, ' + ']]>&ImportUserDefinedFields;<![CDATA[';
+
+  for (var i = 0; i < result.length; i++) {
+    var ins = true, row = g._rowCount, importItems = result[i];
+    if (first && row > 0) if (g.blankMemvar(row)) {ins = false; first = false;}
+    if (ins) g._appendRow(null, true);
+    row = g._rowCount;
+    var o = g._getItem(row, c0);
+    o.row = row;
+    insert$Import$Items(g, fields, row, importItems);
+
+    var accountID = g._getItemValue(row, c0), accountName = g._getItemValue(row, reference), b0 = (accountName != '' || accountID == '');
+    var customerID = g._getItemValue(row, c1), customerName = g._getItemValue(row, extension), b1 = (customerName != '' || customerID == '');
+
+    var ref = importItems[refIndex];
+    var itemGridBehavior = [
+        ['tk_no', accountID, [accountName, b0], true],
+        ['ma_kh_i', customerID, [customerName, b1], true]
+    ];
+    ]]>&ImportUserDefinedSetItem;<![CDATA[
+
+    g.executeExpression(o, [g.$a.tien]);
+  }
+  on$GridVoucherDetail$RowChange(g, w);
+  g._focusWhenTabChanged();
+  f._busy = false;
+  parent.$func.hideWait(f.get_id());
+  ]]>&ImportDetailCloseForm;<![CDATA[
+  z.parentNode.removeChild(z);
+}
+function insert$Import$Items(g, fields, row, value) {
+  var field = fields.split(',');
+  for (var i = 0; i < field.length; i++) {
+    var column = g._getColumnOrder(parent.$func.trim(field[i]));
+    if (column > 0) {
+      var f = g._fields[column - 1], v = value[i];
+      if (f.ItemStyle == 'AutoComplete' && v && !$func.trim(v)) v = '';
+      g._setItemValue(row, column, v);
+    }
+  }
+}
+]]>

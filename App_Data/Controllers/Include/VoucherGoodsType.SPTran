@@ -1,0 +1,41 @@
+﻿<!ENTITY % Conditional.VoucherGoodsType.SPTran SYSTEM "..\Include\VoucherGoodsType.txt">
+
+<![%Conditional.VoucherGoodsType.SPTran;[
+
+  <!ENTITY % Conditional.DetailTax SYSTEM "..\Include\DetailTax.txt">
+  <![%Conditional.DetailTax;[
+    <!ENTITY VoucherGoodsTypeImportUpdateDetailValue ", gia_nt2 = 0, gia2 = 0, ma_thue = '', ma_kh2 = '', thue_suat = 0, thue_nt = 0, thue = 0, tk_thue = ''">
+    <!ENTITY VoucherGoodsTypeDetailTaxResponseCompleteValid "">
+    <!ENTITY VoucherGoodsTypeDetailTaxResponseComplete ", ['ma_thue', '', '', null], ['thue_suat', 0, null, null], ['tk_thue', '', '', null], ['thue_nt', 0, null, null], ['ma_kh2', '', '', null]">
+  ]]>
+  <!ENTITY VoucherGoodsTypeImportUpdateDetailValue ", gia_nt2 = 0, gia2 = 0, thue_nt = 0, thue = 0">
+  <!ENTITY VoucherGoodsTypeDetailTaxResponseCompleteValid "">
+  <!ENTITY VoucherGoodsTypeDetailTaxResponseComplete "">
+
+  <!ENTITY VoucherGoodsTypeImportMasterUpdateValue ", t_tien_nt2 = isnull(t_tien_nt2, 0), t_tien2 = isnull(t_tien2, 0), t_thue_nt = isnull(t_thue_nt, 0), t_thue = isnull(t_thue, 0)">
+
+  <!ENTITY VoucherGoodsTypeImportPost "
+update #m&Detail; set t_tien_nt2 = t_tien_nt2&VoucherGoodsTypeImportFieldMasterInsertTotal.ForeignCurrency;, t_tien2 = t_tien2&VoucherGoodsTypeImportFieldMasterInsertTotal.BaseCurrency;
+update #d&Detail; set tien_nt2 = -tien_nt2, tien2 = -tien2 where loai = '90'
+">
+
+  <!ENTITY VoucherGoodsTypeCurrencyFields.ForeignCurrency "(([loai] == &quot;90&quot; ? (-1) : (1)) * [tien_nt2])">
+  <!ENTITY VoucherGoodsTypeCurrencyFields.BaseCurrency "(([loai] == &quot;90&quot; ? (-1) : (1)) * [tien2])">
+
+  <!ENTITY VoucherGoodsTypeHandleFields "ma_vt,so_luong,gia_nt2,gia2,tien_nt2,tien2,ma_thue,thue_nt,thue">
+
+  <!ENTITY VoucherGoodsTypeResponseComplete "
+    case 'GoodsType':
+      if (result[0].Value != '') {
+        g.setItemGridBehavior(o, [['so_luong', 0, null, null], ['gia_nt2', 0, null, null]&VoucherGoodsTypeDetailTaxResponseComplete;]);
+      }
+      g.validExpression(o, [g.$a.gia_nt2_sl, g.$a.gia2_tg, g.$a.tien2_tg], null, null);
+      on$GridVoucherDetail$AmountChange(o, g, f);
+      on$GridVoucherDetail$TaxChange(o, g, f);
+      g.live(o, 'tien_nt2');
+      break;
+">
+]]>
+
+<!ENTITY VoucherGoodsTypeCurrencyFields.ForeignCurrency "[tien_nt2]">
+<!ENTITY VoucherGoodsTypeCurrencyFields.BaseCurrency "[tien2]">

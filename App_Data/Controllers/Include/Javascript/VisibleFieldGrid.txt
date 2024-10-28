@@ -1,0 +1,59 @@
+﻿<![CDATA[
+function showing$VisibleField$Grid(g, d, k) {
+  if (!d) return;
+  g._visibleField$Data = d;
+  var r = d[k];
+  if (!r) return;
+  var c = r.replace(/ /g, '').split(',');
+  for (var i = 0; i < c.length; i++) {
+    var l = g._getColumnOrder(c[i]);
+    if (l >= 0) {
+      var field = g._fields[l - 1];
+      field.Visible = false;
+      field.Hidden = true;
+    }
+  }
+}
+function init$VisibleField$Form(f, k) {
+  var g = f.grid, d = g._visibleField$Data;
+  if (!d) return;
+  var r = d[k];
+  if (!r) return;
+  var c = r.replace(/ /g, '').split(',');
+  f._visibleField = c;
+  var fields = g._dirInfor.Fields;
+  for (var i = 0; i < c.length; i++) {
+    var field = $func.findField(c[i], fields);
+    if (field) {
+      field.ClientScript = 'style="visibility:hidden;"';
+      field.FilterSource= 'Invariability';
+      field.HeaderText = '';
+      field.Label = '';
+    }
+  }
+}
+function load$VisibleField$Form(f) {
+  if (f._visibleField) {
+    for (var i = 0; i < f._visibleField.length; i++) {
+      var o = f.getItem(f._visibleField[i]);
+      if (o) o.parentElement.style.borderColor = 'transparent';
+    }
+  }
+}
+function showing$VisibleField$GridDetail(g, k) {
+  var d = g.get_element().parentForm.grid._visibleField$Data;
+  if (!d) return;
+  var r = d[k];
+  if (!r) return;
+  var c = r.replace(/ /g,'').split(',');
+  for (var i = 0; i < c.length; i++) {
+    var l = g._getColumnOrder(c[i]);
+    if (l >= 0) {
+      var field = g._fields[l - 1];
+      field.Visible = false;
+      field.Hidden = true;
+      field.FilterSource= 'Invariability';
+    }
+  }
+}
+]]>

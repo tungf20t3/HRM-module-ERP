@@ -1,0 +1,218 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY % Conditional.BIMode "INCLUDE">
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+
+  <!ENTITY LineCounter "9">
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY Delta14 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="fromDate" allowNulls="false" defaultValue="new Date()">
+      <header v="Ngày lô từ" e="Inspection Lot Date"></header>
+      <footer v="Ngày lô từ/đến" e="Insp. Lot Date from/to"></footer>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" align="left" aliasName="toDate" allowNulls="false" defaultValue="new Date()">
+      <header v="Ngày lô đến" e="Inspection Lot Date to"></header>
+    </field>
+
+    <field name="so_ct1" dataFormatString="@upperCaseFormat" align="right" maxLength="-109">
+      <header v="Số lô từ/đến" e="Insp. Lot No. from/to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ct2" dataFormatString="@upperCaseFormat" align="right" maxLength="-109">
+      <header v="" e=""></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="ma_vung" categoryIndex="1">
+      <header v="Mã vùng" e="Plant"></header>
+      <items style="AutoComplete" controller="BIPlant" reference="ten_vung%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vung%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho" categoryIndex="1">
+      <header v="Mã kho" e="Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" categoryIndex="1">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vt1" categoryIndex="1">
+      <header v="Nhóm hàng" e="Item Group"/>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 1 and status = '1'" check="loai_nh = 1"/>
+    </field>
+    <field name="nh_vt2" categoryIndex="1">
+      <header v="" e=""/>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 2 and status = '1'" check="loai_nh = 2"/>
+    </field>
+    <field name="nh_vt3" categoryIndex="1">
+      <header v="" e=""/>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 3 and status = '1'" check="loai_nh = 3"/>
+    </field>
+
+    <field name="ma_kh" categoryIndex="1">
+      <header v="Nhà cung cấp" e="Vendor"></header>
+      <items style="AutoComplete" controller="&VendorController;" reference="ten_kh%l" key="cc_yn = 1 and status = '1'" check="cc_yn = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_nguon" categoryIndex="1">
+      <header v="Nguồn kiểm định" e="Inspection Lot Origin"></header>
+      <items style="AutoComplete" controller="BIInspectionLotOriginFilter" reference="ten_nguon%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_nguon%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_loai" categoryIndex="1">
+      <header v="Loại kiểm định" e="Inspection Type"></header>
+      <items style="AutoComplete" controller="BIInspectionType" reference="ten_loai%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_loai%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="status" categoryIndex="1">
+      <header v="Trạng thái" e="Status"/>
+      <clientScript>&OnSelectionOutline;</clientScript>
+      <items style="DropDownList" >
+        <item value="*">
+          <text v="Tất cả" e="All"/>
+        </item>
+        <item value="1">
+          <text v="1. Yêu cầu" e="1. Required"/>
+        </item>
+        <item value="2">
+          <text v="2. Đang kiểm định" e="2. Inspecting"/>
+        </item>
+        <item value="3">
+          <text v="3. Hoàn thành kiểm định" e="3. Finished"/>
+        </item>
+        <item value="4">
+          <text v="4. Quyết định sử dụng" e="4. Usage Decision"/>
+        </item>
+        <item value="5">
+          <text v="5. Hủy" e="5. Cancelled"/>
+        </item>
+      </items>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"/>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 100, 100, 100, 130"/>
+      <item value="111: [ngay_tu].Description, [ngay_tu], [ngay_den]"/>
+      <item value="111: [so_ct1].Label, [so_ct1], [so_ct2]"/>
+      <item value="11100: [ma_vung].Label, [ma_vung], [ten_vung%l]"/>
+      <item value="11100: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="11100: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="1111: [nh_vt1].Label, [nh_vt1], [nh_vt2], [nh_vt3]"/>
+      <item value="11100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="11100: [ma_nguon].Label, [ma_nguon], [ten_nguon%l]"/>
+      <item value="11100: [ma_loai].Label, [ma_loai], [ten_loai%l]"/>
+      <item value="1100: [status].Label, [status]"/>
+      <item value="1100: [ma_dvcs].Label, [ma_dvcs]"/>
+
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+
+      <categories>
+        <category index="1" columns="120, 100, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @ten_vung nvarchar(128)
+select @ten_vung = case when @@language = 'v' then ten_vung else ten_vung2 end from bidmvung where ma_vung = @ma_vung
+if @ma_vung = '' select @ten_vung = case when @@language = 'v' then N'Tất cả' else 'All' end
+select @ngay_tu as date_from, @ngay_den as date_to, @ma_vung as ma_vung, isnull(@ten_vung, '') as ten_vung
+exec bs_rptBIInspectionLotList @ngay_tu, @ngay_den, @so_ct1, @so_ct2, @ma_vung, @ma_kho, @ma_vt, @nh_vt1, @nh_vt2, @nh_vt3, @ma_kh, @ma_nguon, @ma_loai, @status, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function onChange$Process(a){a.parentForm.setReferenceKeyFilter("ma_ct")}function on$Filter$ResponseComplete(h,a){var b=a.object,c=a.type.Context,g=a.type.Result;switch(c){case"Checking":var f=b.grid,d=b.getItem("ngay_tu").value,e=b.getItem("ngay_den").value;f._alterTitle=[null,[["%d1",d,true],["%d2",e,true]]]}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

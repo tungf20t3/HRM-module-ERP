@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir  table="userinfo2" code="name" order="name" database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Nội dung" e="Content"></title>
+  <fields>
+    <field name="content" rows="15" allowNulls="false" maxLength="4000">
+      <header v="Nội dung" e="Content"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 80, 330"/>
+      <item value="100: [content]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'init$DebugModeForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function init$DebugModeForm(a){var c=a.grid,d=c._debug$Data,b=a.getItem("content");a.setItemValue("content",d.Message);b.focus();$func.setCurPos(b,0);a.live(b)}]]>
+    </text>
+  </script>
+</dir>

@@ -1,0 +1,206 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY XMLWhenFilterQuerying SYSTEM "..\Include\XML\WhenFilterQuerying.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY DynamicFieldFilterPara ", '#$query'">
+
+  <!ENTITY Delta14 "0">
+  <!ENTITY LineCounter "10">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="date_from" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày hạch toán từ" e="GL Date from"/>
+      <footer v="Ngày hạch toán từ/đến" e="GL Date from/to"/>
+    </field>
+    <field name="date_to" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày hạch toán đến" e="GL Date to"/>
+    </field>
+    <field name="invdate_from" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="Ngày hóa đơn từ" e="Invoice Date from"/>
+      <footer v="Ngày hóa đơn từ/đến" e="Invoice Date from/to"/>
+    </field>
+    <field name="invdate_to" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="Ngày hóa đơn đến" e="Invoice Date to"/>
+    </field>
+    <field name="date" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Được tt đến ngày" e="Receive to Date"></header>
+    </field>
+    <field name ="so_ct1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="invoiceNumber">
+      <header v="Hóa đơn từ số" e="Invoices No. from"></header>
+      <footer v="Hóa đơn từ/đến số" e="Invoices No. from/to"></footer>
+      <items style="Mask"></items>
+    </field>
+    <field name ="so_ct2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100" filterSource="invoiceNumber">
+      <header v="Hóa đơn đến số" e="Invoices No. to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="tk" categoryIndex="1">
+      <header v="Tài khoản" e="Account"/>
+      <items style="AutoComplete" controller="Account" reference="ten_tk%l" key="status = '1' and tk_cn = 1" check="tk_cn = 1"/>
+    </field>
+    <field name="ten_tk%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    <field name="ma_kh" categoryIndex="1">
+      <header v="Mã khách" e="Customer"/>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1= 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    <field name="nh_kh1" categoryIndex="1">
+      <header v="Nhóm khách 1" e="Customer Group 1"/>
+      <items style="AutoComplete" controller="CustomerGroup" reference="ten_nh_kh1%l" key="loai_nh = 1 and status = '1'" check="loai_nh = 1"/>
+    </field>
+    <field name="ten_nh_kh1%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    <field name="nh_kh2" categoryIndex="1">
+      <header v="Nhóm khách 2" e=" Customer Group 2"/>
+      <items style="AutoComplete" controller="CustomerGroup" reference="ten_nh_kh2%l" key="loai_nh = 2 and status = '1'" check="loai_nh = 2"/>
+    </field>
+    <field name="ten_nh_kh2%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    <field name="nh_kh3" categoryIndex="1">
+      <header v="Nhóm khách 3" e="Customer Group 3"/>
+      <items style="AutoComplete" controller="CustomerGroup" reference="ten_nh_kh3%l" key="loai_nh = 3 and status = '1'" check="loai_nh = 3"/>
+    </field>
+    <field name="ten_nh_kh3%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""/>
+    </field>
+    <field name="invoice" dataFormatString="1, 0" clientDefault="0" align="right" categoryIndex="1">
+      <header v="Số dư hóa đơn" e="Invoice Balance"></header>
+      <footer v="1 - Tất cả, 0 - Chỉ xem số dư > 0" e="1 - View All, 0 - Balance > 0"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="print" dataFormatString="1, 0" clientDefault="1" align="right" categoryIndex="1">
+      <header v="Loại" e="Type"></header>
+      <footer v="1 - In các hóa đã tất toán, 0 - Không in" e="1 - Print Fully Paid Invoice, 0 - Not Print"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="maxLength" type="Int16" readOnly="true" hidden="true" maxLength="-100" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="1">
+      <header v="Nhóm theo hợp đồng" e="Group by Contract"></header>
+      <footer v="1 - Có, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101--: [date_from].Description, [date_from], [date_to]"/>
+      <item value="1101--: [invdate_from].Description, [invdate_from], [invdate_to]"/>
+      <item value="110---: [date].Label, [date]"/>
+      <item value="1101--: [so_ct1].Description, [so_ct1], [so_ct2]"/>
+      <item value="110100: [tk].Label, [tk], [ten_tk%l]"/>
+      <item value="110100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="110100: [nh_kh1].Label, [nh_kh1], [ten_nh_kh1%l]"/>
+      <item value="110100: [nh_kh2].Label, [nh_kh2], [ten_nh_kh2%l]"/>
+      <item value="110100: [nh_kh3].Label, [nh_kh3], [ten_nh_kh3%l]"/>
+      <item value="1110--: [invoice].Label, [invoice], [invoice].Description"/>
+      <item value="111000: [print].Label, [print], [print].Description"/>
+      <item value="11100: [nhom].Label, [nhom], [nhom].Description"/>
+      <item value="11000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110001: [mau_bc].Label, [mau_bc], [maxLength]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    &XMLWhenFilterQuerying;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @date_from as tu_ngay, @date_to as den_ngay
+exec rs_rptPayableReportByInvoiceExRate @@language, @date_from, @date_to, @invdate_from, @invdate_to, @date,
+  @ma_dvcs, @tk, @ma_kh, @nh_kh1, @nh_kh2, @nh_kh3, @so_ct1, @so_ct2,
+  @print, @maxLength, @invoice, @nhom, @@userID, @@admin
+]]>
+        &DynamicFieldFilterPara;
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  if (!f.getItemValue('date')) {f.setItemValue('date', new Date());}
+  var o = f.getItem('maxLength');
+  o.value = o.maxLength;
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(j,d){var a=d.object,e=d.type.Context,i=d.type.Result;switch(e){case"Checking":var b=a.grid,f=a.getItem("date_from").value,g=a.getItem("date_to").value,h=a.getItemValue("mau_bc"),c=a.getItemValue("nhom")=="0";b._alterTitle=[null,[["%d1",f,true],["%d2",g,true]]];b._hiddenFields=[{Fields:"ma_nt, ty_gia, ty_gia_dg0, t_tt_nt, tt_nt",Value:h=="10"},{Fields:"ma_hd, ten_hd_ex",Value:c}];b._hiddenForms=[{Form:[2,3,8,7],Value:c},{Form:[0,1,6,5],Value:!c}];remove$GridReport$Filter(b)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

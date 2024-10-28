@@ -1,0 +1,283 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'CashFlowPlanByMonth' else 'CashFlowPlanByMonth2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$CashFlowPlanByMonthImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$CashFlowPlanByMonthImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="khdtthang"/>
+    <table value="khdtthang" alias="a"/>
+    <temporary value="#k" alias="b"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;not exists(select 1 from khdtthang b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_bp = b.ma_bp and @@table.ma_vv = b.ma_vv and @@table.ma_ct = b.ma_ct and b.nam = @nam) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from khdtthang b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_bp = b.ma_bp and @@table.ma_vv = b.ma_vv and @@table.ma_ct = b.ma_ct and b.nam = @nam) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;if (@admin &lt;&gt; 1) begin&And;if (@admin &lt;&gt; 1 and @type = '1') begin" tag="&And;end&And;end" errorCode="00001&And;00002&And;00002"/>
+    <field name="ma_bp" column="B" isPrimaryKey="true" upperCase="true" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from dmbp)" updateValue="None" errorCode="00001"/>
+    <field name="ma_vv" column="C" isPrimaryKey="true" upperCase="true" check="ma_vv &lt;&gt; '' and ma_vv not in (select ma_vv from dmvv)" updateValue="None" errorCode="00001"/>
+    <field name="ma_ct" column="D" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_ct not in (select ma_ct from dmctdt)" updateValue="None" errorCode="00001"/>
+    <field name="lan" column="E" isPrimaryKey="true" type="Decimal" defaultvalue="0"/>
+    <field name="tien_nt" column="F" type="Decimal"/>
+    <field name="tien" column="G" type="Decimal"/>
+    <field name="tien_nt01" column="H" type="Decimal"/>
+    <field name="tien01" column="I" type="Decimal"/>
+    <field name="ngay_dk01" column="J" type="DateTime"/>
+    <field name="tien_nt02" column="K" type="Decimal"/>
+    <field name="tien02" column="L" type="Decimal"/>
+    <field name="ngay_dk02" column="M" type="DateTime"/>
+    <field name="tien_nt03" column="N" type="Decimal"/>
+    <field name="tien03" column="O" type="Decimal"/>
+    <field name="ngay_dk03" column="P" type="DateTime"/>
+    <field name="tien_nt04" column="Q" type="Decimal"/>
+    <field name="tien04" column="R" type="Decimal"/>
+    <field name="ngay_dk04" column="S" type="DateTime"/>
+    <field name="tien_nt05" column="T" type="Decimal"/>
+    <field name="tien05" column="U" type="Decimal"/>
+    <field name="ngay_dk05" column="V" type="DateTime"/>
+    <field name="tien_nt06" column="W" type="Decimal"/>
+    <field name="tien06" column="X" type="Decimal"/>
+    <field name="ngay_dk06" column="Y" type="DateTime"/>
+    <field name="tien_nt07" column="Z" type="Decimal"/>
+    <field name="tien07" column="AA" type="Decimal"/>
+    <field name="ngay_dk07" column="AB" type="DateTime"/>
+    <field name="tien_nt08" column="AC" type="Decimal"/>
+    <field name="tien08" column="AD" type="Decimal"/>
+    <field name="ngay_dk08" column="AE" type="DateTime"/>
+    <field name="tien_nt09" column="AF" type="Decimal"/>
+    <field name="tien09" column="AG" type="Decimal"/>
+    <field name="ngay_dk09" column="AH" type="DateTime"/>
+    <field name="tien_nt10" column="AI" type="Decimal"/>
+    <field name="tien10" column="AJ" type="Decimal"/>
+    <field name="ngay_dk10" column="AK" type="DateTime"/>
+    <field name="tien_nt11" column="AL" type="Decimal"/>
+    <field name="tien11" column="AM" type="Decimal"/>
+    <field name="ngay_dk11" column="AN" type="DateTime"/>
+    <field name="tien_nt12" column="AO" type="Decimal"/>
+    <field name="tien12" column="AP" type="Decimal"/>
+    <field name="ngay_dk12" column="AQ" type="DateTime"/>
+    <field name="nam" column="None" type="Decimal" insertValue="@nam" updateValue="None"/>
+    <field name="t_tien" column="None" type="Decimal" insertValue="(tien01 + tien02 + tien03 + tien04 + tien05 + tien06 + tien07 + tien08 + tien09 + tien10 + tien11 + tien12)" updateValue="(b.tien01 + b.tien02 + b.tien03 + b.tien04 + b.tien05 + b.tien06 + b.tien07 + b.tien08 + b.tien09 + b.tien10 + b.tien11 + b.tien12)"/>
+    <field name="t_tien_nt" column="None" type="Decimal" insertValue="(tien_nt01 + tien_nt02 + tien_nt03 + tien_nt04 + tien_nt05 + tien_nt06 + tien_nt07 + tien_nt08 + tien_nt09 + tien_nt10 + tien_nt11 + tien_nt12)" updateValue="(b.tien_nt01 + b.tien_nt02 + b.tien_nt03 + b.tien_nt04 + b.tien_nt05 + b.tien_nt06 + b.tien_nt07 + b.tien_nt08 + b.tien_nt09 + b.tien_nt10 + b.tien_nt11 + b.tien_nt12)"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Kế hoạch dòng tiền theo tháng" e="Cash Flow Planning by Month"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_dvcs" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ma_bp" width ="16">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="ma_vv" width ="16">
+        <text v="Vụ việc" e="Job"/>
+      </field>
+      <field name="ma_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã chỉ tiêu" e="Article Code"/>
+      </field>
+      <field name="lan" width ="16">
+        <text v="Lần chỉnh sửa" e="Revision"/>
+      </field>
+      <field name="tien_nt" width ="16">
+        <text v="Kế hoạch năm nt" e="FC Annual Planning"/>
+      </field>
+      <field name="tien" width ="16">
+        <text v="Kế hoạch năm" e="Annual Planning"/>
+      </field>
+      <field name="tien_nt01" width ="16">
+        <text v="Kỳ 01 nt" e="FC Period 01"/>
+      </field>
+      <field name="tien01" width ="16">
+        <text v="Kỳ 01" e="Period 01"/>
+      </field>
+      <field name="ngay_dk01" width ="16">
+        <text v="Ngày dự kiến 01" e="Planned Date 01"/>
+      </field>
+      <field name="tien_nt02" width ="16">
+        <text v="Kỳ 02 nt" e="FC Period 02"/>
+      </field>
+      <field name="tien02" width ="16">
+        <text v="Kỳ 02" e="Period 02"/>
+      </field>
+      <field name="ngay_dk02" width ="16">
+        <text v="Ngày dự kiến 02" e="Planned Date 02"/>
+      </field>
+      <field name="tien_nt03" width ="16">
+        <text v="Kỳ 03 nt" e="FC Period 03"/>
+      </field>
+      <field name="tien03" width ="16">
+        <text v="Kỳ 03" e="Period 03"/>
+      </field>
+      <field name="ngay_dk03" width ="16">
+        <text v="Ngày dự kiến 03" e="Planned Date 03"/>
+      </field>
+      <field name="tien_nt04" width ="16">
+        <text v="Kỳ 04 nt" e="FC Period 04"/>
+      </field>
+      <field name="tien04" width ="16">
+        <text v="Kỳ 04" e="Period 04"/>
+      </field>
+      <field name="ngay_dk04" width ="16">
+        <text v="Ngày dự kiến 04" e="Planned Date 04"/>
+      </field>
+      <field name="tien_nt05" width ="16">
+        <text v="Kỳ 05 nt" e="FC Period 05"/>
+      </field>
+      <field name="tien05" width ="16">
+        <text v="Kỳ 05" e="Period 05"/>
+      </field>
+      <field name="ngay_dk05" width ="16">
+        <text v="Ngày dự kiến 05" e="Planned Date 05"/>
+      </field>
+      <field name="tien_nt06" width ="16">
+        <text v="Kỳ 06 nt" e="FC Period 06"/>
+      </field>
+      <field name="tien06" width ="16">
+        <text v="Kỳ 06" e="Period 06"/>
+      </field>
+      <field name="ngay_dk06" width ="16">
+        <text v="Ngày dự kiến 06" e="Planned Date 06"/>
+      </field>
+      <field name="tien_nt07" width ="16">
+        <text v="Kỳ 07 nt" e="FC Period 07"/>
+      </field>
+      <field name="tien07" width ="16">
+        <text v="Kỳ 07" e="Period 07"/>
+      </field>
+      <field name="ngay_dk07" width ="16">
+        <text v="Ngày dự kiến 07" e="Planned Date 07"/>
+      </field>
+      <field name="tien_nt08" width ="16">
+        <text v="Kỳ 08 nt" e="FC Period 08"/>
+      </field>
+      <field name="tien08" width ="16">
+        <text v="Kỳ 08" e="Period 08"/>
+      </field>
+      <field name="ngay_dk08" width ="16">
+        <text v="Ngày dự kiến 08" e="Planned Date 08"/>
+      </field>
+      <field name="tien_nt09" width ="16">
+        <text v="Kỳ 09 nt" e="FC Period 09"/>
+      </field>
+      <field name="tien09" width ="16">
+        <text v="Kỳ 09" e="Period 09"/>
+      </field>
+      <field name="ngay_dk09" width ="16">
+        <text v="Ngày dự kiến 09" e="Planned Date 09"/>
+      </field>
+      <field name="tien_nt10" width ="16">
+        <text v="Kỳ 10 nt" e="FC Period 10"/>
+      </field>
+      <field name="tien10" width ="16">
+        <text v="Kỳ 10" e="Period 10"/>
+      </field>
+      <field name="ngay_dk10" width ="16">
+        <text v="Ngày dự kiến 10" e="Planned Date 10"/>
+      </field>
+      <field name="tien_nt11" width ="16">
+        <text v="Kỳ 11 nt" e="FC Period 11"/>
+      </field>
+      <field name="tien11" width ="16">
+        <text v="Kỳ 11" e="Period 11"/>
+      </field>
+      <field name="ngay_dk11" width ="16">
+        <text v="Ngày dự kiến 11" e="Planned Date 11"/>
+      </field>
+      <field name="tien_nt12" width ="16">
+        <text v="Kỳ 12 nt" e="FC Period 12"/>
+      </field>
+      <field name="tien12" width ="16">
+        <text v="Kỳ 12" e="Period 12"/>
+      </field>
+      <field name="ngay_dk12" width ="16">
+        <text v="Ngày dự kiến 12" e="Planned Date 12"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @month int
+select @month = month(dbo.ff_GetStartDateOfCycle(1, @nam))
+update @@table set ngay_dk01 = dateadd(month, @month - 1, convert(varchar(10), @nam)) where ngay_dk01 is null
+update @@table set ngay_dk02 = dateadd(month, @month, convert(varchar(10), @nam)) where ngay_dk02 is null
+update @@table set ngay_dk03 = dateadd(month, @month + 1, convert(varchar(10), @nam)) where ngay_dk03 is null
+update @@table set ngay_dk04 = dateadd(month, @month + 2, convert(varchar(10), @nam)) where ngay_dk04 is null
+update @@table set ngay_dk05 = dateadd(month, @month + 3, convert(varchar(10), @nam)) where ngay_dk05 is null
+update @@table set ngay_dk06 = dateadd(month, @month + 4, convert(varchar(10), @nam)) where ngay_dk06 is null
+update @@table set ngay_dk07 = dateadd(month, @month + 5, convert(varchar(10), @nam)) where ngay_dk07 is null
+update @@table set ngay_dk08 = dateadd(month, @month + 6, convert(varchar(10), @nam)) where ngay_dk08 is null
+update @@table set ngay_dk09 = dateadd(month, @month + 7, convert(varchar(10), @nam)) where ngay_dk09 is null
+update @@table set ngay_dk10 = dateadd(month, @month + 8, convert(varchar(10), @nam)) where ngay_dk10 is null
+update @@table set ngay_dk11 = dateadd(month, @month + 9, convert(varchar(10), @nam)) where ngay_dk11 is null
+update @@table set ngay_dk12 = dateadd(month, @month + 10, convert(varchar(10), @nam)) where ngay_dk12 is null
+
+declare @user int, @admin bit
+select @admin = @@admin, @user = @@userID
+
+if @admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'CashFlowPlanByMonth', 'Edit') = 0 select @type = '0'
+end
+
+-- Checking
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+
+-- Delete
+if @type = '0' delete @@table from @@table a where exists(select 1 from khdtthang b where b.nam = @nam and a.ma_dvcs = b.ma_dvcs and a.ma_bp = b.ma_bp and a.ma_vv = b.ma_vv and a.ma_ct = b.ma_ct and a.lan = b.lan)
+select a.* into #k from @@table a join khdtthang b on b.nam = @nam and a.ma_dvcs = b.ma_dvcs and a.ma_bp = b.ma_bp and a.ma_vv = b.ma_vv and a.ma_ct = b.ma_ct and a.lan = b.lan
+delete @@table from @@table a where exists(select 1 from #k b where a.ma_dvcs = b.ma_dvcs and a.ma_bp = b.ma_bp and a.ma_vv = b.ma_vv and a.ma_ct = b.ma_ct and a.lan = b.lan)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ and a.nam = @nam end
+]]>
+    </text>
+  </processing>
+</import>

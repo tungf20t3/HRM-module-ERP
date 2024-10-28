@@ -1,0 +1,150 @@
+﻿<![CDATA[
+function set$]]>&ImportXmlIdentity;<![CDATA[FileName() {
+  var f = document.body._form;
+  var detailTable = ']]>&DetailTable;<![CDATA[';
+  if (f._loadXMLInvoice) detailTable = f._detailTableTag;
+  var g = f.getItem(detailTable)._controlBehavior, k = f.getItem('ticket').value, importMemvars = [];
+  var fileName = get$]]>&ImportXmlIdentity;<![CDATA[FileName($get('fileuploadXml').value), allowExt = 'xml';
+  var err = (f._language == 'v' ? 'Định dạng tệp không đúng.' : 'Invalid file type.');
+
+  if (fileName != '') {
+    var ext = fileName.split('.').pop();
+    if (allowExt.indexOf(ext.toLowerCase()) < 0) {
+      f._checked = false;
+      $message.show(err);
+    }
+    else {
+      if (f._loadXMLInvoice) f.setItemValues('file_name, fileController', [fileName, ']]>&ImportXmlIdentity;<![CDATA[']);
+      init$]]>&ImportXmlIdentity;<![CDATA[IFrame(f);
+      var importMemvars = [];
+      var form = $get('uploadFormXml'), query = {Type: ']]>&ImportXmlType;<![CDATA[', TemplateFile: ']]>&ImportXmlTemplate;<![CDATA[', Language: f._language, Controller: ']]>&ImportXmlIdentity;<![CDATA[', Key: k, Memvars: importMemvars, Time: new Date().getTime().toString()};
+      $get('query', form).value = Sys.Serialization.JavaScriptSerializer.serialize(query);
+      form.action = $func.resolveClientUrl('~/AppHandler/Import.ashx', g._baseUrl);
+      form.target = ']]>&ImportXmlIdentity;<![CDATA[' + '_IFrame';
+      form.submit();
+      if (!f._loadXMLInvoice) f.request('GetTicket', 'GetTicket', []);
+      f._checked = false;
+      if (!f._loadXMLInvoice) window.setTimeout(function() {f._busy = true; $func.showWait(f.get_id());}, 50);
+    }
+  }
+}
+function get$]]>&ImportXmlIdentity;<![CDATA[FileName(s) {
+  var p = s.lastIndexOf('\\');
+  if (p != -1) {return s.substring(p + 1);}
+  else {return s;}
+}
+function create$]]>&ImportXmlIdentity;<![CDATA[Memvar(a, n, v) {
+  var k = n.split(',');
+  for (var i = 0; i < k.length; i++) {
+    Array.add(a, {Name: String.fromCharCode(253) + $func.trim(k[i]), OldValue: null, NewValue: v[i]});
+  }
+}
+function set$]]>&ImportXmlIdentity;<![CDATA[Memvar(f, a, s) {
+  var k = s.split(',');
+  for (var i = 0; i < k.length; i++) {
+    var b = true, m = $func.trim(k[i]), n = String.fromCharCode(253) + m, v = f.getItem(m).value;
+    for (var j = 0; j < a.length; j++) {
+      if (a[j].Name == n) {
+        a[j].NewValue = v;
+        b = false;
+        break;
+      }
+    }
+    if (b) Array.add(a, {Name: n, OldValue: null, NewValue: v});
+  }
+}
+function init$]]>&ImportXmlIdentity;<![CDATA[IFrame(f) {
+  var g = f.grid, frameName = ']]>&ImportXmlIdentity;<![CDATA[' + '_IFrame', z = $get(frameName);
+  if (!z) {
+    z = document.createElement('iframe');
+    z.src = 'about:blank';
+    z.id = z.name = frameName;
+    z.grid = g;
+    z.form = f;
+    z.setAttribute('style', 'display:none;width:0;height:0');
+    document.body.appendChild(z);
+  }
+}
+
+function on$]]>&ImportXmlIdentity;<![CDATA[$Response(z) {
+  var f = z.form;
+  f._busy = false;
+  $func.hideWait(f.get_id());
+}
+
+function init$]]>&ImportXmlIdentity;<![CDATA[(f) {
+  var g = f.grid;
+  document.body._form = f;
+  $get('fileuploadXml').value = '';
+  f.request('GetTicket', 'GetTicket', []);
+}
+
+function on$]]>&ImportXmlIdentity;<![CDATA[$ResponseComplete(f, e) {
+  var f = e.object, g = f.grid, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'GetTicket':
+      f.setItemValue('ticket', result[0].Value);
+      break;
+      default:
+    break;
+  }
+}
+
+function set$Grid]]>&ImportXmlIdentity;<![CDATA[$ImportResult(z) {
+  var f = document.body._form;
+  var detailTable = ']]>&DetailTable;<![CDATA[';
+  if (f._loadXMLInvoice) detailTable = f._detailTableTag;
+
+  var g = f.getItem(detailTable)._controlBehavior, result = z.result;
+  g._result = result;
+
+  if (f._loadXMLInvoice) set$Data]]>&ImportXmlIdentity;<![CDATA[$ImportResult(f, f.grid, g, result);
+  else if (g._result.length > 0) {
+    setForm]]>&ImportXmlIdentity;<![CDATA[Value(f, g._result);
+    setGrid]]>&ImportXmlIdentity;<![CDATA[Value(f, g, g._result);
+
+    init$]]>&ImportXmlIdentity;<![CDATA[(f)
+    f._busy = false;
+    parent.$func.hideWait(f.get_id());
+  }
+}
+
+function on$]]>&ImportXmlIdentity;<![CDATA[$Fail(z) {
+  var f = z.form;
+  var e = (f._language == 'v' ? 'Dữ liệu trong tệp không có hoặc không hợp lệ.' : 'The content of the data file is empty or invalid.');
+  if (z.messageID == undefined || z.messageID == '@@messageID') {
+    if (f._loadXMLInvoice) init$]]>&ImportXmlIdentity;<![CDATA[(f);
+    f._busy = false;
+    $func.hideWait(f.get_id());
+    return;
+  }
+
+  if (f._loadXMLInvoice) $message.show(e, String.format('$find(\'{0}\')._findButton("Cancel").focus();init$]]>&ImportXmlIdentity;<![CDATA[($find(\'{0}\'));', f.get_id()));
+  else {
+    $message.show(e, String.format('$find(\'{0}\')._findButton("Cancel").focus();', f.get_id()));
+    f._busy = false;
+    $func.hideWait(f.get_id());
+  }
+}
+
+function ]]>&ImportXmlIdentity;<![CDATA[Loading(f) {
+  f._tabContainer.add_activeTabChanged(onTabChanged]]>&ImportXmlIdentity;<![CDATA[);
+  f._tabContainer._loaded = true;
+
+  var dImportXml = document.createElement('div'), s, t;
+  s = f._language == 'v' ? 'Lấy dữ liệu...' : 'Retrieve Data...';
+  t = f._language == 'v' ? 'Chọn tệp ký hóa đơn...' : 'Choose signed invoice file...';
+  dImportXml.setAttribute('style', 'float: right;margin-top: 2px;');
+  dImportXml.innerHTML = '<div style="max-height:12px;overflow:hidden;vertical-align:middle;" class="FormContainer "><form id="uploadFormXml" method="post" target="" enctype="multipart/form-data"><input type="hidden" name="query" id="query"><div class="divXmlUpload"><div align="center" class="divXmlButton">' + s + '</div><input type="file" title="' + t + '" name="fileuploadXml" id="fileuploadXml" accept=".xml" tabindex="999" class="divXmlInput" onchange="set$]]>&ImportXmlIdentity;<![CDATA[FileName();"></div></form></div>'
+  Sys.UI.DomElement.addCssClass(dImportXml, ']]>&ImportXmlIdentity;<![CDATA[');
+  dImportXml.setAttribute('id', ']]>&ImportXmlIdentity;<![CDATA[');
+
+  f._dImportXml = dImportXml;
+  $get(f._id + '_Tabs_header').appendChild(dImportXml);
+
+  f.add_onResponseComplete(on$]]>&ImportXmlIdentity;<![CDATA[$ResponseComplete);
+  init$]]>&ImportXmlIdentity;<![CDATA[(f);
+
+  f.getItem('loai_hd').focus();
+}
+]]>

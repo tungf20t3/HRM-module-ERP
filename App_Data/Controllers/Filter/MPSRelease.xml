@@ -1,0 +1,240 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptTagReport SYSTEM "..\Include\Javascript\TagReport.txt">
+  <!ENTITY Identity "MPSRelease">
+  <!ENTITY c1 "&lt;div id=&quot;&Identity;&quot; class=&quot;&Identity;&quot; align=&quot;center&quot; onclick=&quot;refresh$&Identity;Form(this);&quot;&gt;">
+  <!ENTITY c2 "&lt;/div&gt;">
+  <!ENTITY SiteKey " and (not exists(select 1 from syssiterights where user_id = @@userID) or ma_kho in (select ma_kho from syssiterights where user_id = @@userID))">
+]>
+
+<dir table="mpkcsx" code="ma_kho" order="ngay_yc, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chuyển đơn hàng sang lệnh sản xuất" e="MO Batch Release"></title>
+
+  <fields>
+    <field name="ma_kho" allowNulls="false" width="80" aliasName="a">
+      <header v="Mã kho" e="Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="ma_dvcs = @@unit and status = '1'&SiteKey;" check="ma_dvcs = @@unit&SiteKey;" information="ma_kho$dmkho.ten_kho%l"/>
+      <footer v="&c1;Làm tươi...&c2;" e="&c1;Refresh...&c2;"/>
+      <clientScript><![CDATA[onchange=onchange$]]>&Identity;<![CDATA[$(this);]]></clientScript>
+    </field>
+    <field name="ten_kho%l">
+      <header v="Tên kho" e="Site Name"></header>
+    </field>
+    <field name="ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày hoạch định" e="Planning Date"></header>
+    </field>
+    <field name="ten_dvcs%l">
+      <header v="Đơn vị" e="Unit"></header>
+    </field>
+
+    <field name="d1" external="true" clientDefault="0" defaultValue="0" rows="307" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="" e=""></label >
+      <items style="Grid" controller="MPSReleaseDetail" row="1"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="367" anchor="3" split="4">
+      <item value="100, 100, 337, 8, 58, 50, 100"/>
+      <item value="111-101: [ma_kho].Label, [ma_kho], [ma_kho].Description, [ngay].Label, [ngay]"/>
+      <item value="110: [ten_kho%l].Label, [ten_kho%l]"/>
+      <item value="110: [ten_dvcs%l].Label, [ten_dvcs%l]"/>
+      <item value="1: [d1]"/>
+
+      <categories>
+        <category index="1" columns="769, 0" anchor="1">
+          <header v="Đơn hàng" e="Information"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select N'var f=this;f._setButtonText(''Ok'', [''<u>C</u>huyển'', ''<u>R</u>elease'']);f._setButtonText(''Cancel'', [''Đón<u>g</u>'', ''C<u>l</u>ose'']);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @right char(1), @d smalldatetime
+select @d = run_date from mplog
+select @d = isnull(@d, getdate())
+select @right = case when exists(select 1 from sysunitrights where (user_id = @@userID and ma_dvcs = @@unit and r_new = 1) or @@admin = 1) then 1 else 0 end
+select 'this._date=''' + convert(varchar(8), @d, 112) + ''';this._right = ' + @right + ';this._authorize = ' + rtrim(@@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'MOTran', 'New')) + ';active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterClosing;
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+release$PlanOrder$Process(this);
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  init$VoucherFilter$(f);
+  $get(']]>&Identity;<![CDATA[').parentForm = f;
+  f._$gridDetail = f.getItem('d1')._controlBehavior;
+  f._$gridDetail.add_onRender(on$Voucher$GridDetailRender);
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+}
+function init$VoucherFilter$(f) {
+  f.setReadOnlyFields('ngay, ma_dvcs');
+  f.setReadOnlyFields(f._language == 'v' ? 'ten_kho, ten_dvcs': 'ten_kho2, ten_dvcs2');
+  f.setItemValues('ngay', [$func.formatStringToDate(f._date)]);
+}
+function close$VoucherFilter$(sender) {
+  try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}
+  try {f._$gridDetail.remove_onRender(on$Voucher$GridDetailRender);} catch (ex) {}
+}
+function on$Voucher$GridDetailRender(g, eventArgs) {g._getHeaderItem(g._$t).innerHTML = g._fields[g._$t - 1].FooterText;}
+function on$Filter$ResponseComplete(f, e) {
+  var  context = e.type.Context, result = e.type.Result, o = e.type.Object;
+  var msg = (f._language == 'v') ? 'Chương trình đã thực hiện xong.' : 'The process was completed successfully.';
+  var g = f.getItem('d1')._controlBehavior;
+  switch (context) {
+    case 'Site':
+      f.setItemControlBehavior('ten_dvcs%l', result[0].Value, null, false);
+      break;
+    case 'Process':
+      g._$k = [];
+      g.goToPage(-1);
+      $message.show(msg);
+      break;
+    default:
+      break;
+  }
+}
+function release$PlanOrder$Process(f) {
+  var g = f.getItem('d1')._controlBehavior, v = String.format('$find(\'{0}\')._focusWhenTabChanged();', g._id);
+  f._checked = false;
+  if (!check$validField(f, g) || !isCheck$Grid(g)) return;
+  if (f._right != '1' || f._authorize != '1') $message.show($df.getResources(f._language, "Message.NotAccess"), v);
+  else {
+    var m = f._language == 'v' ? 'Chương trình sẽ tạo lệnh sản xuất từ các đơn hàng được chọn. Bạn có muốn tiếp tục không?' : 'Are you sure you want to release the selected record(s)?';
+    $message.show(m, 0, String.format('request$]]>&Identity;<![CDATA[Process($find(\'{0}\'), \'Release\');', f.get_id()) , v);
+  }
+}
+function delete$PlanOrder$Process(f) {
+  var g = f.getItem('d1')._controlBehavior;
+  if (isCheck$Grid(g)) {
+    var m = f._language == 'v' ? 'Chương trình sẽ xóa các đơn hàng được chọn. Bạn có muốn tiếp tục không?' : 'Are you sure you want to delete the selected record(s)?';
+    var v = String.format('$find(\'{0}\')._focusWhenTabChanged();', g._id);
+    $message.show(m, 0, String.format('request$]]>&Identity;<![CDATA[Process($find(\'{0}\'), \'Erase\');', f.get_id()) , v);
+  }
+}
+function request$]]>&Identity;<![CDATA[Process(f, a) {
+  var g = f.getItem('d1')._controlBehavior;
+  f.request(a, 'Process', [['s', 'Infinite', g._$k.join(',')]]);
+}
+function onchange$]]>&Identity;<![CDATA[$(o) {
+  var f = o.parentForm, name = o.field.Name;
+  f.request('Site', 'Site', ['ma_kho'], o);
+}
+function refresh$]]>&Identity;<![CDATA[Form(o) {
+  var f = o.parentForm, g = f.getItem('d1')._controlBehavior;
+  if (!f.validFields('ma_kho') return;
+  f._code = f.getItemValue('ma_kho');
+  g._$k = [];
+  onChange$GridVoucherDetail$(g, f.getItemValue('ma_kho'));
+}
+function check$validField(f, g) {
+  if ($func.trim(f._code) != $func.trim(f.getItemValue('ma_kho'))) {
+    f._errorObject = f.getItem('ma_kho');
+    var errorMessage = ((g._language == 'v') ? 'Trường <span class="Highlight">Mã kho</span> chưa nhập hoặc giá trị nhập không hợp lệ.' : 'Field <span class="Highlight">Site</span> must not be blank or has invalid value.');
+    $message.show(errorMessage, String.format('$find(\'{0}\')._errorObject.focus()', f.get_id()));
+    return false;
+  }
+  return true;
+}
+]]>
+      &ScriptTagReport;
+    </text>
+  </script>
+
+  <css>
+    <text>
+      <![CDATA[
+.]]>&Identity;<![CDATA[:hover{text-decoration:underline}
+.]]>&Identity;<![CDATA[{cursor:pointer;position:relative;width:64px!important;color:#3171c6;font-family:verdana;font-size:11px;}
+]]>
+    </text>
+  </css>
+
+  <response>
+    <action id="Release">
+      <text>
+        <![CDATA[
+declare @stt_rec_dh char(13), @stt_rec char(13), @ngay_yc smalldatetime, @so_ct varchar(32), @ma_vt varchar(32), @ma_kho char(16), @so_luong numeric(19, 4), @dvt nvarchar(32), @he_so numeric(19, 4), @ws char(1), @maxLength int
+select top 0 stt_rec_dh as stt_rec into #r from mpkcsx
+select @ws = val from options where name = 'm_ws_id'
+
+select @maxLength = character_maximum_length from information_schema.columns where table_name =  'mpkcsx' and column_name = 'so_ct'
+select stt_rec_dh into #d1 from mpkcsx where exists(select 1 from @s where patindex('%'+ rtrim(case when stt_rec_dh <> '' then stt_rec_dh else '*' end) + '%', text) > 0)
+
+declare cr cursor for select stt_rec_dh from #d1
+open cr fetch next from cr into @stt_rec_dh
+while @@fetch_status = 0 begin
+  insert into #r exec AI_ERP$App$GetIdentityNumber @ws, 'SX1', 'phsx', @@userID
+  select @stt_rec = stt_rec from #r
+  select @ngay_yc = ngay_yc, @so_ct = so_ct, @ma_vt = ma_vt, @so_luong = so_luong, @dvt = dvt, @he_so = he_so, @ma_kho = ma_kho from mpkcsx where stt_rec_dh = @stt_rec_dh
+  exec rs_MPSConvertMPS2MO @stt_rec, @@unit, 'SX1', '1', @ngay_yc, '', @so_ct, @ma_vt, @ma_kho, @so_luong, @dvt, @he_so, @maxLength, @stt_rec_dh, @@language, @@userID, @@admin
+
+  exec rs_MPSAfterConvertMPS2MO @stt_rec_dh, @@userID
+
+  exec AI_ERP$App$Voucher$UpdateInquiryTable 'SX1', 'isx', 'phsx', 'ctsx', 'stt_rec', @stt_rec, 'ma_gd,ma_kh;#10$,#20$; , :ma_kho,ma_vt;#10$,#20$;ctsx,ctsx'
+  exec AI_ERP$App$Voucher$UpdateGeneral 'SX1', 'phsx', 'ctsx', 'isx', 'phsx', @stt_rec
+  delete #r
+
+  fetch next from cr into @stt_rec_dh
+end
+drop table #r, #d1
+close cr
+deallocate cr
+select '1' as v
+return
+]]>
+      </text>
+    </action>
+
+    <action id="Erase">
+      <text>
+        <![CDATA[
+update mpctyc set nguon = nguon2, xac_nhan = xac_nhan2 where exists(select 1 from @s where patindex('%'+ rtrim(case when stt_rec <> '' then stt_rec else '*' end) + '%', text) > 0) and nguon2 = 'PL'
+delete mpkcsx where exists(select 1 from @s where patindex('%'+ rtrim(case when stt_rec_dh <> '' then stt_rec_dh else '*' end) + '%', text) > 0)
+select '1' as v
+return
+]]>
+      </text>
+    </action>
+
+    <action id="Site">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmkho where ma_kho = @ma_kho) begin
+  select b.ten_dvcs%l from dmkho a left join dmdvcs b on a.ma_dvcs = b.ma_dvcs where a.ma_kho = @ma_kho
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+
+</dir>

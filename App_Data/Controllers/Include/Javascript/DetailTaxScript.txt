@@ -1,0 +1,66 @@
+﻿      <![CDATA[
+function init$DetailTax$Form (f, t) {
+  var g = f.grid;
+  var a = []]>&DetailTaxMasterField;<![CDATA[];
+  f._visibleField$DetailTax = a;
+  var field, fields = g._dirInfor.Fields;
+  for (var i = 0; i < a.length; i++) {
+    field = $func.findField(a[i], fields);
+    if (field) {
+      field.ClientScript = 'style="visibility:hidden;"';
+      field.FilterSource = 'Invariability';
+      field.HeaderText = '';
+      field.Label = '';
+      field.FooterText = '';
+      field.AllowNulls = true;
+      if (field.ItemStyle == 'AutoComplete') field.ItemStyle = '';
+    }
+  }
+
+  if (!t) {
+    field = $func.findField('t_thue_nt', fields);
+    if (field) field.Disabled = true;
+
+    field = $func.findField('t_thue', fields);
+    if (field) field.Disabled = true;
+  }
+}
+
+function load$DetailTax$Form (f) {
+  var a = f._visibleField$DetailTax;
+  if (a) {
+    for (var i = 0; i < a.length; i++) {
+      var o = f.getItem(a[i]);
+      if (o) o.parentElement.style.borderColor = 'transparent';
+    }
+  }
+}
+
+function onChange$DetailTax$TaxCode(o) {
+  var g = o.grid, f = g.get_element().parentForm, c = g._getItemValue(o.row, g._getColumnOrder('ma_thue'));
+
+  if ($func.trim(c) != '') g.request(o, 'GetTaxRate', 'GetTaxRate', ['ma_thue']);
+  else if (]]>&DetailTaxAllowNulls;<![CDATA[) {
+    g.setItemGridBehavior(o, [
+      ['thue_suat', 0, '', false], 
+      ['tk_thue', '', '', false],
+      ['tk_cn', 0, '', false]
+    ]);
+    ]]>&DetailTaxResponseCompleteTaxRate;<![CDATA[
+  }
+}
+
+function onChange$DetailTax$TaxAccount(o) {o.grid.request(o, 'TaxAccount', 'TaxAccount', ['tk_thue']);}
+
+function setDefaultValue$DetailTax$Detail(g, a, r, force){
+  if (!a || $func.trim(a[0]) == '') return;
+  if (!r) r = g._rowCount;
+  if ((r > 0) && (force || g._getItemValue(r, g._getColumnOrder('ma_thue')) == '')) {
+    var columns = ['ma_thue', 'thue_suat', 'tk_thue', 'tk_cn'], km_yn = 0;
+    if (g._getColumnOrder('km_yn') >= 0) km_yn = g._getItemValue(r, g._getColumnOrder('km_yn'));
+    for (var i = 0; i < columns.length; i++) {
+      if (km_yn != '1') g._setItemValue(r, g._getColumnOrder(columns[i]), a[i]);
+    }
+  }
+}
+]]>

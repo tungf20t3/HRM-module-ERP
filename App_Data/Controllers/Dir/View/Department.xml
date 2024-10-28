@@ -1,0 +1,231 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE dir [
+  <!ENTITY Identification "Department">
+  <!ENTITY ScriptIrregular SYSTEM "..\Include\Javascript\Irregular.txt">
+
+  <!ENTITY Controller "&Identification;">
+  <!ENTITY PrimeField "'&k;'">
+  <!ENTITY PrimeFieldOldValue "$&k;.OldValue">
+  <!ENTITY PrimeFieldNewValue "@&k;">
+  <!ENTITY % ListEditLog SYSTEM "..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % Control.Unit SYSTEM "..\Include\Unit.ent">
+  %Control.Unit;
+  %Control.Unit.Include.Department;
+  %Control.Unit.Ignore;
+
+  <!ENTITY c "DepartmentUnitDetail">
+  <!ENTITY h1 "566">
+  <!ENTITY h2 "106">
+  <!ENTITY k "ma_bp">
+  <!ENTITY i "1">
+  <!ENTITY Tag "dmbp">
+]>
+
+<dir table="dmbp" code="ma_bp" order="ma_bp" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="bộ phận" e="Department"></title>
+  <fields>
+    <field name="ma_bp" isPrimaryKey="true" dataFormatString="@upperCaseFormat" allowNulls="false">
+      <header v="Mã bộ phận" e="Department"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ten_bp" allowNulls="false">
+      <header v="Tên bộ phận" e="Description"></header>
+    </field>
+    <field name="ten_bp2">
+      <header v="Tên khác" e="Other Name"></header>
+    </field>
+
+    <!--&UnitFields;-->
+    <field name="&Tag;dv" external="true" clientDefault="0" defaultValue="0" rows="&h2;" filterSource="Tidy" categoryIndex="&i;">
+      <header v="" e=""></header>
+      <label v="Đơn vị" e="Unit"></label >
+      <items style="Grid" controller="&c;" row="1">
+        <item value="ForeignKey">
+          <text v="String: &k;, &k;" e="String: &k;, &k;"></text>
+        </item>
+      </items>
+    </field>
+
+    <field name="dia_chi" categoryIndex="&OtherCategoryIndex;">
+      <header v="Địa chỉ" e="Address"></header>
+    </field>
+    <field name="dien_thoai" categoryIndex="&OtherCategoryIndex;">
+      <header v="Điện thoại" e="Phone Number"></header>
+    </field>
+    <field name="ghi_chu" rows="2" categoryIndex="&OtherCategoryIndex;">
+      <header v="Ghi chú" e="Note"></header>
+    </field>
+    <field name="status" dataFormatString="0, 1" clientDefault="1" align="right" inactivate="true" categoryIndex="&BottomCategoryIndex;">
+      <header v="Trạng thái" e="Status"></header>
+      <footer v="1 - Còn sử dụng, 0 - Không còn sử dụng" e="1 - Active, 0 - Inactive"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <!--&View;-->
+    <view id="Dir" height="166" anchor="4">
+      <item value="120, 30, 70, 330"/>
+      <item value="110: [ma_bp].Label, [ma_bp]"/>
+      <item value="1100: [ten_bp].Label, [ten_bp]"/>
+      <item value="1100: [ten_bp2].Label, [ten_bp2]"/>
+
+      <item value="1: [&Tag;dv]"/>
+
+      <item value="1100: [dia_chi].Label, [dia_chi]"/>
+      <item value="1100: [dien_thoai].Label, [dien_thoai]"/>
+      <item value="1100: [ghi_chu].Label, [ghi_chu]"/>
+
+      <item value="1110: [status].Label, [status], [status].Description"/>
+
+      <categories>
+        <category index="&i;" columns="&h1;" anchor="1">
+          <header v="Đơn vị" e="Unit"/>
+        </category>
+
+        <category index="9" columns="120, 30, 70, 330" anchor="4">
+          <header v="Khác" e="Other"/>
+        </category>
+
+        <category index="-1" columns="120, 30, 70, 330" anchor="4">
+          <header v="" e=""/>
+        </category>
+      </categories>
+      
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$FormDepartment(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$FormDepartment(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Declare">
+      <text>
+        <![CDATA[
+declare @$exists nvarchar(512), @$updateConflict nvarchar(512), @$recordHasBeenChanged nvarchar(512), @$deleteConflict nvarchar(512)
+select @$exists = case when @@language = 'v' then N'Mã bộ phận <span class="Highlight">%s</span> đã có hoặc lồng nhau trong danh mục bộ phận.' else N'The department <span class="Highlight">%s</span> is invalid or already exists.' end
+select @$updateConflict = case when @@language = 'v' then N'Mã bộ phận <span class="Highlight">%s</span> đã phát sinh, không thể sửa được.' else N'Cannot edit the department <span class="Highlight">%s</span>. It has already been used.' end
+select @$deleteConflict = case when @@language = 'v' then N'Mã bộ phận <span class="Highlight">%s</span> đã phát sinh, không thể xóa được.' else N'Cannot delete the department <span class="Highlight">%s</span>. It has already been used.' end
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Mã bộ phận <span class="Highlight">%s</span> đã được sửa hoặc xóa bởi người sử dụng khác.' else N'The department <span class="Highlight">%s</span> has been modified or deleted by another user.' end
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+          if exists(select * from @@table where ((ma_bp like rtrim(@ma_bp) + '%') or rtrim(@ma_bp) like rtrim(ma_bp) + '%')) begin
+            select 'ma_bp' as field, replace(@$exists, '%s', rtrim(@ma_bp)) as message
+            return
+          end
+        ]]>
+        &UnitBeforeInsert;
+        <![CDATA[
+          select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
+        ]]>
+      </text>
+    </command>
+
+    <command event="Inserted">
+      <text>
+        &UnitPostInsert;
+      </text>
+    </command>
+
+    <command event="Updating">
+      <text>
+        <![CDATA[
+          if not exists(select * from @@table where ma_bp = $ma_bp.OldValue) begin
+            select 'ma_bp' as field, replace(@$recordHasBeenChanged, '%s', rtrim($ma_bp.OldValue)) as message
+            return
+          end
+
+          if @ma_bp <> $ma_bp.OldValue begin
+            if exists(select * from @@table where ((ma_bp like rtrim(@ma_bp) + '%') or rtrim(@ma_bp) like rtrim(ma_bp) + '%') and ma_bp <> $ma_bp.OldValue) begin
+              select 'ma_bp' as field, replace(@$exists, '%s', rtrim(@ma_bp)) as message
+              return
+          end
+
+            declare @message nvarchar(255)
+            select @message  = replace(@$updateConflict, '%s', rtrim($ma_bp.OldValue))
+            if exists(select * from ct00 where ma_bp = $ma_bp.OldValue) begin
+              select @message as message
+                return
+            end
+          end
+        ]]>
+        &UnitBeforeUpdate;
+      </text>
+    </command>
+
+    <command event="Updated">
+      <text>
+        <![CDATA[
+        update @@table set datetime2 = getdate(), user_id2 = @@userID where ma_bp = @ma_bp
+        ]]>
+        &UnitPostUpdate;
+      </text>
+    </command>
+
+    <command event="Deleting">
+      <text>
+        <![CDATA[
+          declare @message nvarchar(255)
+          select @message  = replace(@$deleteConflict, '%s', rtrim(@ma_bp))
+          if exists(select * from ct00 where ma_bp = @ma_bp) begin
+            select @message as message
+            return
+          end
+        ]]>
+        &UnitPostDelete;
+      </text>
+    </command>
+
+    <command event ="Checking">
+      <text>
+        &UnitCheck;
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      &ScriptQueryData;
+      <![CDATA[
+        function active$FormDepartment(f) {f.add_onResponseComplete(on$FormDepartment$ResponseComplete);]]>&ActiveForm;<![CDATA[}
+        function close$FormDepartment(f) {try {f.remove_onResponseComplete(on$FormDepartment$ResponseComplete)} catch (ex) {};]]>&CloseForm;<![CDATA[}
+        function on$FormDepartment$ResponseComplete(sender, e) {
+          var f = e.object, context = e.type.Context, result = e.type.Result;
+          switch (context) {
+            case 'Checking':
+              objectBehavior$Dir$Irregular.checkCode(f, 'ma_bp');
+              break;
+            default:
+              break;
+          }
+        }
+      ]]>
+      &TabChanged;
+      &ScriptIrregular;
+    </text>
+  </script>
+
+</dir>

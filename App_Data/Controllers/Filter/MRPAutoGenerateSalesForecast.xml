@@ -1,0 +1,295 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY SiteKey " and (not exists(select 1 from syssiterights where user_id = @@userID) or ma_kho in (select ma_kho from syssiterights where user_id = @@userID))">
+]>
+
+<dir table="mdbbh" code="ngay_ct1, ngay_ct2, ma_vt, ma_kho" order="ngay_ct1, ngay_ct2, ma_vt, ma_kho" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tạo bản ghi tự động" e="Auto Generate Sales Forecast"></title>
+  <fields>
+    <field name="ngay_bd" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Ngày bắt đầu" e="Start Date"></header>
+    </field>
+    <field name="so_ky" type="Decimal" dataFormatString="###0">
+      <header v="Số kỳ" e="Number of Periods"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_vt" isPrimaryKey="true" allowNulls="false">
+      <header v="Mã vật tư" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="kieu_hd &lt;&gt; '0' and status = '1'" check="kieu_hd &lt;&gt; '0' " information="ma_vt$dmvt.ten_vt%l" new="Default"/>
+      <clientScript><![CDATA[onchange=onChange$GenerateItem(this);]]></clientScript>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho" isPrimaryKey="true" allowNulls="false">
+      <header v="Kho" e="Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="ma_dvcs = @@unit and status = '1'&SiteKey;" check="ma_dvcs = @@unit&SiteKey;" information="ma_kho$dmkho.ten_kho%l"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_luong" type="Decimal" dataFormatString="@quantityInputFormat">
+      <header v="Số lượng" e="Quantity"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="dvt" width="100" allowNulls="false">
+      <header v="Đvt" e="UOM"></header>
+      <items style="AutoComplete" controller="UOMItem" reference="ten_dvt%l" key="ma_vt = '{$%c[ma_vt]}' or ma_vt ='*'" information="dvt$vdmvtqddvt.ten_dvt%l" normal="true"/>
+    </field>
+    <field name="ten_dvt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhieu_dvt" type="Boolean" readOnly="true" defaultValue="cast(0 as bit)" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="theo_tuan" type="Boolean">
+      <header v="Theo tuần" e="Weekly"></header>
+      <clientScript><![CDATA[onchange=onChange$GenerateWeek(this)]]></clientScript>
+    </field>
+    <field name="ngay_cuoi_tuan">
+      <header v="Ngày cuối tuần" e="End of Week"></header>
+      <clientScript>&OnSelectionOutline;</clientScript>
+      <items style="DropDownList">
+        <item value="1">
+          <text v="Chủ nhật" e="Sunday"/>
+        </item>
+        <item value="7">
+          <text v="Thứ bảy" e="Saturday"/>
+        </item>
+        <item value="6">
+          <text v="Thứ sáu" e="Friday"/>
+        </item>
+        <item value="5">
+          <text v="Thứ năm" e="Thursday"/>
+        </item>
+        <item value="4">
+          <text v="Thứ tư" e="Wednesday"/>
+        </item>
+        <item value="3">
+          <text v="Thứ ba" e="Tuesday"/>
+        </item>
+        <item value="2">
+          <text v="Thứ hai" e="Monday"/>
+        </item>
+      </items>
+    </field>
+
+    <field name="theo_thang" type="Boolean">
+      <header v="Theo tháng" e="Monthly"></header>
+      <clientScript><![CDATA[onchange=onChange$GenerateMonth(this)]]></clientScript>
+    </field>
+    <field name="ngay_cuoi_thang" clientDefault="">
+      <header v="Ngày cuối tháng" e="End of Month"></header>
+      <clientScript>&OnSelectionOutline;</clientScript>
+      <items style="DropDownList">
+        <item value="31">
+          <text v="31" e="31st"/>
+        </item>
+        <item value="30">
+          <text v="30" e="30th"/>
+        </item>
+        <item value="29">
+          <text v="29" e="29th"/>
+        </item>
+        <item value="28">
+          <text v="28" e="28th"/>
+        </item>
+        <item value="27">
+          <text v="27" e="27th"/>
+        </item>
+        <item value="26">
+          <text v="26" e="26th"/>
+        </item>
+        <item value="25">
+          <text v="25" e="25th"/>
+        </item>
+        <item value="24">
+          <text v="24" e="24th"/>
+        </item>
+        <item value="23">
+          <text v="23" e="23rd"/>
+        </item>
+        <item value="22">
+          <text v="22" e="22nd"/>
+        </item>
+        <item value="21">
+          <text v="21" e="21st"/>
+        </item>
+        <item value="20">
+          <text v="20" e="20th"/>
+        </item>
+        <item value="19">
+          <text v="19" e="19th"/>
+        </item>
+        <item value="18">
+          <text v="18" e="18th"/>
+        </item>
+        <item value="17">
+          <text v="17" e="17th"/>
+        </item>
+        <item value="16">
+          <text v="16" e="16th"/>
+        </item>
+        <item value="15">
+          <text v="15" e="15th"/>
+        </item>
+        <item value="14">
+          <text v="14" e="14th"/>
+        </item>
+        <item value="13">
+          <text v="13" e="13th"/>
+        </item>
+        <item value="12">
+          <text v="12" e="12th"/>
+        </item>
+        <item value="11">
+          <text v="11" e="11th"/>
+        </item>
+        <item value="10">
+          <text v="10" e="10th"/>
+        </item>
+        <item value="9">
+          <text v="9" e="9th"/>
+        </item>
+        <item value="8">
+          <text v="8" e="8th"/>
+        </item>
+        <item value="7">
+          <text v="7" e="7th"/>
+        </item>
+        <item value="6">
+          <text v="6" e="6th"/>
+        </item>
+        <item value="5">
+          <text v="5" e="5th"/>
+        </item>
+        <item value="4">
+          <text v="4" e="4th"/>
+        </item>
+        <item value="3">
+          <text v="3" e="3rd"/>
+        </item>
+        <item value="2">
+          <text v="2" e="2nd"/>
+        </item>
+        <item value="1">
+          <text v="1" e="1st"/>
+        </item>
+      </items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 20, 80, 330"/>
+      <item value="110: [ngay_bd].Label, [ngay_bd]"/>
+      <item value="110: [so_ky].Label, [so_ky]"/>
+      <item value="1101: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="1101: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="1101: [so_luong].Label, [so_luong], [nhieu_dvt]"/>
+      <item value="1101: [dvt].Label, [dvt], [ten_dvt%l]"/>
+      <item value="11: [theo_tuan].Label, [theo_tuan]"/>
+      <item value="110: [ngay_cuoi_tuan].Label, [ngay_cuoi_tuan]"/>
+      <item value="11: [theo_thang].Label, [theo_thang]"/>
+      <item value="110: [ngay_cuoi_thang].Label, [ngay_cuoi_thang]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$Form$(this)' as  message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @type char(1), @he_so numeric(19,3)
+select @type = case when @theo_tuan = 1 then 1 else 2 end, @he_so = 1
+if @nhieu_dvt = 1 select @he_so = he_so from dmqddvt where (ma_vt = @ma_vt or ma_vt = '*') and dvt = @dvt
+exec rs_MRPAutoGenerateSalesForecast @ma_vt, @ma_kho, @so_luong, @dvt, @he_so, @ngay_bd, @so_ky, @type, @ngay_cuoi_tuan, @ngay_cuoi_thang, @@userID
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;<![CDATA[
+function active$Form$(f) {
+  f.add_onResponseComplete(on$Form$ResponseComplete);
+  f.setItemValues('ngay_bd, theo_tuan, theo_thang', [new Date(), true, false]);
+  f.getItem('ngay_cuoi_thang').disabled = true;
+}
+function close$Form$(f) {try {f.remove_onResponseComplete(on$Form$ResponseComplete);} catch (ex) {}}
+function onChange$GenerateItem(o) {
+  var f = o.parentForm, name = o.field.Name;
+  switch (name) {
+    case 'ma_vt':
+      f.request('Item', 'Item', ['ma_vt'], o);
+      break;
+    default:
+      break;
+  }
+}
+function onChange$GenerateWeek(o, force) {
+  var f = o.parentForm, v = f.getItemValue(force ? 'theo_thang' : 'theo_tuan'), c1 = force ? 'ngay_cuoi_tuan' : 'ngay_cuoi_thang', c2 = force ? 'ngay_cuoi_thang' : 'ngay_cuoi_tuan';
+  f.setItemValue(force ? 'theo_tuan' : 'theo_thang', !v);
+  f.getItem(c1).disabled = v;
+  f.getItem(c2).disabled = !v;
+}
+function onChange$GenerateMonth(o) {onChange$GenerateWeek(o, true);}
+function on$Form$ResponseComplete(f, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Item':
+      f.setItemControlBehavior('dvt', result[0].Value, null, false);
+      f.setItemValues('ten_dvt%l, nhieu_dvt', [result[1].Value, result[2].Value]);
+      set$Voucher$ReferenceKeyFilter$UOM(f);
+      break;
+    default:
+      break;
+  }
+}
+
+function set$Voucher$ReferenceKeyFilter$UOM(f) {
+  var v = f.getItemValue('nhieu_dvt');
+  if(v) f.setReferenceKeyFilter('dvt');
+  f._setReadOnly(f.getItem('dvt'), !v);
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Item">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmvt where ma_vt = @ma_vt) begin
+  select rtrim(a.dvt) as dvt, b.ten_dvt%l, a.nhieu_dvt from dmvt a left join dmdvt b on a.dvt = b.dvt where a.ma_vt = @ma_vt
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+
+  &OutlineCss;
+</dir>

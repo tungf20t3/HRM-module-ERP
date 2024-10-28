@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY defaultForm "V20GLTC1">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY Delta14 "0">
+  <!ENTITY Delta13 "0">
+  <!ENTITY LineCounter "3">
+  <!ENTITY ExtensionCounter "2">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tu_ky" type="Decimal" dataFormatString="#0" allowNulls="false" aliasName="fromPeriod" defaultValue="(new Date()).getMonth() + 1;">
+      <header v="Từ kỳ" e="From Period"></header>
+      <footer v="Từ kỳ/năm" e="From Period/Year"></footer>
+      <items style="Numeric"></items>
+    </field>
+    <field name="den_ky" type="Decimal" dataFormatString="#0" allowNulls="false" aliasName="toPeriod" defaultValue="(new Date()).getMonth() + 1;">
+      <header v="Đến kỳ" e="To Period"></header>
+      <footer v="Đến kỳ/năm" e="To Period/Year"></footer>
+      <items style="Numeric"></items>
+    </field>
+    <field name="tu_nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Từ năm" e="From Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="den_nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Đến năm" e="To Year"></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="form" allowNulls="false" categoryIndex="1">
+      <header v="Chọn báo cáo" e="Select Report"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Bút toán phân bổ tự động" e="Allocation Transaction Entry"/>
+        </item>
+        <item value="20">
+          <text v="Bút toán kết chuyển tự động" e="Closing Transaction Entry"/>
+        </item>
+        <item value="30">
+          <text v="Bút toán chênh lệch tỷ giá" e="Exchange Rate Transaction Entry"/>
+        </item>
+        <item value="40">
+          <text v="Bút toán đảo chênh lệch tỷ giá" e="Reversing Entry of Exchange Rate Difference Entry"/>
+        </item>
+        <item value="50">
+          <text v="Bút toán phân bổ khấu hao TSCĐ" e="Fixed Asset Depreciation Allocation Entry"/>
+        </item>
+        <item value="60">
+          <text v="Bút toán phân bổ CCDC" e="Tool and Supply Allocation Entry"/>
+        </item>
+        <item value="70">
+          <text v="Bút toán phiếu xuất chênh lệch giá vật tư" e="Auto Issuing Transaction for Cost Difference"/>
+        </item>
+        <item value="80">
+          <text v="Bút toán phân bổ chi phí sản xuất chung" e="Production Overhead Allocation Transaction"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" check="status = '1'" key="1 = 1"/>
+    </field>
+
+    <field name="ext" readOnly="true" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 40, 30, 100, 100, 130, 0"/>
+      <item value="111: [tu_ky].Description, [tu_ky], [tu_nam]"/>
+      <item value="111: [den_ky].Description, [den_ky], [den_nam]"/>
+      <item value="110000: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="1100001: [form].Label, [form], [ext]"/>
+      <item value="110000: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 40, 30, 100, 100, 130, 0">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @tu_ky as p1, @tu_nam as y1, @den_ky as p2, @den_nam as y2, @form as title
+exec rs_rptListOfAutoGeneratedTransactions @tu_ky, @den_ky, @tu_nam, @den_nam, @form, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');
+  if (!f.getItemValue('tu_nam')) {f.getItem('tu_nam').value = (new Date()).getFullYear();}
+  if (!f.getItemValue('den_nam')) {f.getItem('den_nam').value = (new Date()).getFullYear();}
+  if (f.getItem('ext').field.Hidden) f.getItem('form').remove(3);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(n,h){var b=h.object,l=h.type.Context,m=h.type.Result;switch(l){case"Checking":var c=b.grid,e=b.getItemValue("tu_ky"),j=b.getItemValue("den_ky"),f=b.getItemValue("tu_nam"),k=b.getItemValue("den_nam"),a=b.getItemValue("form"),g="",d=b._language=="v",i=d?" năm ":" Year ";if(f*12+e==k*12+j)g=(d?"Kỳ ":"Period ")+e+i+f;else g=(d?"Từ kỳ ":"Period from ")+e+i+f+(d?" đến kỳ ":" to ")+j+i+k;c._alterTitle=[null,[["%d",g,true]]];c._hiddenFields=[{Fields:"ps_no_nt, ps_co_nt",Value:b.getItemValue("mau_bc")=="10"}];c._hiddenForms=[{Form:[6,8,10,12],Value:a=="10"||a=="20"||a=="30"||a=="40"},{Form:[5,7,9,11],Value:a=="50"||a=="60"||a=="70"||a=="80"}];remove$GridReport$Filter(c)}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

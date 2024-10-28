@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "InputInvoicePortalRetrieve">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn hóa đơn đầu vào" e="Select Input Invoice"></title>
+  <fields>
+    <field name="ma_kh">
+      <header v="Mã ncc" e="Supplier"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1' and cc_yn = 1" check="cc_yn = 1" information="ma_kh$dmkh.ten_kh%l" new="Default" row="1"/>
+      <clientScript><![CDATA[onchange="onChange$]]>&Identity;<![CDATA[$Customer(this);"]]></clientScript>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="mst" allowNulls="false">
+      <header v="Mã số thuế" e="Tax code"></header>
+    </field>
+    <field name="mau_so" allowNulls="false" align="right" maxLength="1">
+      <header v="Mẫu số" e="Form"></header>
+    </field>
+    <field name="ky_hieu" allowNulls="false" align="right" maxLength="16">
+      <header v="Ký hiệu" e="Serial"></header>
+    </field>
+    <field name="so_hd" allowNulls="false" align="right" maxLength="8">
+      <header v="Số hóa đơn" e="Invoice Number"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11010: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="110--: [mst].Label, [mst]"/>
+      <item value="110--: [mau_so].Label, [mau_so]"/>
+      <item value="110--: [ky_hieu].Label, [ky_hieu]"/>
+      <item value="110--: [so_hd].Label, [so_hd]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[select 'active$]]>&Identity;<![CDATA[Filter$(this);' as message
+return]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[select 'close$]]>&Identity;<![CDATA[Filter$(this);' as message
+return]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Filter$(sender) {sender.add_onResponseComplete(on$]]>&Identity;<![CDATA[Filter$ResponseComplete);}
+function close$]]>&Identity;<![CDATA[Filter$(sender) {try {sender.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Filter$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      f._checked = false;
+      var mst = f.getItemValue('mst');
+      f.request('CheckValidTaxCode', 'CheckValidTaxCode', [['mst', 'String', mst]]);
+      break;
+    case 'Customer':
+      f.setItemValue('mst', result[0].Value);
+      if (result[0].Value) f.focus('mau_so');
+      else f.focus('mst');
+      break;
+    case 'CheckValidTaxCode':
+      if (!result[0].Value) {
+        msg = f._language == 'v' ? 'Trường <span class="Highlight">Mã số thuế</span> giá trị nhập không hợp lệ.' : 'Field <span class="Highlight">Tax Code</span> has invalid value.';
+        $message.show(msg, String.format('$find(\'{0}\').getItem(\'' + ('mst') + '\').focus();', f.get_id()));
+        return;
+      }
+      request$]]>&Identity;<![CDATA[GetPortal(f);
+      break;
+    default:
+      break;
+  }
+}
+function request$]]>&Identity;<![CDATA[GetPortal(f) {
+  var dir = f.grid.get_element().parentForm, id = f._id;
+  busy$Page(f, true);
+
+  var query = Sys.Serialization.JavaScriptSerializer.serialize({
+    'unit': dir._unit,
+    'invoiceForm': f.getItemValue('mau_so'),
+    'invoiceSeri': f.getItemValue('ky_hieu'),
+    'invoiceNumber': f.getItemValue('so_hd'),
+    'taxCode': f.getItemValue('mst')
+  });
+  Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl('~/AppService/AI_ERP.EInvoice.ServiceInputInvoice.asmx', g._baseUrl), 'ExcuteCommand', false, {
+      method: '8100',
+      action: 0,
+      query: query
+  }, onRequest$]]>&Identity;<![CDATA[Completed, onRequest$]]>&Identity;<![CDATA[Failed, f._id);
+}
+function onRequest$]]>&Identity;<![CDATA[Completed(r, id) {
+  var f = $find(id), dir = f.grid.get_element().parentForm, v = f._language == 'v';
+  busy$Page(f, false);
+
+  if (r.Success == '1') {
+    if (!r.Message) {
+      $message.show(v ? 'Không có hoá đơn theo điều kiện đang lọc.' : 'No data matching filter condition.', String.format('$find(\'{0}\').getItem(\'' + ('ma_kh') + '\').focus();', f.get_id()));
+      return;
+    }
+    var fileInput = $get("fileuploadXml");
+    var fileXml = new File([r.Message], 'invoice.xml', {
+        type: 'text/xml',
+        lastModified: new Date(),
+    });
+    var dataTransfer = new DataTransfer();
+    dataTransfer.items.add(fileXml);
+    fileInput.files = dataTransfer.files;
+    eval('set$' + dir._controller + 'ImportFileName("' + dir._id  + '")');
+    f.closeDialog();
+  } else {$message.show(v ? 'Phát sinh lỗi trong quá trình thực hiện.' : 'The process was failed.', String.format('$find(\'{0}\').getItem(\'' + ('ma_kh') + '\').focus();', f.get_id()));}
+}
+function onRequest$]]>&Identity;<![CDATA[Failed(e, id) {
+  busy$Page(f, false);
+  $message.showError(e);
+}
+function onChange$]]>&Identity;<![CDATA[$Customer(o) {{o.parentForm.request('Customer', 'Customer', ['ma_kh'], o);}}
+function busy$Page(c,a){var b=c._id;c._busy=a;if(a)$func.showWait(b);else $func.hideWait(b);$func.enableButtons(!a)}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Customer">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmkh where ma_kh = @ma_kh and status = '1' and cc_yn = 1) begin
+  select rtrim(ma_so_thue) as ma_so_thue from dmkh where ma_kh = @ma_kh
+  return
+end
+]]>
+      </text>
+    </action>
+    <action id="CheckValidTaxCode">
+      <text>
+        <![CDATA[
+declare @t_yn bit
+exec AI_ERP$System$CheckTaxCode @mst, @t_yn output
+select @t_yn as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

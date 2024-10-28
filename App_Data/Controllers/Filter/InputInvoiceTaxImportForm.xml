@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY BeginExecuteReader "/*&lt;execute database='@system'&gt;">
+  <!ENTITY EndExecuteReader "&lt;/execute&gt;*/">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lấy dữ liệu hóa đơn" e="Import invoice data"></title>
+  <fields>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Từ/đến ngày" e="Date from/to"></footer>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+
+    <field name="user_name" allowNulls="false">
+      <header v="Tên đăng nhập" e="User Name"></header>
+      <items style="AutoComplete" controller="AccountTax" reference="note" key="unit_code = @@unit" check="unit_code = @@unit"/>
+      <clientScript><![CDATA[onchange="onChange$Account(this);"]]></clientScript>
+    </field>
+    <field name="note" readOnly="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="tax_code" external="true" defaultValue="''" allowContain="true" disabled="true" readOnly="true" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="mst_nb">
+      <header v="MST người bán" e="Seller's Tax Code"></header>
+    </field>
+    <field name="mau_so" align="right" maxLength="1">
+      <header v="Mẫu số" e="Form"></header>
+    </field>
+    <field name="ky_hieu" dataFormatString="@upperCaseFormat" align="right" maxLength="16">
+      <header v="Ký hiệu" e="Serial"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="so_hd" align="right" maxLength="8">
+      <header v="Số hóa đơn" e="Invoice Number"></header>
+    </field>
+
+    <field name="tt_hd">
+      <header v="Trạng thái hóa đơn" e="Invoice Status"></header>
+      <items style="DropDownList">
+        <item value="*">
+          <text v="Tất cả" e="All"/>
+        </item>
+        <item value="1">
+          <text v="Hóa đơn mới" e="Regular Invoice"/>
+        </item>
+        <item value="2">
+          <text v="Hóa đơn thay thế" e="Replace Invoice"/>
+        </item>
+        <item value="3">
+          <text v="Hóa đơn điều chỉnh" e="Adjust Invoice"/>
+        </item>
+        <item value="4">
+          <text v="Hóa đơn đã bị thay thế" e="Replaced Invoice"/>
+        </item>
+        <item value="5">
+          <text v="Hóa đơn đã bị điều chỉnh" e="Adjusted Invoice"/>
+        </item>
+        <item value="6">
+          <text v="Hóa đơn đã bị hủy" e="Cancelled Invoice"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="kq_kt">
+      <header v="Kết quả kiểm tra" e="Verifying results"></header>
+      <items style="DropDownList">
+        <item value="5">
+          <text v="Đã cấp mã hóa đơn" e="Has given code"/>
+        </item>
+        <item value="6">
+          <text v="Tổng cục thuế đã nhận không mã" e="General Department of Taxation has received the e-invoices without a verification code"/>
+        </item>
+        <item value="8">
+          <text v="Tổng cục thuế đã nhận hóa đơn có mã khởi tạo từ máy tính tiền" e="The GDT has received the invoices with the identification code created from cash register"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101--: [tu_ngay].Description, [tu_ngay], [den_ngay]"/>
+      <item value="1100101: [user_name].Label, [user_name], [note], [tax_code]"/>
+
+      <item value="110---: [mst_nb].Label, [mst_nb]"/>
+      <item value="110---: [mau_so].Label, [mau_so]"/>
+      <item value="110---: [ky_hieu].Label, [ky_hieu]"/>
+      <item value="110---: [so_hd].Label, [so_hd]"/>
+      <item value="11000-: [tt_hd].Label, [tt_hd]"/>
+      <item value="11000-: [kq_kt].Label, [kq_kt]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @mess nvarchar(4000)
+select @mess = ''
+if (select count(*) from @@sysDatabaseName..tktchddt where unit_code = @@unit) = 1 begin
+  declare @user varchar(32), @userName nvarchar(512)
+  select @user = user_name, @userName = note from @@sysDatabaseName..tktchddt where unit_code = @@unit
+  select @mess = N'this._user = ''' + rtrim(isnull(@user, '')) + ''';this._userName = ''' + replace(replace(rtrim(isnull(@userName, '')), '\', '\\'), '''', '\''') + ''';$func.findField(''user_name'', this._fields).Inactivate = true;'
+end
+select @mess + 'loadForm$InputInvoiceTaxImportForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'closeForm$InputInvoiceTaxImportForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function loadForm$InputInvoiceTaxImportForm(a){var b=a.grid;b._taxUser&&a.setItemValues("user_name, note, tax_code",[b._taxUser,b._taxNote,b._taxCode]);$func.findField("user_name",a._fields).Inactivate&&a.setItemValues("user_name, note",[a._user,a._userName]);a.add_onResponseComplete(on$InputInvoiceTaxImportForm$ResponseComplete)}function closeForm$InputInvoiceTaxImportForm(a){try{a.remove_onResponseComplete(on$InputInvoiceTaxImportForm$ResponseComplete)}catch(b){}}function on$InputInvoiceTaxImportForm$ResponseComplete(n,h){var a=h.object,m=h.type.Context,g=h.type.Result,l=a.grid,b="",c=a._language=="v",e=a.getItemValue("tu_ngay"),f=a.getItemValue("den_ngay");switch(m){case"Checking":a._checked=false;localStorage.setItem("fromDate",e.z.format("dd/MM/yyyy"));localStorage.setItem("toDate",f.z.format("dd/MM/yyyy"));if(dateDiffInDays(e,f)>30){b=c?"Vui lòng chọn khoảng thời gian nhỏ hơn 31 ngày.":"Please select the duration less than 31 days.";$message.show(b,String.format("$find('{0}').getItem('tu_ngay').focus();",a.get_id()));return}var i=a.getItemValue("mau_so"),j=a.getItemValue("so_hd");if(i!=""&&isNaN(i)){b=c?'Trường <span class="Highlight">Mẫu số</span> giá trị nhập không hợp lệ.':'Field <span class="Highlight">Form</span> has invalid value.';$message.show(b,String.format("$find('{0}').getItem('mau_so').focus();",a.get_id()));return}if(j!=""&&isNaN(j)){b=c?'Trường <span class="Highlight">Số hóa đơn</span> giá trị nhập không hợp lệ.':'Field <span class="Highlight">Invoice Number</span> has invalid value.';$message.show(b,String.format("$find('{0}').getItem('so_hd').focus();",a.get_id()));return}a.request("CheckLockedDate","CheckLockedDate",[["dateFrom","DateTime",e],["dateTo","DateTime",f]]);break;case"CheckLockedDate":var d=g[0].Value,b="";if(!d){var k=a.getItemValue("mst_nb");if(k)a.request("CheckValidTaxCode","CheckValidTaxCode",[["mst_nb","String",k]]);else request$InputInvoiceTaxImportForm$CheckToken(a,l)}else{if(d==1)b=c?"Ngày chứng từ từ/đến vượt quá giới hạn cho phép.":"Date from/to exceeds the allowable limit.";else b=c?"Đã khóa số liệu, kiểm tra lại ngày khóa sổ.":"Data is locked, you must modify system locked date.";$message.show(b,String.format("$find('{0}').getItem('tu_ngay').focus();",a.get_id()))}break;case"CheckValidTaxCode":if(!g[0].Value){b=c?'Trường <span class="Highlight">MST người bán</span> giá trị nhập không hợp lệ.':'Field <span class="Highlight">Seller';"s Tax Code</span> has invalid value.";$message.show(b,String.format("$find('{0}').getItem('mst_nb').focus();",a.get_id()));return}request$InputInvoiceTaxImportForm$CheckToken(a,l);break;case"GetTaxCode":var d=g[0].Value;d&&a.setItemValue("tax_code",d)}}function request$InputInvoiceTaxImportForm$CheckToken(a,b){busy$Page(a,true);Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl(b._urlReceiveTax,b._baseUrl),"CheckToken",false,{userName:a.getItemValue("user_name")},onRequest$Completed$CheckToken,onRequest$Failed$CheckToken,a._id)}function onRequest$Completed$CheckToken(b,c){var a=$find(c),d=a.grid;busy$Page(a,false);if(!b){$message.show(a._language=="v"?"Vui lòng đăng nhập lại.":"Please login again.");return}request$InputInvoiceTaxImportForm$TaxImport(a,d)}function onRequest$Failed$CheckToken(b,a){busy$Page($find(a),false)}function request$InputInvoiceTaxImportForm$TaxImport(a,b){busy$Page(a,true);Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl(b._urlReceiveTax,b._baseUrl),"TaxImport",false,{clientCode:b._$unit,userName:$func.trim(a.getItemValue("user_name")),unitCode:b._$unit,userID:b._uid,limitImportRow:b._$m_limit_2,dateFrom:a.getItemValue("tu_ngay").z.format("yyyy-MM-dd"),dateTo:a.getItemValue("den_ngay").z.format("yyyy-MM-dd"),taxCode:a.getItemValue("mst_nb"),form:a.getItemValue("mau_so"),serial:a.getItemValue("ky_hieu").toUpperCase(),invoiceNumber:a.getItemValue("so_hd"),invoiceStatus:a.getItemValue("tt_hd"),processStatus:a.getItemValue("kq_kt")},onRequest$InputInvoiceTaxImportForm$Completed$TaxImport,onRequest$InputInvoiceTaxImportForm$Failed$TaxImport,a._id)}function onRequest$InputInvoiceTaxImportForm$Completed$TaxImport(b,h){var a=$find(h),e=a.grid;busy$Page(a,false);if(!b){$message.show(a._language=="v"?"Phát sinh lỗi trong quá trình thực hiện.":"The process was failed.");return}if(b.Successed){a.closeDialog();var g=b.Total,i=String.format("$find('{0}')._focusWhenTabChanged();",e._id),d,f="";if(g==0)d=e._language=="v"?"Hiện chưa có hóa đơn mới cần xử lý.":"There is no invoice to process.";else{var c=b.TotalExcept;if(!c)c=0;f=c==0?"":a._language=="v"?String.format(", không nhận: {0}",c):String.format(", reject: {0}",c);d=a._language=="v"?"Tổng: {0}, đã tồn tại: {1}{4}, đã xử lý: {2}, lỗi: {3}.":"Total: {0}, exitsts: {1}{4}, processed: {2}, error(s): {3}.";d=String.format(d,g,b.TotalExist,b.Import,b.TotalError,f)}$message.show(d,String.format("$find('{0}').goToPage(-1);",e._id),i)}else switch(b.Message){case"001":$message.show(a._language=="v"?"Vui lòng đăng nhập lại.":"Please login again.");break;case"002":$message.show(a._language=="v"?"Lỗi lấy dữ liệu từ CQT.":"An error occurred while extract data from tax authority.");break;default:$message.show(a._language=="v"?"Phát sinh lỗi trong quá trình thực hiện.":"The process was failed.")}}function onRequest$InputInvoiceTaxImportForm$Failed$TaxImport(b,a){busy$Page($find(a),false)}function onChange$Account(a){a.parentForm.request("GetTaxCode","GetTaxCode",["user_name"],a)}]]>
+      &OutlineEntry;
+    </text>
+  </script>
+
+  <response>
+    <action id="CheckValidTaxCode">
+      <text>
+        <![CDATA[
+declare @t_yn bit
+exec AI_ERP$System$CheckTaxCode @mst_nb, @t_yn output
+select @t_yn as value
+return
+]]>
+      </text>
+    </action>
+
+    <action id="CheckLockedDate">
+      <text>
+        <![CDATA[
+if not exists(select 1 from dmstt where @dateFrom >= ngay_gh1 and @dateTo <= ngay_gh2) begin
+  select 1 as value
+  return
+end
+create table #lockedDate (r int)
+insert into #lockedDate exec fs20_CheckLockedDateOnVoucher 'E05', @dateFrom, @@userID, @@unit, 1
+if not exists(select * from #lockedDate where r = 1) begin
+  select 2 as value
+  return
+end
+select 0 as value
+]]>
+      </text>
+    </action>
+
+    <action id="GetTaxCode">
+      <text>
+        <![CDATA[
+declare @$tax_code varchar(32) = ''
+select top 1 @$tax_code = tax_code from @@sysDatabaseName..tktchddt where user_name = @user_name and unit_code = @@unit
+select @$tax_code as tax_code
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &OutlineCss;
+</dir>

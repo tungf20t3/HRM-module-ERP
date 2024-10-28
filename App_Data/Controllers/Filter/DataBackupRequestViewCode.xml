@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "DataBackupRequest">
+  
+  <!ENTITY Key "declare @rk varchar(16)
+select @rk = rkey from @@sysDatabaseName..userinfo2 where id = @@userID">
+  
+]>
+
+<dir table="cndnlt" code="stt_rec" order="stt_rec" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Mật khẩu tệp lưu trữ" e="Encryption Password"></title>
+  <fields>
+    <field name="cpass" allowNulls="false" external="true" defaultValue="''">
+      <header v="Xác nhận mật khẩu" e="Confirm Password"></header>
+      <clientScript><![CDATA[type="password" onchange="viewCode$genHash(this);"]]></clientScript>
+      <footer v="&lt;div id=&quot;btnViewCode&quot; class=&quot;divOriginal&quot; align=&quot;center&quot; onclick=&quot;showAuthenticationCode(this);&quot;&gt;Hiển thị&lt;/div&gt;" e="&lt;div id=&quot;btnViewCode&quot;class=&quot;divOriginal&quot; align=&quot;center&quot; onclick=&quot;showAuthenticationCode(this);&quot;&gt;Show&lt;/div&gt;"/>
+    </field>
+
+    <field name="chkpass" type="Int32" external="true" defaultValue="0" allowContain="true" inactivate="true">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="ma_so" inactivate="true">
+      <header v="Mật khẩu tệp lưu trữ" e="Encryption Password"></header>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="209">
+      <item value="120, 100, 100, 230, 0, 0"/>
+      <item value="11011: [cpass].Label, [cpass], [cpass].Description, [chkpass]"/>
+      <item value="11: [ma_so].Label, [ma_so]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true;' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        &Key;<![CDATA[
+select 'this._key = ''' + @rk + ''';load$]]>&Identity;<![CDATA[$ViewCode(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$ViewCode(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$]]>&Identity;<![CDATA[$ViewCode(f) {
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[$ViewCode$ResponseComplete);
+  f.setReadOnlyFields('ma_so');
+  $get('btnViewCode').parentForm = f;
+}
+function close$]]>&Identity;<![CDATA[$ViewCode(f) {try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[$ViewCode$ResponseComplete);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[$ViewCode$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result, g = f.grid, v = (f._language == 'v');
+  switch (context) {
+    case 'CheckKey':
+      if (result[0].Value) f.request('ViewCode', 'ViewCode', [['stt_rec', 'String', g._viewID]]);
+        else $message.show(f._language == 'v' ? 'Mật khẩu xác nhận không đúng.' : 'Confirmation password is invalid.', String.format('revertPassword(\'{0}\', \'\', true); $find(\'{0}\').focus(\'{1}\');', f.get_id(), 'cpass'));
+      break;
+    case 'ViewCode':
+      f.setItemValue('ma_so', AES(result[1].Value, (result[1].Value + result[1].Value + result[1].Value).substring(0, 16), result[0].Value, true));
+      break;
+    default:
+      break;
+  }
+}
+function showAuthenticationCode(c){var b=c.parentForm,a=b.getItem("cpass");a.oldValue=a.value;a.value="";checkFieldEntry(b,a);b.request("CheckKey","CheckKey",["chkpass"])}function checkFieldEntry(a,b,c){if(c)b=a.getItem(b);var d=c?b.value:b.oldValue;if(a._checked&&!d){a._checked=false;$func.hideWait(a.get_id());$message.show(String.format($df.getResources(a._language,"Message.RequiredField"),b.field.Label),String.format("revertPassword('{0}', '', true); $find('{0}').focus('{1}');",a.get_id(),b.field.Name))}}function revertPassword(a,d,c){if(c)a=$find(a);var b=a.getItem("cpass");if(b.oldValue)b.value=b.oldValue}function viewCode$genHash(b){var a=b.parentForm,c=$func.trim(MD5(b.value));a.getItem("chkpass").value=CRC32($func.trim(a._key).substr(0,8)+c.substr(1,c.length-2))}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="ViewCode">
+      <text>
+        <![CDATA[
+if exists(select 1 from cndnlt where stt_rec = @stt_rec and status = '2') begin
+  select pass_backup as v1, keys as v2 from cndnlt where stt_rec = @stt_rec
+  return
+end
+]]>
+      </text>
+    </action>
+    <action id="CheckKey">
+      <text>
+        <![CDATA[
+declare @hash varchar(32), @c bit, @d bit, @k varchar(6)
+exec @@sysDatabaseName..AI_ERP$System$CheckSum @@userID, @chkpass, 0, @c output
+select @c as val
+return
+]]>
+      </text>
+    </action>
+
+  </response>
+
+  <css>
+    <text>
+      <![CDATA[
+.divOriginal:hover{text-decoration:underline}
+.divOriginal{cursor:pointer;position:relative;width:64px!important;height:22px!important;overflow:hidden;color:#3171c6;font-family:verdana;font-size:11px;}
+]]>
+    </text>
+  </css>
+</dir>

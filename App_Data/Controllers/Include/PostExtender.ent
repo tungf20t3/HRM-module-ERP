@@ -1,0 +1,67 @@
+﻿<!ENTITY % Conditional.PostExtender SYSTEM "..\Include\PostExtender.txt">
+<!ENTITY % Conditional.VoucherDeleteLog SYSTEM "..\Include\VoucherDeleteLog.txt">
+
+<![%Conditional.PostExtender;[
+  <!ENTITY PostField SYSTEM "..\Include\XML\PostField.txt">
+  <!ENTITY PostView SYSTEM "..\Include\XML\PostView.xml">
+  <!ENTITY PostCategory SYSTEM "..\Include\XML\PostCategory.xml">
+
+  <!ENTITY PostScript SYSTEM "..\Include\Javascript\PostScript.txt">
+  <!ENTITY PostCreate "create$Post$Extender(f, f.getItemValue('&PostIdentity;'), '&PostController;');">
+  <!ENTITY PostDispose "if (f._post$Extender) {
+  f._post$Extender.dispose();
+  f._post$Extender = null;
+  }">
+
+  <!ENTITY PostChecking "if (this._checked) {
+  var recordID = (this._post$Extender._process == true ? this._recordID : '');
+  this.setItemValue('recordID', recordID);
+  }">
+
+  <!ENTITY PostInserted "
+  update post set &PostIdentity; = @&PostIdentity; where &PostIdentity; = @$recordID
+  delete post2 where &PostIdentity; = @$recordID
+">
+  <![%Conditional.VoucherDeleteLog;[
+    <!ENTITY PostDeleted "">
+  ]]>
+  <!ENTITY PostDeleted "
+  delete post where id in (select id from post2 where dateadd(day, 1, datetime0) &lt; getdate())
+  delete post2 where dateadd(day, 1, datetime0) &lt; getdate()
+  select @invoke = @invoke + '&amp;' + char(255) + ';' + 'PostExtender.PostExtender.Process.DeleteFile(&PostController;,' + @&PostIdentity; + ',@@appDatabaseName)'
+">
+  <!ENTITY PostShown "f._post$Extender._recordID = f.getItemValue('&PostIdentity;');">
+  <!ENTITY PostTabChange ", null">
+  <!ENTITY PostTabFocus "if (sender.parentForm._tabContainer._activeTabIndex == &PostOrder;) {
+    sender.parentForm._post$Extender.focus();
+  }">
+  <!ENTITY PostCurrencySelected "if (e.object._form._tabContainer._activeTabIndex == &PostOrder;) {
+    e.object._form._post$Extender.focus();
+  }">
+  <!ENTITY PostScattering "f._post$Extender._recordID = f.getItemValue('&PostIdentity;');
+  f._post$Extender._action = f._action;
+  f._post$Extender._process = false;
+  if (f._action == 'New') f._post$Extender._load();">
+
+  <!ENTITY PostRefresh "f._post$Extender._recordID = f.getItemValue('&PostIdentity;');
+  f._post$Extender._action = f._action;
+  f._post$Extender._load();">
+]]>
+
+<!ENTITY PostField "">
+<!ENTITY PostView "">
+<!ENTITY PostCategory "">
+<!ENTITY PostChecking "">
+
+<!ENTITY PostScript "">
+<!ENTITY PostCreate "">
+<!ENTITY PostDispose "">
+
+<!ENTITY PostInserted "">
+<!ENTITY PostDeleted "">
+<!ENTITY PostShown "">
+<!ENTITY PostTabChange "">
+<!ENTITY PostTabFocus "">
+<!ENTITY PostCurrencySelected "">
+<!ENTITY PostScattering "">
+<!ENTITY PostRefresh "">

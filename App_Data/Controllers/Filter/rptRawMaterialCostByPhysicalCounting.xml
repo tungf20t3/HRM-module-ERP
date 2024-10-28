@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY CostingUnitFilterSetReadOnly SYSTEM "..\Include\Javascript\CostingUnitFilterSetReadOnly.txt">
+
+  <!ENTITY Control ",@$control = '1110'">
+  <!ENTITY CostingExternalFilterShowing SYSTEM "..\Include\Command\CostingExternalFilterShowing.txt">
+  <!ENTITY CostingUnitFilter SYSTEM "..\Include\Javascript\CostingUnitFilter.txt">
+  <!ENTITY CostingUnitFilterRespone SYSTEM "..\Include\Command\CostingUnitFilterRespone.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+  <!ENTITY CostingRequireFilterInitialize SYSTEM "..\Include\Command\CostingRequireFilterInitialize.txt">
+
+  <!ENTITY LineCounter "7">
+  <!ENTITY Delta14 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_sp" categoryIndex="1">
+      <header v="Mã sản phẩm" e="Product Code"></header>
+      <items style="AutoComplete" controller="Product" reference="ten_sp%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_sp%l" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" categoryIndex="1">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="Department" reference="ten_bp%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_lsx" categoryIndex="1">
+      <header v="Số lệnh sản xuất" e="Manufacturing Order"></header>
+      <items style="AutoComplete" controller="MO" reference="dien_giai%l"/>
+    </field>
+    <field name="dien_giai%l" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" categoryIndex="1">
+      <header v="Mã vật tư" e="Item Code"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" allowNulls="false" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" reference="ten_dvcs%l" controller="Unit" key="status = '1'" check="1=1"/>
+      <clientScript><![CDATA[onchange="onChange$Report$CostUnit(this);"]]></clientScript>
+    </field>
+    <field name="ten_dvcs%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_ytcp" categoryIndex="1">
+      <header v="Mã yếu tố" e="Factor Code"></header>
+      <items style="Lookup" controller="Factor" reference="ten_yt%l" key="((ma_dvcs = '{$%c[ma_dvcs]}') or (exists(select 1 from options where name = 'm_gt_dvcs' and rtrim(ltrim(val)) = '0'))) and status = '1'" check="((ma_dvcs = '{$%c[ma_dvcs]}') or (exists(select 1 from options where name = 'm_gt_dvcs' and rtrim(ltrim(val)) = '0')))"/>
+    </field>
+    <field name="ten_yt%l" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 40, 60, 200, 130"/>
+      <item value="11: [ky].Label, [ky]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="11010: [ma_sp].Label, [ma_sp], [ten_sp%l]"/>
+      <item value="11010: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="11010: [so_lsx].Label, [so_lsx], [dien_giai%l]"/>
+      <item value="11010: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="11010: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="1100: [ma_ytcp].Label, [ma_ytcp]"/>
+      <item value="1100: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 40, 60, 200, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&CostingRequireFilterInitialize;&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &CostingExternalFilterShowing;
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select dbo.ff_GetStartDateOfCycle(@ky, @nam) as date_from
+exec rs_rptRawMaterialCostByPhysicalCounting @ky, @nam, @ma_sp, @ma_bp, @so_lsx, @ma_vt, @ma_ytcp, @@language, @ma_dvcs, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &CostingUnitFilterSetReadOnly;
+      &ScriptFilterInit;
+      &ScriptAdjustTabSize;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  var l = (f.getItemValue('nam') == 0);
+  if (l) {
+    f.getItem('ky').value = (new Date()).getMonth() + 1;
+    f.getItem('nam').value = (new Date()).getFullYear();
+  }
+  f.live(f.getItem('ky'));
+  changeLookupReadonly(f, 'ma_ytcp', true);
+  if (f._costUnit == 1 || l)  f.setReferenceKeyFilter('ma_ytcp');
+  if (!l) onChange$Report$CostUnit(f.getItem('ma_dvcs'), true);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,b){var a=b.object,f=b.type.Context,d=b.type.Result;switch(f){case"Checking":var c=a.grid,e=a.getItemValue("mau_bc"),g=a.getItem("ky").value,h=a.getItem("nam").value;c._alterTitle=[null,[["%d1",g,true],["%n1",h,true]]];c._hiddenFields=[{Fields:"gia_nt, dd_ck_nt",Value:e=="10"},{Fields:"gia, dd_ck",Value:e=="20"}];remove$GridReport$Filter(c);break;case"SetReadOnlyField":setItemReadOnly(a,"ma_bp",d[0].Value,false);setItemReadOnly(a,"so_lsx",d[1].Value,false)}}function onChange$Report$CostUnit(c,b){var a=c.parentForm;a._costUnit==1&&!b&&a.setItemValue("ma_ytcp","");a.setReferenceKeyFilter("ma_ytcp");a._objectUnit=="1"&&a.request("GetResponse","SetReadOnlyField",["ma_dvcs"])}]]>
+      &CostingUnitFilter;
+    </text>
+  </script>
+
+  &CostingUnitFilterRespone;
+  &OutlineCss;
+</dir>

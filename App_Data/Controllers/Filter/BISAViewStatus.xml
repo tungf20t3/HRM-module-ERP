@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "BIPOViewStatus">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Thông tin tình trạng hợp đồng" e="Schedule Agreement Status"></title>
+  <fields>
+    <field name="so_ct" dataFormatString="@upperCaseFormat" align="right">
+      <header v="Số hợp đồng" e="SA Number"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày lập" e="SA Date"></header>
+    </field>
+    <field name="sl_nhap" external="true" type="Decimal" defaultValue="0" dataFormatString="@quantityViewFormat">
+      <header v="Tổng số lượng nhập" e="Total Receipt Qty."></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="tien_nhap" external="true" type="Decimal" defaultValue="0" dataFormatString="@baseCurrencyAmountViewFormat">
+      <header v="Tổng tiền nhập" e="Total Receipt Amt."></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="sl_hd" external="true" type="Decimal" defaultValue="0" dataFormatString="@quantityViewFormat">
+      <header v="Tổng số lượng hóa đơn" e="Total Invoice Qty."></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="tien_hd" external="true" type="Decimal" defaultValue="0" dataFormatString="@baseCurrencyAmountViewFormat">
+      <header v="Tổng tiền hóa đơn" e="Total Invoice Amt."></header>
+      <items style="Numeric"></items>
+    </field>
+  </fields>
+
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 100, 100, 130"/>
+      <item value="11: [so_ct].Label, [so_ct]"/>
+      <item value="11: [ngay_ct].Label, [ngay_ct]"/>
+      <item value="11: [sl_nhap].Label, [sl_nhap]"/>
+      <item value="11: [tien_nhap].Label, [tien_nhap]"/>
+      <item value="11: [sl_hd].Label, [sl_hd]"/>
+      <item value="11: [tien_hd].Label, [tien_hd]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+select 'this._break = true' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[$Form(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function load$]]>&Identity;<![CDATA[$Form(f) {
+  var d = f.grid._detailInfo$ViewStatus;
+  f.setItemValues('sl_nhap, tien_nhap, sl_hd, tien_hd, ngay_ct, so_ct', [d.QuantityInput, d.AmountInput, d.QuantityInvoice, d.AmountInvoice, d.VoucherDate, d.VoucherNumber]);
+  f.setReadOnlyFields('sl_nhap, tien_nhap, sl_hd, tien_hd, ngay_ct, so_ct');
+  f._findButton('Close').focus();
+  f.add_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);
+}
+function close$]]>&Identity;<![CDATA[$Form(f) {try {f.remove_onResponseComplete(onForm$]]>&Identity;<![CDATA[$ResponseComplete);} catch (ex) {}}
+function onForm$]]>&Identity;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      on$]]>&Identity;<![CDATA[Filter$QueryComplete(f);
+      break;
+    default:
+      break;
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$QueryComplete(f) {set$]]>&Identity;<![CDATA[Filter$FormScript(f.grid);}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this)'; }
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g, h) {g._memvars = [];}
+]]>
+    </text>
+  </script>
+  &OutlineCss;
+</dir>

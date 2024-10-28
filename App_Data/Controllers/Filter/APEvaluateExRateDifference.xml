@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY CommandCheckLockedDate SYSTEM "..\Include\Command\ProcessLockedDate4Unit.txt">
+  <!ENTITY CommandCheckPeriodYear SYSTEM "..\Include\Command\CheckPeriodYear.txt">
+
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Đánh giá chênh lệch tỷ giá cho các hóa đơn" e="Invoice Exchange Rate Difference Revaluation"></title>
+  <fields>
+    <field name="ky" type="Decimal" dataFormatString="#0" allowNulls="false" align="right" aliasName="Period" defaultValue="(new Date()).getMonth()+1">
+      <header v="Kỳ" e="Period"></header>
+      <items style="Numeric"/>
+      <clientScript><![CDATA[onchange="onChange$Filter$ExchangeRate(this);"]]></clientScript>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"/>
+      <clientScript><![CDATA[onchange="onChange$Filter$ExchangeRate(this);"]]></clientScript>
+    </field>
+    <field name="ma_nt" allowNulls="false">
+      <header v="Mã ngoại tệ" e="Currency"></header>
+      <items style="AutoComplete" controller="CurrencyExtension" reference="ten_nt%l" key="status = '1'" check="1= 1" information="ma_nt$dmnt.ten_nt%l"/>
+      <clientScript><![CDATA[onchange="onChange$Filter$ExchangeRate(this);"]]></clientScript>
+    </field>
+    <field name="ten_nt%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ty_gia" type="Decimal" dataFormatString="@exchangeRateInputFormat" clientDefault="Default" defaultValue="0">
+      <header v="Tỷ giá" e="Ex. Rate"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="type" dataFormatString="0, 1" clientDefault="1" align="right">
+      <header v="Loại" e="Type"></header>
+      <footer v="1 - Đánh giá, 0 - Xóa đánh giá" e="1 - Evaluate, 0 - Delete Evaluation"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit(s)"></header>
+      <items style="Lookup" controller="Unit" key="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1) and status = '1'" check="ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11: [ky].Label, [ky]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="110100: [ma_nt].Label, [ma_nt], [ten_nt%l]"/>
+      <item value="110: [ty_gia].Label, [ty_gia]"/>
+      <item value="111000: [type].Label, [type], [type].Description"/>
+      <item value="110000: [ma_dvcs].Label, [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    <command event="Inserting">
+      <text>
+        &CommandCheckLockedDate;
+        <![CDATA[
+if @type = '1' exec rs_APCalExRD @ma_nt, @ty_gia, @ky, @nam, @@userID, @ma_dvcs
+  else exec rs_APDelExRD @ma_nt, @ky, @nam, @@userID, @ma_dvcs
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs",true)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function onChange$Filter$ExchangeRate(a){a.parentForm.getItemValue("ma_nt")!=""&&a.parentForm.request("GetExchangeRate","ExchangeRate",["ma_nt","ky","nam"])}function on$Filter$ResponseComplete(e,a){var b=a.object,c=a.type.Context,d=a.type.Result;switch(c){case"ExchangeRate":b.setItemValue("ty_gia",d[0].Value);b.live(b.getItem("ty_gia"))}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="GetExchangeRate">
+      <text>
+        &CommandCheckPeriodYear;
+        <![CDATA[
+declare @c varchar(33), @ngay_ct smalldatetime, @d smalldatetime, @ty_gia numeric(24, 12)
+select @ngay_ct = dbo.ff_GetEndDateOfCycle(@ky, @nam), @c = rtrim(val) from options where rtrim(upper(name)) = 'M_MA_NT0'
+if exists(select 1 from dmnt where ma_nt = @ma_nt and ma_nt <> @c) begin
+  if exists(select * from cttt31 where ngay_ct = @ngay_ct and ma_nt = rtrim(@ma_nt)) select @ty_gia = ty_gia_dg from cttt31 where ngay_ct = @ngay_ct and ma_nt = rtrim(@ma_nt)
+  else begin
+    if exists(select * from dmtgnt where ngay_ct <= @ngay_ct and ma_nt = rtrim(@ma_nt)) begin
+      select @d = max(ngay_ct) from dmtgnt where ngay_ct <= @ngay_ct and ma_nt = rtrim(@ma_nt)
+      select @ty_gia = ty_gia from dmtgnt where ngay_ct = @d and ma_nt = rtrim(@ma_nt)
+    end else select @ty_gia = 0
+  end
+  select @ty_gia as value
+  return
+end
+]]>
+      </text>
+    </action>
+
+  </response>
+</dir>

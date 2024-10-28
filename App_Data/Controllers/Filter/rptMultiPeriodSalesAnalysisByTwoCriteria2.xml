@@ -1,0 +1,295 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "rptMultiPeriodSalesAnalysisByTwoCriteria2">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY ReportDataTypeField SYSTEM "..\Include\XML\ReportDataTypeField.xml">
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+
+  <!ENTITY GetReportFormStockRight SYSTEM "..\Include\Command\GetReportFormStockRight.txt">
+  <!ENTITY SetReportFormStockRight SYSTEM "..\Include\Javascript\SetReportFormStockRight.txt">
+
+  <!ENTITY Identity "&Controller;">
+  <!ENTITY FilterExpression "f._filter$Expression = '&quot;' + f._filter$Pattern + '&quot;.indexOf([ma_ct]) &gt;= 0;';f.setItemValue('ds_ma_ct', f._filter$Pattern);">
+  <!ENTITY GetTransactionParameter SYSTEM "..\Include\Command\GetTransactionParameter.txt">
+
+  <!ENTITY LineCounter "7">
+  <!ENTITY ExtensionCounter "4">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.rptMultiPeriodSalesAnalysisByTwoCriteria2 SYSTEM "..\Include\ReportMargin.rptMultiPeriodSalesAnalysisByTwoCriteria2">
+  %ReportMargin.rptMultiPeriodSalesAnalysisByTwoCriteria2;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+    </field>
+    <field name="kieu_bc" dataFormatString="1, 2, 3, 4" clientDefault="1" align="right">
+      <header v="Kiểu báo cáo" e="Report Type"></header>
+      <footer v="1 - Tháng, 2 - Quý, 3 - Nửa năm, 4 - Năm" e="1 - Month, 2 - Quarter, 3 - Half a Year, 4 - Year"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ky_bc" allowNulls="false" type="Decimal" dataFormatString="##0" clientDefault="3">
+      <header v="Số kỳ báo cáo" e="No. of Periods"></header>
+      <items style="Numeric"/>
+      <clientScript><![CDATA[onchange="onchange$ReportPeriod(this);"]]></clientScript>
+    </field>
+    <field name="sKy_bc" readOnly="true" external="true" hidden="true" clientDefault="3">
+      <header v="" e=""></header>
+    </field>
+    <field name="bc_theo" clientDefault="1" categoryIndex="1">
+      <header v="Báo cáo theo" e="Report by"/>
+      <items style="DropDownList">
+        <item value="1">
+          <text v="Mã vật tư" e="Item Code"/>
+        </item>
+        <item value="2">
+          <text v="Nhóm vật tư 1" e="Item Group 1"/>
+        </item>
+        <item value="3">
+          <text v="Nhóm vật tư 2" e="Item Group 2"/>
+        </item>
+        <item value="4">
+          <text v="Nhóm vật tư 3" e="Item Group 3"/>
+        </item>
+        <item value="5">
+          <text v="Nhóm giá vật tư" e="Item Price Class"/>
+        </item>
+        <item value="6">
+          <text v="Mã khách hàng" e="Customer ID"/>
+        </item>
+        <item value="7">
+          <text v="Nhóm khách hàng 1" e="Customer Group 1"/>
+        </item>
+        <item value="8">
+          <text v="Nhóm khách hàng 2" e="Customer Group 2"/>
+        </item>
+        <item value="9">
+          <text v="Nhóm khách hàng 3" e="Customer Group 3"/>
+        </item>
+        <item value="10">
+          <text v="Nhóm giá khách hàng" e="Customer Price Class"/>
+        </item>
+        <item value="11">
+          <text v="Nhân viên bán hàng" e="Sales Employee"/>
+        </item>
+        <item value="12">
+          <text v="Mã đơn vị cơ sở" e="Unit"/>
+        </item>
+        <item value="13">
+          <text v="Mã kho" e="Site Code"/>
+        </item>
+        <item value="14">
+          <text v="Mã bộ phận" e="Department"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="nhom_theo" clientDefault="0" categoryIndex="1">
+      <header v="Nhóm theo" e="Group by"/>
+      <items style="DropDownList">
+        <item value="0">
+          <text v="Không nhóm" e="No Group"/>
+        </item>
+        <item value="1">
+          <text v="Mã vật tư" e="Item Code"/>
+        </item>
+        <item value="2">
+          <text v="Nhóm vật tư 1" e="Item Group 1"/>
+        </item>
+        <item value="3">
+          <text v="Nhóm vật tư 2" e="Item Group 2"/>
+        </item>
+        <item value="4">
+          <text v="Nhóm vật tư 3" e="Item Group 3"/>
+        </item>
+        <item value="5">
+          <text v="Nhóm giá vật tư" e="Item Price Class"/>
+        </item>
+        <item value="6">
+          <text v="Mã khách hàng" e="Customer ID"/>
+        </item>
+        <item value="7">
+          <text v="Nhóm khách hàng 1" e="Customer Group 1"/>
+        </item>
+        <item value="8">
+          <text v="Nhóm khách hàng 2" e="Customer Group 2"/>
+        </item>
+        <item value="9">
+          <text v="Nhóm khách hàng 3" e="Customer Group 3"/>
+        </item>
+        <item value="10">
+          <text v="Nhóm giá khách hàng" e="Customer Price Class"/>
+        </item>
+        <item value="11">
+          <text v="Nhân viên bán hàng" e="Sales Employee"/>
+        </item>
+        <item value="12">
+          <text v="Mã đơn vị cơ sở" e="Unit"/>
+        </item>
+        <item value="13">
+          <text v="Mã kho" e="Site Code"/>
+        </item>
+        <item value="14">
+          <text v="Mã bộ phận" e="Department"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="phan_loai" dataFormatString="1, 2, 3" clientDefault="2" align="right" categoryIndex="1">
+      <header v="Theo ds/ck" e="By Turnover/Discount"/>
+      <footer v="1 - Doanh số, 2 - Doanh thu thuần, 3 - Chiết khấu" e="1 - Turnover, 2 - Net Turnover, 3 - Discount"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="tk_dt" categoryIndex="1">
+      <header v="Tài khoản doanh thu" e="Revenue Account"></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk_dt%l" key="status = '1'" check="1=1"/>
+    </field>
+    <field name="ten_tk_dt%l" readOnly="true" external="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1 "/>
+    </field>
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    &ReportDataTypeField;
+
+    <field name="ds_ma_ct" hidden ="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="110----: [tu_ngay].Label, [tu_ngay]"/>
+      <item value="1110000: [kieu_bc].Label, [kieu_bc], [kieu_bc].Description"/>
+      <item value="11---1-: [ky_bc].Label, [ky_bc], [sKy_bc]"/>
+      <item value="11000--: [bc_theo].Label, [bc_theo]"/>
+      <item value="11000--: [nhom_theo].Label, [nhom_theo]"/>
+      <item value="1110000: [phan_loai].Label, [phan_loai], [phan_loai].Description"/>
+      <item value="1101000: [tk_dt].Label, [tk_dt], [ten_tk_dt%l]"/>
+      <item value="11000--: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="11000--: [mau_bc].Label, [mau_bc]"/>
+      <item value="11000-1: [loai_du_lieu].Label, [loai_du_lieu], [ds_ma_ct]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130, 0">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @message nvarchar(1024)
+select @message = ''
+]]>
+        &GetTransactionParameter;
+        &GetReportFormStockRight;
+        <![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select case @kieu_bc
+  when '1' then case when @@language = 'V' then N'Tháng' else 'Month' end
+  when '2' then case when @@language = 'V' then N'Quý' else 'Quarter' end
+  when '3' then case when @@language = 'V' then N'Nửa năm' else 'Half a Year' end
+  when '4' then case when @@language = 'V' then N'Năm' else 'Year' end
+end as kieu_bc, case @bc_theo
+  when '1' then case when @@language = 'V' then N'Mã vật tư' else 'Item Code' end
+  when '2' then case when @@language = 'V' then N'Nhóm vật tư 1' else 'Item Group 1' end
+  when '3' then case when @@language = 'V' then N'Nhóm vật tư 2' else 'Item Group 2' end
+  when '4' then case when @@language = 'V' then N'Nhóm vật tư 3' else 'Item Group 3' end
+  when '5' then case when @@language = 'V' then N'Nhóm giá vt' else 'Item Price Class' end
+  when '6' then case when @@language = 'V' then N'Mã kh' else 'Customer' end
+  when '7' then case when @@language = 'V' then N'Nhóm kh 1' else 'Cust. Group 1' end
+  when '8' then case when @@language = 'V' then N'Nhóm kh 2' else 'Cust. Group 2' end
+  when '9' then case when @@language = 'V' then N'Nhóm kh 3' else 'Cust. Group 3' end
+  when '10' then case when @@language = 'V' then N'Nhóm giá kh' else 'Cust. Price Class' end
+  when '11' then case when @@language = 'V' then N'Nhân viên bh' else 'Sales Employee' end
+  when '12' then case when @@language = 'V' then N'Mã đvcs' else 'Unit' end
+  when '13' then case when @@language = 'V' then N'Mã kho' else 'Site' end
+  when '14' then case when @@language = 'V' then N'Mã bộ phận' else 'Department' end
+end as ckey, @ky_bc as ky_bc, @tu_ngay as date_from
+exec rs_rptMultiPeriodSalesAnalysisByTwoCriteria2 @tu_ngay, @kieu_bc, @ky_bc, @bc_theo, @nhom_theo, @tk_dt, @ds_ma_ct, @phan_loai, @ma_dvcs, @mau_bc, @loai_du_lieu, @@language, @@userID, @@admin, ']]>&Controller;<![CDATA[', '@@sysDatabaseName'
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptQueryFilterString;
+      &SetReportFormStockRight;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ma_dvcs');]]>&FilterExpression;<![CDATA[
+  onchange$ReportPeriod(f.getItem('ky_bc'));
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(n,f){var c=f.object,h=f.type.Context,m=f.type.Result,b=c.grid;switch(h){case"Checking":var j=c.getItem("tu_ngay").value,k=c.getItemValue("mau_bc"),l=c.getItemValue("kieu_bc"),g=c.getItemValue("ky_bc"),d=b._language=="v",a=d?"Báo cáo theo: ":"Report by:",i=d?"số kỳ báo cáo: ":"No. of Periods:";switch(l){case"1":a=a+" "+(d?"Tháng":"Month");break;case"2":a=a+" "+(d?"Quý":"Quarter");break;case"3":a=a+" "+(d?"Nửa năm":"Half a Year");break;case"4":a=a+" "+(d?"Năm":"Year")}b._alterTitle=[null,[["%t",a,true],["%p",i+" "+g,true],["%d2",j,true]]];b._queryFilterString=getQueryFilterString(c,"tu_ngay, kieu_bc, sKy_bc, bc_theo, nhom_theo, phan_loai, ma_dvcs, mau_bc, loai_du_lieu, ds_ma_ct, tk_dt");var e=k+String.fromCharCode(255)+g;if(!b._v)b._v=e;if(b._v!=e){remove$GridReport$Filter(b);b._v=e}}}function onchange$ReportPeriod(c){var a=c.parentForm,b=a.getItem("ky_bc").value;a.setItemValue("sKy_bc",b)}function remove$GridReport$Filter(a){for(var e=name,c,b=a._filter.length-1;b>=0;b--){var d=a._filter[b].match(/^([\w\$]+):/)[1];name=$func.trim(d);c=$func.findField(name,a._fields);if(d.indexOf("tien")!=-1){if(c)c.FilterPanelValue="";Array.removeAt(a._filter,b)}}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

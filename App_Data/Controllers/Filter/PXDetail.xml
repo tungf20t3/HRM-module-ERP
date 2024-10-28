@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+  <!ENTITY Identity "PXInvoice">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'PXDetail', 'Filter', 'PXTran'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+<dir table="m31$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn hóa đơn" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Hóa đơn từ ngày" e="Invoice Date From"></header>
+      <footer v="Ngày hóa đơn từ/đến" e="Invoice Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="hóa đơn đến ngày" e="VC Date to"></header>
+    </field>
+    <field name="ma_kh" filterSource="master" operation="10" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_ct" align="right" maxLength="-100" filterSource="voucherNumber" allowNulls="false">
+      <header v="Số hóa đơn" e="Invoice Number"></header>
+      <items style="AutoComplete" controller="PXInvoiceLookup" reference="stt_rec_ct"/>
+    </field>
+    <field name="stt_rec_ct" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230, 0, 0"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="1101111: [so_ct].Label, [so_ct], [stt_rec_ct], [ma_dvcs], [ma_kh], [ten_kh%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[Filter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Filter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[Filter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @vcNumber varchar(32), @vcCustomerID varchar(32), @vcCode varchar(32), @vcDate smalldatetime, @vcID varchar(32), @rangeFrom smalldatetime, @rangeTo smalldatetime, @dateFrom smalldatetime, @dateTo smalldatetime, @l int, @i int, @d smalldatetime, @c varchar(6), @e varchar(32), @s nvarchar(4000), @$none nvarchar(512)
+declare @vcCurency char(3), @vcExchangeRate numeric(24, 12), @ex char(2), @vcDescript nvarchar(512), @vcAmount numeric(15, 2), @vcFCAmount numeric(15, 2)
+select @rangeFrom = ngay_gh1, @rangeTo = ngay_gh2, @$none = case when @@language = 'v' then N'Không có hóa đơn theo điều kiện đang lọc.' else N'No data matching filter condition.' end from dmstt
+select @vcCode = 'PN1', @ex = '31'
+
+]]>&CheckRelativeProcess;<![CDATA[
+
+declare @v table(e varchar(32))
+create table #r(stt_rec varchar(32), ngay_ct smalldatetime, ma_nt char(3), ty_gia numeric(24, 12), dien_giai nvarchar(512), t_tien numeric(15, 2), t_tien_nt numeric(15, 2), e varchar(32))
+
+select @dateFrom = @ngay_ct1, @dateTo = @ngay_ct2, @vcNumber = rtrim(ltrim(@so_ct)), @vcCustomerID = @ma_kh
+if @dateFrom < @rangeFrom select @dateFrom = @rangeFrom
+if @dateTo > @rangeTo select @dateTo = @rangeTo
+
+select @i = len(@vcNumber), @l = character_maximum_length from information_schema.columns where table_name = '@@table' and column_name = 'so_ct'
+select @vcNumber = space(@l - @i) + @vcNumber, @d = rtrim(year(@dateFrom)) + replace(str(rtrim(month(@dateFrom)), 2), ' ', '0') + '01'
+while @d <= @dateTo begin
+  insert into @v select convert(char(6), @d, 112)
+  select @d = dateadd(month, 1, @d)
+end
+
+while exists(select 1 from @v) begin
+  select @c = min(e) from @v
+  select @s = 'insert into #r select top 1 stt_rec, ngay_ct, ma_nt, ty_gia, dien_giai, t_tien, t_tien_nt, ''' + @c + ''''
+  select @s = @s + ' from m31$' + @c + ' where so_ct = ''' + replace(@vcNumber, '''', '''''') + ''' and ma_kh = ''' + replace(@vcCustomerID, '''', '''''') + ''' and ma_ct = ''' + @vcCode + ''' and status in(''1'', ''2'')'
+  exec sp_executesql @s
+  if exists(select 1 from #r) break
+  delete @v where e = @c
+end
+
+if not exists(select 1 from #r) begin
+  select 'so_ct' as field, @$none as message
+  return
+end else begin
+  select @vcID = stt_rec, @vcDate = ngay_ct, @vcCurency = ma_nt, @vcExchangeRate = ty_gia, @vcDescript = dien_giai, @vcAmount = t_tien, @vcFCAmount = t_tien_nt, @e = e from #r
+end
+drop table #r
+select '' as field, '' as message, 'on$Filter$]]>&Identity;<![CDATA[QueryComplete(this, ''' + replace(replace(@vcNumber, '\', '\\'), '''', '\''') + ''', ''' + @vcCode + ''', ''' + @vcID + ''', ''' + replace(replace(@vcCurency, '\', '\\'), '''', '\''') + ''', ''' + rtrim(@vcExchangeRate) + ''', ''' + rtrim(@vcDescript) + ''', ''' + rtrim(@vcAmount) + ''', ''' + rtrim(@vcFCAmount) + ''', ''' + convert(char(8), @vcDate, 112) + ''');' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {f.getItem('so_ct')._idle = ]]>&IdleLookupFilter;<![CDATA[;}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f.add_commandEvent(on$]]>&Identity;<![CDATA[Filter$ExecuteCommand);
+  f._looking.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);
+
+  var g = f.grid, w = g.get_element().parentForm, u = w.getItemValue('ma_dvcs');
+  g._custID = w.getItemValue('ma_kh');
+  g._custName = w.getItemValue('ten_kh%l');
+  f.setItemValues('ma_kh, ten_kh%l, ma_dvcs', [g._custID, g._custName, u]);
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {
+  try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);} catch (ex) {}
+  try {f.remove_commandEvent(on$]]>&Identity;<![CDATA[Filter$ExecuteCommand);} catch (ex) {}
+}
+function on$]]>&Identity;<![CDATA[Filter$ExecuteCommand(sender, e) {
+  var action = e.type.Action, f = sender, g = f.grid;
+  switch (action) {
+    case 'Save':
+      g._custID = f.getItemValue('ma_kh');
+      g._custName = f.getItemValue('ten_kh%l');
+      break;
+    default:
+      break;
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$Before$Loading(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1, ngay_ct2, ma_kh')) e.type.cancelEvent = true;
+  else {
+    var g = f.grid, d1 = f.getItemValue('ngay_ct1'), d2 = f.getItemValue('ngay_ct2'), u = f.getItemValue('ma_dvcs');
+    g._custID = f.getItemValue('ma_kh');
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: d1},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: d2},
+      {Name: 'ma_kh', Type: 'String', Value: g._custID},
+      {Name: 'ma_dvcs', Type: 'String', Value: u}
+    ];
+    sender.set_memvars(a);
+  }
+}
+function on$Filter$]]>&Identity;<![CDATA[QueryComplete(f, v, c, id, m, t, q, t1, t2, d) {
+  var g = f.grid, w = g.get_element().parentForm, u = w.getItemValue('ma_nt').toUpperCase(), field = g.get_element().field;
+  var v = (u == w._baseCurrency.toUpperCase());
+  Array.add(f._memvars, {Name: 'vcCode', OldValue: null, NewValue: c, Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'vcID', OldValue: null, NewValue: id, Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'e', OldValue: null, NewValue: d, Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'vcCurrency', OldValue: null, NewValue: u, Modified: true, Items: []});
+  Array.add(f._memvars, {Name: 'vcCurrencyInvoice', OldValue: null, NewValue: m, Modified: true, Items: []});
+  if (u == m) w.setItemValues('dien_giai, t_tien, t_tien_nt', [q, t1, t2]);
+    else if (v) w.setItemValues('dien_giai, t_tien, t_tien_nt', [q, t1, t1]);
+      else w.setItemValues('dien_giai, t_tien, t_tien_nt', [q, 0, 0]);
+  w.executeExpression([g.$a.t_thue_nt, g.$a.t_thue, g.$a.t_tt_nt, g.$a.t_tt]);
+
+  if (w._action == 'Edit') {
+    field.AllowContain = true;
+    field.FilterSource = '';
+  }
+  g._flag$Check = true;
+}
+]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

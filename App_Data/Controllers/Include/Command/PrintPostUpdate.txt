@@ -1,0 +1,9 @@
+﻿<![CDATA[
+if '$partition$current' <> '$partition$previous' and exists(select 1 from options where name = 'm_sl_in' and val = '1') begin
+  if exists(select 1 from hdin$$partition$previous where stt_rec = @stt_rec) begin
+    insert into hdin$$partition$current select * from hdin$$partition$previous where stt_rec = @stt_rec
+    update hdin$$partition$current set ngay_ct = @ngay_ct where stt_rec = @stt_rec
+    delete hdin$$partition$previous where stt_rec = @stt_rec
+  end
+end
+]]>

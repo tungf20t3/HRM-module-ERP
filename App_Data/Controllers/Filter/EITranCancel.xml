@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY % DetailTax SYSTEM "..\Include\DetailTax.ent">
+  %DetailTax;
+  <!ENTITY % EIOptions SYSTEM "..\Include\EIOptions.ent">
+  %EIOptions;
+  <!ENTITY % Discount SYSTEM "..\Include\Discount.ent">
+  %Discount;
+  <!ENTITY % EINote SYSTEM "..\Include\EINote.ent">
+  %EINote;
+
+  <!ENTITY Key "declare @rk varchar(16)
+select @rk = lower(left(replace(newid(),'-',''), 16))
+update @@sysDatabaseName..userinfo2 set rkey = @rk where id = @@userID">
+]>
+
+<dir table="userinfo2" code="name" order="name" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xác nhận mật khẩu" e="Confirm Password"></title>
+  <fields>
+    <field name="type" dataFormatString="0, 1" clientDefault="1" align="right">
+      <header v="Kiểu xử lý" e="Process Type"></header>
+      <footer v="1 - Bỏ ghi sổ, hạch toán của hóa đơn gốc, 0 - Không" e="1 - Unpost invoice, 0 - No Action"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="so_bien_ban" allowNulls="false" dataFormatString="@upperCaseFormat" maxLength="32" align="right">
+      <header v="Số biên bản" e="Minute No."></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="ngay_bien_ban" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false">
+      <header v="Ngày biên bản" e="Minute Date"></header>
+    </field>
+    <field name="ly_do" allowNulls="false" maxLength="255">
+      <header v="Lý do" e="Reason"></header>
+    </field>
+
+    <field name="cpass" external="true" defaultValue="''">
+      <header v="Xác nhận mật khẩu" e="Confirm Password"></header>
+      <clientScript><![CDATA[type="password" onchange="genHash(this);"]]></clientScript>
+    </field>
+    <field name="chkpass" external="true" hidden="true" readOnly="true" defaultValue="''" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="11100: [type].Label, [type], [type].Description"/>
+      <item value="110--: [so_bien_ban].Label, [so_bien_ban]"/>
+      <item value="110--: [ngay_bien_ban].Label, [ngay_bien_ban]"/>
+      <item value="11000: [ly_do].Label, [ly_do]"/>
+      <item value="110-1: [cpass].Label, [cpass], [chkpass]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'var f=this;g=f.grid;v=(g._$process==3);setObjectFormHidden(f, ''so_bien_ban,ngay_bien_ban,ly_do'', v);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        &Key;<![CDATA[
+select 'this._key = ''' + @rk + ''';loadForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'closeForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,o=f.getItem("cpass"),g=f.grid;o.oldValue=o.value;o.value="";checkFieldEntry(f,o);if(f._checked){f._checked=false;f.request("CheckKey","CheckKey",["chkpass","so_bien_ban","ngay_bien_ban","ly_do",["r","Infinite",g._$k]])}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function loadForm(a){var c=a.grid,b=a.getItem("type");a.add_onResponseComplete(on$Form$ResponseComplete);a._$init&&a.request("Key","Key",[]);a._$init=true;if(c._$voucherCode=="HD7"){b.value="0";$common.setVisible(b.parentNode.parentNode.parentNode,false);a.getItem("cpass").focus()}}function closeForm(a){try{a.remove_onResponseComplete(on$Form$ResponseComplete)}catch(b){}}function on$Form$ResponseComplete(e,b){var a=b.object,d=b.type.Context,c=b.type.Result;switch(d){case"Key":a._key=c[0].Value;break;case"CheckKey":if(c[0].Value)request$EICancel(a);else $message.show(a._language=="v"?"Mật khẩu xác nhận không đúng.":"Confirmation password is invalid.",String.format("revertPassword('{0}', '', true); $find('{0}').focus('{1}');",a.get_id(),"cpass"))}}
+function request$EICancel(f, force) {
+  var g = f.grid, id = f._id, u = f.getItemValue('type');
+  if (!force) {
+    busy$Page(f, true);
+    window.setTimeout(function() {request$EICancel(f, true);}, 2);
+    return;
+  }
+  var query = Sys.Serialization.JavaScriptSerializer.serialize({
+    'unit': g._$unit,
+    'voucherCode': g._$voucherCode,
+    'idNumber': g._$k.toString(),
+    'voucherDate': g._$lvd.toString(),
+    'listDays': g._$ld.toString(),
+    'external': u
+  });
+
+  if (g._$process == 3) query = Sys.Serialization.JavaScriptSerializer.serialize({
+    'dFrom': $func.formatDateOrder(g._$dFrom),
+    'dTo': $func.formatDateOrder(g._$dTo),
+    'unit': g._$unit,
+    'voucherCode': g._$voucherCode,
+    'idNumber': g._$k.toString(),
+    'listDays': g._$ld.toString(),
+    'voucherDate': g._$lvd.toString(),
+    'customerList': g._$c.toString(),
+    'voucherBook': g._$voucherBook.toString(),
+    'debugMode': g._$debugMode,
+    'external': ']]>&DetailTaxFlag;&EICustomerAuthentication;&DiscountFlag;&EINoteFlag;<![CDATA[' + u
+  });
+
+  var m = (g._$process == 3 ? '350' : '330'), a = ((g._use$Token && g._unitProvider != 2) ? '300' : null);
+  if (g._use$Token && g._$process == 9 && g._unitProvider != 2) a = '320';
+
+  Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl(g._url$EInvoice, g._baseUrl), g._service$Method, false, {
+    method: m,
+    action: a,
+    query: query
+  }, onProcess$Completed, onProcess$Failed, id);
+}
+function onProcess$Completed(e,i){var f=$find(i),b=f.grid,a,g,c=b._language=="v",h=true;if(b._$debugMode==1&&e.Success=="2"){$func.hideWait(i);b._busy(false);busy$Page(f,false);f.cancelDialog();b._debug$Data=e;b.showForm("EITranForm");return}if(e.Success=="1"){if(b._use$Token&&b._$process==3&&b._unitProvider!=2){b._$certificate.onRequestTokenCompleted(e,b,b.get_id(),f);return}a=c?"Chương trình đã thực hiện xong.":"The process was completed successfully.";if(b._$process==9){b._$MessageNotice=localStorage.getItem("Message.Hidden.CancelInvoice")=="true"?0:1;if(b._$MessageNotice==1){g=String.format("set$MessageNotice($find('{0}'));",b.get_id());a+=String.format('<div style="color:#035ab8;">{0}</div>',c?"Lưu ý: Người nộp thuế cần lập thông báo sai sót cho hóa đơn đã hủy.":"Warnings: Taxpayers are required to generate an error announcement for canceled invoices.");a+=String.format('<table width="100%" cellspacing="1" cellpadding="1"><tbody><tr height="3px"/><tr><td width="5%"/><td width="80%" style="color:#444444;"><input style="vertical-align:middle;" type="checkbox" onclick="$find(\'{0}\')._$CancelMessage=this.checked;">{1}</td></tr></tbody></table>',b.get_id(),c?" Không hiển thị lại thông báo này.":" Do not show this message again.")}}}else{var d=e.Field,j=e.Code;h=false;switch(j){case"0":a=String.format(c?'Đơn vị <span class="Highlight">{0}</span> chưa khai báo tài khoản kết nối, chương trình không thể tiếp tục thực hiện được.':'An error occurred while processing, the unit <span class="Highlight">{0}</span> has not been declared in account information.',d);break;case"1":a=c?"Đã khóa số liệu, kiểm tra lại ngày khóa sổ.":"Data is locked, you must modify system locked date.";break;case"2":a=String.format(c?'Hóa đơn số <span class="Highlight">{0}</span> đã được sửa hoặc xóa bởi người sử dụng khác.':'The invoice number <span class="Highlight">{0}</span> has been modified or deleted by another user.',d);break;case"3":a=String.format(c?'Đã có chứng từ thanh toán cho hóa đơn số <span class="Highlight">{0}</span>, không thể hủy được.':'Can not cancel voucher number <span class="Highlight">{0}</span>, It was received or paid.',d);break;case"4":a=String.format(c?'Khách hàng <span class="Highlight">{0}</span> chưa khai trong danh sách khách hàng sử dụng hóa đơn điện tử, chương trình không thể tiếp tục thực hiện được.':'An error occurred while processing, the customer <span class="Highlight">{0}</span> has not been registered.',d);break;case"5":a=String.format(c?'Hóa đơn thay thế số <span class="Highlight">{0}</span> đã xác thực hoặc không đúng, chương trình không thể tiếp tục thực hiện được.':'An error occurred while processing, the replacement invoice <span class="Highlight">{0}</span> has been registered or invalid.',d);break;case"6":a=String.format(c?'Hóa đơn bị thay thế số <span class="Highlight">{0}</span> chưa xác thực hoặc bị điều chỉnh hoặc bị hủy, chương trình không thể tiếp tục thực hiện được.':'An error occurred while processing, the replacement invoice <span class="Highlight">{0}</span> has not been registered or adjusted or canceled.',d);break;case"7":a=String.format(c?'Hóa đơn bị thay thế số <span class="Highlight">{0}</span> đã có chứng từ thanh toán, chương trình không thể tiếp tục thực hiện được.':'An error occurred while processing, the invoice to be replaced <span class="Highlight">{0}</span> has been paid.',d);break;case"8":a=String.format(c?'Hóa đơn thay thế số <span class="Highlight">{0}</span> đã được lấy số liệu hoặc liên quan đến chứng từ khác, chương trình không thể tiếp tục thực hiện.':'An error occurred while processing, the replacement invoice <span class="Highlight">{0}</span> has already retrieved data from a previous process or has reference to an other voucher.',d);break;case"9":a=String.format(c?'Hóa đơn thay thế số <span class="Highlight">{0}</span> có giao dịch khác hóa đơn gốc, chương trình không thể tiếp tục thực hiện.':'An error occurred while processing, the replacement invoice <span class="Highlight">{0}</span> has transaction code does not match with the one in the invoice to be replaced.',d);break;case"10":a=String.format(c?'Hóa đơn số <span class="Highlight">{0}</span> đã được lấy số liệu hoặc liên quan đến chứng từ khác, chương trình không thể tiếp tục thực hiện.':'An error occurred while processing, the replacement invoice <span class="Highlight">{0}</span> has already retrieved data from a previous process or has reference to an other voucher.',d);break;default:a=c?"Phát sinh lỗi trong quá trình thực hiện.":"The process was failed."}if(e.Reference)a+=String.format(' <span class="Highlight">{0}</span>',String.format(e.Message,e.Reference))}busy$Page(f,false);$message.show(a,String.format(h?(g?g:"")+"refresh$Page($find('{0}'));":"$find('{0}')._focusWhenTabChanged();",b._id));f.cancelDialog()}function onProcess$Failed(b,a){busy$Page($find(a),false);$message.showError(b)}function set$MessageNotice(a){localStorage.setItem("Message.Hidden.CancelInvoice",a._$CancelMessage)}function setObjectFormHidden(e,f,c){for(var d=f.split(","),a=0;a<d.length;a++){var b=e.getItem($func.trim(d[a]));b.field.AllowNulls=c;grandNode=b.parentNode.parentNode;if(!c){Sys.UI.DomElement.addCssClass(grandNode,"Required");Sys.UI.DomElement.addCssClass(grandNode,e._id)}else Sys.UI.DomElement.removeCssClass(grandNode,"Required");$common.setVisible(b.parentNode.parentNode.parentNode,!c)}}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Key">
+      <text>
+        &Key;<![CDATA[
+select @rk as value
+return
+]]>
+      </text>
+    </action>
+
+    <action id="CheckKey">
+      <text>
+        <![CDATA[
+declare @hash varchar(32), @c bit, @d bit, @k varchar(6), @l varchar(8000)
+exec @@sysDatabaseName..AI_ERP$System$CheckSum @@userID, @chkpass, 0, @c output
+if isnull(@c, 0) = 1 begin
+  select @l = replace(replace(cast([text] as varchar(8000)), ' ', ''), '''', '') from @r
+  select rtrim(data) as stt_rec into #r from dbo.AI_ERP$Function$System$Split(@l, ',')
+
+  delete a from hddt04 a where exists(select 1 from #r b where b.stt_rec = a.stt_rec)
+  insert into hddt04 (stt_rec, so_huy, ngay_huy, ly_do_huy) select stt_rec, @so_bien_ban, @ngay_bien_ban, @ly_do from #r
+end
+select @c as val
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

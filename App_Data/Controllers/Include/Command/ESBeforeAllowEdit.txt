@@ -1,0 +1,17 @@
+﻿<![CDATA[
+declare @usedEI char(1), @q nvarchar(4000), @$pEI char(13), @$cEI tinyint, @eiStatus char(1)
+select @usedEI = rtrim(val) from options where name = 'm_sd_hddt'
+select @usedEI = isnull(@usedEI, '0')
+if @@view = 0 and @@action = 'Edit' and @usedEI = '1' begin
+  select @$pEI  = 'hddt00$' + convert(char(6), ngay_ct, 112) from @@table where stt_rec = @stt_rec
+	set @q = 'select @$eiStu = tinh_trang_hddt from ' + @$pEI  + ' where stt_rec = ''' + replace(@stt_rec, '''', '''''') + ''''
+  set @q = @q + char(13) + 'select @$cEI = case when (@$eiStu <> ''0'' or exists(select 1 from hddt01 where stt_rec1 = ''' + replace(@stt_rec, '''', '''''') + ''')) and not exists(select 1 from kthddt where ma_ct = '@@id' and status = ''1'') then 1 else 0 end'
+  exec sp_executesql @q, N'@$cEI tinyint out, @$eiStu char(1) out', @$cEI out, @eiStatus out
+
+  if @$cEI = 1 begin
+    select '' as script, case when @@language = 'v' then N'Hóa đơn đang chờ xử lý hoặc đã xác thực, không thể sửa được.' else N'Can not edit this voucher, It''s in pending status or has been released.' end as message
+    return
+	end
+end
+select @message = 'this._usedEI = ' + @usedEI + ';this._eiStatus = ' + isnull(@eiStatus, '0') + ';' + @message
+]]>

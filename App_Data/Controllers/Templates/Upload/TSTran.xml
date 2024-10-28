@@ -1,0 +1,357 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Permissions " not exists(select 1 from sysunitrights c where b.ma_dvcs = c.ma_dvcs and r_edit = 1 and c.user_id = @@userID)">
+
+  <!ENTITY % Nested SYSTEM "..\..\Include\Nested.ent">
+  %Nested;
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % Tiny.External SYSTEM "..\..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.TSTran;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'TSDetail' else 'TSDetail2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Other"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$TSTranImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$TSTranImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmcc, ctdmcc"/>
+    <dependence value="dmcc, ctdmcc, icc"/>
+    <listTable value="#id1, #d1, #i1"/>
+    <temporary value="#k, #d2, #i2" alias="b, b, b"/>
+    <alias value="master, detail, inquiry"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <variable>
+    <var id="00003">
+      <header v="Giá trị &TSTran.Nested.Message.v;." e="The value is &TSTran.Nested.Message.e;." />
+    </var>
+  </variable>
+
+  <fields identity="true" name="stt">
+    &Tiny.External.Import.View.TSTran;
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Công cụ dụng cụ" e="Tool &amp; Supply"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_dvcs" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="ngay_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày chứng từ" e="Voucher Date"/>
+      </field>
+      <field name="so_ct" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số chứng từ" e="Voucher Number"/>
+      </field>
+      <field name="so_the_ts" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã công cụ" e="TS Code"/>
+      </field>
+      <field name="ten_ts" width ="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên công cụ" e="TS Name"/>
+      </field>
+      <field name="ten_ts2" width ="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="loai_ts" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Loại công cụ" e="TS Type"/>
+      </field>
+      <field name="ma_tg_ts" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã tăng công cụ" e="Acquisition Reason"/>
+      </field>
+      <field name="ngay_mua" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày tăng" e="Acquisition Date"/>
+      </field>
+      <field name="ngay_kh0" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày tính phân bổ" e="Alloc. Start Date"/>
+      </field>
+      <field name="kieu_kh" width ="16">
+        <text v="Kiểu phân bổ" e="Allocation Method"/>
+      </field>
+      <field name="so_ky_kh" width ="16">
+        <text v="Số kỳ phân bổ" e="Allocation Periods"/>
+      </field>
+      <field name="ngay_kh_kt" width ="16">
+        <text v="Ngày kết thúc pb" e="Alloc. End Date"/>
+      </field>
+      <field name="so_luong" width ="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="ma_nv" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nguồn vốn" e="Capital"/>
+      </field>
+      <field name="ten_nv" width ="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên nguồn vốn" e="Capital Name"/>
+      </field>
+      <field name="nguyen_gia_nt" width ="16">
+        <text v="Nguyên giá" e="Original Cost"/>
+      </field>
+      <field name="gt_da_kh_nt" width ="16">
+        <text v="Gt đã phân bổ" e="Accumulated Allocation"/>
+      </field>
+      <field name="gt_cl_nt" width ="16">
+        <text v="Gt còn lại" e="Remaining Value"/>
+      </field>
+      <field name="gt_kh_ky_nt" width ="16">
+        <text v="Gt phân bổ kỳ" e="Allocation per Period"/>
+      </field>
+      <field name="ma_nt" width ="16">
+        <text v="Mã nt" e="Currency"/>
+      </field>
+      <field name="ty_gia" width ="16">
+        <text v="Tỷ giá" e="Ex. Rate"/>
+      </field>
+      <field name="ma_bp" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã bộ phận" e="Department"/>
+      </field>
+      <field name="tk_ts" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tk công cụ" e="Tool and Supply Account"/>
+      </field>
+      <field name="tk_kh" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tk chờ phân bổ" e="Allocation Account"/>
+      </field>
+      <field name="tk_cp" width ="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tk chi phí" e="Expense Account"/>
+      </field>
+      <field name="ma_phi" width ="16">
+        <text v="Mã phí" e="Expense"/>
+      </field>
+      <field name="dien_giai" width ="50">
+        <text v="Diễn giải" e="Description"/>
+      </field>
+      <field name="nh_ts1" width ="16">
+        <text v="Nhóm 1" e="Group 1"/>
+      </field>
+      <field name="nh_ts2" width ="16">
+        <text v="Nhóm 2" e="Group 2"/>
+      </field>
+      <field name="nh_ts3" width ="16">
+        <text v="Nhóm 3" e="Group 3"/>
+      </field>
+      <field name="so_hieu_ts" width ="16">
+        <text v="Số hiệu công cụ" e="TS Number"/>
+      </field>
+      <field name="ngay_dvsd" width ="16">
+        <text v="Ngày sử dụng" e="Using Date"/>
+      </field>
+      <field name="ngay_dc" width ="16">
+        <text v="Ngày đình chỉ" e="Suspending Date"/>
+      </field>
+      <field name="nuoc_sx" width ="16">
+        <text v="Nước sản xuất" e="Made in"/>
+      </field>
+      <field name="nam_sx" width ="16">
+        <text v="Năm sản xuất" e="MFG Year"/>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @irregular nvarchar(4000), @duplicate nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @wsID varchar(1)
+declare @user int, @admin bit, @m int, @r int, @i int, @k int, @count int, @round int, @voucherID varchar(8), @baseCurrency varchar(8), @datetime0 datetime
+
+select @i = 1, @wsID = rtrim(val) from options where rtrim(name) = 'm_ws_id'
+select @round = cast(rtrim(val) as int) from options where rtrim(name) = 'm_round_tien'
+select @baseCurrency = rtrim(val) from options where rtrim(name) = 'm_ma_nt0'
+
+select @m = character_maximum_length from information_schema.columns where table_name = 'dmcc' and column_name = 'so_ct'
+select @admin = @@admin, @user = @@userID, @voucherID = 'CC1', @irregularChars = ]]>&IrregularValue;<![CDATA[, @datetime0 = getdate()
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> ]]>&TSTran.Nested.Message.v;<![CDATA[.' else 'The value of cell <span class="Highlight">%invalidCell</span> is ]]>&TSTran.Nested.Message.e;<![CDATA[.' end
+
+update @@table set so_ct = space(@m - len(rtrim(so_ct))) + ltrim(so_ct), ma_nt = case when ma_nt <> '' then ma_nt else @baseCurrency end
+]]>&Tiny.External.Import.DefaultValue;<![CDATA[
+
+-- Check
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'so_the_ts', stt, @message from @@table where so_the_ts like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'so_the_ts', @r = min(stt) from @@table where so_the_ts like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+if @admin = 0 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'TSTran', 'Edit') = 0 select @type = '0'
+  end
+end
+
+if @type = '0' delete @@table from @@table a where exists(select 1 from dmcc b where a.so_the_ts = b.so_the_ts)
+select a.* into #k from @@table a join dmcc b on a.so_the_ts = b.so_the_ts
+delete @@table from @@table a where exists(select 1 from #k b where a.so_the_ts = b.so_the_ts)
+
+if @admin = 0 begin
+  if @type = '1' begin
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select 'ma_dvcs', a.stt, '00002' from #k a join dmts b on a.so_the_ts = b.so_the_ts where ]]>&Permissions;<![CDATA[
+      ]]>&w1;<![CDATA['ma_dvcs']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(a.stt), @field = 'ma_dvcs' from #k a join dmcc b on a.so_the_ts = b.so_the_ts where ]]>&Permissions;<![CDATA[
+      ]]>&Error;<![CDATA[
+    end
+  end
+end
+
+select @field = 'so_the_ts'
+]]>&TSTran.Nested.Key.b;<![CDATA[
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00003' from @@table a, @@table b where a.so_the_ts <> b.so_the_ts and a.so_the_ts like rtrim(b.so_the_ts) + '%'
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00003']]>&w4;<![CDATA[ group by a.stt
+    ]]>&EndErrorCount;<![CDATA[
+
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00003' from @@table a, dmcc b where a.so_the_ts like rtrim(b.so_the_ts) + '%'
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00003']]>&w4;<![CDATA[ group by a.stt
+    ]]>&EndErrorCount;<![CDATA[
+
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, b.stt, '00003' from dmcc a, @@table b where a.so_the_ts like rtrim(b.so_the_ts) + '%'
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA['00003']]>&w4;<![CDATA[ group by b.stt
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @q = 'select top 1 @r = a.stt from @@table a, @@table b where a.so_the_ts <> b.so_the_ts and a.so_the_ts like rtrim(b.so_the_ts) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select top 1 @r = a.stt from @@table a, dmcc b where a.so_the_ts like rtrim(b.so_the_ts) + '%']]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = b.stt from dmcc a, @@table b where a.so_the_ts like rtrim(b.so_the_ts) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  end
+end
+
+]]>&EndErrorMode;<![CDATA[
+
+select top 0 a.stt_rec, a.stt_rec0, a.line_nbr, a.so_the_ts, a.ngay_ct, a.so_ct, a.ky, a.nam, a.ma_nv, a.ma_tg_ts, b.ty_gia, a.nguyen_gia, a.nguyen_gia_nt, a.gt_da_kh, a.gt_da_kh_nt, a.gt_cl, a.gt_cl_nt, a.gt_kh_ky, a.gt_kh_ky_nt, a.dien_giai into #d1 from ctdmcc a, dmcc b
+
+select @count = count(*) from @@table
+if @count > 0 begin
+  select top 0 stt_rec, so_the_ts, cast(0 as int) as stt, identity(int, 1, 1) as id into #id1 from dmcc
+  insert into #id1(stt_rec, so_the_ts, stt) select '', so_the_ts, min(stt) from @@table group by so_the_ts
+
+  select @k = count(*) from #id1
+  exec AI_ERP$App$UpdateIdentityNumber @wsID, @voucherID, @k, @@userID, '#id1'
+
+  insert into #d1 select b.stt_rec, replace(str((a.stt - b.stt) + 1, 3), ' ', '0'), (a.stt - b.stt) + 1, a.so_the_ts, a.ngay_ct, a.so_ct, month(a.ngay_kh0), year(a.ngay_kh0),
+      a.ma_nv, a.ma_tg_ts, a.ty_gia,
+      round(a.nguyen_gia_nt * a.ty_gia, @round), a.nguyen_gia_nt, round(a.gt_da_kh_nt * a.ty_gia, @round), a.gt_da_kh_nt, round(a.gt_cl_nt * a.ty_gia, @round), a.gt_cl_nt,
+      round(a.gt_kh_ky_nt * a.ty_gia, @round), a.gt_kh_ky_nt, a.dien_giai
+    from @@table a join #id1 b on a.so_the_ts = b.so_the_ts order by a.so_the_ts
+
+  select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, c$, m$, d$, cast(0 as int) as stt, identity(int, 1, 1) as id into #i1 from icc
+  insert into #i1 select a.stt_rec, b.ngay_ct, b.so_ct, b.ma_dvcs, convert(varchar(12), b.ngay_ct, 112) + b.so_ct + a.stt_rec,
+	  '#10$' + rtrim(b.so_the_ts) + '#20$' + rtrim(b.loai_ts) + '#30$' + rtrim(b.ma_bp), '', a.stt from #id1 a join @@table b on a.stt = b.stt
+  select @q = dbo.AI_ERP$Function$Update$Inquiry('#i1', '#d1', 'd$', 'ma_nv', '#10$', 'stt_rec', default, default, default, default, default)
+  exec sp_executesql @q
+
+  -- Insert
+  @@inserting(master); a join @@table b on a.stt = b.stt
+    join (select so_the_ts, sum(nguyen_gia) as t_nguyen_gia, sum(nguyen_gia_nt) as t_nguyen_gia_nt,
+      sum(gt_da_kh) as t_gt_da_kh, sum(gt_da_kh_nt) as t_gt_da_kh_nt, sum(gt_cl) as t_gt_cl, sum(gt_cl_nt) as t_gt_cl_nt,
+      sum(gt_kh_ky) as t_gt_kh_ky, sum(gt_kh_ky_nt) as t_gt_kh_ky_nt from #d1 group by so_the_ts) c
+    on a.so_the_ts = c.so_the_ts
+
+  @@inserting(detail);
+  @@inserting(inquiry);
+end
+
+if @type = '1' begin
+  select @k = count(*) from #k
+
+  if @k > 0 begin
+    select top 0 stt_rec, so_the_ts, cast(0 as int) as stt, identity(int, 1, 1) as id into #id2 from dmcc
+    insert into #id2 select b.stt_rec, a.so_the_ts, min(stt) from #k a join dmcc b on a.so_the_ts = b.so_the_ts group by a.so_the_ts, b.stt_rec
+
+    select top 0 a.stt_rec, a.stt_rec0, a.line_nbr, a.so_the_ts, a.ngay_ct, a.so_ct, a.ky, a.nam, a.ma_nv, a.ma_tg_ts, b.ty_gia, a.nguyen_gia, a.nguyen_gia_nt, a.gt_da_kh, a.gt_da_kh_nt, a.gt_cl, a.gt_cl_nt, a.gt_kh_ky, a.gt_kh_ky_nt, a.dien_giai into #d2 from ctdmcc a, dmcc b
+    insert into #d2 select b.stt_rec, replace(str((a.stt - b.stt) + 1, 3), ' ', '0'), (a.stt - b.stt) + 1, a.so_the_ts, a.ngay_ct, a.so_ct, month(a.ngay_kh0), year(a.ngay_kh0),
+        a.ma_nv, a.ma_tg_ts, a.ty_gia,
+        round(a.nguyen_gia_nt * a.ty_gia, @round), a.nguyen_gia_nt, round(a.gt_da_kh_nt * a.ty_gia, @round), a.gt_da_kh_nt, round(a.gt_cl_nt * a.ty_gia, @round), a.gt_cl_nt,
+        round(a.gt_kh_ky_nt * a.ty_gia, @round), a.gt_kh_ky_nt, a.dien_giai
+      from #k a join #id2 b on a.so_the_ts = b.so_the_ts order by a.so_the_ts
+
+    select top 0 stt_rec, ngay_ct, so_ct, ma_dvcs, c$, m$, d$, cast(0 as int) as stt, identity(int, 1, 1) as id into #i2 from icc
+    insert into #i2 select b.stt_rec, a.ngay_ct, a.so_ct, a.ma_dvcs, convert(varchar(12), a.ngay_ct, 112) + a.so_ct + b.stt_rec,
+      '#10$' + rtrim(b.so_the_ts) + '#20$' + rtrim(a.loai_ts) + '#30$' + rtrim(a.ma_bp), '', b.stt from #k a join #id2 b on a.stt = b.stt
+    select @q = dbo.AI_ERP$Function$Update$Inquiry('#i2', '#d2', 'd$', 'ma_nv', '#10$', 'stt_rec', default, default, default, default, default)
+    exec sp_executesql @q
+
+    -- Update
+    update dmcc set @@list(master);
+      from dmcc a join #k b on a.so_the_ts = b.so_the_ts join #id2 d on b.stt = d.stt
+        join (select so_the_ts, sum(nguyen_gia) as t_nguyen_gia, sum(nguyen_gia_nt) as t_nguyen_gia_nt,
+          sum(gt_da_kh) as t_gt_da_kh, sum(gt_da_kh_nt) as t_gt_da_kh_nt, sum(gt_cl) as t_gt_cl, sum(gt_cl_nt) as t_gt_cl_nt,
+          sum(gt_kh_ky) as t_gt_kh_ky, sum(gt_kh_ky_nt) as t_gt_kh_ky_nt from #d2 group by so_the_ts) c
+        on a.so_the_ts = c.so_the_ts
+
+    delete ctdmcc where stt_rec in (select distinct stt_rec from #id2)
+
+    truncate table #d1
+    insert into #d1 select * from #d2
+    @@inserting(detail);
+
+    update icc set @@list(inquiry); from icc a join #i2 b on a.stt_rec = b.stt_rec
+  end
+end
+]]>
+    </text>
+  </processing>
+
+</import>

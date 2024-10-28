@@ -1,0 +1,12 @@
+﻿<![CDATA[
+declare @usedEI char(1)
+select @usedEI = rtrim(val) from options where name = 'm_sd_hddt'
+select @usedEI = isnull(@usedEI, '0')
+if @@view = 0 and @@action = 'Edit' and @usedEI = '1' begin
+  if exists(select 1 from hddt00$$partition$current where stt_rec = @stt_rec and tinh_trang_hddt <> 0) or exists(select 1 from hddt05 b where stt_rec1 = @stt_rec) begin
+    select '' as script, case when @@language = 'v' then N'Phiếu xuất đang chờ xử lý hoặc đã xác thực, không thể sửa được.' else N'Can not edit this voucher, It''s in pending status or has been released.' end as message
+    return
+  end
+end
+select @message = 'this._usedEI = ' + @usedEI + ';' + @message
+]]>

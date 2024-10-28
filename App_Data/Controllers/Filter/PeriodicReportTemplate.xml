@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="dmthongbao" code="ma_tb" order="ma_tb" database="Sys" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc dữ liệu" e="Filter Data"></title>
+
+  <fields>
+    <field name="ma_loai_tb" allowNulls="false">
+      <header v="Loại thông báo" e="Notification Type"></header>
+      <items style="AutoComplete" controller="NotifyType" reference="ten_loai_tb%l" key="status = '1'" check="1=1" information="ma_loai_tb$dmloaitb.ten_loai_tb%l"/>
+    </field>
+    <field name="ten_loai_tb%l" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 100, 230"/>
+      <item value="1110: [ma_loai_tb].Label, [ma_loai_tb], [ten_loai_tb%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$NotifyListFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$NotifyListFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+select '' as field, '' as message, 'set$NotifyListFilter$(this, [' + case @ma_loai_tb
+  when '001' then '0, 1, 0'
+  when '002' then '1, 1, 1'
+  when '003' then '1, 1, 1'
+  when '004' then '0, 1, 0'
+  else '0, 0, 0'
+end + ']);' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$NotifyListFilter$(a){a.add_onResponseComplete(on$NotifyListFilter$ResponseComplete)}function close$NotifyListFilter$(a){try{a.remove_onResponseComplete(on$NotifyListFilter$ResponseComplete)}catch(b){}}function on$NotifyListFilter$ResponseComplete(g,b){var c=b.object,e=b.type.Context,f=b.type.Result;switch(e){case"Checking":var a=c.grid,d=[];a._notifyType=c.getItemValue("ma_loai_tb");a._notifyName=$func.trim(c.getItem("ten_loai_tb%l").value);Array.add(d,{Name:"ma_loai_tb",Opr:"=",Value:a._notifyType,Type:"String",Ignore:false});a._alterTitle=[null,[["%s1",a._notifyType.toString(),true],["%s2",a._notifyName,true]]];a.set_externalKey(d)}}function set$NotifyListFilter$(c,b){var a=c.grid;a._$days=b[0];a._$account=b[1];a._$customer=b[2]}]]>
+    </text>
+  </script>
+</dir>

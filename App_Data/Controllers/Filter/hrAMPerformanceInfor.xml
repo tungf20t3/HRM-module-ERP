@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+]>
+
+<dir table="vhrdgth" code="stt_rec" order="stt_rec" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ky" dataFormatString="#0" type="Decimal">
+      <header v="Kỳ" e="Period" />
+      <items style="Numeric"></items>
+    </field>
+    <field name="nam" allowNulls="false" dataFormatString="###0" type="Decimal">
+      <header v="Năm" e="Year" />
+      <items style="Numeric"></items>
+    </field>
+    <field name="bo_phan" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+      <clientScript><![CDATA[onchange="onchange$Filter$Department(this);"]]></clientScript>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="vi_tri" onDemand="true">
+      <header v="Vị trí công việc" e="Position"></header>
+      <items style="AutoComplete" controller="hrPosition" reference="ten_vtr%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vtr%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" onDemand="true">
+      <header v="Nhân viên" e="Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+      <clientScript><![CDATA[onchange="onchange$Filter$EmployeeID(this);"]]></clientScript>
+    </field>
+    <field name="ten" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec_nv" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="bp_ref" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11: [ky].Label, [ky]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="1101001: [bo_phan].Label, [bo_phan], [ten_bp%l], [bp_ref]"/>
+      <item value="1101001: [ma_nv].Label, [ma_nv], [ten], [stt_rec_nv]"/>
+      <item value="110100: [vi_tri].Label, [vi_tri], [ten_vtr%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$VoucherFilter$(sender) {
+  sender.add_onResponseComplete(on$Filter$ResponseComplete);
+  sender.setItemValue('nam', (new Date).getFullYear());
+  sender.live(sender.getItem('nam'));
+}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array();
+			g._refreshMemvars = true;
+      g._year = f.getItemValue('nam');
+      g._period = f.getItemValue('ky');
+      g._department = f.getItemValue('bp_ref');
+      g._employee = f.getItemValue('stt_rec_nv');
+      g._position = f.getItemValue('vi_tri');
+
+      Array.add(k, {Name: 'nam', Opr: '=', Value: g._year, Type: 'Decimal', Ignore: false});
+	    if (g._period) Array.add(k, {Name: 'ma_ky', Opr: '=', Value: g._period, Type: 'Decimal', Ignore: false});
+      if (g._department) Array.add(k, {Name: 'bp_ref', Opr: 'like', Value: g._department += '%', Type: 'String', Ignore: false});
+      if (g._employee) Array.add(k, {Name: 'stt_rec_nv', Opr: '=', Value: g._employee, Type: 'String', Ignore: false});
+      if (g._position) Array.add(k, {Name: 'vi_tri', Opr: '=', Value: g._position, Type: 'String', Ignore: false});
+      g.set_externalKey(k);
+      g._alterTitle = [null, [['%s1', g._year.toString(), true]]];
+      break;
+    case 'EmployeeID':
+      f.setItemControlBehavior('stt_rec_nv', result[0].Value, true);
+      break;
+    case 'Department':
+      f.setItemControlBehavior('bp_ref', result[0].Value, true);
+      break;
+    default:
+      break;
+  }
+}
+
+function onchange$Filter$EmployeeID(o) {o.parentForm.request('EmployeeID', 'EmployeeID', ['ma_nv']);}
+function onchange$Filter$Department(o) {o.parentForm.request('Department', 'Department', ['bo_phan']);}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="EmployeeID">
+      <text>
+        <![CDATA[
+declare @c varchar(13)
+select @c = (select stt_rec from hrnv where ma_nv = @ma_nv)
+select isnull(@c, '')
+return
+]]>
+      </text>
+    </action>
+    <action id="Department">
+      <text>
+        <![CDATA[
+declare @c varchar(13)
+select @c = (select bp_ref from hrbp where ma_bp = @bo_phan)
+select isnull(@c, '')
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

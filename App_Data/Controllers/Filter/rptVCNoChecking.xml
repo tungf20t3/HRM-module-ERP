@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_kt1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Kiểm tra từ" e="Checking from"></header>
+      <footer v="Kiểm tra từ/đến" e="Checking from/to"></footer>
+    </field>
+    <field name="ngay_kt2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Kiểm tra đến" e="Checking to"></header>
+    </field>
+    <field name="ngay_ph1" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Phát hành từ" e="Issuing from"></header>
+      <footer v="Phát hành từ/đến" e="Issuing from/to"></footer>
+    </field>
+    <field name="ngay_ph2" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Phát hành đến" e="Issuing to"></header>
+    </field>
+    <field name="ngay_tu1" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Hiệu lực từ từ" e="Effective from from"></header>
+      <footer v="Hiệu lực từ từ/đến" e="Effective from from/to"></footer>
+    </field>
+    <field name="ngay_tu2" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Hiệu lực từ đến" e="Effective from to"></header>
+    </field>
+    <field name="ngay_den1" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Hiệu lực đến từ" e="Effective to from"></header>
+      <footer v="Hiệu lực đến từ/đến" e="Effective to from/to"></footer>
+    </field>
+    <field name="ngay_den2" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Hiệu lực đến đến" e="Effective to to"></header>
+    </field>
+    <field name="ma_nk">
+      <header v="Quyển chứng từ" e="Voucher Book"></header>
+      <items style="Lookup" controller="VoucherBook" key="status = 1" check="1=1"></items>
+    </field>
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1=1"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="1101: [ngay_kt1].Description, [ngay_kt1], [ngay_kt2]"/>
+      <item value="1101: [ngay_ph1].Description, [ngay_ph1], [ngay_ph2]"/>
+      <item value="1101: [ngay_tu1].Description, [ngay_tu1], [ngay_tu2]"/>
+      <item value="1101: [ngay_den1].Description, [ngay_den1], [ngay_den2]"/>
+      <item value="11000: [ma_nk].Label, [ma_nk]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_rptVCNoChecking @ngay_kt1, @ngay_kt2, @ngay_ph1, @ngay_ph2, @ngay_tu1, @ngay_tu2, @ngay_den1, @ngay_den2, @ma_nk, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs");changeLookupReadonly(a,"ma_nk")}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(f,b){var a=b.object,c=b.type.Context,e=b.type.Result,g=a.get_id();switch(c){case"Checking":var d=a.grid;d._alterTitle=[null,[["%d1",a.getItem("ngay_kt1").value,true],["%d2",a.getItem("ngay_kt2").value,true]]]}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

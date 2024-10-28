@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Danh sách lao động tham gia bảo hiểm</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Danh sách lao động tham gia bảo hiểm</p>
+<p id="td2">Màn hình danh sách lao động tham gia bảo hiểm</p>
+<p id="pic"><img src="Vie\hrptEmployeesJoiningInsurance.png"/></p>
+<p id="td2">Các dữ liệu căn cứ</p>
+<p id="p2">Báo cáo sẽ lấy dữ liệu từ các cập nhật sau:</p>
+<ul class="lo_0">
+- Cập nhật danh sách lao động tham gia bảo hiểm; <br/>
+- Cập nhật lao động tham gia bảo hiểm đầu kỳ; <br/>
+- Danh mục kiểu thay đổi BHXH (Tên kiểu sẽ được in trên cột số 2 của báo cáo (phần I,II,III)); <br/>
+- Danh mục loại thay đổi BHXH (Trong đó, loại 9 để nhập được thay đổi thông tin cũ, thông tin mới. Loại 1 đến 4 để đếm lao động tăng trên báo cáo); <br/>
+- Cập nhật lương tối thiểu (trường hợp mức trần đóng bảo hiểm theo lương tối thiểu chung); <br/>
+- Cập nhật lương tối thiểu theo vùng (trường hợp mức trần đóng bảo hiểm theo lương tối thiểu vùng); <br/>
+- Khai báo tỷ lệ đóng bảo hiểm, công đoàn: Tính tổng tỷ lệ trích; <br/>
+- Cập nhật mức trần đóng bảo hiểm.
+</ul>
+<p id="td2">Giải thích một số thông tin trên báo cáo</p>
+<p id="p2">Số liệu báo cáo thể hiện tùy theo điều kiện lọc được xét</p>
+<p class="node">Số định danh</p>
+<p class="node_d"> Số định danh được cập nhật từ "Số sổ BHXH" trong "Cập nhật thông tin bảo hiểm, công đoàn"</p>
+
+<p class="node">Cấp bậc, chức vụ, chức danh nghề, nơi làm việc</p>
+<p class="node_d"> Chương trình cập nhật từ "Vị trí công việc" trong phần "Thông tin nhân viên"</p>
+
+<p class="node">Tiền lương</p>
+<p class="node_d"> Tiền lương là "Mức đóng" của người lao động tại "Cập nhật danh sách lao động tham gia bảo hiểm"</p>
+
+<p class="node">Phụ cấp chức vụ/ Thâm niên VK(%)/ Thâm niên nghề(%)/ Phụ cấp lương/ Các khoản bổ sung/ Từ tháng, năm/ Đến 
+tháng, năm/ Ghi chú</p>
+<p class="node_d"> Lấy số liệu từ "Cập nhật danh sách lao động tham gia bảo hiểm"</p>
+
+<p id="td2">Hướng dẫn cách tính toán một số thông tin cần thiết</p>
+<p id="p2">Xem "Mẫu nội bộ theo công văn số 555/TPHCM" để biết thêm chi tiết.</p>
+
+<p id="td3">Phần tổng hợp chung - Phát sinh kỳ này</p>
+	
+<p class="node">	1. Số lao động</p>
+<p class="node_d">
+- Phát sinh tăng:</p>
+<ul class="lo_2">
+“Số LĐ BHXH, BHYT tăng”: chỉ đếm các bản ghi có loại lao động = 1 – Tăng lao động và có nhập tỷ lệ thu BHXH, không nhập “Ngày đến”;<br/>
+“Số LĐ BHTN tăng”: chỉ đếm các bản ghi có loại lao động = 1 – Tăng lao động hoặc 2 – Tăng BHTN, và có nhập tỷ lệ thu BHTN, không nhập 
+“Ngày đến”</ul>
+<p class="node_d">
+- Phát sinh giảm:</p>
+<ul class="lo_2">
+ “Số LĐ BHXH, BHYT giảm”: chỉ đếm các bản ghi có loại lao động = 3 - Giảm lao động và có nhập tỷ lệ thu BHXH, không nhập “Ngày đến”;<br/>
+ “Số LĐ BHTN giảm”: chỉ các bản ghi có loại lao động = 3 - Giảm lao động hoặc 4 – Giảm BHTN, và có nhập tỷ lệ thu BHTN, không nhập 
+ “Ngày đến”</ul>
+
+<p class="node">	2. Quỹ lương</p>
+<p class="node_d">	Quỹ lương là tổng tiền lương đóng bảo hiểm tăng hoặc giảm trong kỳ báo cáo, tương ứng với điều kiện lọc.
+Xét theo các trường hợp sau:</p>
+<ul class="lo_2">
+- Nếu mức đóng trong "Cập nhật danh sách lao động tham gia bảo hiểm" lớn hơn mức trần, tiền lương đóng bảo hiểm sẽ bằng mức trần; <br/>
+- Nếu mức đóng trong "Cập nhật danh sách lao động tham gia bảo hiểm" nhỏ hơn mức trần, tiền lương đóng bảo hiểm sẽ bằng mức đóng; 
+</ul>
+<p class="node_d">
+Chương trình dựa vào mức trần cũ/mới và mức đóng cũ/mới để cập nhật số liệu quỹ lương tăng hay giảm trên báo cáo.</p>
+<p class="e">
+Ví dụ: <br/>
+Giả định số liệu báo cáo đợt 1 tháng 1 năm 2016 có một nhân viên NVA được tăng lương; <br/>
+NVA có mức trần cũ BHXH "Cập nhật danh sách lao động tham gia bảo hiểm" là 20 triệu đồng, mức đóng cũ là 15 triệu đồng; <br/>
+Mức trần mới trong "Khai báo mức trần đóng bảo hiểm" là 25 triệu đồng, mức đóng mới là 30 triệu đồng; <br/>
+Quỹ lương bảo hiểm xã hội lên dữ liệu ở cột "Tăng", số tiền là 10 triệu đồng.</p>
+<p class="e">
+Giả định số liệu báo cáo đợt 1 tháng 2 năm 2016 có một nhân viên NVB bị giảm lương; <br/>
+NVB có mức trần cũ BHXH "Cập nhật danh sách lao động tham gia bảo hiểm" là 20 triệu đồng, mức đóng cũ là 35 triệu đồng; <br/>
+Mức trần mới trong "Khai báo mức trần đóng bảo hiểm" là 25 triệu đồng, mức đóng mới là 15 triệu đồng; <br/>
+Quỹ lương bảo hiểm xã hội lên dữ liệu ở cột "Giảm", số tiền là 5 triệu đồng.
+</p>
+
+<p class="e">
+Giả định số liệu báo cáo đợt 1 tháng 3 năm 2016 có một nhân viên NVC thuộc loại thay đổi là tăng lao động; <br/>
+Mức trần BHXH trong "Khai báo mức trần đóng bảo hiểm" là 25 triệu đồng, mức đóng là 15 triệu đồng; <br/>
+Quỹ lương bảo hiểm xã hội lên dữ liệu ở cột "Tăng", số tiền là 15 triệu đồng.
+</p>
+
+<p class="e">
+Giả định số liệu báo cáo đợt 1 tháng 4 năm 2016 có một nhân viên NVD thuộc loại thay đổi là giảm lao động; <br/>
+NVD có mức trần cũ BHXH "Cập nhật danh sách lao động tham gia bảo hiểm" là 20 triệu đồng, mức đóng cũ là 35 triệu đồng; <br/>
+Quỹ lương bảo hiểm xã hội lên dữ liệu ở cột "Giảm", số tiền là 20 triệu đồng.
+</p>
+
+<p class="node">3. Số tiền phải đóng</p>
+<p class="node_d">	Số tiền phải đóng của những lao động có phát sinh tăng hoặc giảm trong kỳ báo cáo, được tính bằng lương đóng bảo 
+hiểm (xem thêm tại "Quỹ lương") * tỷ lệ BHXH/BHYT/BHTN (Cập nhật danh sách lao động tham gia bảo hiểm) </p>
+<p class="node">4. Số tiền điều chỉnh</p>
+<p class="node_d">	Số tiền điều chỉnh của tất cả lao động phát sinh trong kỳ báo cáo, tính bằng lương đóng bảo hiểm (xem thêm 
+tại "Quỹ lương") * tỷ lệ BHXH/BHYT/BHTN (Cập nhật danh sách lao động tham gia bảo hiểm) * Số tháng điều chỉnh <br/>
+Số tháng điều chỉnh được xét theo các trường hợp sau:<br/>
+
+- Nếu ngày đến có giá trị thì tính từ tháng của ngày từ đến tháng của ngày đến. <br/>
+- Nếu ngày đến không có giá trị thì tính từ tháng của ngày từ đến tháng trước của kỳ báo cáo.
+</p>
+
+<p class="e">
+Ví dụ: <br/>
+Nhân viên NVE-tăng lao động từ ngày 01/01/2016 đến ngày 01/05/2016, báo cáo đợt 1 tháng 5 năm 2016; <br/>
+Lương đóng bảo hiểm là 10 triệu đồng (mức trần 20 triệu đồng), tỷ lệ đóng BHXH 26%; <br/>
+Điều chỉnh số phải đóng của NVE là 10 * 26% * 5 = 13 triệu đồng.</p>
+<p class="e">
+Nhân viên NVG-tăng lao động từ ngày 01/01/2016 (không có cập nhật ngày đến), báo cáo đợt 1 tháng 5 năm 2016; <br/>
+Lương đóng bảo hiểm là 10 triệu đồng (mức trần 20 triệu đồng), tỷ lệ đóng BHXH 26%; <br/>
+Điều chỉnh số phải đóng của NVG là 10 * 26% * 4 = 10,4 triệu đồng.</p>
+		
+<p id="td3">Phần tổng hợp chung - Tổng hợp cuối kỳ</p>
+<p class="node"> 1. Số lao động	</p>
+<p class="node_d">
+- Số lao động kỳ trước: được tính bằng đầu kỳ + (phát sinh tăng các kỳ trước – phát sinh giảm các kỳ trước); <br/> 
+- Số lao động kỳ này: được tính bằng đầu kỳ + (phát sinh tăng các kỳ trước – phát sinh giảm các kỳ trước) + 
+(phát sinh tăng kỳ này – phát sinh giảm kỳ này); <br/> 
+Trong đó, đầu kỳ lấy số liệu từ “Cập nhật lao động tham gia bảo hiểm đầu kỳ”. </p>
+
+<p class="node">		
+2. Tổng quỹ lương	</p>
+<p class="node_d">	Lập luận tương tự như "Số lao động", tuy nhiên có xét thêm trường hợp mức trần đóng bảo hiểm.</p>
+
+<p class="node">		
+3. Số tiền phải đóng</p>
+<p class="node_d">	Số tiền phải đóng, được tính bằng tổng quỹ lương * tổng tỷ lệ bảo hiểm của nhân viên và công ty.<br/> 
+Trong đó, tỷ lệ bảo hiểm của nhân viên và công ty cập nhật tại “Khai báo tỷ lệ đóng bảo hiểm, công đoàn”. </p>
+
+<p class="note">Lưu ý: <br/>
+- Số liệu báo cáo được thể hiện theo đơn vị cơ sở ở điều kiện lọc. Trường hợp để trống đơn vị cơ sở, chương trình lấy số liệu tổng của các 
+đơn vị cơ sở mà người dùng được phân quyền;<br/>
+- Chỉ có các bản ghi có trạng thái đã xác nhận mới tham gia tính toán.</p>
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

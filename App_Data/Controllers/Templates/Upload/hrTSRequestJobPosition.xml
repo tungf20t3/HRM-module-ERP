@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrTSRequestJobPosition' else 'hrTSRequestJobPosition2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$hrTSRequestJobPositionImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$hrTSRequestJobPositionImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrccyc"/>
+    <table value="hrccyc" alias="a"/>
+    <listTable value="#r"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_bp" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_bp not in (select ma_bp from hrbp)" errorCode="00001"/>
+    <field name="vi_tri" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="vi_tri not in (select ma_vtr from hrvt)" errorCode="00001"/>
+    <field name="ma_cc" column="D" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_cc not in (select ma_cc from hrcc)" errorCode="00001"/>
+    <field name="so_luong" column="F" type="Decimal"/>
+    <field name="ngay_hl" column="G" isPrimaryKey="true" allowNulls="false" type="DateTime" updateValue="None" />
+
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật yêu cầu công cụ, dụng cụ theo vị trí công việc" e="Tool &amp; Supply Request by Job Position"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_bp" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Bộ phận" e="Department"/>
+      </field>
+      <field name="vi_tri" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Vị trí công việc" e="Position"/>
+      </field>
+      <field name="ten_vtr" width="32" afterField="vi_tri" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên vị trí công việc" e="Position Name"/>
+      </field>
+      <field name="ma_cc" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Công cụ, dụng cụ" e="Tool &amp; Supply"/>
+      </field>
+      <field name="ten_cc" width="32" afterField="ma_cc" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên công cụ, dụng cụ" e="Tool &amp; Supply Name"/>
+      </field>
+
+      <field name="so_luong" width="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="ngay_hl" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày hiệu lực" e="Effective Date"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @key nvarchar(4000), @field varchar(32)
+declare @user int, @admin bit, @sys varchar(32), @joinUnit bit, @joinDept bit, @r int, @count int
+
+select @admin = @@admin, @user = @@userID, @sys = '@@sysDatabaseName', @key = '', @joinUnit = 0, @joinDept = 0
+
+-- Check
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+
+-- Key
+if @admin = 0 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@admin, @user, 'hrTSRequestJobPosition', 'Edit') = 0 select @type = 0
+  end
+
+  select @key = ' where a.ma_bp in (select c.ma_bp from hrbp c, @@sysDatabaseName..hrquyenbp d where dbo.ff_Inlist(c.bp_ref, d.r_access2) = 1 and d.user_id = @@userID)'
+end
+
+-- Gather
+create table #r (ma_bp varchar(32), vi_tri char(32), ma_cc char(32), so_luong decimal(20, 5),ngay_hl datetime)
+select @q = 'insert into #r select a.ma_bp, a.vi_tri, a.ma_cc, a.so_luong, a.ngay_hl'
+select @q = @q + ' from @@table a' + @key
+exec sp_executesql @q
+
+-- Delete
+if @type = '0' delete #r from #r a where exists(select 1 from hrccyc b where a.ma_bp = b.ma_bp and a.vi_tri = b.vi_tri and a.ma_cc = b.ma_cc and a.ngay_hl = b.ngay_hl)
+select a.ma_bp, a.vi_tri, a.ma_cc, a.so_luong, a.ngay_hl into #k
+  from #r a join hrccyc b on a.ma_bp = b.ma_bp and a.vi_tri = b.vi_tri and a.ma_cc = b.ma_cc and a.ngay_hl = b.ngay_hl
+delete #r from #r a where exists(select 1 from #k b where a.ma_bp = b.ma_bp and a.vi_tri = b.vi_tri and a.ma_cc = b.ma_cc and a.ngay_hl = b.ngay_hl)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin ]]>&Updating;<![CDATA[ end
+]]>
+    </text>
+  </processing>
+
+</import>

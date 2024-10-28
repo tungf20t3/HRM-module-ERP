@@ -1,0 +1,25 @@
+  <command event="Inserting">
+    <text>
+      <![CDATA[
+declare @$unitName nvarchar(1023), @$costUnit char(1), @$inputDept nvarchar(1), @$inputMO nvarchar(1), @$script nvarchar(4000)
+
+select @$costUnit = case when exists(select 1 from options where name = 'm_gt_dvcs' and val = '1') then '1' else '0' end
+select @$inputDept = case when exists(select 1 from options where name = 'x_dt_bp' and val = '1') then '1' else '0' end
+select @$inputMO = case when exists(select 1 from options where name = 'x_dt_lsx' and val = '1') then '1' else '0' end
+
+select @$script = ''
+if @$costUnit = '1' begin
+  if exists(select 1 from options where name = 'm_dtgt_dvcs' and val = '1') begin
+    select @$unitName = case when @@language = 'v' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @ma_dvcs
+    select @$script = 'var g = this.grid;g._unitCode=''' + @ma_dvcs + ''';g._unitName=''' + replace(replace(isnull(@$unitName, ''), '\', '\\'), '''', '\''') + ''';'
+    select @$inputDept = x_dt_bp, @$inputMO = x_dt_lsx from dmdvcskb where status = '1' and ma_dvcs = @ma_dvcs and (x_dt_bp <> 0 or x_dt_lsx <> 0 or x_dt_sp <> 0)
+    select @$inputDept = isnull(@$inputDept, 0), @$inputMO = isnull(@$inputMO, 0)
+  end
+end
+
+select @$script = @$script + 'this.grid._objectDept=' + case when @$inputDept = '1' then 'true' else 'false' end  + ';this.grid._objectMO=' + case when @$inputMO = '1' then 'true' else 'false' end + ';'
+select @$script = @$script + 'if(this.grid._fields.length > 0) {this.grid._fields[this.grid._getColumnOrder(''ma_bp'') - 1].Visible = this.grid._objectDept; this.grid._fields[this.grid._getColumnOrder(''so_lsx'') - 1].Visible = this.grid._objectMO;};'
+select '' as message, '' as field, @$script as script
+]]>
+    </text>
+  </command>

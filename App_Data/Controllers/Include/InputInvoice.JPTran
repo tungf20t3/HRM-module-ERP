@@ -1,0 +1,146 @@
+﻿<![%InputInvoice.JPTran;[
+
+  <!ENTITY IIActiveVoucherScript "
+  f._done1 = f._done2 = 0;
+  f.getItem('d39')._controlBehavior.add_onRender(on$Voucher$GridRender$Detail);
+  f.getItem('r30')._controlBehavior.add_onRender(on$Voucher$GridRender$Tax);
+
+  setTimeout(function() {try {f.getItem('so_ct').focus();} catch (ex) {}}, 10);
+
+  var myInterval = setInterval(function () {
+    if (f.grid._$external) busy$Page(f, true);
+    if (f._done1 &amp;&amp; f._done2) {
+      if (f.grid._$external) {
+        insert$Form$Data(f);
+        busy$Page(f, false);
+      }
+      clearInterval(myInterval);
+    }
+  }, 100);
+">
+  <!ENTITY IICloseVoucherScript "
+  f._done1 = f._done2 = 0;
+  try {f.getItem('d39')._controlBehavior.remove_onRender(on$Voucher$GridRender$Detail);} catch (ex) {}
+  try {f.getItem('r30')._controlBehavior.remove_onRender(on$Voucher$GridRender$Tax);} catch (ex) {}
+">
+  <!ENTITY IIInsertDataScript "
+function on$Voucher$GridRender$Detail(sender, eventArgs) {eventArgs.grid.get_element().parentForm._done1 = 1;}
+function on$Voucher$GridRender$Tax(sender, eventArgs) {eventArgs.grid.get_element().parentForm._done2 = 1;}
+function insert$Form$Data(f) {
+  var g = f.grid, d = f.getItem('d39')._controlBehavior, r = f.getItem('r30')._controlBehavior,
+    df = g._$detailImportData, gf = g._$gridDetailImport,
+    result = g._$result, multi = g._$inputInvoiceLength &amp;&amp; g._$inputInvoiceLength &gt; 1,
+    count = gf._rowCount;
+
+  if (!count) return;
+  var currency = result[0][5];
+
+  // Insert Master:
+  f.setItemValues('ma_nt, ty_gia, t_ps_no_nt, t_ps_co_nt', [currency, result[0][6], result[0][7], result[0][7]]);
+  if (!multi) f.setItemValues('so_ct0, ngay_ct0, ngay_ct, ngay_lct, dien_giai', [result[0][1], result[0][2], result[0][2], result[0][2], result[0][15]]);
+  f.setItemValues('stt_rec_hddv, ngay_hddv, status_hddv', [g._$sttRec, g._$ngayCt, g._$status]);
+
+  // Insert Tab Detail:
+  insert$Form$Data$Detail(f, d, gf, result, count, true);
+
+  set$DefaultPositionGrid(r);
+
+  // Insert Tab Tax:
+  insert$Form$Data$Tax(f, r, gf, result, count, false);
+
+  on$GridVoucherTax$RowChange(r, f);
+
+  if (f._baseCurrency != currency || (f._baseCurrency == currency &amp;&amp; f._baseCurrency != g._dvCurrency)) {
+    f._currencyBehavior.setFormLayout(1);
+    f._currencyBehavior.setGridLayout();
+  }
+}
+&IIInsertDataScriptDetail;
+&IIInsertDataScriptTax;
+&InputInvoiceRefreshGridScript;
+">
+  <!ENTITY IIInsertDataScriptDetail "
+function insert$Form$Data$Detail(f, d, gf, result, count, first) {
+  var c = d._getColumnOrder('tk'), line = gf._getColumnOrder('line_nbr'), customer, customerName, originalName;
+
+  for (var i = d._rowCount - 1; i &gt;= 0; i--) {
+    d._removeRowNumber(d._activeRow);
+    d._activeRow = i;
+  }
+
+  var l1 = gf._getColumnOrder('dien_giai'), l2 = gf._getColumnOrder('tien_nt0');
+  for (var i = 0; i &lt; count; i++) {
+    var ins = true, row = d._rowCount;
+    if (first &amp;&amp; row &gt; 0) if (d.blankMemvar(row)) {ins = false; first = false;}
+    if (ins) d._appendRow(null, true);
+    row = d._rowCount;
+    var o = d._getItem(row, c);
+    o.row = row;
+
+    customer = result[i][28], customerName = result[i][44], originalName = result[i][29];
+
+    d.setItemGridBehavior(o, [
+      ['dien_giai', gf._getItemValue(row, l1), '', true],
+      ['ps_no_nt', gf._getItemValue(row, l2), null, null],
+      ['ma_kh', $func.trim(customerName) == $func.trim(originalName) ? customer : '', '', true],
+      ['ten_kh', originalName, '', true]
+    ]);
+
+    d.executeExpression(o, [d.$a.ps_no]);
+    on$GridVoucherDetail$RowChange(d, f);
+  }
+}
+">
+  <!ENTITY IIInsertDataScriptTax "
+function insert$Form$Data$Tax(f, r, gf, result, count, first) {
+  var customer, customerName, originalName, tax, amount, taxFC, amountFC, taxRate, exchangeRate, invoiceForm, invoiceFormName, invoiceFormCheck, taxAccount, taxAccountName, taxAccountCheck;
+  var y0 = r._getColumnOrder('so_ct0');
+  var a = query$Select(gf, 'sum$tien_nt0, sum$thue_nt $groupBy thue_suat');
+
+  for (var j = 0; j &lt; count; j++) {
+    if (result[j][54] == '1') {
+      var ins = true, row = r._rowCount;
+      if (first &amp;&amp; row &gt; 0) if (r.blankMemvar(row)) {ins = false; first = false;}
+      if (ins) r._appendRow(null, true);
+      row = r._rowCount;
+      var o = r._getItem(row, y0);
+      o.row = row;
+
+      invoiceForm = result[j][45], invoiceFormName = result[j][46], invoiceFormCheck = (invoiceFormName != '' || invoiceForm == '')
+      taxAccount = result[j][47], taxAccountName = result[j][48], taxAccountCheck = (taxAccountName != '' || taxAccount == '');
+      customer = result[j][28], customerName = result[j][44], originalName = result[j][29];
+
+      r.setItemGridBehavior(o, [
+        ['mau_bc', '3', '', true],
+        ['ma_tc', r._taxProperty, '', true],
+        ['ma_mau_ct', invoiceForm, [invoiceFormName, invoiceFormCheck], true],
+        ['tk_thue_no', taxAccount, [taxAccountName, taxAccountCheck], true],
+        ['tk_cn', result[j][49], '', true],
+        ['so_seri0', result[j][0], '', true],
+        ['so_ct0', result[j][1], '', true],
+        ['ngay_ct0', result[j][2], null, true],
+        ['ma_kh', $func.trim(customerName) == $func.trim(originalName) ? customer : '', '', true],
+        ['ten_kh', originalName, '', true],
+        ['dia_chi', result[j][30], '', true],
+        ['ma_so_thue', result[j][31], '', true],
+        ['ten_vt', result[j][35], '', true],
+        ['ma_thue', result[j][51], '', true],
+        ['t_tien_nt', result[j][50], null, null],
+        ['thue_suat', result[j][52], null, null],
+        ['t_thue_nt', result[j][53], null, null],
+        ['t_tien', result[j][50], null, null],
+        ['t_thue', result[j][53], null, null]
+      ]);
+      r.validExpression(o, [r.$a.z_t_tien, r.$a.z_t_thue_nt, r.$a.z_t_thue], [r.$a.t_thue_nt, r.$a.t_thue], [r.$a.t_tt_nt, r.$a.t_tt]);
+      r.validExpression(o, [r.$a.z_t_thue, r.$a.z_t_thue_tg], [r.$a.t_thue_nt, r.$a.t_thue], [r.$a.t_tt_nt, r.$a.t_tt]);
+    }
+  }
+}
+">
+]]>
+
+<!ENTITY IIActiveVoucherScript "">
+<!ENTITY IICloseVoucherScript "">
+<!ENTITY IIInsertDataScript "">
+<!ENTITY IIInsertDataScriptDetail "">
+<!ENTITY IIInsertDataScriptTax "">

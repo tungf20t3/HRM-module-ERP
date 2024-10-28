@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema id="config" targetNamespace="urn:schemas-ai-erp:data-client-bankhub" elementFormDefault="qualified" xmlns="urn:schemas-ai-erp:data-client-bankhub" xmlns:a="urn:schemas-ai-erp:data-client-bankhub" xmlns:mstns="urn:schemas-ai-erp:data-client-bankhub" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="config" type ="configType">
+  </xs:element>
+
+  <xs:complexType name="configType">
+    <xs:sequence>
+      <xs:element name="datatype" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:attribute name="sqlType" use="optional"/>
+          <xs:attribute name="textMaxLength" use="optional" type="xs:integer"/>
+        </xs:complexType>
+      </xs:element>
+      
+      <xs:element name="commands" minOccurs="1" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="params" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="parameter" type="parameterType" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            
+            <xs:element name="command" type="commandType" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+          <xs:attribute name="method" type="xs:string" use="required"/>
+          <xs:attribute name="descript" type="xs:string" use="optional"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <xs:complexType name="commandType">
+    <xs:sequence>
+      <xs:element name="table" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="parameter" type="parameterType" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      
+      <xs:element name="text" type="xs:string" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Defines the command text that corresponds to the command type.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+
+    <xs:attribute name="descript" type="xs:string" use="optional"/>
+    
+    <xs:attribute name="event" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Loading"/>
+          <xs:enumeration value="Processing"/>
+          <xs:enumeration value="Updating"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="parameterType">
+    <xs:attribute name="name" type="xs:string" use="optional"/>
+    <xs:attribute name="type" type="xs:string" use="optional"/>
+  </xs:complexType>
+</xs:schema>

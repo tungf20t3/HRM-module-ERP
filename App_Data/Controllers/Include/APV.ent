@@ -1,0 +1,90 @@
+﻿<!ENTITY % Conditional.APVEdit SYSTEM "..\Include\APVEdit.txt">
+
+<!ENTITY APVHistoryExecute SYSTEM "..\Include\Javascript\APVHistoryExecute.txt">
+<!ENTITY APVHistoryResponse SYSTEM "..\Include\Javascript\APVHistoryResponse.txt">
+<!ENTITY APVHistoryToolbar SYSTEM "..\Include\XML\APVHistoryToolbar.xml">
+<!ENTITY APVHistoryCss SYSTEM "..\Include\XML\APVHistoryCss.txt">
+<!ENTITY APVHistoryGetData SYSTEM "..\Include\XML\APVHistoryGetData.xml">
+
+<!ENTITY APVStatusPending "9">
+
+
+<![%Conditional.APVEdit;[
+  <!ENTITY BI.PRTran.APV.Master "">
+  <!ENTITY BI.PRTran.APV.Detail ", ma_kh">
+
+  <!ENTITY APVEditScript SYSTEM "..\Include\Javascript\APVEditScript.txt">
+  <!ENTITY APVEditScriptFormExecute "apv$Form$ExecuteCommandEdit(f);">
+  <!ENTITY APVEditScriptGridExecute "apv$Grid$ExecuteCommandEdit(sender, e);">
+
+  <!ENTITY APVEditExecute "
+case 'Edit':
+  &APVEditScriptGridExecute;
+  break;
+">
+  <!ENTITY APVEditExecuteShown "
+var oe$ = f.getItem('status');
+if (oe$[0].value != '0') {
+  for (var m = oe$.length - 1; m &gt;= 0; m--) oe$.options.remove(m);
+  for (var n = 0; n &lt; &APVVisibleStatusNum;; n++) oe$.options.add(f._$handleStatus[n]);
+  if (f.grid._dvHandle != null) f.setItemValue('status', f.grid._dvHandle);
+}
+">
+  <!ENTITY CommandCheckVoucherHandleBeforeEdit SYSTEM "..\Include\Command\APVCheckVoucherHandleBeforeEdit.txt">
+  <!ENTITY XMLWhenVoucherNavigating SYSTEM "..\Include\XML\APVWhenVoucherNavigating.xml">
+  <!ENTITY APVEditCommandWhenVoucherLoading SYSTEM "..\Include\Command\APVWhenVoucherLoading.txt">
+
+  <!ENTITY APVEditVoucherWhenBeforeUpdate "
+declare @$oStatus char(1)
+exec sp_executesql N'select @$oStatus = status from @@prime$partition$previous where stt_rec = @stt_rec', N'@stt_rec varchar(32), @$oStatus char(1) output', @stt_rec, @$oStatus output
+
+if @$oStatus = '&APVStatusPending;' and @status &lt;&gt; '2' begin
+  select '' as field, '$NotAuthorized' as message
+  return
+end
+
+if @$oStatus = '&APVStatusPending;' begin
+  declare @apv$ChangeField nvarchar(64), @apv$ChangeFieldMsg nvarchar(4000)
+  &APVEditCheckTable;
+  exec AI_ERP$Voucher$APV$CheckFieldChange @stt_rec, @@id, '$partition$previous', '&APVApprovalType;', @@language, @@userID, @@admin, @apv$ChangeField out, @apv$ChangeFieldMsg out
+  if @apv$ChangeFieldMsg &lt;&gt; '' begin
+    select @apv$ChangeField as field, @apv$ChangeFieldMsg as message
+    return
+  end
+end
+">
+  <!ENTITY APVEditVoucherHandleStatus "
+if ((f._action == 'Edit' &amp;&amp; (f._$cStatus == '&APVStatusPending;'))) {
+  var l = o.options.length;
+  for (var i = 1; i &lt;= l; i++) o.remove(l - i);
+  o.options.add(f._$handleStatus[2]);
+  o.options[0].selected = true;
+}
+">
+
+  <!ENTITY APVEditVoucherResponseChecking "
+case 'Checking':
+  if (f._checked &amp;&amp; f._action == 'Edit' &amp;&amp; f._$cStatus == '&APVStatusPending;') {
+    f._checked = false;
+    f.getItem('&APVDetailTable;')._controlBehavior.showForm('EISavingPassword');
+  }
+  break;
+">
+  <!ENTITY APVEditCommandGetCurrentStaus "
+declare @cStatus char(1)
+select @cStatus = status from @@inquiry$partition$current where stt_rec = @stt_rec
+select @message = @message + 'this._$cStatus = ''' + rtrim(isnull(@cStatus, '')) + ''';'
+">
+]]>
+
+<!ENTITY XMLWhenVoucherNavigating SYSTEM "..\Include\XML\WhenVoucherNavigating.xml">
+<!ENTITY CommandCheckVoucherHandleBeforeEdit SYSTEM "..\Include\Command\CheckVoucherHandleBeforeEdit.txt">
+<!ENTITY APVEditCommandWhenVoucherLoading "">
+<!ENTITY APVEditScript "">
+<!ENTITY APVEditScriptFormExecute "">
+<!ENTITY APVEditExecute "">
+<!ENTITY APVEditExecuteShown "">
+<!ENTITY APVEditVoucherWhenBeforeUpdate "">
+<!ENTITY APVEditVoucherHandleStatus "">
+<!ENTITY APVEditVoucherResponseChecking "">
+<!ENTITY APVEditCommandGetCurrentStaus "">

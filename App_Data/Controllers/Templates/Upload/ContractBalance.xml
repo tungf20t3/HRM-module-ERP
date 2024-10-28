@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY And "&#13;">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+  <!ENTITY % ContractBalanceCustomer SYSTEM "..\..\Include\ContractBalanceCustomer.ent">
+  %ContractBalanceCustomer;
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "&GetDownloadFileName;">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$ContractBalanceImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$ContractBalanceImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="cdhd"/>
+    <table value="cdhd" alias="a"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where year(ngay_ks) >= @year)&And;not exists(select 1 from cdhd b where @@table.ma_dvcs = b.ma_dvcs and @@table.tk = b.tk and @@table.ma_hd = b.ma_hd and b.nam = @year) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)&And;exists(select 1 from cdhd b where @@table.ma_dvcs = b.ma_dvcs and @@table.tk = b.tk and @@table.ma_hd = b.ma_hd and b.nam = @year) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)" condition="&And;&And;if (@admin &lt;&gt; 1) begin&And;if (@admin &lt;&gt; 1 and @type = '1') begin" tag="&And;&And;end&And;end" errorCode="00001&And;00001&And;00001&And;00001"/>
+    <field name="tk" column="B" isPrimaryKey="true" allowNulls="false" upperCase="true" check="tk not in (select tk from dmtk where loai_tk = 1)" updateValue="None" errorCode="00002"/>
+    <field name="ma_hd" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" check="ma_hd not in (select ma_hd from dmhd where hd_sd_pslk = 1)" updateValue="None" errorCode="00002"/>
+    &ContractBalanceCustomerUploadField;
+    <field name="nam" column="None" type="Decimal" insertValue="@year" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Vào số dư đầu kỳ hợp đồng" e="Contract Opening Balance"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"/>
+      </field>
+      <field name="tk" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tài khoản" e="Account"/>
+      </field>
+      <field name="ma_hd" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã hợp đồng" e="Contract"/>
+      </field>
+      <field name="ten_hd" afterField="ma_hd" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên hợp đồng" e="Description"/>
+      </field>
+      <field name="ma_kh" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Mã khách hàng" e="Customer"/>
+      </field>
+      <field name="ten_kh" afterField="ma_kh" width="32" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên khách hàng" e="Customer Name"/>
+      </field>
+      <field name="du_no00" width="16">
+        <text v="Dư nợ" e="Debit Balance"/>
+      </field>
+      <field name="du_co00" width="16">
+        <text v="Dư có" e="Credit Balance"/>
+      </field>
+      <field name="du_no_nt00" width="16">
+        <text v="Dư nợ ngoại tệ" e="FC Debit Balance"/>
+      </field>
+      <field name="du_co_nt00" width="16">
+        <text v="Dư có ngoại tệ" e="FC Credit Balance"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @q nvarchar(4000), @field varchar(32), @r int, @user int, @admin bit, @unit varchar(32), @year int
+select @admin = @@admin, @user = @@userID, @unit = @@unit, @year = nam_bd from dmstt
+if @admin <> 1 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'ContractBalance', 'Edit') = 0 select @type = 0
+  end
+end
+]]>&Checking;<![CDATA[
+]]>&EndErrorMode;<![CDATA[
+update @@table set du_co_nt00 = 0 where du_no_nt00 <> 0
+update @@table set du_co00 = 0 where du_no00 <> 0
+]]>
+      &ContractBalanceCustomerUploadCommand;
+      &Inserting;<![CDATA[
+if @type = '1' begin ]]>&Updating;<![CDATA[ where a.nam = @year end
+]]>
+    </text>
+  </processing>
+
+</import>

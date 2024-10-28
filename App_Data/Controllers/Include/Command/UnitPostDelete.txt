@@ -1,0 +1,9 @@
+﻿      <![CDATA[
+if @@admin = 0 begin
+  if exists(select 1 from ]]>&Tag;<![CDATA[dv a where ]]>&k;<![CDATA[ = @]]>&k;<![CDATA[ and not exists(select 1 from sysunitrights b where b.ma_dvcs = a.ma_dvcs and b.user_id = @@userID and b.r_access = 1)) begin
+    select ']]>&Tag;<![CDATA[dv' as field, case when @@language = 'v' then N'Tồn tại đơn vị trong các đơn vị của bản ghi không hợp lệ, không thể xóa được.' else N'Some unit codes might not be removed or you are not authorized to execute this function.' end as message
+    return
+  end
+end
+]]>&ListWhenBeforeDeleteLog;<![CDATA[
+delete ]]>&Tag;<![CDATA[dv where ]]>&k;<![CDATA[ = @]]>&k;

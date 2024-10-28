@@ -1,0 +1,181 @@
+﻿<!ENTITY % Conditional.InputInvoice SYSTEM "..\Include\InputInvoice.txt">
+
+<![%Conditional.InputInvoice;[
+  <!ENTITY InputInvoiceFields SYSTEM "..\Include\XML\InputInvoiceField.txt">
+  <!ENTITY InputInvoiceViews SYSTEM "..\Include\XML\InputInvoiceView.xml">
+  <!ENTITY InputInvoiceView ", [ngay_hddv], [stt_rec_hddv], [status_hddv]">
+  <!ENTITY InputInvoiceViewIndex "111">
+  <!ENTITY InputInvoiceImport "1">
+  <!ENTITY InputInvoiceRefreshGridCommand "select @script = @script + 'refresh$InputInvoice$ParentGrid(this);'">
+  <!ENTITY InputInvoiceRefreshGridScript "
+function refresh$InputInvoice$ParentGrid(f) {
+  var g = f.grid;
+  if (!f.grid._$external) return;
+  var gP = g._$parentGrid, t = gP._getColumnOrder('tag');
+  for (var i = 1; i &lt;= gP._rowCount; i++) {
+    gP._setItemValue(i, t, false);
+  }
+  gP._$k = [];
+}
+">
+  <!ENTITY InputInvoiceCheck "
+declare @$iiquery nvarchar(4000), @$i int, @$n int, @$stt_rec varchar(13), @$ngay smalldatetime, @$hddv_status char(1)
+if not isnull(@$stt_rec_hddv, '') = '' begin
+  select * into #stt from dbo.AI_ERP$Function$System$Split(@$stt_rec_hddv, ',')
+  select * into #ngay from dbo.AI_ERP$Function$System$Split(@$ngay_hddv, ',')
+
+  select @$i = 1
+  select @$n = count(*) from #stt
+  while @$i &lt;= @$n begin
+    select @$stt_rec = replace(data, '''', '') from #stt where id = @$i
+    select @$ngay = replace(data, '''', '') from #ngay where id = @$i
+    select @$iiquery = 'select @hddv_status = status from m15$' + convert(char(6), @$ngay, 112) + ' where stt_rec = ''' + @$stt_rec + ''''
+    exec sp_executesql @$iiquery, N'@hddv_status char(1) output', @$hddv_status output
+    if @$hddv_status = '4' or @$hddv_status = '*' begin
+      select case when @@language = 'V' then N'Hóa đơn đầu vào đã tạo chứng từ, vui lòng kiểm tra lại.' else N'There exists voucher against this invoice, please check again.' end as message
+      return
+    end
+
+    set @$i = @$i + 1
+  end
+end
+">
+  <!ENTITY InputInvoiceInsert "
+if not isnull(@$stt_rec_hddv, '') = '' begin
+  select * into #hddv1 from dbo.AI_ERP$Function$System$Split(@$stt_rec_hddv, ',')
+  select * into #hddv2 from dbo.AI_ERP$Function$System$Split(@$ngay_hddv, ',')
+  select * into #hddv3 from dbo.AI_ERP$Function$System$Split(@$status_hddv, ',')
+
+  insert into h&Tag;$$partition$current(stt_rec, ngay_ct, stt_rec_hd0, ngay_hd0, status0) select @stt_rec, @ngay_ct, a.data, b.data, c.data
+    from #hddv1 a with(nolock) left join #hddv2 b with(nolock) on a.id = b.id left join #hddv3 c with(nolock) on a.id = c.id
+
+  select @$i = 1
+  select @$n = count(*) from #hddv1
+  while @$i &lt;= @$n begin
+    select @$stt_rec = replace(data, '''', '') from #hddv1 where id = @$i
+    select @$ngay = replace(data, '''', '') from #hddv2 where id = @$i
+
+    select @$iiquery = '
+update m15$&#37;Partition set status = ''4'', ma_ct_gs = '@@id', so_ct_gs = ''' + replace(@so_ct, '''', '''''') + ''', ngay_ct_gs = cast(''' + convert(char(8), @ngay_ct, 112) + ''' as smalldatetime), tt_gs = ''2'', stt_rec_gs = ''' + replace(@stt_rec, '''', '') + ''' from m15$&#37;Partition where &#37;[stt_rec = ''' + @$stt_rec + ''']&#37;
+update i15$&#37;Partition set status = ''4'' from i15$&#37;Partition where &#37;[stt_rec = ''' + @$stt_rec + ''']&#37;
+update c15$000000 set status = ''4'' from c15$000000 where &#37;[stt_rec = ''' + @$stt_rec + ''']&#37;'
+
+    exec AI_ERP$Partition$Execute @$iiquery, null, 'ngay_ct', @$ngay, @$ngay, @@userID, @@admin
+    set @$i = @$i + 1
+  end
+end
+
+&InputInvoiceRefreshGridCommand;
+">
+  <!ENTITY InputInvoiceUpdate "
+declare @$iistt char(13), @$iingay smalldatetime, @$iiquery nvarchar(4000), @$iiDateMin smalldatetime, @$iiDateMax smalldatetime
+select identity(int, 1, 1) as stt, ngay_ct, stt_rec_hd0, ngay_hd0, status0 into #h&Tag; from h&Tag;$$partition$previous where stt_rec = @stt_rec
+
+declare @$i int, @$n int
+select @$i = 1
+select @$n = count(*) from #h&Tag;
+while @$i &lt;= @$n begin
+  select @$iistt = stt_rec_hd0, @$iingay = ngay_hd0 from #h&Tag; where stt = @$i
+
+  if not isnull(@$iistt, '') = '' begin
+    select @$iiquery = 'update m15$&#37;Partition set so_ct_gs = ''' + replace(@so_ct, '''', '''''') + ''', ngay_ct_gs = cast(''' + convert(char(8), @ngay_ct, 112) + ''' as smalldatetime), stt_rec_gs = ''' + replace(@stt_rec, '''', '') + ''' from m15$&#37;Partition where &#37;[stt_rec = ''' + replace(@$iistt, '''', '') + ''']&#37;'
+    exec AI_ERP$Partition$Execute @$iiquery, null, 'ngay_ct', @$iingay, @$iingay, @@userID, @@admin
+  end
+
+  set @$i = @$i + 1
+end
+
+select @$iingay = ngay_ct from #h&Tag; where stt = 1
+if @$iingay &lt;&gt; @ngay_ct begin
+  if $partition$current = $partition$previous update h&Tag;$$partition$current set ngay_ct = convert(char(8), @ngay_ct, 112) where stt_rec = @stt_rec
+  else begin
+    insert into h&Tag;$$partition$current(stt_rec, ngay_ct, stt_rec_hd0, ngay_hd0, status0) select @stt_rec, @ngay_ct, stt_rec_hd0, ngay_hd0, status0 from #h&Tag;
+
+    select @$iiquery = 'delete h&Tag;$&#37;Partition where &#37;[stt_rec = ''' + replace(@stt_rec , '''', '')+ ''']&#37;'
+    exec AI_ERP$Partition$Execute @$iiquery, null, 'ngay_ct', @$iingay, @$iingay, @@userID, @@admin
+  end
+end
+
+&InputInvoiceRefreshGridCommand;
+">
+  <!ENTITY InputInvoiceDelete "
+declare @$stt_rec_hddv char(13), @$ngay_hddv smalldatetime, @$status_hddv char(1), @$iiquery nvarchar(4000)
+select identity(int, 1, 1) as stt, stt_rec_hd0, ngay_hd0, status0 into #h&Tag; from h&Tag;$$partition$current where stt_rec = @stt_rec
+
+declare @$i int, @$n int
+select @$i = 1
+select @$n = count(*) from #h&Tag;
+while @$i &lt;= @$n begin
+  select @$stt_rec_hddv = stt_rec_hd0, @$ngay_hddv = ngay_hd0, @$status_hddv = status0 from #h&Tag; where stt = @$i
+
+  if not isnull(@$stt_rec_hddv, '') = '' begin
+    delete h&Tag;$$partition$current where stt_rec = @stt_rec
+    select @$iiquery = '
+update m15$&#37;Partition set status = ''' + replace(@$status_hddv , '''', '') + ''', so_ct_gs = '''', ngay_ct_gs = null, tt_gs = ''1'', stt_rec_gs = '''' from m15$&#37;Partition where &#37;[stt_rec = ''' + replace(@$stt_rec_hddv , '''', '') + ''']&#37;
+update i15$&#37;Partition set status = ''' + replace(@$status_hddv , '''', '') + ''' from i15$&#37;Partition where &#37;[stt_rec = ''' + replace(@$stt_rec_hddv , '''', '') + ''']&#37;
+update c15$000000 set status = ''' + replace(@$status_hddv , '''', '') + ''' from c15$000000 where &#37;[stt_rec = ''' + replace(@$stt_rec_hddv , '''', '') + ''']&#37;'
+    exec AI_ERP$Partition$Execute @$iiquery, null, 'ngay_ct', @$ngay_hddv, @$ngay_hddv, @@userID, @@admin
+  end
+
+  set @$i = @$i + 1
+end
+">
+
+  <!ENTITY % InputInvoice.PVTran "INCLUDE">
+  <!ENTITY % InputInvoice.APTran "INCLUDE">
+  <!ENTITY % InputInvoice.PGTran "INCLUDE">
+  <!ENTITY % InputInvoice.PATran "INCLUDE">
+  <!ENTITY % InputInvoice.SRTran "INCLUDE">
+  <!ENTITY % InputInvoice.GRTran "INCLUDE">
+  <!ENTITY % InputInvoice.PFTran "INCLUDE">
+  <!ENTITY % InputInvoice.ASTran "INCLUDE">
+  <!ENTITY % InputInvoice.CDTran "INCLUDE">
+  <!ENTITY % InputInvoice.CPTran "INCLUDE">
+  <!ENTITY % InputInvoice.GLTran "INCLUDE">
+  <!ENTITY % InputInvoice.JRTran "INCLUDE">
+  <!ENTITY % InputInvoice.JPTran "INCLUDE">
+]]>
+
+<!ENTITY InputInvoiceFields "">
+<!ENTITY InputInvoiceViews "">
+<!ENTITY InputInvoiceView "">
+<!ENTITY InputInvoiceInsert "">
+<!ENTITY InputInvoiceUpdate "">
+<!ENTITY InputInvoiceDelete "">
+<!ENTITY InputInvoiceViewIndex "">
+<!ENTITY InputInvoiceImport "0">
+<!ENTITY InputInvoiceRefreshGridCommand "">
+<!ENTITY InputInvoiceRefreshGridScript "">
+
+<!ENTITY % InputInvoice.PVTran "IGNORE">
+<!ENTITY % InputInvoice.APTran "IGNORE">
+<!ENTITY % InputInvoice.PGTran "IGNORE">
+<!ENTITY % InputInvoice.PATran "IGNORE">
+<!ENTITY % InputInvoice.SRTran "IGNORE">
+<!ENTITY % InputInvoice.GRTran "IGNORE">
+<!ENTITY % InputInvoice.PFTran "IGNORE">
+<!ENTITY % InputInvoice.ASTran "IGNORE">
+<!ENTITY % InputInvoice.CDTran "IGNORE">
+<!ENTITY % InputInvoice.CPTran "IGNORE">
+<!ENTITY % InputInvoice.GLTran "IGNORE">
+<!ENTITY % InputInvoice.JRTran "IGNORE">
+<!ENTITY % InputInvoice.JPTran "IGNORE">
+
+
+<!ENTITY % InputInvoice.Include.PVTran SYSTEM "..\Include\InputInvoice.PVTran">
+<!ENTITY % InputInvoice.Include.APTran SYSTEM "..\Include\InputInvoice.APTran">
+
+<!ENTITY % InputInvoice.Include.PGTran SYSTEM "..\Include\InputInvoice.PGTran">
+<!ENTITY % InputInvoice.Include.PFTran SYSTEM "..\Include\InputInvoice.PFTran">
+<!ENTITY % InputInvoice.Include.ASTran SYSTEM "..\Include\InputInvoice.ASTran">
+<!ENTITY % InputInvoice.Include.PATran SYSTEM "..\Include\InputInvoice.PATran">
+
+<!ENTITY % InputInvoice.Include.SRTran SYSTEM "..\Include\InputInvoice.SRTran">
+<!ENTITY % InputInvoice.Include.GRTran SYSTEM "..\Include\InputInvoice.GRTran">
+
+<!ENTITY % InputInvoice.Include.CDTran SYSTEM "..\Include\InputInvoice.CDTran">
+<!ENTITY % InputInvoice.Include.CPTran SYSTEM "..\Include\InputInvoice.CPTran">
+
+<!ENTITY % InputInvoice.Include.GLTran SYSTEM "..\Include\InputInvoice.GLTran">
+<!ENTITY % InputInvoice.Include.JRTran SYSTEM "..\Include\InputInvoice.JRTran">
+<!ENTITY % InputInvoice.Include.JPTran SYSTEM "..\Include\InputInvoice.JPTran">

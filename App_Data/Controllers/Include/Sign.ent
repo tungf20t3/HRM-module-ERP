@@ -1,0 +1,35 @@
+﻿<!ENTITY % Conditional.Sign SYSTEM "..\Include\Sign.txt">
+
+<![%Conditional.Sign;[
+  <!ENTITY Sign.MultiPrint.Filter.h "64">
+
+  <!ENTITY Sign.MultiPrint.Filter.Fields SYSTEM "..\Include\XML\Sign.MultiPrint.Filter.Fields.txt">
+  <!ENTITY Sign.MultiPrint.Filter.Views SYSTEM "..\Include\XML\Sign.MultiPrint.Filter.Views.xml">
+  <!ENTITY Sign.MultiPrint.Filter.Categories SYSTEM "..\Include\XML\Sign.MultiPrint.Filter.Categories.xml">
+  <!ENTITY Sign.MultiPrint.Filter.Categories.Index "9">
+
+  <!ENTITY Sign.MultiPrint.Filter.Initialize "
+if exists(select 1 from dmttckct where status = '1' and xu_ly = '1') select @message = @message + 'this._$preparedBy = 1;'
+if exists(select 1 from dmttckct where status = '1' and xu_ly = '2') select @message = @message + 'this._$signedDate = 1;'
+if exists(select 1 from dmttckct where status = '1' and xu_ly = '1' and loai = '2' and (ma_ct = '' or ma_ct = '&VoucherCode;')) or exists(select 1 from options where name = 'r_show_creator' and val = '2') select @message = @message + 'this._$u = 1;this._$uID = @@userID;this._$uCode = ''' + rtrim(name) + ''';this._$uName = ''' + replace(rtrim(case when @@language = 'V' then comment else comment2 end), '''', '\''') + ''';' from vsysuserinfo where id = @@userID
+if exists(select 1 from dmttckct where status = '1' and xu_ly = '2' and loai = '2' and (ma_ct = '' or ma_ct = '&VoucherCode;')) or exists(select 1 from options where name = 'r_show_date_sign' and val = '2') select @message = @message + 'this._$d = 1;'
+">
+  <!ENTITY Sign.MultiPrint.Filter.Active "
+if (f._$d &amp;&amp; !f._extensions) f.setItemValue('ngay_ky', new Date());
+if (f._$u &amp;&amp; !f._extensions) f.setItemValues('user_name, comment&#37;l, user_id', [f._$uCode, f._$uName, f._$uID]);
+f._setReadOnly(f.getItem('ngay_ky'), !f._$signedDate);
+f._setReadOnly(f.getItem('user_name'), !f._$preparedBy);
+">
+
+  <!ENTITY Sign.Report.Query.Select "insert into #signKey (ma_dvcs, ma_ct, ngay_ky, nguoi_lap) select @$ma_dvcs, &Sign.Function.Code;, @$ngay_ky, @$user_id">
+]]>
+
+<!ENTITY Sign.MultiPrint.Filter.h "40">
+<!ENTITY Sign.MultiPrint.Filter.Fields "">
+<!ENTITY Sign.MultiPrint.Filter.Views "">
+<!ENTITY Sign.MultiPrint.Filter.Categories "">
+<!ENTITY Sign.MultiPrint.Filter.Categories.Index "">
+<!ENTITY Sign.MultiPrint.Filter.Initialize "">
+<!ENTITY Sign.MultiPrint.Filter.Active "">
+
+<!ENTITY Sign.Report.Query.Select "">

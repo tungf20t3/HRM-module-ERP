@@ -1,0 +1,31 @@
+﻿<![CDATA[
+declare @verifyInvoice varchar(128), @$verifyMessage nvarchar(512), @verifyText varchar(128), @verifyIDNumber varchar(32), @table varchar(32), @$verifyCheck bit
+set @$verifyCheck = 1
+#IF @@action = 'Edit' and $r30.NewValue = $r30.OldValue and $]]>&TaxGridDetailTable;<![CDATA[.NewValue = $]]>&TaxGridDetailTable;<![CDATA[.OldValue #THEN
+  if exists(select 1 from @@prime$partition$previous where stt_rec = @stt_rec and status = @status) set @$verifyCheck = 0
+#END
+if @$verifyCheck = 1 begin
+  select ma_so_thue, ngay_ct0, so_seri0, so_ct0, cast(null as char(1)) as loai into #$tax from
+  #IF @@action = 'Edit' and $r30.NewValue = $r30.OldValue #THEN
+    r30$$partition$previous where stt_rec = @stt_rec and loai_ct <> '#'
+  #ELSE
+    @r30
+  #END
+  insert into #$tax (ma_so_thue, ngay_ct0, so_seri0, so_ct0, loai) select ma_so_thue, ngay_ct0, so_seri0, so_ct0, 1 from
+  #IF @@action = 'Edit' and $]]>&TaxGridDetailTable;<![CDATA[.NewValue = $]]>&TaxGridDetailTable;<![CDATA[.OldValue #THEN
+    ]]>&TaxGridDetailTable;<![CDATA[$$partition$previous where stt_rec = @stt_rec and loai_hd <> 0
+  #ELSE
+    @]]>&TaxGridDetailTable;<![CDATA[ where loai_hd <> 0
+  #END
+
+  select @verifyIDNumber = case when @@action = 'New' then '' else @stt_rec end, @$verifyMessage = case when @@language = 'v' then N'Số hóa đơn <span class="Highlight">%s</span> đã được cập nhật trong phần thuế đầu vào.' else N'The invoice number <span class="Highlight">%s</span> already exists in Input VAT data.' end
+  if exists(select 1 from options where name = 'm_kthd_tdv' and val = '1') begin
+    select @verifyInvoice = so_ct0, @verifyText = convert(varchar(8), ngay_ct0, 112) + rtrim(ltrim(ma_so_thue)) + char(255) + rtrim(ltrim(so_seri0)) + char(255) + rtrim(ltrim(so_ct0)), @table = case when loai is not null then ']]>&TaxGridDetailTable;<![CDATA[' else '' end
+      from (select top 1 a.ma_so_thue, a.ngay_ct0, a.so_seri0, a.so_ct0, a.loai from #$tax a join ctgt30 b with (index(c)) on a.ma_so_thue = b.ma_so_thue and a.ngay_ct0 = b.ngay_ct0 and a.so_seri0 = b.so_seri0 and a.so_ct0 = b.so_ct0 where b.stt_rec <> @verifyIDNumber and b.status <> '*') a
+    if isnull(@verifyInvoice, '') <> '' begin
+      select '' as field, replace(@$verifyMessage, '%s', rtrim(@verifyInvoice)) as message, 'verify$InputVAT$InvoiceNumberDetail(this, "' + replace(replace(isnull(@verifyText, ''), '\', '\\'), '"', '\"') + '", "' + @table + '");' as script
+      return
+    end
+  end
+end
+]]>

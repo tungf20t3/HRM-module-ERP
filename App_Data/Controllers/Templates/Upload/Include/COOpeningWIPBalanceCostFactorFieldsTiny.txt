@@ -1,0 +1,16 @@
+<fields identity="true" name="stt" index="&Tiny.External.Import.ViewIndex;">
+  <field name="ma_sp" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_sp not in (select ma_vt from vdmsp)" errorCode="00001"/>
+  <field name="ma_bp" column="C" isPrimaryKey="true" upperCase="true" updateValue="None"/>
+  <field name="so_lsx" column="D" isPrimaryKey="true" upperCase="true" updateValue="None"/>
+  <field name="ma_yt" column="E" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="@@table.ma_yt not in (select b.ma_yt from xdmyt b where b.dd_ck = '1' and @@table.ma_dvcs = b.ma_dvcs)" errorCode="00001"/>
+  
+  <field name="dd_ck" column="F" type="Decimal"/>
+  <field name="dd_ck_nt" column="" type="Decimal"/>
+  <field name="ma_dvcs" column="" isPrimaryKey="true" allowNulls="false" defaultValue="" check="ma_dvcs not in (select ma_dvcs from dmdvcs where status = '1')&And;ma_dvcs in (select distinct ma_dvcs from dmdvcsks where year(ngay_ks) >= @startYear)&And;not exists(select 1 from xcdytdd b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_yt = b.ma_yt and @@table.ma_sp = b.ma_sp and @@table.ma_bp = b.ma_bp and @@table.so_lsx = b.so_lsx and b.nam = @startYear and b.ky = 0) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_new = 1)&And;exists(select 1 from xcdytdd b where @@table.ma_dvcs = b.ma_dvcs and @@table.ma_yt = b.ma_yt and @@table.ma_sp = b.ma_sp and @@table.ma_bp = b.ma_bp and @@table.so_lsx = b.so_lsx and b.nam = @startYear and b.ky = 0) and @@table.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @@userID and r_edit = 1)" condition="if @costUnit = '1' begin&And;if @costUnit = '1' begin&And;if @costUnit = '1' begin if @@admin &lt;&gt; 1 begin&And;if @costUnit = '1' begin if @@admin &lt;&gt; 1 begin if @type = '1' begin" tag="end&And;end&And;end end&And;end end end" errorCode="00001&And;00002&And;00002&And;00002"/>
+
+  <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+  <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+  <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+  <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  <field name="nam" column="None" type="Decimal" insertValue="@startYear" updateValue="None"/>
+</fields>

@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE report [
+  <!ENTITY b SYSTEM ".\Include\BaseCurrency.xml">
+  <!ENTITY f SYSTEM ".\Include\ForeignCurrency.xml">
+  <!ENTITY s SYSTEM ".\Include\Separate.xml">
+
+  <!ENTITY p "../images/pdf.gif">
+  <!ENTITY e "../images/excel.gif">
+
+  <!ENTITY Controller "hrRMPeriodInfoInput">
+  <!ENTITY % Profile SYSTEM ".\Config\Profile.ent">
+  %Profile;
+]>
+
+<report xmlns="urn:schemas-ai-erp:data-report">
+  <query>
+    <text>
+      <![CDATA[
+if dbo.AI_ERP$Function$CheckSQLInjection(@stt_rec) = 0 return
+select a.ngay_ct, rtrim(a.ma_dot) as ma_dot, case when @@language = 'V' then a.ten_dot else a.ten_dot2 end as ten_dot, a.ngay_tu, a.ngay_den from hrrmdot a where a.stt_rec = @stt_rec
+exec hs_RMPeriodInfoInputPrint @@language, @stt_rec, 'hrrmdotct', @@id
+	]]>
+      &Conditional.Unit.Profile.Query.Declare;
+      &Conditional.Unit.Profile.Query.Select;
+      &Conditional.Unit.Profile.Query.Result;
+    </text>
+  </query>
+
+  <forms>
+    <form id="010" reportFile="hrRMPeriodInfoInput_01" commandArgument="Pdf" urlImage="&p;">
+      <header v="Thông tin đợt tuyển dụng" e="Recruitment Period Information"/>
+      <download>
+        <header v="Thông tin đợt tuyển dụng" e="Recruitment Period Information"/>
+      </download>
+    </form>
+
+    &s;
+
+    <form id="110" templateFile="hrRMPeriodInfoInput_01" commandArgument="Excel" urlImage="&e;">
+      <header v="Thông tin đợt tuyển dụng dạng tệp xlsx &lt;span style=&quot;color:#42842C;&quot;/&gt;(Excel)&lt;/span&gt;" e="Recruitment Period Information	 as Spreadsheet"/>
+      <download>
+        <header v="Thông tin đợt tuyển dụng" e="Recruitment Period Information"/>
+      </download>
+    </form>
+  </forms>
+
+  <fields>
+    <field name="title" type="String">
+      <header v="THÔNG TIN ĐỢT TUYỂN DỤNG" e="RECRUITMENT PERIOD INFORMATION"/>
+    </field>
+
+    <field name="h_ngay_ct" type="String">
+      <header v="Ngày lập:" e="Date:"/>
+    </field>
+    <field name="h_dot" type="String">
+      <header v="Đợt tuyển dụng:" e="Recruitment Period:"/>
+    </field>
+    <field name="h_ngay" type="String">
+      <header v="Thời gian từ/đến:" e="Date from/to:"/>
+    </field>
+
+    <field name="h_stt" type="String">
+      <header v="Stt" e="No."/>
+    </field>
+    <field name="h_vtr" type="String">
+      <header v="Vị trí" e="Position"/>
+    </field>
+    <field name="h_bo_phan" type="String">
+      <header v="Bộ phận" e="Department"/>
+    </field>
+    <field name="h_so_luong" type="String">
+      <header v="Số lượng" e="Quantity"/>
+    </field>
+    <field name="h_hinh_thuc" type="String">
+      <header v="Hình thức thi tuyển" e="Examination Form"/>
+    </field>
+  </fields>
+</report>

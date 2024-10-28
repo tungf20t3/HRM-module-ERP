@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY Key "declare @rk varchar(16)
+select @rk = lower(left(replace(newid(),'-',''), 16))
+update @@sysDatabaseName..userinfo2 set rkey = @rk where id = @@userID">
+]>
+
+<dir table="userinfo2" code="name" order="name" database="App" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Xác nhận mật khẩu" e="Confirm Password"></title>
+  <fields>
+    <field name="so_ct" dataFormatString="@upperCaseFormat" align="right">
+      <header v="Số chứng từ" e="Voucher Number"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày chứng từ" e="Voucher Date"></header>
+    </field>
+    <field name="ma_kh">
+      <header v="Mã khách" e="Customer"></header>
+    </field>
+    <field name="ten_kh" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="cpass" external="true" defaultValue="''">
+      <header v="Xác nhận mật khẩu" e="Confirm Password"></header>
+      <clientScript><![CDATA[type="password" onchange="genHash(this);"]]></clientScript>
+    </field>
+    <field name="chkpass" external="true" hidden="true" readOnly="true" defaultValue="''" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 100, 100, 230, 0"/>
+      <item value="11: [so_ct].Label, [so_ct]"/>
+      <item value="11: [ngay_ct].Label, [ngay_ct]"/>
+      <item value="1110: [ma_kh].Label, [ma_kh], [ten_kh]"/>
+      <item value="110-1: [cpass].Label, [cpass], [chkpass]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        &Key;<![CDATA[
+select 'this._key = ''' + @rk + ''';loadForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'closeForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,o=f.getItem("cpass");o.oldValue=o.value;o.value="";checkFieldEntry(f,o);if(f._checked){f._checked=false;f.request("Check","Check",["chkpass"])}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function loadForm(b){var a=b.grid,c=a._activeRow,g=a._getItem(c,a._getColumnOrder("ma_kh")).value,f=a._getItem(c,a._getColumnOrder("ten_kh")).value,d=a._getItem(c,a._getColumnOrder("so_ct")).value,e=a._getItemValue(c,a._getColumnOrder("ngay_ct"));b.add_onResponseComplete(on$Form$ResponseComplete);b.setItemValues("ma_kh, ten_kh, so_ct, ngay_ct",[g,f,d,e]);b.setReadOnlyFields("ma_kh, so_ct, ngay_ct");b._$init&&b.request("Key","Key",[]);b._$init=true;b.getItem("cpass").focus()}function closeForm(a){try{a.remove_onResponseComplete(on$Form$ResponseComplete)}catch(b){}}function on$Form$ResponseComplete(j,f){var c=f.object,h=f.type.Context,d=f.type.Result,i=c.grid,b=c._language=="v";switch(h){case"Key":c._key=d[0].Value;break;case"Check":if(d[0].Value)cancel$Invoice(c);else $message.show(b?"Mật khẩu xác nhận không đúng.":"Confirmation password is invalid.",String.format("revertPassword('{0}', '', true); $find('{0}').focus('{1}');",c.get_id(),"cpass"));break;case"Cancel":var a,g=true;if(d[0].Value)a=b?"Chương trình đã thực hiện xong.":"The process was completed successfully.";else{g=false;var f=d[1].Value.toString(),e=d[2].Value;switch(f){case"0":a=String.format(b?'Đơn vị <span class="Highlight">{0}</span> chưa khai báo tài khoản kết nối, chương trình không thể tiếp tục thực hiện được.':'An error occurred while processing, the unit <span class="Highlight">{0}</span> has not been declared in account information.',e);break;case"1":a=b?"Đã khóa số liệu, kiểm tra lại ngày khóa sổ.":"Data is locked, you must modify system locked date.";break;case"2":a=String.format(b?'Hóa đơn số <span class="Highlight">{0}</span> đã được sửa hoặc xóa bởi người sử dụng khác.':'The invoice number <span class="Highlight">{0}</span> has been modified or deleted by another user.',e);break;case"3":a=String.format(b?'Đã có chứng từ thanh toán cho hóa đơn số <span class="Highlight">{0}</span>, không thể hủy được.':'Can not cancel voucher number <span class="Highlight">{0}</span>, It was received or paid.',e);break;case"4":a=String.format(b?'Phát sinh lỗi trong quá trình hủy hóa đơn số <span class="Highlight">{0}</span>, chương trình không thể tiếp tục thực hiện được.':'An error occurred while processing the invoice number <span class="Highlight">{0}</span>, The process could not continue running.',e);break;case"10":a=String.format(b?'Hóa đơn số <span class="Highlight">{0}</span> đã được lấy số liệu hoặc liên quan đến chứng từ khác, chương trình không thể tiếp tục thực hiện.':'An error occurred while processing, the replacement invoice <span class="Highlight">{0}</span> has already retrieved data from a previous process or has reference to an other voucher.',e);break;default:a=b?"Phát sinh lỗi trong quá trình thực hiện.":"The process was failed."}}$message.show(a,String.format(g?"$find('{0}').goToPage(-1);":"$find('{0}')._focusWhenTabChanged();",i._id));c.cancelDialog()}}function genHash(b){var a=b.parentForm,c=MD5(b.value);a.getItem("chkpass").value=CRC32($func.trim(a._key).substr(0,8)+c.substr(1,c.length-2))}function checkFieldEntry(a,b,c){if(c)b=a.getItem(b);var d=c?b.value:b.oldValue;if(a._checked&&!d){a._checked=false;$func.hideWait(a.get_id());$message.show(String.format($df.getResources(a._language,"Message.RequiredField"),b.field.Label),String.format("revertPassword('{0}', '', true); $find('{0}').focus('{1}');",a.get_id(),b.field.Name))}}function revertPassword(a,d,c){if(c)a=$find(a);var b=a.getItem("cpass");if(b.oldValue)b.value=b.oldValue}function cancel$Invoice(c){var a=c.grid,b=a._activeRow,e=a._getItem(b,a._getColumnOrder("stt_rec")).value,d=a._getItem(b,a._getColumnOrder("chuoi_ngay")).value;c.request("Cancel","Cancel",[["k","String",e],["d","String",d],["v","String",a._ma_ct]])}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Key">
+      <text>
+        &Key;<![CDATA[
+select @rk as value
+return
+]]>
+      </text>
+    </action>
+
+    <action id="Check">
+      <text>
+        <![CDATA[
+declare @hash varchar(32), @c bit, @d bit, @k varchar(6)
+exec @@sysDatabaseName..AI_ERP$System$CheckSum @@userID, @chkpass, 0, @c output
+select @c as val
+return
+]]>
+      </text>
+    </action>
+
+    <action id="Cancel">
+      <text>
+        <![CDATA[
+create table #t (result int, typecheck int, val varchar(32))
+exec AI_ERP$EInvoice$BeforeCancelInvoice @k, @d, @v, @@language, @@userID, @@admin, 1, '#t'
+if exists(select top 1 1 from #t where result = 1) exec AI_ERP$EInvoice$AfterCancelInvoice @k, @v, 1, @@language, @@userID, @@admin, 1
+select * from #t
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

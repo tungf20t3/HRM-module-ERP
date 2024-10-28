@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Cập nhật quá trình tham gia BHXH</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Cập nhật quá trình tham gia BHXH</p>
+<p id="pic"><img src="Vie\hrEmployeeSIHistory.png"/></p>
+<!--
+
+<p class="node">Ngày báo cáo</p>
+<p class="node_d">Dùng để khai báo ngày báo cáo</p>
+-->
+<p class="node">Loại thay đổi</p>
+<p class="node_d">Nhập loại thay đổi theo danh mục để phục vụ các thông tin tiếp sau.</p>
+<p class="node">Ngày hiệu lực từ/đến</p>
+<p class="node_d">Nhập không được phép lồng, giao nhau trong cùng một mã nhân viên.</p>
+
+
+<!--
+Yêu cầu 1: cho phép tạo dữ liệu tự động khi mức lương tối thiểu thay đổi hoặc tỷ lệ đóng bảo hiểm thay đổi
+-	Thêm một nút giống biểu tượng “In”, cho nằm sau nút “Lọc”, gồm 1 mẫu xuất Excel “Quá trình tham gia BHXH” (dạng báo cáo xuất Excel);
+-	Cấu trúc tệp Excel “Quá trình tham gia BHXH” giống như mẫu Template Import;
+-	Kết xuất ra tệp Excel:
++	Gồm các thông tin như trong Form thêm “Mới” (bỏ trường “Loại thay đổi”) tương ứng với file Template;
++	Dữ liệu xuất: gồm các dòng ở màn hình browse đang thể hiện.
+-	Chức năng Import từ tệp Excel (chuẩn hiện tại đã có): xử lý như chuẩn hiện tại.
+Bổ sung y/cầu (10/11/15):
+-	Điều kiện lọc:
++	Thêm checkbox “Chỉ lọc bản ghi sau cùng và còn hiệu lực”, ngầm định không check, cho nằm dưới cùng.
+-	Xử lý: 
++	Trường hợp một mã nhân viên có nhiều bản ghi thì chỉ lọc bản ghi sau cùng (bản ghi có “Ngày hiệu lực từ” lớn nhất), đồng thời thỏa điều kiện có “Ngày hiệu lực đến” > “Ngày hệ thống” (xét ngay trên bản ghi thỏa đk này);
++	Đối với nhân viên đã nghỉ việc thì không lọc -> tức “Ngày nghỉ việc” <= “Ngày hệ thống”.
+
+
+-->
+<p class="node">Cấp bậc/Chức danh nghề/Đơn vị/Địa chỉ</p>
+<p class="node_d">Nhập tự do theo yêu cầu.</p>
+<p class="node">Hệ số lương/Hệ số pc chức vụ/Hệ số pc khu vực</p>
+<p class="node_d">Nhập kiểu số (số lần), dùng để tính tổng hệ số.???</p>
+<p class="node">Hs pc vượt khung (%)/Hệ số pc thâm niên (%)</p>
+<p class="node_d">Nhập kiểu số (%), dùng để tính tổng hệ số.???</p>
+<p class="node">Tổng hệ số</p>
+<p class="fml">Tổng hệ số = Hệ số lương + Hệ số pc chức vụ + Hệ số pc khu vực + Hs pc vượt khung/100 + Hệ số pc thâm niên/100</p>
+<p class="note">Chú ý <br/>
+Các thông tin tính toán này chỉ nhập khi tham số "Thực hiện theo bảng lương nhà nước" là có.
+</p>
+<p class="node">Lương tối thiểu</p>
+<p class="node_d">Áp dụng mức lương tối thiểu chung có ngày hiệu lực nhỏ hơn hoặc bằng (&lt;=) và gần với ngày thay đổi.</p>
+
+<p class="node">Lương cơ bản</p>
+<p class="node_d">Lương cơ bản để tính toán lương bảo hiểm trong trường hợp tham số “Trích bảo hiểm từ quá trình tham gia bảo hiểm” là “Có”.
+</p>
+<p class="fml">Lương cơ bản=Lương tối thiểu*Tổng hệ số</p>
+<p class="note">Chú ý <br/>
+Tính toán này chỉ hiệu lực khi tham số "Thực hiện theo bảng lương nhà nước" là có. Nếu ngược lại, người dùng tự nhập để xác định.
+</p>
+<p class="node">Tỷ lệ đóng BHXH (%)/Tỷ lệ đóng BHYT (%)/tỷ lệ đóng BHTN (%)/Tỷ lệ đóng KPCĐ (%)(Thông tin bảo hiểm)</p>
+<p class="node_d"> Tự động lấy từ "tỷ lệ đóng bảo hiểm" có so sánh ngày hiệu lực. (Ngày hiệu lực từ/đến và Ngày hiệu lực). 
+Nhập mức đóng các loại phải nộp theo lương. Tham khảo "Tỷ lệ đóng BH, CĐ".
+
+<br/>
+Tỷ lệ đóng BHXH, BHYT, BHTN: tự động hiện dựa vào phần “Cập nhật thông tin bảo hiểm, công đoàn” và “Khai báo tỷ lệ đóng bảo hiểm, công đoàn”.
+Điều kiện để thể hiện tự động:
+</p>
+
+<ul class="lo_2">
++ Nếu tham số “Trích bảo hiểm từ quá trình tham gia bảo hiểm” là “Không” thì xét: “Hiệu lực từ ngày” &lt;= “Ngày thay đổi” &lt;= “Hiệu lực đến ngày” (chức năng “Cập nhật thông tin bảo hiểm, công đoàn”) và 
+thể hiện theo "Khai báo tỷ lệ đóng bảo hiểm, công đoàn; <br/>
++ Ngược lại nếu giá trị tham số là có, luôn thể hiện tự động cho cả 3 tỷ lệ BHXH, BHYT, BHTN từ "Khai báo tỷ lệ đóng bảo hiểm, công đoàn".
+</ul>
+
+<p class="node_d"> 
+Số liệu thể hiện (tỷ lệ %): cộng số liệu ở ngăn thông tin “Nhân viên” và “Công ty” (chức năng “Khai báo tỷ lệ đóng bảo hiểm, công đoàn”) theo từng loại bảo hiểm.
+</p>
+
+<p class="node">Tiền BHXH/Tiền BHYT/Tiền BHTN<!--Tiền KPCĐ 8982--></p>
+<p class="node_d">
+Tiền BHXH/Tiền BHYT/Tiền BHTN tính được từ tỷ lệ trên lương (Lương cơ bản thuộc thông tin chung).</p>
+
+<p class="note">Chú ý: <br/>
+Chương trình tự động ngầm định lấy số liệu cho các trường “Tỷ lệ bảo hiểm…”(phần tăng/giảm) chi tiết theo “Loại đối tượng”.
+</p>	
+
+<p class="node">Căn cứ đóng</p>
+<p class="node_d">Nhập tự do, theo yêu cầu báo cáo.</p>
+
+
+<p id="td2">Các thao tác </p>
+<p class="node">Tải tệp	mẫu	</p>
+<p class="node_d">		Nhấn biểu tượng <img src="Vie\Download.png"/> để tải tệp mẫu về máy trạm. Khi nhập thông tin lương nhân viên theo mẫu, lưu ý các thông tin sau:</p>
+
+<ul class="lo_2">
+- Mã nhân viên: Chỉ nhập các mã nhân viên thuộc đơn vị và bộ phận được phân quyền;<br/>
+- Loại thay đổi: các mã trong danh mục loại thay đổi;<br/>
+- Hệ số lương,	Hệ số pc chức vụ, Hệ số pc khu vực, Tổng hệ số, Hệ số pc vượt khung(%),	Hệ số phụ cấp thâm niên,Tỷ lệ đóng BHXH(%),Tỷ lệ đóng BHYT(%), 
+Tỷ lệ đóng BHTN(%), Tỷ lệ đóng KPCĐ: Nhập kiểu số, tối đa &lt; 1000 ;<br/>
+- Lương tối thiểu, Lương cơ bản, Tiền BHXH, Tiền BHYT,	Tiền BHTN: Nhập kiểu số, tối đa 15 ký số;<br/>
+- Ngày thay đổi BHXH,	Ngày báo cáo: Định dạng ngày tháng;<br/>
+- Cấp bậc,	Chức danh nghề,	Đơn vị,	Địa chỉ, Căn cứ đóng: Nhập tự do theo kiểu chuỗi, độ dài tối đa theo màn hình nhập liệu. 
+</ul>
+<p class="node">Tải dữ liệu từ tệp		</p>	
+<p class="node_d">	Nhấn biểu tượng <img src="Vie\upload.png"/> để tải dữ liệu "Cập nhật thông tin lương nhân viên" lên máy chủ.<br/>
+Từ màn hình nhấp "Chọn..." để chọn tệp dữ liệu.<br/>
+Chọn kiểu sao chép là 1 - Chép đè nếu muốn cập nhật lại số liệu đã có,  nếu chọn "0 - Không" thì chỉ chèn thêm các dữ liệu chưa có.</p>
+
+<p class="note">
+Chú ý<br/>
+-  Vì chương trình sẽ giữ nguyên kết quả kết nhập, nên tốt nhất nên khai báo trước trong tệp mẫu như sau: 
+Tổng hệ số=Hệ số lương + Hệ số pc chức vụ + Hệ số pc khu vực + (Hệ số pc vượt khung(%) +	Hệ số phụ cấp thâm niên)/100;<br/>
+- Hệ số pc vượt khung(%),	Hệ số phụ cấp thâm niên,Tỷ lệ đóng BHXH(%),Tỷ lệ đóng BHYT(%), Tỷ lệ đóng BHTN(%), Tỷ lệ đóng KPCĐ:
+ chương trình sẽ hiểu là %. Khi nhập là 1 sẽ hiểu là 1/100.;<br/>
+- Ngày hiệu lực thuộc ngăn "Thông tin người phụ thuộc", nếu có dòng giá trị khác trong dữ liệu hiện hữu, sẽ tự động thêm 1 dòng gồm các thông tin: 
+Mã người phụ thuộc, Tên người phụ thuộc, Ngày sinh, Số chứng minh, Mã số thuế;<br/>
+- Trong trường hợp có nhiều mức hiệu lực, hoặc 1 nhân viên có nhiều mã phụ thuộc, có thể nhập cho 1 mã nhân viên trên nhiều dòng;<br/>
+- Nếu chương trình báo "lỗi không xác định",  nên kiểm tra các trường số có vượt giới hạn hoặc các trường ngày tháng có sai hay không;<br/>
+- Nếu chương trình báo lỗi tại một ô cụ thể,  có thể kiểm tra tính hợp lệ các cột chứa danh mục,  hoặc các ô tùy chọn có vi phạm ràng buộc.
+</p>
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

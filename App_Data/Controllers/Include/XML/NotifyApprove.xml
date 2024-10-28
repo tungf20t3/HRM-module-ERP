@@ -1,0 +1,68 @@
+﻿<toolbar>
+<button command="ApproveOk" class="btnApproveOk" script="btnTranApprove$&NotifyID;(this, 1);">
+<title v="Duyệt phiếu" e="Approve Voucher"></title>
+</button>
+<button command="ApproveCancel" class="btnApproveCancel" script="btnTranApprove$&NotifyID;(this, 2);">
+<title v="Hủy duyệt phiếu" e="Cancel Approve Voucher"></title>
+</button>
+&NotifyApproveCommentInput;
+</toolbar>
+
+<css>
+<text>
+&NotifyContentCss;
+<![CDATA[
+.btnApproveOk{background-image:url(../images/Operation.png);background-repeat:no-repeat;background-position:6px -1px;}
+.btnApproveOk:hover{background-color:#F9FAFB;}
+.btnApproveCancel{background-image:url(../images/Operation.png);background-repeat:no-repeat;background-position:-22px 0;}
+.btnApproveCancel:hover{background-position:-22px -22px;}
+
+div.TextbtnApproveOk{background-image:url(../images/TextApprove.png);background-repeat:no-repeat,repeat-x;background-position:6px -1px;}
+div.TextbtnApproveCancel{background-image:url(../images/TextClear.png);background-repeat:no-repeat,repeat-x;background-position:6px -1px;}
+div.btnApproveOk:hover, div.btnApproveCancel:hover, div.TextbtnApproveOk:hover, div.TextbtnApproveCancel:hover{background-color:#F9FAFB;}
+]]>
+&NotifyApproveCss;
+</text>
+</css>
+
+<script>
+<text>
+<![CDATA[
+function btnTranApprove$]]>&NotifyID;<![CDATA[(o, type) {
+  var t = type == 1 ? 'Message.ApprovalProcess' : 'Message.ApprovalCancel', n = o._controlBehaviour, msg;
+  if (type == 1) {
+    msg = (n._language == 'v' ? 'Hệ thống sẽ <span class="Highlight">duyệt bản ghi đang được chọn</span>, bạn có chắc chắn thực hiện không?' : 'Are you sure you want to <span class="Highlight">approve the selected records</span>?');
+  } else if (type == 2) {
+    msg = (n._language == 'v' ? 'Hệ thống sẽ <span class="Highlight">hủy bản ghi đang được chọn</span>, bạn có chắc chắn thực hiện không?' : 'Are you sure you want to <span class="Highlight">cancel the selected records</span>?');
+  }
+  $message.show(msg, 0, String.format('ntfTranApprove$Request$]]>&NotifyID;<![CDATA[($get(\'{0}\'), {1});', o.id, type), '');
+}
+function ntfTranApprove$Request$]]>&NotifyID;<![CDATA[(o, type) {
+  var n = o._controlBehaviour;
+  var ntfCode = o._message[0], refCode = o._message[8], priority = o._message[9];
+  var s2 = o._message[10], s3 = o._message[11];
+  ]]>&NotifyApproveQuery;<![CDATA[
+  var ext = '9#' + s2 + '#' + s3 + '#' + ntfCode;
+
+  Sys.Net.WebServiceProxy.invoke('../AppService/AI_ERP.Approval.Service.asmx', 'ExcuteApplication', false,
+    { idMail: ']]>&NotifyID;<![CDATA[', type: type, query: query, external: ext }, ntfTranApprove$Success$]]>&NotifyID;<![CDATA[, ntfTranApprove$Failed$]]>&NotifyID;<![CDATA[, o.id);
+}
+function ntfTranApprove$Success$]]>&NotifyID;<![CDATA[(r, id) {
+  var o = $get(id), n = o._controlBehaviour, v = n._language == 'v', msg = '';
+  var ntfCode = o._message[0], ntfStatus = o._message[5], u = n._messageIdList.indexOf(ntfCode) < 0;
+  if (r.Success == '1') {
+    if (ntfStatus == '0' && u) n._updateMessage(ntfCode, 'Approve');
+      else msg = v ? 'Chương trình đã thực hiện xong.' : 'The process was completed successfully.';
+  } else {
+    if (r.Message != '') msg = r.Message;
+    else {
+      if (o._message[5] == '0' && u) n._updateMessage(ntfCode, 'Approve');
+        else msg = v ? 'Chương trình đã thực hiện xong.' : 'The process was completed successfully.';
+    }
+  }
+  if (msg != '') $message.show(msg);
+}
+function ntfTranApprove$Failed$]]>&NotifyID;<![CDATA[(e, id) {$message.showError(e);}
+]]>
+</text>
+</script>

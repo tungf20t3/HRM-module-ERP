@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\ReportCircularTypeField.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="thang" type="Int16" dataFormatString="#0">
+      <header v="Tháng" e="Month"/>
+      <items style="Numeric"></items>
+      <clientScript><![CDATA[onchange=onChange$Value(this);]]></clientScript>
+    </field>
+    <field name="quy" dataFormatString="0, 1, 2, 3, 4" clientDefault="Default" defaultValue="0" align="right" maxLength="1">
+      <header v="Quý" e="Quarter"></header>
+      <items style="Mask"></items>
+      <clientScript><![CDATA[onchange=onChange$Value(this);]]></clientScript>
+    </field>
+    <field name="nam" type="Int16" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="bo_sung" type="Int16" dataFormatString="##0">
+      <header v="Lần bổ sung" e="Additional Times"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_nv" onDemand="true">
+      <header v="Nhân viên" e="Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_nv" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_nv" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" onDemand="true">
+      <header v="Bộ phận" e="Department"></header>
+      <items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)"/>
+    </field>
+    <field name="ten_bp%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="chon_tt" clientDefault="1">
+      <header v="Chọn thông tư" e="Select Circular"/>
+      <items style="DropDownList">
+        <item value="1">
+          <text v="Thông tư số 80" e="Circular No. 80"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="mau_bc" clientDefault="10">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 100, 130"/>
+      <item value="11: [thang].Label, [thang]"/>
+      <item value="11: [quy].Label, [quy]"/>
+      <item value="11: [nam].Label, [nam]"/>
+      <item value="11: [bo_sung].Label, [bo_sung]"/>
+      <item value="110100: [ma_nv].Label, [ma_nv], [ten_nv]"/>
+      <item value="110100: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+      <item value="11000: [chon_tt].Label, [chon_tt]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @period numeric(2,0), @type numeric(1,0)
+select @period = case when @thang = 0 then @quy else @thang end, @type = case when @thang = 0 then 2 else 1 end
+select @period as period, @type as type, @nam as nam, @bo_sung as bo_sung
+
+exec hs_rpt06BK80 @nam, @ma_nv, @ma_bp, @@language, @@userID, @@admin, '@@sysDatabaseName'
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,id=f.get_id(),m=f.getItemValue("thang"),q=f.getItemValue("quy");if(q==0&&m==0||m!=0&&(m<1||m>12)){var e="thang";f._checked=false;$func.hideWait(id);$message.show(String.format($df.getResources(f._language,"Message.RequiredField"),f.getItem(e).field.Label),String.format("$find('{0}').getItem('{1}').focus()",id,e))}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);var b=new Date;!a.getItemValue("nam")&&a.setItemValues("nam, thang",[b.getFullYear(),b.getMonth()+1]);a.live(a.getItem("thang"))}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function onChange$Value(b){var a=b.parentForm,c=b.field.Name;switch(c){case"thang":if(a.getItem("thang").value!=0){a.getItem("quy").value=0;a.live(a.getItem("quy"))}break;case"quy":if(a.getItem("quy").value!=0){a.getItem("thang").value=0;a.live(a.getItem("thang"))}}}function on$Filter$ResponseComplete(j,b){var a=b.object,d=b.type.Context,i=b.type.Result;switch(d){case"Checking":var e=a.grid,k=a.getItemValue("mau_bc"),h=a.getItem("nam").value,c=a.getItemValue("thang"),f=a.getItemValue("quy"),g=c!=0?(a._language=="v"?"Tháng ":"Month ")+c:(a._language=="v"?"Quý ":"Quarter ")+f;e._alterTitle=[null,[["%s",g,true],["%y",h,true]]]}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

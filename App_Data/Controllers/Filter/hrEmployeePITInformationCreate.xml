@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir id="0" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật thông tin thuế TNCN cho nhân viên" e="Update Employee’s PIT Information"></title>
+  <fields>
+    <field name="doi_tuong" dataFormatString="1, 2" defaultValue="1" clientDefault="Default" align="right" allowContain="true">
+      <header v="Đối tượng" e="Kind"></header>
+      <footer v="1 - Cư trú, 2 - Không cư trú" e="1 - Resident, 2 - Non-resident"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange="onChange$Form$Object(this);"]]></clientScript>
+    </field>
+    <field name="tinh_thue_yn" dataFormatString="1, 0" defaultValue="1" clientDefault="Default" align="right" allowContain="true">
+      <header v="Tính thuế" e="Tax Assessment"></header>
+      <footer v="1 - Có, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="tinh_gt_yn" dataFormatString="1, 0" defaultValue="1" clientDefault="Default" align="right" allowContain="true">
+      <header v="Giảm trừ bản thân" e="Deduction"></header>
+      <footer v="1 - Có, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="hop_dong_yn" dataFormatString="1, 0" defaultValue="1" clientDefault="Default" align="right" allowContain="true">
+      <header v="Hợp đồng lao động" e="Labor Contract"></header>
+      <footer v="1 - Từ 3 tháng trở lên, 0 - Nhỏ hơn 3 tháng" e="1 - At least three months, 0 - Less than three months"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange="onChange$Form$Contract(this);"]]></clientScript>
+    </field>
+    <field name="uy_quyen_yn" dataFormatString="1, 0" defaultValue="1" clientDefault="Default" align="right" allowContain="true">
+      <header v="Loại" e="Authorization"></header>
+      <footer v="1 - Ủy quyền quyết toán, 0 - Không" e="1 - Yes, 0 - No"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange="onChange$Authorization(this);"]]></clientScript>
+    </field>
+    <field name="cn_nn_duoi12" type="Boolean" defaultValue="false" allowContain="true">
+      <header v="" e=""></header>
+      <footer v="Cá nhân nước ngoài dưới 12 tháng" e="Foreigner has worked for less than 12 months"/>
+    </field>
+    <field name="ngay_hl" type="DateTime" dataFormatString="@datetimeFormat" align="left">
+      <header v="Ngày hiệu lực" e="Effective Date"></header>
+    </field>
+    <field name="keys" readOnly="true" filterSource="Infinite">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_den" type="DateTime" dataFormatString="@datetimeFormat" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_vao_tu" type="DateTime" dataFormatString="@datetimeFormat" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_vao_den" type="DateTime" dataFormatString="@datetimeFormat" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="vi_tri" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bac" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="official_yn" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 330, 0, 0"/>
+      <item value="111011: [doi_tuong].Label, [doi_tuong], [doi_tuong].Description, [ngay_vao_tu], [ngay_vao_den]"/>
+      <item value="111011: [hop_dong_yn].Label, [hop_dong_yn], [hop_dong_yn].Description, [ma_nv], [ma_bp]"/>
+      <item value="111011: [tinh_thue_yn].Label, [tinh_thue_yn], [tinh_thue_yn].Description, [vi_tri], [ma_bac]"/>
+      <item value="11101: [tinh_gt_yn].Label, [tinh_gt_yn], [tinh_gt_yn].Description, [official_yn]"/>
+      <item value="11101: [uy_quyen_yn].Label, [uy_quyen_yn], [uy_quyen_yn].Description, [keys]"/>
+      <item value="-11000: [cn_nn_duoi12], [cn_nn_duoi12].Description"/>
+      <item value="110-11: [ngay_hl].Label, [ngay_hl], [ngay_tu], [ngay_den]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$lockedDate nvarchar(512), @message nvarchar(512)
+select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+
+if exists(select 1 from dmstt where ngay_ks >= @ngay_hl) begin
+  select 'ngay_ct' as field, @$lockedDate as message
+  return
+end
+select * into #$keys from @keys
+exec hs_EmployeePITInformationCreate @ngay_hl, @doi_tuong, @hop_dong_yn, @tinh_thue_yn, @tinh_gt_yn, @uy_quyen_yn, @cn_nn_duoi12, '', @message out, @@language, @@userID, @@admin
+
+if @message is not null begin
+  select '' as field, @message as message
+  return
+end
+
+select '' as field, '' as message, 'refresh$Form$(this);' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$Form$(b){var a=b.grid;b.setItemValues("keys, ngay_tu, ngay_den, ngay_vao_tu, ngay_vao_den, ma_nv, ma_bp, vi_tri, ma_bac, official_yn",[a._$k,a._dateFrom,a._dateTo,a._dateHireFrom,a._dateHireTo,a._staff,a._dept,a._pos,a._grade,a._official]);setObjectFormHidden(b,"ngay_hl",!(a._official=="1"))}function onChange$Form$Object(a){window.setTimeout(String.format("valid$Form$Authorization(null,'{0}');",a.parentForm._id),2)}function onChange$Form$Contract(a){window.setTimeout(String.format("valid$Form$Authorization(null,'{0}');",a.parentForm._id),2)}function onChange$Authorization(a){window.setTimeout(String.format("validRefAuthorization(null,'{0}');",a.parentForm._id),2)}function valid$Form$Authorization(a,e){if(a==null)a=$find(e);if(a==null)return;var b=a.getItem("uy_quyen_yn"),c=a.getItem("cn_nn_duoi12"),d=$get(String.format("{0}_updateDlgOk",a.get_id())),f=a.getItemValue("doi_tuong")==1&&a.getItemValue("hop_dong_yn")==1;if(f){b.disabled=false;d.live&&b.focus()}else{b.value=0;b.disabled=true;c.checked=false;c.disabled=true;b.live&&d.focus()}}function validRefAuthorization(a,d){if(a==null)a=$find(d);if(a==null)return;var b=a.getItem("cn_nn_duoi12"),c=a.getItem("ngay_hl"),e=a.getItemValue("uy_quyen_yn")==1;if(a._action=="View"){b.disabled=true;return}if(e){b.disabled=false;c.live&&b.focus()}else{b.live&&c.focus();b.checked=false;b.disabled=true}}function refresh$Form$(b){var a=b.grid;a._$k=[];a.goToPage(-1)}function setObjectFormHidden(a,e,c){var b=a.getItem(e);b.field.AllowNulls=!c;if(c){var d=b.parentNode.parentNode;Sys.UI.DomElement.addCssClass(d,"Required");Sys.UI.DomElement.addCssClass(d,a._id)}if(c){if(!a._controlFocus)a._controlFocus=b}else $common.setVisible(b.parentNode.parentNode.parentNode,false)}]]>
+    </text>
+  </script>
+</dir>

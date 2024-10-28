@@ -1,0 +1,105 @@
+﻿<![%Conditional.BIMode;[
+  <!ENTITY BI.PO.Grid.Fields SYSTEM "..\Include\XML\BI.PO.Grid.Fields.txt">
+  <!ENTITY BI.PO.Grid.Views SYSTEM "..\Include\XML\BI.PO.Grid.Views.txt">
+
+  <!ENTITY BI.PMDetail.Grid.Fields SYSTEM "..\Include\XML\BI.PMDetail.Grid.Fields.txt">
+  <!ENTITY BI.PMDetail.Grid.Views SYSTEM "..\Include\XML\BI.PMDetail.Grid.Views.txt">
+  <!ENTITY BI.PMDetail.Grid.Toolbar SYSTEM "..\Include\XML\BI.PMDetail.Grid.Toolbar.txt">
+
+  <!ENTITY BI.PMDetail.Grid.Retrieve "
+case '05':
+  g.showForm('BIPMSAFilter');
+  break;
+">
+  <!ENTITY BI.PMDetail.Grid.EmptyField ", hd_so, hd_ln, stt_rec_hd, stt_rec0hd">
+
+  <!ENTITY BI.PMTran.Dir.Chekking.Var ", n3 = 0, n4 = 0, n5 = 0">
+  <!ENTITY BI.PMTran.Dir.Chekking.Field ", l5 = g._getColumnOrder('stt_rec_hd')">
+  <!ENTITY BI.PMTran.Dir.Chekking.Message.v ", phiếu nhập kho hoặc hợp đồng mua hàng">
+  <!ENTITY BI.PMTran.Dir.Chekking.Message.e ", Inventory Receipt or Schedule Agreement">
+
+  <!ENTITY BI.PMTran.Dir.Chekking.C1 ", v5 = (l5 &gt;= 0) &amp;&amp; (g._getItemValue(i, l5) != '')">
+  <!ENTITY BI.PMTran.Dir.Chekking.C2 "if ((!v1 || !v2 || !v3) &amp;&amp; !q) v4 = false;">
+  <!ENTITY BI.PMTran.Dir.Chekking.C3 "v1 || v2 || v3 || v4 || v5">
+  <!ENTITY BI.PMTran.Dir.Chekking.C4 "
+if (f._checked) {
+  if (v5 &amp;&amp; q) {if (n5 == 0) n5 = 1;}
+  else {
+    if (v4) {if (n4 == 0) n4 = 1;}
+    else {
+      if (v3) {if (n3 == 0) n3 = 1;}
+      else {
+        if (v2) {if (n2 == 0) n2 = 1;}
+        else {
+          if (v1) {if (n1 == 0) n1 = 1;}
+        }
+      }
+    }
+  }
+}
+">
+  <!ENTITY BI.PMTran.Dir.Chekking.C5 "n1 + n2 + n3 + n4 + n5">
+
+  <!ENTITY BI.Post.History.PI "
+  exec AI_ERP$BI$Voucher$Posting$HistoryPI 'm72$$partition$current', 'd72$$partition$current', @stt_rec, @@id, 'a.stt_rec_dh &lt;&gt; ''''',
+    'tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_xuat = 0, tien_nt_x = 0, tien_nhap = b.tien, tien_nt_n = b.tien_nt', '', &StockType;
+">
+  <!ENTITY BI.Delete.History.PI "delete bih95$000000 where stt_rec = @stt_rec">
+
+  <!ENTITY BI.Post.History.SA "
+  exec AI_ERP$BI$Voucher$Posting$HistorySA 'm72$$partition$current', 'd72$$partition$current', @stt_rec, @@id, 'a.stt_rec_hd &lt;&gt; ''''',
+    'tien_nt2, tien2',
+    'so_seri, ma_khon, ma_nvbh, ma_nv',
+    'tien_xuat = 0, tien_nt_x = 0, tien_nhap = b.tien, tien_nt_n = b.tien_nt', '', &StockType;
+">
+  <!ENTITY BI.Delete.History.SA "delete bih06$000000 where stt_rec = @stt_rec">
+
+  <!ENTITY BI.PMTran.Approval.Before "
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '1', stt_rec_hd, stt_rec0hd, so_luong * he_so from d72$$partition$previous where stt_rec = @stt_rec and stt_rec_hd &lt;&gt; ''
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '1', stt_rec_ttmh, stt_rec0ttmh, so_luong * he_so from d72$$partition$previous where stt_rec = @stt_rec and stt_rec_ttmh &lt;&gt; ''
+">
+  <!ENTITY BI.PMTran.Approval.After "
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '2', stt_rec_hd, stt_rec0hd, so_luong * he_so from d72$$partition$current where stt_rec = @stt_rec and stt_rec_hd &lt;&gt; ''
+insert into #duyet(action, stt_rec, stt_rec0, so_luong) select '2', stt_rec_ttmh, stt_rec0ttmh, so_luong * he_so from d72$$partition$current where stt_rec = @stt_rec and stt_rec_ttmh &lt;&gt; ''
+">
+]]>
+
+<!ENTITY BI.PMDetail.Grid.Fields "">
+<!ENTITY BI.PMDetail.Grid.Views "">
+<!ENTITY BI.PMDetail.Grid.Toolbar "&PMDetailRetrieve;">
+<!ENTITY BI.PMDetail.Grid.Retrieve "">
+<!ENTITY BI.PMDetail.Grid.EmptyField "">
+
+<!ENTITY BI.PMTran.Dir.Chekking.Var "">
+<!ENTITY BI.PMTran.Dir.Chekking.Field "">
+<!ENTITY BI.PMTran.Dir.Chekking.Message.v "hoặc phiếu nhập kho">
+<!ENTITY BI.PMTran.Dir.Chekking.Message.e "or Inventory Receipt">
+
+<!ENTITY BI.PMTran.Dir.Chekking.C1 "">
+<!ENTITY BI.PMTran.Dir.Chekking.C2 "if ((!v1 || !v2) &amp;&amp; !q) v3 = false;">
+<!ENTITY BI.PMTran.Dir.Chekking.C3 "v1 || v2 || v3 || v4">
+<!ENTITY BI.PMTran.Dir.Chekking.C4 "
+if (f._checked) {
+  if (v3 &amp;&amp; q) {if (n3 == 0) n3 = 1;}
+  else {
+    if (v2) {if (n2 == 0) n2 = 1;}
+    else {
+      if (v1) {if (n1 == 0) n1 = 1;}
+    }
+  }
+}
+">
+<!ENTITY BI.PMTran.Dir.Chekking.C5 "n1 + n2 + n3">
+
+<!ENTITY BI.Post.History.PI "">
+<!ENTITY BI.Delete.History.PI "">
+
+<!ENTITY BI.Post.History.SA "">
+<!ENTITY BI.Delete.History.SA "">
+
+<!ENTITY BI.PMTran.Approval.Before "">
+<!ENTITY BI.PMTran.Approval.After "">
+
+<!ENTITY BI.Post.InventoryStatement "">

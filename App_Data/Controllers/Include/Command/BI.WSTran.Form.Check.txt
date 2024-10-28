@@ -1,0 +1,90 @@
+﻿<![CDATA[
+declare @q14 nvarchar(4000), @p14 varchar(6), @r14 int
+select a.stt_rec_kt as stt_rec, min(a.line_nbr) as line_nbr into #d14 from ]]>&BI.WSTran.DetailTableSource;<![CDATA[ a where a.stt_rec_kt <> '' group by a.stt_rec_kt
+if exists(select 1 from #d14) begin
+  select distinct convert(varchar(6), a.ngay_ct, 112) as p into #p14 from bic14$000000 a where exists(select 1 from #d14 b where a.stt_rec = b.stt_rec)
+  select @p14 = min(p) from #p14
+  while @p14 is not null begin
+    select @q14 = 'select top 1 @r14 = a.line_nbr from #d14 a join bim14$' + @p14 + ' b on a.stt_rec = b.stt_rec where not ((b.chuyen_ton_kho = ''1'' and @loai_ct in (''5'', ''9'')) or (b.chuyen_ton_kho = ''0'' and @loai_ct in (''1'', ''5'', ''6'')))'
+    exec sp_executesql @q14, N'@r14 int output, @loai_ct varchar(2)', @r14 output, @loai_ct
+    if @r14 is not null begin
+      select 'd68' as fields, case when @@language = 'V' then N'Dữ liệu trong chi tiết không phù hợp với mã giao dịch.' else N'Detail data does not match transaction.' end as message, 'message$Voucher$Detail$Show(this, "d68", ' + rtrim(@r14) + ', "kt_so");' as script
+      return
+    end
+    select @p14 = min(p) from #p14 where p > @p14
+  end
+end
+
+if @status <> '0' and @tt_yn = 1 begin
+  declare @q$Delivery nvarchar(4000), @e$Delivery$Invalid nvarchar(512), @e$Delivery$Line int
+
+  select @e$Delivery$Invalid = case when @@language = 'v' then N'Đã có phát sinh liên quan đến vật tư <span class="Highlight">%s</span> của đơn hàng, không sửa hoặc xóa được.' else N'There existed processing against Purchase Order for item <span class="Highlight">%s</span>, it cannot be edited or deleted.' end
+
+  select a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_sa as stt_rec_hd, a.stt_rec0sa as stt_rec0hd, min(line_nbr) as line_nbr, cast(null as datetime) as datetime2 into #d$Delivery from ]]>&BI.WSTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and (a.stt_rec_dh <> '' or a.stt_rec_hd <> '') group by a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_sa, a.stt_rec0sa
+  #IF @@action = 'Edit' #THEN
+    update #d$Delivery set datetime2 = (select top 1 datetime2 from m68$$partition$previous where stt_rec = @stt_rec and status <> '0' and tt_yn = 1)
+  #END
+  update #d$Delivery set datetime2 = getdate() where datetime2 is null
+
+  if exists(select 1 from #d$Delivery where stt_rec_dh <> '') begin
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih94$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec <> b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 < b.datetime2
+    if @e$Delivery$Line is not null begin
+      select 'd68' as field, replace(@e$Delivery$Invalid, '%s', rtrim(a.ma_vt)) as message from ]]>&BI.WSTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih95$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec <> b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 < b.datetime2
+    if @e$Delivery$Line is not null begin
+      select 'd68' as field, replace(@e$Delivery$Invalid, '%s', rtrim(a.ma_vt)) as message from ]]>&BI.WSTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+  end
+
+  if exists(select 1 from #d$Delivery where stt_rec_hd <> '') begin
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih06$000000 b on a.stt_rec_hd = b.stt_rec_hd and a.stt_rec0hd = b.stt_rec0hd where a.stt_rec <> b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 < b.datetime2
+    if @e$Delivery$Line is not null begin
+      select 'd68' as field, replace(@e$Delivery$Invalid, '%s', rtrim(a.ma_vt)) as message from ]]>&BI.WSTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+  end
+end
+
+declare @e$WSCheck nvarchar(4000), @e$WSScript nvarchar(4000), @e$WSLine int, @e$WSItem nvarchar(4000), @q$WS nvarchar(4000), @o$WS varchar(1), @v$WS varchar(3), @p$WS varchar(6), @e$WSWarning bit, @e$WSErr bit
+
+select a.ma_bp0, min(a.line_nbr) as line_nbr, identity(int, 1, 1) as id into #d from ]]>&BI.WSTran.DetailTableSource;<![CDATA[ a where a.ma_bp0 <> '' group by a.ma_bp0
+if exists(select 1 from #d where id > 1) begin
+  select top 1 @e$WSScript = 'message$Voucher$Detail$Show(this, "d68", ' + rtrim(line_nbr) + ', "ma_vt");',
+      @e$WSCheck = case when @@language = 'V' then N'Tồn tại <span class="Highlight">Đơn vị mua</span> khác nhau trên các dòng chứng từ kế thừa.' else N'There existed multiple <span class="Highlight">Purchasing Organization</span> on process extracted data' end
+    from #d
+  select 'd68' as fields, @e$WSCheck as message, @e$WSScript as script
+  return
+end
+
+if exists(select 1 from ]]>&BI.WSTran.DetailTableSource;<![CDATA[ a where a.stt_rec_dh <> '' or a.stt_rec_hd <> '') begin
+  select top 0 cast('' as varchar(32)) as ma_vung, stt_rec, cast('' as varchar(3)) as stt_rec0, cast('' as varchar(6)) as p into #c68 from c68$000000
+  insert into #c68 select distinct a.ma_vung, a.stt_rec_pn, a.stt_rec0pn, convert(varchar(6), b.ngay_ct, 112) from ]]>&BI.WSTran.DetailTableSource;<![CDATA[ a left join c96$000000 b on a.stt_rec_pn = b.stt_rec where a.stt_rec_pn <> ''
+  insert into #c68 select distinct a.ma_vung, a.stt_rec_tl, a.stt_rec0tl, convert(varchar(6), b.ngay_ct, 112) from ]]>&BI.WSTran.DetailTableSource;<![CDATA[ a left join c68$000000 b on a.stt_rec_tl = b.stt_rec where a.stt_rec_tl <> ''
+
+  select distinct a.stt_rec_dh as stt_rec into #d68 from ]]>&BI.WSTran.DetailTableSource;<![CDATA[ a where a.stt_rec_dh <> ''
+  select distinct right(a.stt_rec, 3) as v, b.m$ as m, b.d$ as d into #v from #c68 a join dmct9 b on right(a.stt_rec, 3) = b.ma_ct
+  select distinct p into #p68 from #c68
+
+  if exists(select 1 from #p68) begin
+    select @p$WS = min(p) from #p68
+    while @p$WS is not null begin
+      select @v$WS = min(v) from #v
+      while @v$WS is not null begin
+        if isnull(@e$WSWarning, 0) = 0 begin
+          select @q$WS = 'if exists(select 1 from #c68 a join ' + rtrim(d) + @p$WS + ' b on a.stt_rec = b.stt_rec and a.stt_rec0 = b.stt_rec0 where b.ma_vung <> a.ma_vung) select @e$WSWarning = 1' from #v where v = @v$WS
+          exec sp_executesql @q$WS, N'@e$WSWarning bit out', @e$WSWarning out
+          if isnull(@e$WSWarning, 0) = 1
+            select @$warning = case when @$warning = '' then '' else @$warning + ' ' end
+              + case when @@language = 'V' then N'Thông tin vùng ' + case @v$WS when 'PD1' then N'của phiếu nhập mua hàng' when 'PXC' then N'của phiếu xuất trả lại nhà cung cấp' else '' end + N' không giống với phiếu nhập mua hàng.'
+                else N'Purchase Receipt should have same plant' + case @v$WS when 'PD1' then N' as Purchase Receipt.' when 'PXC' then N' as Return to Supplier.' else N'.' end end
+        end
+        select @v$WS = min(v) from #v where v > @v$WS
+      end
+      select @p$WS = min(p) from #p68 where p > @p$WS
+    end
+  end
+end
+]]>

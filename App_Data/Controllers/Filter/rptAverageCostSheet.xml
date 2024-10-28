@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Controller "rptAverageCostSheet">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY LineCounter "5">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.rptAverageCostSheet SYSTEM "..\Include\ReportMargin.rptAverageCostSheet">
+  %ReportMargin.rptAverageCostSheet;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="thang" type="Decimal" dataFormatString="#0" allowNulls="false" aliasName="toPeriod" defaultValue="(new Date()).getMonth() + 1">
+      <header v="Tháng" e="Month"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false" aliasName="toYear" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_kho" categoryIndex="1">
+      <header v="Mã kho" e="Site Code"/>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="status = '1'" check="1 = 1" />
+    </field>
+    <field name="ten_kho%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nh" categoryIndex="1">
+      <header v="Nhóm kho" e="Site Group"/>
+      <items style="AutoComplete" controller="SiteGroup" reference="ten_nhom%l" key="status = '1'" check="1 = 1" />
+    </field>
+    <field name="ten_nhom%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt" categoryIndex="1">
+      <header v="Mã vật tư" e="Item Code"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vt%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vt" categoryIndex="1">
+      <header v="Nhóm vật tư" e="Item Group"/>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 1 and status = '1'" check="loai_nh = 1"/>
+    </field>
+    <field name="nh_vt2" categoryIndex="1">
+      <header v="" e=""/>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 2 and status = '1'" check="loai_nh = 2"/>
+    </field>
+    <field name="nh_vt3" categoryIndex="1">
+      <header v="" e=""/>
+      <items style="AutoComplete" controller="ItemGroup" key="loai_nh = 3 and status = '1'" check="loai_nh = 3"/>
+    </field>
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="view" readOnly="true" hidden="true" clientDefault="0"></field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 20, 10, 10, 10, 50, 100, 100, 130, 0"/>
+      <item value="1100------: [thang].Label, [thang]"/>
+      <item value="1100------: [nam].Label, [nam]"/>
+      <item value="1100001000: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="1100001000: [ma_nh].Label, [ma_nh], [ten_nhom%l]"/>
+      <item value="1100001000: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="110000111-: [nh_vt].Label, [nh_vt], [nh_vt2], [nh_vt3], [view]"/>
+      <item value="11000000-: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 20, 10, 10, 10, 50, 100, 100, 130, 0">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @itemCalcType varchar(1), @siteGroupType varchar(1)
+select @itemCalcType = rtrim(val) from options where upper(name) ='M_GIA_VT'
+select @siteGroupType = rtrim(val) from options where upper(name) = 'M_GIA_NH_KHO'
+select 'this._itemCalcType = ' + @itemCalcType + ';this._siteGroupType = ' + @siteGroupType + ';active$VoucherFilter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @tenkho1 nvarchar(1024), @ten_kho_e nvarchar(1024)
+if not exists(select @ma_kho from dmkho where ma_kho = @ma_kho)
+  select @tenkho1 = N'', @ten_kho_e = ''
+else
+  select @tenkho1 = ten_kho, @ten_kho_e = ten_kho2 from dmkho where ma_kho = @ma_kho
+select @thang as thang, @nam as nam, @tenkho1 as ten_kho, @ten_kho_e as ten_kho2, @ma_kho as ma_kho, cast(@view as int) as viewtype
+exec rs_rptAverageCostSheet @thang, @nam, @ma_kho, @ma_vt, @nh_vt, @nh_vt2, @nh_vt3, '', 'ma_vt', @ma_nh, @@language, @@userID, @@admin, ']]>&Controller;<![CDATA[', '@@sysDatabaseName'
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  if (f._itemCalcType != 2) {
+    setItemDisable(f, 'ma_kho', true);
+  }
+  if (f._itemCalcType != 1 || f._siteGroupType != 1) {
+    setItemDisable(f, 'ma_nh', true);
+  }
+  if (f._itemCalcType == 1 && f._siteGroupType == 1) {
+    f.getItem('view').value = 2;
+  }
+  if (f._itemCalcType == 1 && f._siteGroupType == 0) {
+    f.getItem('view').value = 0;
+  }
+  if ((f._itemCalcType == 2 && f._siteGroupType == 0)|| (f._itemCalcType == 2 && f._siteGroupType == 1)) {
+    f.getItem('view').value = 1;
+  }
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(m,f){var a=f.object,h=f.type.Context,l=f.type.Result;switch(h){case"Checking":var d=a.grid,k=a.getItemValue("mau_bc"),g=a.getItemValue("view"),e=a.getItem("ma_kho").value,b=a.getItem("ma_nh"),i=a.getItemValue("thang"),j=a.getItemValue("nam"),c="";d._hiddenFields=[{Fields:"gia_nt",Value:k=="10"},{Fields:"ma_kho, ten_kho%l",Value:e.disabled&&b.disabled}];if(!e.disabled)if(e=="")c=a._language=="v"?"Kho: tất cả các kho, ":"Site: All Sites, ";else c=(a._language=="v"?"Kho: ":"Site: ")+e+" - "+a.getItemValue("ten_kho%l")+", ";d._hiddenForms=[{Form:[0,1,5,6],Value:g!=0},{Form:[2,3,7,8],Value:g==0}];if(!b.disabled)if(b.value=="")c=a._language=="v"?"Nhóm kho: tất cả các nhóm kho,":"Site Group: All Sites Group,";else c=(a._language=="v"?"Nhóm kho: ":"Site Group: ")+b+" - "+a.getItemValue("ten_nhom%l")+", ";d._siteGroupDisabled=b.disabled;d._alterTitle=[null,[["%s",c,true],["%m",i,true],["%y",j,true]]];remove$GridReport$Filter(d)}}function setItemDisable(c,f,e){for(var b=f.split(","),a=0;a<b.length;a++){var d=c.getItem($func.trim(b[a]));c._setReadOnly(d,e);d.disabled=e}}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

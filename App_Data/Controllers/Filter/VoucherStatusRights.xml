@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir table="vsysStatusRight2" code="user_id, ma_ct, status_id" order="name, ma_ct, status_id" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc chi tiết giới hạn quyền truy cập cho các trạng thái của chứng từ" e="Limit Access Right to Voucher Statuses Filter"></title>
+  <fields>
+    <field name="ma_ct" allowNulls="false">
+      <header v="Danh sách chứng từ" e="Voucher List"></header>
+      <items style="Lookup" controller="Voucher" key="wedition &lt;&gt; '9' and voucher_yn = 1 and status = '1' and ma_ct not in('PT0', 'PC0')" check="wedition &lt;&gt; '9' and voucher_yn = 1 and ma_ct not in('PT0', 'PC0')"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 430"/>
+      <item value="11: [ma_ct].Label, [ma_ct]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+if @@admin <> 1 begin
+  select '' as field, case when @@language = 'V' then N'Không có quyền truy cập chức năng này.' else 'You are not authorized to execute this function.' end as message
+  return
+end else begin
+  select 'active$VoucherFilter$(this);' as message
+  return
+end
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_ct",true)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,b){var c=b.object,e=b.type.Context,f=b.type.Result;switch(e){case"Checking":var a=c.grid,d=[];a._voucherCode=c.getItemValue("ma_ct");Array.add(d,{Name:"dbo.ff_InList(ma_ct, '"+a._voucherCode+"')",Opr:"=",Value:1,Type:"String",Ignore:false});a.set_externalKey(d);a._alterTitle=[null,[["%s1",$func.trim(a._voucherCode),true]]]}}]]>
+    </text>
+  </script>
+
+</dir>

@@ -1,0 +1,1378 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE report [
+  <!ENTITY b SYSTEM ".\Include\BaseCurrency.xml">
+  <!ENTITY f SYSTEM ".\Include\ForeignCurrency.xml">
+  <!ENTITY s SYSTEM ".\Include\Separate.xml">
+
+  <!ENTITY p "../images/pdf.gif">
+  <!ENTITY e "../images/excel.gif">
+]>
+
+<report xmlns="urn:schemas-ai-erp:data-report">
+  <query>
+    <text>
+      <![CDATA[
+select * into #$keys from @$keys
+if @@form = '010' begin
+  exec hs_rptSIHIDeclarationExport '', @$report_date, 1, @@language, @@userID, @@admin
+end else begin
+  if @@form = '020' exec hs_rptSIHIDeclarationExport '', @$report_date, 2, @@language, @@userID, @@admin
+  if @@form in ('030', '040') exec hs_rptSIHIDeclarationAndChangeLaborInformationExport '', @$report_date, 4, @@language, @@userID, @@admin
+  if @@form in ('060', '080') exec hs_rptSIHIDeclarationAndChangeLaborInformationExport '', @$report_date, 6, @@language, @@userID, @@admin
+  if @@form in ('050', '070', '090') exec hs_rptSIHIDeclarationDependantExport '', @$report_date, 1, @@language, @@userID, @@admin
+end
+]]>
+    </text>
+  </query>
+  <forms>
+    <form id="010" reportFile ="hrptSIHIDeclaration_01" commandArgument="pdf" urlImage="&p;">
+      <header v="Tờ khai tham gia BHXH, BHYT theo quyết định số 1111" e="Social and Health Insurance Declaration on Decision No. 1111/QD-BHXH"/>
+      <download>
+        <header v="Tờ khai tham gia BHXH, BHYT" e="Social and Health Insurance Declaration"/>
+      </download>
+    </form>
+    &s;
+    <form id="020" reportFile ="hrptSIHIDeclaration_02" commandArgument="pdf">
+      <header v="Tờ khai tham gia BHXH, BHYT theo quyết định số 1018" e="Social and Health Insurance Declaration on Decision No. 1018/QD-BHXH"/>
+      <download>
+        <header v="Tờ khai tham gia BHXH, BHYT" e="Social and Health Insurance Declaration"/>
+      </download>
+    </form>
+    &s;
+    <form id="030" reportFile ="hrptSIHIDeclaration_03" commandArgument="pdf">
+      <header v="Tờ khai tham gia BHXH, BHYT theo quyết định số 959" e="Social and Health Insurance Declaration on Decision No. 959/QD-BHXH"/>
+      <download>
+        <header v="Tờ khai tham gia BHXH, BHYT" e="Social and Health Insurance Declaration"/>
+      </download>
+      <fields>
+        <field name="h_form1_959" type ="String">
+          <header v="(Ban hành kèm theo QĐ số: 959/QĐ-BHXH" e="(Issued with Decision No. 959/QĐ-BHXH"/>
+        </field>
+        <field name="h_form2_959" type ="String">
+          <header v="ngày 09/9/2015 của BHXH Việt Nam)" e="dated 09 September 2015 of Vietnam Social Insurance)"/>
+        </field>
+        <field name="title_bhxh_959" type ="String">
+          <header v="BẢO HIỂM XÃ HỘI VIỆT NAM" e="VIETNAM SOCIAL INSURANCE"/>
+        </field>
+        <field name="title_959" type ="String">
+          <header v="TỜ KHAI CUNG CẤP VÀ THAY ĐỔI" e="DECLARATION OF PROVISION AND CHANGE OF"/>
+        </field>
+        <field name="title2_959" type ="String">
+          <header v="THÔNG TIN NGƯỜI THAM GIA BẢO HIỂM XÃ HỘI, BẢO HIỂM Y TẾ" e="INFORMATION OF PARTICIPANT OF SOCIAL INSURANCE AND HEALTH INSURANCE"/>
+        </field>
+        <field name="h_kinh_gui" type="String">
+          <header v="Kính gửi:" e="Dear:"/>
+        </field>
+        <field name="h_01_959" type="String">
+          <header v="[01]. Họ và tên (viết chữ in hoa):" e="[01]. Full Name:"/>
+        </field>
+        <field name="h_02_959" type="String">
+          <header v="[02]. Số định danh:" e="[02]. Social Insurance Book No.:"/>
+        </field>
+        <field name="h_03_959" type="String">
+          <header v="[03]. Ngày tháng năm sinh:" e="[03]. Date of Birth:"/>
+        </field>
+        <field name="h_04_959" type="String">
+          <header v="[04]. Giới tính: " e="[04]. Gender: "/>
+        </field>
+        <field name="h_05_959" type="String">
+          <header v="[05]. Quốc tịch" e="[05]. Nationality"/>
+        </field>
+        <field name="h_06_959" type="String">
+          <header v="[06]. Nơi cấp giấy khai sinh: [06.1]. Xã (phường, thị trấn)" e="[06]. Place of birth: [06.1]. Ward (Commune/Town)"/>
+        </field>
+        <field name="h_62_959" type="String">
+          <header v="[06.2]. Huyện (quận, thị xã, thành phố thuộc tỉnh)" e="[06.2]. District (towns and provincial cities)"/>
+        </field>
+        <field name="h_63_959" type="String">
+          <header v="[06.3]. Tỉnh (thành phố)" e="[06.3]. Province (City)"/>
+        </field>
+        <field name="h_07_959" type="String">
+          <header v="[07]. Số chứng minh thư (Hộ chiếu):" e="[07]. ID Card No. (Passport No.):"/>
+        </field>
+        <field name="h_08_959" type="String">
+          <header v="[08]. Địa chỉ nơi cư trú: [08.1]. Số nhà, đường phố, thôn xóm:" e="[08]. Permanent Address: [08.1]. House No, Road/Street,Village:"/>
+        </field>
+        <field name="h_82_959" type="String">
+          <header v="[08.2]. Xã (phường, thị trấn)" e="[08.2]. Ward (Commune/Town)"/>
+        </field>
+        <field name="h_83_959" type="String">
+          <header v="[08.3]. Huyện (quận, thị xã, thành phố thuộc tỉnh)" e="[08.3]. District (towns and provincial cities)"/>
+        </field>
+        <field name="h_84_959" type="String">
+          <header v="[08.4]. Tỉnh (thành phố)" e="[08.4]. Province (City)"/>
+        </field>
+        <field name="h_09_959" type="String">
+          <header v="[09]. Địa chỉ liên hệ: [9.1]. Số nhà, đường phố, thôn xóm:" e="[09]. Contact Address: [9.1]. House No, Road/Street,Village:"/>
+        </field>
+        <field name="h_92_959" type="String">
+          <header v="[09.2]. Xã (phường, thị trấn)" e="[09.2]. Ward (Commune/Town)"/>
+        </field>
+        <field name="h_93_959" type="String">
+          <header v="[09.3]. Huyện (quận, thị xã, thành phố thuộc tỉnh)" e="[09.3]. District (towns and provincial cities)"/>
+        </field>
+        <field name="h_94_959" type="String">
+          <header v="[09.4]. Tỉnh (thành phố)" e="[09.4]. Province (City)"/>
+        </field>
+        <field name="h_10_959" type="String">
+          <header v="[10]. Mức tiền đóng:" e="[10]. Sum of Payment:"/>
+        </field>
+        <field name="h_11_959" type="String">
+          <header v="[11]. Phương thức đóng:" e="[11]. Payment Method:"/>
+        </field>
+        <field name="h_12_959" type="String">
+          <header v="[12]. Nơi đăng ký khám bệnh, chữa bệnh ban đầu:" e="[12]. First Registered Medical Care Center:"/>
+        </field>
+        <field name="h_13_959" type="String">
+          <header v="[13]. Nội dung thay đổi, yêu cầu:" e="[13]. Content of change, request:"/>
+        </field>
+        <field name="h_14_959" type="String">
+          <header v="[14]. Tài liệu kèm theo:" e="[14]. Document Included:"/>
+        </field>
+        <field name="h_xac_nhan1_959" type="String">
+          <header v="XÁC NHẬN CỦA ĐƠN VỊ" e="CERTIFICATION OF ORGANIZATION"/>
+        </field>
+        <field name="h_xac_nhan2_959" type="String">
+          <header v="(đơn vị chỉ phải xác nhận khi người tham gia thay đổi họ, tên đệm, tên; ngày, tháng, năm sinh)" e="(The Organization have only certified when the participants changed their middle names, names, date of birth)"/>
+        </field>
+        <field name="h_cam_doan_959" type="String">
+          <header v="Tôi cam đoan những nội dung kê khai là đúng và chịu trách nhiệm trước pháp luật về những nội dung đã kê khai." e="I undertake that the above information is correct and shall be fully responsible for the declared figures."/>
+        </field>
+        <field name="h_nguoi_khai_959" type="String">
+          <header v="Người kê khai" e="Declared by"/>
+        </field>
+      </fields>
+    </form>
+    &s;
+    <form id="040" reportFile ="hrptSIHIDeclaration_04" commandArgument="pdf">
+      <header v="Tờ khai tham gia BHXH, BHYT theo quyết định số 595" e="Social and Health Insurance Declaration on Decision No. 595/QD-BHXH"/>
+      <download>
+        <header v="Tờ khai tham gia BHXH, BHYT" e="Social and Health Insurance Declaration"/>
+      </download>
+      <fields>
+        <field name="h_form0_595" type ="String">
+          <header v="Mẫu TK1-TS" e="Form TK1-TS"/>
+        </field>
+        <field name="h_form1_595" type ="String">
+          <header v="(Ban hành kèm theo QĐ số: 595/QĐ-BHXH" e="(Issued with Decision No. 595/QĐ-BHXH"/>
+        </field>
+        <field name="h_form2_595" type ="String">
+          <header v="ngày 14/4/2017 của BHXH Việt Nam)" e="dated 14 April 2017 of Vietnam Social Insurance)"/>
+        </field>
+        <field name="title_bhxh_595" type ="String">
+          <header v="BẢO HIỂM XÃ HỘI VIỆT NAM" e="VIETNAM SOCIAL INSURANCE"/>
+        </field>
+        <field name="title_595" type ="String">
+          <header v="TỜ KHAI" e="DECLARATION OF"/>
+        </field>
+        <field name="title2_595" type ="String">
+          <header v="THAM GIA, ĐIỀU CHỈNH THÔNG TIN BẢO HIỂM XÃ HỘI, BẢO HIỂM Y TẾ" e="PROVISION AND CHANGE OF INFORMATION OF PARTICIPANT OF SOCIAL INSURANCE AND HEALTH INSURANCE"/>
+        </field>
+        <field name="h_kinh_gui" type="String">
+          <header v="Kính gửi:" e="Dear:"/>
+        </field>
+        <field name="h_kk_bb" type="String">
+          <header v="I. Phần kê khai bắt buộc" e="I. Compulsory Declaration"/>
+        </field>
+        <field name="h_01_595" type="String">
+          <header v="[01]. Họ và tên (viết chữ in hoa):" e="[01]. Full Name:"/>
+        </field>
+        <field name="h_03_595" type="String">
+          <header v="[02]. Ngày tháng năm sinh:" e="[02]. Date of Birth:"/>
+        </field>
+        <field name="h_04_595" type="String">
+          <header v="[03]. Giới tính: " e="[03]. Gender: "/>
+        </field>
+        <field name="h_05_595" type="String">
+          <header v="[04]. Quốc tịch:" e="[04]. Nationality:"/>
+        </field>
+        <field name="h_05n_595" type="String">
+          <header v="[05]. Dân tộc:" e="[05]. Ethnic:"/>
+        </field>
+        <field name="h_06_595" type="String">
+          <header v="[06]. Nơi đăng ký giấy khai sinh: [06.1]. Xã (phường, thị trấn):" e="[06]. Place of birth certificate registration: [06.1]. Ward (Commune/Town):"/>
+        </field>
+        <field name="h_62_595" type="String">
+          <header v="[06.2]. Huyện (quận, thị xã, thành phố thuộc tỉnh):" e="[06.2]. District (towns and provincial cities):"/>
+        </field>
+        <field name="h_63_595" type="String">
+          <header v="[06.3]. Tỉnh (thành phố):" e="[06.3]. Province (City):"/>
+        </field>
+        <field name="h_09_595" type="String">
+          <header v="[07]. Địa chỉ nhận hồ sơ: [07.1]. Số nhà, đường phố, thôn xóm:" e="[07]. Contact Address: [07.1]. House No, Road/Street, Village:"/>
+        </field>
+        <field name="h_92_595" type="String">
+          <header v="[07.2]. Xã (phường, thị trấn):" e="[07.2]. Ward (Commune/Town):"/>
+        </field>
+        <field name="h_93_595" type="String">
+          <header v="[07.3]. Huyện (quận, thị xã, thành phố thuộc tỉnh):" e="[07.3]. District (towns and provincial cities):"/>
+        </field>
+        <field name="h_94_595" type="String">
+          <header v="[07.4]. Tỉnh (thành phố):" e="[07.4]. Province (City):"/>
+        </field>
+        <field name="h_08n_595" type="String">
+          <header v="[08]. Họ tên cha/mẹ/người giám hộ" e="[08]. The father (mother) or guardian"/>
+        </field>
+        <field name="h_08n2_595" type="String">
+          <header v="(đối với trẻ em dưới 6 tuổi):" e="(For children under 06 years old):"/>
+        </field>
+        <field name="h_kk_chung" type="String">
+          <header v="II. Phần kê khai chung" e="II. General Declaration"/>
+        </field>
+        <field name="h_09n_595" type="String">
+          <header v="[09]. Mã số BHXH (đã cấp):" e="[09]. SI No.:"/>
+        </field>
+        <field name="h_09n1_595" type="String">
+          <header v="[09.1]. Số điện thoại liên hệ:" e="[09.1]. Phone Number:"/>
+        </field>
+        <field name="h_09n2_595" type="String">
+          <header v="[09.2]. Số CMND/Hộ chiếu/Thẻ căn cước:" e="[09.2]. ID Card/Passport No.:"/>
+        </field>
+        <field name="h_10n_595" type="String">
+          <header v="[10]. Mã số hộ gia đình (đã cấp):" e="[10]. Household ID:"/>
+        </field>
+        <field name="h_10n0_595" type="String">
+          <header v="(trường hợp chưa có mã hộ gia đình thì kê khai bổ sung Phụ lục đính kèm tờ khai)" e="(In case of no Household ID, the appendix attached to the declaration is added)"/>
+        </field>
+        <field name="h_10_595" type="String">
+          <header v="[11]. Mức tiền đóng:" e="[11]. Sum of Payment:"/>
+        </field>
+        <field name="h_11_595" type="String">
+          <header v="[12]. Phương thức đóng:" e="[12]. Payment Method:"/>
+        </field>
+        <field name="h_12_595" type="String">
+          <header v="[13]. Nơi đăng ký khám bệnh, chữa bệnh ban đầu:" e="[13]. First Registered Medical Care Center:"/>
+        </field>
+        <field name="h_13_595" type="String">
+          <header v="[14]. Nội dung thay đổi, yêu cầu:" e="[14]. Content of change, request:"/>
+        </field>
+        <field name="h_14_595" type="String">
+          <header v="[15]. Hồ sơ kèm theo (nếu có):" e="[15]. Document Included (if any):"/>
+        </field>
+        <field name="h_xac_nhan1_595" type="String">
+          <header v="XÁC NHẬN CỦA ĐƠN VỊ" e="CERTIFICATION OF ORGANIZATION"/>
+        </field>
+        <field name="h_xac_nhan2_595" type="String">
+          <header v="(chỉ áp dụng đối với người lao động thay đổi họ, tên đệm, tên; ngày, tháng, năm sinh)" e="(Only applies to changing the names, date of birth)"/>
+        </field>
+        <field name="h_cam_doan_595" type="String">
+          <header v="Tôi cam đoan những nội dung kê khai là đúng và chịu trách nhiệm trước pháp luật về những nội dung đã kê khai." e="I undertake that the above information is correct and shall be fully responsible for the declared figures."/>
+        </field>
+        <field name="h_nguoi_ky" type="String">
+          <header v="Người kê khai" e="Declared by"/>
+        </field>
+      </fields>
+    </form>
+    <form id="050" reportFile ="hrptSIHIDeclaration_05" commandArgument="pdf">
+      <header v="Phụ lục thành viên hộ gia đình theo quyết định số 595" e="Family ties appendix by the decision 595/QĐ-BHXH"/>
+      <download>
+        <header v="Phụ lục thành viên hộ gia đình" e="Family ties appendix"/>
+      </download>
+      <fields>
+        <field name="title_pl_595" type ="String">
+          <header v="Phụ lục: Thành viên hộ gia đình" e="Family ties appendix"/>
+        </field>
+        <field name="h_chu_ho_595" type ="String">
+          <header v="Họ và tên chủ hộ:" e="The name of householder"/>
+        </field>
+        <field name="h_so_dt_595" type="String">
+          <header v="Số điện thoại (nếu có):" e="Phone Number (if any):"/>
+        </field>
+        <field name="h_hk_595" type="String">
+          <header v="Số sổ hộ khẩu (hoặc sổ tạm trú):" e="Resident Registration Book"/>
+        </field>
+        <field name="h_dc_595" type="String">
+          <header v="Địa chỉ: Thôn (bản, tổ dân phố)" e="Address: Village"/>
+        </field>
+        <field name="h_phuong_595" type="String">
+          <header v="Xã (phường, thị trấn)" e="Ward (Commune/Town)"/>
+        </field>
+        <field name="h_quan_595" type="String">
+          <header v="Huyện (quận, thị xã, Tp thuộc tỉnh):" e="District (towns and provincial cities):"/>
+        </field>
+        <field name="h_tinh_595" type="String">
+          <header v="Tỉnh (Tp):" e="Province (City):"/>
+        </field>
+        <field name="h_stt_595" type="String">
+          <header v="Stt" e="No."/>
+        </field>
+        <field name="h_ho_ten_595" type="String">
+          <header v="Họ và tên" e="Full Name"/>
+        </field>
+        <field name="h_ma_so_bhxh_595" type="String">
+          <header v="Mã số BHXH" e="SI No."/>
+        </field>
+        <field name="h_ngay_sinh_595" type="String">
+          <header v="Ngày, tháng, năm sinh" e="Date of Birth"/>
+        </field>
+        <field name="h_gioi_tinh_595" type="String">
+          <header v="Giới tính" e="Gender"/>
+        </field>
+        <field name="h_noi_cap_ks_595" type="String">
+          <header v="Nơi cấp giấy khai sinh" e="Place of birth"/>
+        </field>
+        <field name="h_qh_ch_595" type="String">
+          <header v="Mối quan hệ chủ hộ" e="Householder Relationship"/>
+        </field>
+        <field name="h_id_595" type="String">
+          <header v="Số CMND/Hộ chiếu/Thẻ căn cước" e="ID Card/Passport No."/>
+        </field>
+        <field name="h_ghi_chu_595" type="String">
+          <header v="Ghi chú" e="Note"/>
+        </field>
+        <field name="h_ghi_chu01_595" type="String">
+          <header v="Ghi chú: Người kê khai có thể tra cứu Mã số BHXH và Mã hộ gia đình tại địa chỉ:" e="Note: The declaration person can search Social Insurance ID and Household ID at:"/>
+        </field>
+        <field name="h_ghi_chu02_595" type="String">
+          <header v="http://baohiemxahoi.gov.vn" e="http://baohiemxahoi.gov.vn"/>
+        </field>
+        <field name="h_cam_doan_595" type="String">
+          <header v="Tôi cam đoan những nội dung kê khai là đúng và chịu trách nhiệm trước pháp luật về những nội dung đã kê khai." e="I undertake that the above information is correct and shall be fully responsible for the declared figures."/>
+        </field>
+        <field name="h_nguoi_ky" type="String">
+          <header v="Người kê khai" e="Declared by"/>
+        </field>
+      </fields>
+    </form>
+    &s;
+    <form id="060" reportFile ="hrptSIHIDeclaration_06" commandArgument="pdf">
+      <header v="Tờ khai tham gia BHXH, BHYT theo quyết định số 888" e="Social and Health Insurance Declaration on Decision No. 888/QD-BHXH"/>
+      <download>
+        <header v="Tờ khai tham gia BHXH, BHYT" e="Social and Health Insurance Declaration"/>
+      </download>
+      <fields>
+        <field name="h_form0_888" type ="String">
+          <header v="Mẫu TK1-TS" e="Form TK1-TS"/>
+        </field>
+        <field name="h_form1_888" type ="String">
+          <header v="(Ban hành kèm theo QĐ số: 595/QĐ-BHXH" e="(Issued with Decision No. 595/QĐ-BHXH"/>
+        </field>
+        <field name="h_form2_888" type ="String">
+          <header v="ngày 14/4/2017 của BHXH Việt Nam)" e="dated 14 April 2017 of Vietnam Social Insurance)"/>
+        </field>
+        <field name="title_bhxh_888" type ="String">
+          <header v="BẢO HIỂM XÃ HỘI VIỆT NAM" e="VIETNAM SOCIAL INSURANCE"/>
+        </field>
+        <field name="title_888" type ="String">
+          <header v="TỜ KHAI" e="DECLARATION OF"/>
+        </field>
+        <field name="title2_888" type ="String">
+          <header v="THAM GIA, ĐIỀU CHỈNH THÔNG TIN BẢO HIỂM XÃ HỘI, BẢO HIỂM Y TẾ" e="PROVISION AND CHANGE OF INFORMATION OF PARTICIPANT OF SOCIAL INSURANCE AND HEALTH INSURANCE"/>
+        </field>
+        <field name="title3_888" type ="String">
+          <header v="(Áp dụng đối với người tham gia chưa được cấp mã số BHXH và thay đổi thông tin)" e="(Apply to the participants who have not received SI codes)"/>
+        </field>
+        <field name="h_kk_bb" type="String">
+          <header v="I. Đối với người chưa được cấp mã số BHXH" e="I. Apply to the participants who have not received SI codes"/>
+        </field>
+        <field name="h_kk_bb_01" type="String">
+          <header v="(người tham gia chỉ kê khai từ chỉ tiêu [01] đến chỉ tiêu [13] dưới đây)." e="(only filling in the field [01] through [13] given here under)."/>
+        </field>
+        <field name="h_01_888" type="String">
+          <header v="[01]. Họ và tên" e="[01]. Full Name"/>
+        </field>
+        <field name="h_01_888_01" type="String">
+          <header v="(viết chữ in hoa):" e=""/>
+        </field>
+        <field name="h_03_888" type="String">
+          <header v="[02]. Ngày, tháng, năm sinh:" e="[02]. Date of Birth:"/>
+        </field>
+        <field name="h_04_888" type="String">
+          <header v="[03]. Giới tính: " e="[03]. Gender: "/>
+        </field>
+        <field name="h_05_888" type="String">
+          <header v="[04]. Quốc tịch:" e="[04]. Nationality:"/>
+        </field>
+        <field name="h_05n_888" type="String">
+          <header v="[05]. Dân tộc:" e="[05]. Ethnic:"/>
+        </field>
+        <field name="h_06_888" type="String">
+          <header v="[06]. Nơi đăng ký giấy khai sinh: [06.1]. Xã" e="[06]. Place of birth certificate registration: [06.1]. Ward"/>
+        </field>
+        <field name="h_06_888_01" type="String">
+          <header v="(phường, thị trấn):" e="(Commune/Town):"/>
+        </field>
+        <field name="h_62_888" type="String">
+          <header v="[06.2]. Huyện" e="[06.2]. District"/>
+        </field>
+        <field name="h_62_888_01" type="String">
+          <header v="(quận, thị xã, Tp thuộc tỉnh):" e="(towns and provincial cities):"/>
+        </field>
+        <field name="h_63_888" type="String">
+          <header v="[06.3]. Tỉnh " e="[06.3]. Province"/>
+        </field>
+        <field name="h_63_888_01" type="String">
+          <header v="(Tp):" e="(City):"/>
+        </field>
+        <field name="h_09_888" type="String">
+          <header v="[07]. Địa chỉ nhận kết quả: [07.1]. Số nhà, đường phố, thôn xóm:" e="[07]. Contact Address: [07.1]. House No, Road/Street, Village:"/>
+        </field>
+        <field name="h_92_888" type="String">
+          <header v="[07.2]. Xã" e="[07.2]. Ward"/>
+        </field>
+        <field name="h_93_888" type="String">
+          <header v="[07.3]. Huyện" e="[07.3]. District"/>
+        </field>
+        <field name="h_94_888" type="String">
+          <header v="[07.4]. Tỉnh" e="[07.4]. Province"/>
+        </field>
+        <field name="h_08n_888" type="String">
+          <header v="[08]. Số CMND/ Hộ chiếu/ Thẻ căn cước:" e="[08]. ID Card/ Passport No.:"/>
+        </field>
+        <field name="h_09n1_888" type="String">
+          <header v="[09]. Số điện thoại liên hệ:" e="[09]. Phone Number:"/>
+        </field>
+        <field name="h_09n2_888" type="String">
+          <header v="[10]. Họ tên cha/ mẹ/ người giám hộ" e="[10]. The father (mother) or guardian"/>
+        </field>
+        <field name="h_08n2_888" type="String">
+          <header v="(đối với trẻ em dưới 6 tuổi):" e="(For children under 06 years old):"/>
+        </field>
+        <field name="h_10_888" type="String">
+          <header v="[11]. Mức tiền đóng:" e="[11]. Sum of Payment:"/>
+        </field>
+        <field name="h_11_888" type="String">
+          <header v="[12]. Phương thức đóng:" e="[12]. Payment Method:"/>
+        </field>
+        <field name="h_10_888_01" type="String">
+          <header v="(Chỉ tiêu [11], [12] chỉ áp dụng đối với người tham gia BHXH tự nguyện)" e="(The field [11] and [12] shall only apply to voluntary participants)"/>
+        </field>
+        <field name="h_12_888" type="String">
+          <header v="[13]. Nơi đăng ký khám bệnh, chữa bệnh ban đầu" e="[13]. First Registered Medical Care Center"/>
+        </field>
+        <field name="h_12_888_01" type="String">
+          <header v="(không áp dụng đối với người tham gia BHXH tự nguyện):" e="(not apply to voluntary participants):"/>
+        </field>
+        <field name="h_13_888_add" type="String">
+          <header v="[14]. Trường hợp người tham gia BHYT theo hộ gia đình được giảm trừ mức đóng thì kê khai thêm Phụ lục (Phụ lục kèm theo) và không phải nộp, xuất trình sổ hộ khẩu, chứng minh thư, thẻ căn cước."
+                  e="[14].  With respect to household participants who are granted reduction in the payment amount, they shall be required to complete the declaration form in the enclosed Appendix without having to submit or present their family household book, ID card or Citizen’s ID card."/>
+        </field>
+        <field name="h_kk_chung" type="String">
+          <header v="II. Đối với người đã được cấp mã số BHXH thay đổi thông tin trên sổ BHXH, thẻ BHYT" e="II. Details of the participants who have already received SI codes and apply for modification of information printed on SI booklets or HI cards"/>
+        </field>
+        <field name="h_kk_chung_01" type="String">
+          <header v="(người tham gia chỉ kê khai từ chỉ tiêu [01] đến chỉ tiêu [05] dưới đây)" e="(only filling in the field [01] through [05] given here under)"/>
+        </field>
+        <field name="h_04_888_II" type="String">
+          <header v="[03]. Mã số BHXH:" e="[03]. SI No.:"/>
+        </field>
+        <field name="h_13_888" type="String">
+          <header v="[04]. Nội dung thay đổi, yêu cầu:" e="[04]. Content of change, request:"/>
+        </field>
+        <field name="h_14_888" type="String">
+          <header v="[05]. Hồ sơ kèm theo (nếu có):" e="[05]. Document Included (if any):"/>
+        </field>
+        <field name="h_xac_nhan1_888" type="String">
+          <header v="XÁC NHẬN CỦA ĐƠN VỊ" e="CERTIFICATION OF ORGANIZATION"/>
+        </field>
+        <field name="h_xac_nhan2_888" type="String">
+          <header v="(chỉ áp dụng đối với người lao động đang tham gia BHXH bắt buộc thay đổi họ, tên đệm, tên; ngày, tháng, năm sinh)"
+                  e="(Only applicable to compulsory SI participants who wish to adjust their first, middle or last name, and date of birth)"/>
+        </field>
+        <field name="h_cam_doan_888" type="String">
+          <header v="Tôi cam đoan những nội dung kê khai là đúng và chịu trách nhiệm trước pháp luật về những nội dung đã kê khai." e="I undertake that the above information is correct and shall be fully responsible for the declared figures."/>
+        </field>
+        <field name="h_nguoi_ky" type="String">
+          <header v="Người kê khai" e="Declared by"/>
+        </field>
+        <field name="h_a" type="String">
+          <header v="BinhPLT" e="BinhPLT"/>
+        </field>
+      </fields>
+    </form>
+    <form id="070" reportFile ="hrptSIHIDeclaration_07" commandArgument="pdf">
+      <header v="Phụ lục thành viên hộ gia đình theo quyết định số 888" e="Family ties appendix by the decision 888/QĐ-BHXH"/>
+      <download>
+        <header v="Phụ lục thành viên hộ gia đình" e="Family ties appendix"/>
+      </download>
+      <fields>
+        <field name="title_pl_888" type ="String">
+          <header v="PHỤ LỤC THÀNH VIÊN HỘ GIA ĐÌNH" e="FAMILY TIES APPENDIX"/>
+        </field>
+        <field name="h_chu_ho_888" type ="String">
+          <header v="Họ và tên chủ hộ:" e="The name of householder"/>
+        </field>
+        <field name="h_so_dt_888" type="String">
+          <header v="Số điện thoại (nếu có):" e="Phone Number (if any):"/>
+        </field>
+        <field name="h_dc_888" type="String">
+          <header v="Địa chỉ: Thôn (bản, tổ dân phố)" e="Address: Village"/>
+        </field>
+        <field name="h_phuong_888" type="String">
+          <header v="Xã (phường, thị trấn)" e="Ward (Commune/Town)"/>
+        </field>
+        <field name="h_quan_888" type="String">
+          <header v="Huyện (quận, thị xã, Tp thuộc tỉnh):" e="District (towns and provincial cities):"/>
+        </field>
+        <field name="h_tinh_888" type="String">
+          <header v="Tỉnh (Tp):" e="Province (City):"/>
+        </field>
+
+        <field name="h_stt_888" type="String">
+          <header v="Stt" e="No."/>
+        </field>
+        <field name="h_ho_ten_888" type="String">
+          <header v="Họ và tên" e="Full Name"/>
+        </field>
+        <field name="h_ma_so_bhxh_888" type="String">
+          <header v="Mã số BHXH" e="SI No."/>
+        </field>
+        <field name="h_ngay_sinh_888" type="String">
+          <header v="Ngày, tháng, năm sinh" e="Date of Birth"/>
+        </field>
+        <field name="h_gioi_tinh_888" type="String">
+          <header v="Giới tính" e="Gender"/>
+        </field>
+        <field name="h_noi_cap_ks_888" type="String">
+          <header v="Nơi cấp giấy khai sinh" e="Place of birth"/>
+        </field>
+        <field name="h_qh_ch_888" type="String">
+          <header v="Mối quan hệ chủ hộ" e="Householder Relationship"/>
+        </field>
+        <field name="h_id_888" type="String">
+          <header v="Số CMND/Thẻ căn cước/Hộ chiếu" e="ID Card/Passport No."/>
+        </field>
+        <field name="h_ghi_chu_888" type="String">
+          <header v="Ghi chú" e="Note"/>
+        </field>
+        <field name="h_ghi_chu01_888" type="String">
+          <header v="- Trường hợp chưa có mã số BHXH thì kê khai các chỉ tiêu tại phần I của Tờ khai tham gia và điều chỉnh thông tin BHXH, BHYT (Mẫu TK1-TS)"
+                  e="- Those who have not had SI codes fill in the fields given in section I of the Declaration Form for participation and modification of information about participation in the SI and HI program (Form No. TK1-TS)"/>
+        </field>
+        <field name="h_ghi_chu02_888" type="String">
+          <header v="- Người tham gia kê khai đầy đủ, chính xác các thành viên hộ gia đình, không phải xuất trình sổ hộ khẩu hoặc sổ tạm trú để chứng minh tình trạng tham gia."
+                  e="- Participants shall be obliged to make full and accurate declaration of family members without having to present their family household registration book and temporary residence registration book for confirmation of their participation status."/>
+        </field>
+        <field name="h_cam_doan_888" type="String">
+          <header v="Tôi cam đoan những nội dung kê khai là đúng và chịu trách nhiệm trước pháp luật về những nội dung đã kê khai." e="I undertake that the above information is correct and shall be fully responsible for the declared figures."/>
+        </field>
+        <field name="h_nguoi_ky" type="String">
+          <header v="Người kê khai" e="Declared by"/>
+        </field>
+      </fields>
+    </form>
+
+    &s;
+    <form id="080" reportFile ="hrptSIHIDeclaration_08" commandArgument="pdf">
+      <header v="Tờ khai tham gia BHXH, BHYT theo quyết định số 505" e="Social and Health Insurance Declaration on Decision No. 505/QD-BHXH"/>
+      <download>
+        <header v="Tờ khai tham gia BHXH, BHYT" e="Social and Health Insurance Declaration"/>
+      </download>
+      <fields>
+        <field name="h_form0_505" type ="String">
+          <header v="Mẫu TK1-TS" e="Form TK1-TS"/>
+        </field>
+        <field name="h_form1_505" type ="String">
+          <header v="(Ban hành kèm theo Quyết định số: 505/QĐ-BHXH" e="(Issued with Decision No. 505/QĐ-BHXH"/>
+        </field>
+        <field name="h_form2_505" type ="String">
+          <header v="ngày 27/03/2020 của BHXH Việt Nam)" e="dated 27 March 2020 of Vietnam Social Insurance)"/>
+        </field>
+        <field name="title_bhxh_505" type ="String">
+          <header v="BẢO HIỂM XÃ HỘI VIỆT NAM" e="VIETNAM SOCIAL INSURANCE"/>
+        </field>
+        <field name="title_505" type ="String">
+          <header v="TỜ KHAI" e="DECLARATION OF"/>
+        </field>
+        <field name="title2_505" type ="String">
+          <header v="THAM GIA, ĐIỀU CHỈNH THÔNG TIN BẢO HIỂM XÃ HỘI, BẢO HIỂM Y TẾ" e="PROVISION AND CHANGE OF INFORMATION OF PARTICIPANT OF SOCIAL INSURANCE AND HEALTH INSURANCE"/>
+        </field>
+        <field name="title3_505" type ="String">
+          <header v="(Áp dụng đối với người tham gia chưa được cấp mã số BHXH và thay đổi thông tin)" e="(Apply to the participants who have not received SI codes)"/>
+        </field>
+        <field name="h_kk_bb" type="String">
+          <header v="I. Áp dụng đối với người tham gia tra cứu không thấy mã số BHXH do cơ quan BHXH cấp" e="I. Applies to participants who has not been searched their SI Number issued by Social Security Administration"/>
+        </field>
+        <field name="h_01_505" type="String">
+          <header v="[01]. Họ và tên" e="[01]. Full Name"/>
+        </field>
+        <field name="h_01_505_01" type="String">
+          <header v="(viết chữ in hoa):" e=""/>
+        </field>
+        <field name="h_03_505" type="String">
+          <header v="[03]. Ngày, tháng, năm sinh:" e="[03]. Date of Birth:"/>
+        </field>
+        <field name="h_02_505" type="String">
+          <header v="[02]. Giới tính: " e="[02]. Gender: "/>
+        </field>
+        <field name="h_04_505" type="String">
+          <header v="[04]. Quốc tịch:" e="[04]. Nationality:"/>
+        </field>
+        <field name="h_05n_505" type="String">
+          <header v="[05]. Dân tộc:" e="[05]. Ethnic:"/>
+        </field>
+        <field name="h_08n_505" type="String">
+          <header v="[06]. Số CMND/CCCD/Hộ chiếu:" e="[06]. ID Card/ Passport No.:"/>
+        </field>
+        <field name="h_09n1_505" type="String">
+          <header v="[07]. Điện thoại:" e="[07]. Phone Number:"/>
+        </field>
+        <field name="h_08_505" type="String">
+          <header v="[08]. Email (nếu có):" e="[08]. Mail (if any):"/>
+        </field>
+        <field name="h_06_505" type="String">
+          <header v="[09]. Nơi đăng ký giấy khai sinh: [09.1]. Xã:" e="[09]. Place of birth certificate registration: [09.1]. Ward:"/>
+        </field>
+        <field name="h_09n2_505" type="String">
+          <header v="[10]. Họ tên cha/mẹ/giám hộ" e="[10]. The father (mother) or guardian"/>
+        </field>
+        <field name="h_08n2_505" type="String">
+          <header v="(đối với trẻ em dưới 6 tuổi):" e="(For children under 06 years old):"/>
+        </field>
+        <field name="h_09_505" type="String">
+          <header v="[11]. Địa chỉ nhận kết quả: [11.1]. Số nhà, đường/phố, thôn/xóm:" e="[11]. Contact Address: [11.1]. House No, Road/Street, Village:"/>
+        </field>
+        <field name="h_92_505" type="String">
+          <header v="[11.2]. Xã:" e="[11.2]. Ward:"/>
+        </field>
+        <field name="h_93_505" type="String">
+          <header v="[11.3]. Huyện:" e="[11.3]. District:"/>
+        </field>
+        <field name="h_94_505" type="String">
+          <header v="[11.4]. Tỉnh:" e="[11.4]. Province:"/>
+        </field>
+
+        <field name="h_102_505" type="String">
+          <header v="[12]. Kê khai Phụ lục Thành viên hộ gia đình (phụ lục kèm theo) đối với người tham gia tra cứu không thấy mã số BHXH và người tham gia BHYT theo hộ gia đình để giảm trừ mức đóng." e="[12].Household Appendix Declaration of participants who has not been searched their SI Number and people join Health Security by Household  for contribution level deduction."/>
+        </field>
+        <field name="h_04_505_II" type="String">
+          <header v="[13]. Mã số BHXH:" e="[13]. SI No.:"/>
+        </field>
+        <field name="h_14_505_II" type="String">
+          <header v="[14]. Điều chỉnh thông tin cá nhân:" e="[14]. Personal Information Adjustment:"/>
+        </field>
+        <field name="h_14_505_II_01" type="String">
+          <header v="[14.1]. Họ và tên" e="[14.1]. Full Name"/>
+        </field>
+
+        <field name="h_13_505" type="String">
+          <header v="[04]. Nội dung thay đổi, yêu cầu:" e="[04]. Content of change, request:"/>
+        </field>
+        <field name="h_14_505" type="String">
+          <header v="[05]. Hồ sơ kèm theo (nếu có):" e="[05]. Document Included (if any):"/>
+        </field>
+        <field name="h_xac_nhan1_505" type="String">
+          <header v="XÁC NHẬN CỦA ĐƠN VỊ" e="CERTIFICATION OF ORGANIZATION"/>
+        </field>
+
+        <field name="h_kk_chung" type="String">
+          <header v="II. Áp dụng đối với người tham gia đã có mã số BHXH đề nghị đăng ký, điều chỉnh thông tin ghi trên sổ BHXH, thẻ BHYT" e="II. Applies to participants who has been granted their SI Number suggest to register, adjust the information on SI book or HI card."/>
+        </field>
+
+        <field name="h_10_505" type="String">
+          <header v="[11]. Mức tiền đóng:" e="[11]. Sum of Payment:"/>
+        </field>
+        <field name="h_11_505" type="String">
+          <header v="[12]. Phương thức đóng:" e="[12]. Payment Method:"/>
+        </field>
+        <field name="h_10_505_01" type="String">
+          <header v="(Chỉ tiêu [11], [12] chỉ áp dụng đối với người tham gia BHXH tự nguyện)" e="(The field [11] and [12] shall only apply to voluntary participants)"/>
+        </field>
+        <field name="h_12_505" type="String">
+          <header v="[13]. Nơi đăng ký khám bệnh, chữa bệnh ban đầu" e="[13]. First Registered Medical Care Center"/>
+        </field>
+        <field name="h_nguoi_ky" type="String">
+          <header v="Người kê khai" e="Declared by"/>
+        </field>
+        <field name="h_ct_09" type="String">
+          <header v="[09]." e="[09]."/>
+        </field>
+        <field name="h_ct_091" type="String">
+          <header v="[09.1]." e="[09.1]."/>
+        </field>
+        <field name="h_ct_092" type="String">
+          <header v="[09.2]." e="[09.2]."/>
+        </field>
+        <field name="h_ct_093" type="String">
+          <header v="[09.3]." e="[09.3]."/>
+        </field>
+        <field name="h_ct_10" type="String">
+          <header v="[01]." e="[10]."/>
+        </field>
+        <field name="h_ct_11" type="String">
+          <header v="[11]." e="[11]."/>
+        </field>
+        <field name="h_ct_111" type="String">
+          <header v="[11.1]." e="[11.1]."/>
+        </field>
+        <field name="h_ct_112" type="String">
+          <header v="[11.2]." e="[11.2]."/>
+        </field>
+        <field name="h_ct_113" type="String">
+          <header v="[11.3]." e="[11.3]."/>
+        </field>
+        <field name="h_ct_114" type="String">
+          <header v="[11.4]." e="[11.4]."/>
+        </field>
+
+        <field name="h_ct_12" type="String">
+          <header v="[12]." e="[12]."/>
+        </field>
+        <field name="h_ct_13" type="String">
+          <header v="[13]." e="[13]."/>
+        </field>
+        <field name="h_ct_14" type="String">
+          <header v="[14]." e="[14]."/>
+        </field>
+        <field name="h_ct_141" type="String">
+          <header v="[14.1]." e="[14.1]."/>
+        </field>
+        <field name="h_ct_142" type="String">
+          <header v="[14.2]." e="[14.2]."/>
+        </field>
+        <field name="h_ct_143" type="String">
+          <header v="[14.3]." e="[14.3]."/>
+        </field>
+        <field name="h_ct_144" type="String">
+          <header v="[14.4]." e="[14.4]."/>
+        </field>
+        <field name="h_ct_145" type="String">
+          <header v="[14.5]." e="[14.5]."/>
+        </field>
+        <field name="h_ct_15" type="String">
+          <header v="[15]." e="[15]."/>
+        </field>
+        <field name="h_ct_16" type="String">
+          <header v="[16]." e="[16]."/>
+        </field>
+        <field name="h_ct_17" type="String">
+          <header v="[17]." e="[17]."/>
+        </field>
+        <field name="h_ct_18" type="String">
+          <header v="[18]." e="[18]."/>
+        </field>
+        <field name="h_ct_19" type="String">
+          <header v="[19]." e="[19]."/>
+        </field>
+
+        <field name="h_so_cmnd_hc" type="String">
+          <header v="Số CMND/CCCD/Hộ chiếu:" e="ID Card/Passport No."/>
+        </field>
+        <field name="h_noi_dk_giay_ks" type="String">
+          <header v="Nơi đăng ký giấy khai sinh:" e="Place of birth certificate registration:"/>
+        </field>
+        <field name="h_xa" type="String">
+          <header v="Xã:" e="Ward:"/>
+        </field>
+        <field name="h_huyen" type="String">
+          <header v="Huyện:" e="District:"/>
+        </field>
+        <field name="h_tinh" type="String">
+          <header v="Tỉnh:" e="Province:"/>
+        </field>
+        <field name="h_ho_va_ten" type="String">
+          <header v="Họ và tên" e="Full Name"/>
+        </field>
+        <field name="h_gioi_tinh" type="String">
+          <header v="Giới tính:" e="Gender:"/>
+        </field>
+        <field name="h_ngay_thang_nam_sinh" type="String">
+          <header v="Ngày, tháng, năm sinh:" e="Date of Birth:"/>
+        </field>
+        <field name="h_noi_kham" type="String">
+          <header v="Nơi đăng ký khám, chữa bệnh ban đầu:" e="First Registered Medical Care Center:"/>
+        </field>
+        <field name="h_noi_dung_thay_doi" type="String">
+          <header v="Nội dung thay đổi, yêu cầu khác:" e="Content of change, other request:"/>
+        </field>
+        <field name="h_hs_kem_theo" type="String">
+          <header v="Hồ sơ kèm theo" e="Document Included"/>
+        </field>
+        <field name="h_muc_tien_dong" type="String">
+          <header v="Mức tiền đóng:" e="Sum of Payment:"/>
+        </field>
+        <field name="h_phuong_thuc_dong" type="String">
+          <header v="Phương thức đóng:" e="Payment Method:"/>
+        </field>
+        <field name="h_ghi_chu_bhxh" type="String">
+          <header v="Ghi chú: Người tham gia tra cứu mã số BHXH tại địa chỉ: https://baohiemxahoi.gov.vn" e="Note: Participants search SI code at: https://baohiemxahoi.gov.vn"/>
+        </field>
+        <field name="h_dot" type="String">
+          <header v="............................................................................................................................................................................................................................................" e="............................................................................................................................................................................................................................................"/>
+        </field>
+        <field name="h_neu_co" type="String">
+          <header v="(nếu có)" e="(if any)"/>
+        </field>
+      </fields>
+    </form>
+
+
+    <form id="090" reportFile ="hrptSIHIDeclaration_09" commandArgument="pdf">
+      <header v="Phụ lục thành viên hộ gia đình theo quyết định số 505" e="Family ties appendix by the decision 505/QĐ-BHXH"/>
+      <download>
+        <header v="Phụ lục thành viên hộ gia đình" e="Family ties appendix"/>
+      </download>
+      <fields>
+        <field name="title_pl_505" type ="String">
+          <header v="PHỤ LỤC THÀNH VIÊN HỘ GIA ĐÌNH" e="FAMILY TIES APPENDIX"/>
+        </field>
+        <field name="h_chu_ho_505" type ="String">
+          <header v="Họ và tên chủ hộ:" e="The name of householder"/>
+        </field>
+
+        <field name="h_dc_505" type="String">
+          <header v="Địa chỉ: Thôn (bản, tổ dân phố)" e="Address: Village"/>
+        </field>
+        <field name="h_phuong_505" type="String">
+          <header v="Xã (phường, thị trấn)" e="Ward (Commune/Town)"/>
+        </field>
+        <field name="h_quan_505" type="String">
+          <header v="Huyện (quận, thị xã, Tp thuộc tỉnh):" e="District (towns and provincial cities):"/>
+        </field>
+
+        <field name="h_stt_505" type="String">
+          <header v="Stt" e="No."/>
+        </field>
+        <field name="h_ho_ten_505" type="String">
+          <header v="Họ và tên" e="Full Name"/>
+        </field>
+        <field name="h_ma_so_bhxh_505" type="String">
+          <header v="Mã số BHXH" e="Social Insurance"/>
+        </field>
+        <field name="h_ngay_sinh_505" type="String">
+          <header v="Ngày tháng năm sinh" e="Date of Birth"/>
+        </field>
+        <field name="h_gioi_tinh_505" type="String">
+          <header v="Giới tính" e="Gender"/>
+        </field>
+        <field name="h_noi_cap_ks_505" type="String">
+          <header v="Nơi đăng ký khai sinh" e="Place of birth"/>
+        </field>
+        <field name="h_qh_ch_505" type="String">
+          <header v="Mối quan hệ chủ hộ" e="Householder Relationship"/>
+        </field>
+        <field name="h_id_505" type="String">
+          <header v="Số CMND/CCCD/Hộ chiếu" e="ID Card/Passport No."/>
+        </field>
+        <field name="h_ghi_chu_505" type="String">
+          <header v="Ghi chú" e="Note"/>
+        </field>
+        <field name="h_ghi_chu01_505" type="String">
+          <header v="- Trường hợp chưa có mã số BHXH thì kê khai các chỉ tiêu tại phần I của Tờ khai tham gia và điều chỉnh thông tin BHXH, BHYT (Mẫu TK1-TS)"
+                  e="- Those who have not had SI codes fill in the fields given in section I of the Declaration Form for participation and modification of information about participation in the SI and HI program (Form No. TK1-TS)"/>
+        </field>
+        <field name="h_ghi_chu02_505" type="String">
+          <header v="- Người tham gia kê khai đầy đủ, chính xác các thành viên hộ gia đình, không phải xuất trình sổ hộ khẩu hoặc sổ tạm trú để chứng minh tình trạng tham gia."
+                  e="- Participants shall be obliged to make full and accurate declaration of family members without having to present their family household registration book and temporary residence registration book for confirmation of their participation status."/>
+        </field>
+        <field name="h_cam_doan_505" type="String">
+          <header v="Tôi cam đoan những nội dung kê khai là đúng và chịu trách nhiệm trước pháp luật về những nội dung đã kê khai." e="I undertake that the above information is correct and shall be fully responsible for the declared figures."/>
+        </field>
+        <field name="h_nguoi_ky" type="String">
+          <header v="Người kê khai" e="Declared by"/>
+        </field>
+
+        <field name="h_so_so_hk" type="String">
+          <header v="Số sổ hộ khẩu" e="Resident Registration Book"/>
+        </field>
+        <field name="h_so_so_tam_tru" type="String">
+          <header v="(Số sổ tạm trú)" e="(Temporary Residence Book)"/>
+        </field>
+        <field name="h_ma_so_hgd" type="String">
+          <header v="Mã số hộ gia đình:" e="Household ID:"/>
+        </field>
+        <field name="h_so_dt_505" type="String">
+          <header v="Điện thoại liên hệ:" e="Phone Number:"/>
+        </field>
+        <field name="h_dia_chi_theo_hk_505" type="String">
+          <header v="Địa chỉ theo sổ hộ khẩu" e="Address belongs to Resident Registration Book"/>
+        </field>
+        <field name="h_dia_chi_theo_hk_50501" type="String">
+          <header v="(sổ tạm trú)" e="(Temporary Residence Book)"/>
+        </field>
+        <field name="h_dia_chi_theo_hk_50502" type="String">
+          <header v="Số nhà, đường phố, tập thể" e="Address, Road, Organization"/>
+        </field>
+        <field name="h_thon_ban" type="String">
+          <header v="Thôn" e="Village"/>
+        </field>
+        <field name="h_thon_ban01" type="String">
+          <header v="(bản, tổ dân phố)" e=""/>
+        </field>
+        <field name="h_xa" type="String">
+          <header v="Xã" e="Ward"/>
+        </field>
+        <field name="h_xa01" type="String">
+          <header v="(phường, thị trấn)" e="(Commune/Town)"/>
+        </field>
+        <field name="h_huyen_505" type="String">
+          <header v="Huyện" e="District"/>
+        </field>
+        <field name="h_huyen_50501" type="String">
+          <header v="(quận, Tx, Tp thuộc tỉnh)" e="(towns and provincial cities)"/>
+        </field>
+        <field name="h_tinh_505" type="String">
+          <header v="Tỉnh" e="Province"/>
+        </field>
+        <field name="h_tinh_50501" type="String">
+          <header v="(Tp thuộc Trung ương)" e="(Centrally-owned city)"/>
+        </field>
+        <field name="h_bang_tt_tv_hgd" type="String">
+          <header v="Bảng thông tin thành viên hộ gia đình:" e="Household Participant Information:"/>
+        </field>
+        <field name="h_quoc_tich" type="String">
+          <header v="Quốc tịch" e="Nationality"/>
+        </field>
+        <field name="h_dan_toc" type="String">
+          <header v="Dân tộc" e="Ethnic"/>
+        </field>
+        <field name="h_ap_dung" type="String">
+          <header v="(Áp dụng đối với: Người tham gia tra cứu không thấy mã số BHXH; Người tham gia BHYT theo hộ gia đình để giảm trừ các mức đóng;" e="(Applies to participants who has not been searched their SI Number; people join Health Security by Household  for contribution level deduction;"/>
+        </field>
+        <field name="h_ap_dung01" type="String">
+          <header v="Trẻ em dưới 6 tuổi thực hiện cấp thẻ BHYT liên thông dữ liệu với Bộ Tư pháp)" e="Children under 6 years old has been granted HI card data which is communicated with the Ministry of Justice)"/>
+        </field>
+      </fields>
+    </form>
+  </forms>
+
+  <fields>
+    <field name="title" type ="String">
+      <header v="TỜ KHAI THAM GIA" e="DECLARATION SHEET JOINING"/>
+    </field>
+    <field name="title2" type ="String">
+      <header v="BẢO HIỂM XÃ HỘI, BẢO HIỂM Y TẾ" e="OBLIGATORY SOCIAL, HEALTH INSURANCE"/>
+    </field>
+    <field name="title3" type ="String">
+      <header v="BẢO HIỂM XÃ HỘI VIỆT NAM" e="VIETNAM SOCIAL INSURANCE"/>
+    </field>
+    <field name="h_chxhcnvn" type="String">
+      <header v="CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM" e="THE SOCIALIST REPUBLIC OF VIET NAM"/>
+    </field>
+    <field name="h_dl_td_hp" type="String">
+      <header v="Độc lập - Tự do - Hạnh phúc" e="Independence - Freedom - Happiness"/>
+    </field>
+    <field name="h_ma_so" type="String">
+      <header v="Mã số:" e="SI Book No.:"/>
+    </field>
+    <field name="h_tt_nguoi_tg" type="String">
+      <header v="I. THÔNG TIN CỦA NGƯỜI THAM GIA:" e="I. EMPLOYEE:"/>
+    </field>
+    <field name="h_ho_ten" type="String">
+      <header v="Họ và tên (viết chữ in hoa):" e="Full Name:"/>
+    </field>
+    <field name="h_gioi_tinh" type="String">
+      <header v="Giới tính:" e="Gender:"/>
+    </field>
+    <field name="h_nam" type="String">
+      <header v="Nam" e="Male"/>
+    </field>
+    <field name="h_nu" type="String">
+      <header v="Nữ" e="Female"/>
+    </field>
+    <field name="h_ngay_thang_ns" type="String">
+      <header v="Ngày tháng năm sinh:" e="Date of Birth:"/>
+    </field>
+    <field name="h_dan_toc" type="String">
+      <header v="Dân tộc:" e="Ethnic:"/>
+    </field>
+    <field name="h_quoc_tich" type="String">
+      <header v="Quốc tịch:" e="Nationality:"/>
+    </field>
+    <field name="h_hk_tt_tt" type="String">
+      <header v="Hộ khẩu đăng ký thường trú hoặc tạm trú:" e="Permanent or Temporary Residence:"/>
+    </field>
+    <field name="h_dia_chi" type="String">
+      <header v="Địa chỉ liên hệ:" e="Contact Address:"/>
+    </field>
+    <field name="h_so_dt" type="String">
+      <header v="Số điện thoại liên hệ (nếu có):" e="Phone Number:"/>
+    </field>
+    <field name="h_so_dtcd" type="String">
+      <header v="cố định:" e="Home:"/>
+    </field>
+    <field name="h_so_dtdd" type="String">
+      <header v=", di động:" e=", Mobile:"/>
+    </field>
+    <field name="h_so_cmnd" type="String">
+      <header v="CMT số:" e="ID Number:"/>
+    </field>
+    <field name="h_ngay_cap" type="String">
+      <header v=", ngày cấp:" e=", Date of Issue:"/>
+    </field>
+    <field name="h_noi_cap" type="String">
+      <header v=", nơi cấp:" e=", Place of Issue:"/>
+    </field>
+    <field name="h_tg_bhxh_bhyt" type="String">
+      <header v="II. THAM GIA BẢO HIỂM XÃ HỘI BẮT BUỘC, BẢO HIỂM Y TẾ" e="II. OBLIGATORY SOCIAL INSURANCE, HEALTH INSURANCE PARTICIPATION:"/>
+    </field>
+    <field name="h_qd_td_hdld" type="String">
+      <header v="Quyết định tuyển dụng, hợp đồng lao động (hoặc HĐLV): số" e="Employment Decision, Labor Contract (Or Working Contract): No"/>
+    </field>
+    <field name="h_ngay" type="String">
+      <header v="ngày" e="Date Signed"/>
+    </field>
+    <field name="h_ngay_hl_tu" type="String">
+      <header v="có hiệu lực từ ngày" e="Commencing from"/>
+    </field>
+    <field name="h_loai_hd" type="String">
+      <header v="loại hợp đồng" e="Contract Type"/>
+    </field>
+    <field name="h_ten_cq_dv_dc" type="String">
+      <header v="Tên cơ quan, đơn vị, địa chỉ:" e="Organization, Unit, Address:"/>
+    </field>
+    <field name="h_noi_lv" type="String">
+      <header v="Nơi làm việc:" e="Workplace:"/>
+    </field>
+    <field name="h_cv_cdn_cv" type="String">
+      <header v="Chức vụ, chức danh nghề, công việc:" e="Position, Title, Job:"/>
+    </field>
+    <field name="h_luong_chinh" type="String">
+      <header v="Lương chính:" e="Base Salary:"/>
+    </field>
+    <field name="h_phu_cap" type="String">
+      <header v="Phụ cấp:" e="Allowance:"/>
+    </field>
+    <field name="h_pc_cv" type="String">
+      <header v="PCCV:" e="Position"/>
+    </field>
+    <field name="h_pc_tnn" type="String">
+      <header v="TNN:" e="Occupation Seniority"/>
+    </field>
+    <field name="h_pc_tnvk" type="String">
+      <header v="TNVK:" e="Off-scale Seniority:"/>
+    </field>
+    <field name="h_pc_khac" type="String">
+      <header v="Khác" e="Other"/>
+    </field>
+    <field name="h_ma_so_bhxh" type="String">
+      <header v="Mã số sổ bảo hiểm xã hội đã được cấp (nếu có):" e="SI Book No. (if any):"/>
+    </field>
+    <field name="h_ma_so_bhyt" type="String">
+      <header v="Mã số thẻ bảo hiểm y tế đã được cấp (nếu có):" e="HI Card  No. (if any):"/>
+    </field>
+    <field name="h_noi_kham" type="String">
+      <header v="Nơi đăng ký khám chữa bệnh ban đầu (theo hướng dẫn của cơ quan BHXH):" e="First Registered Medical Care Center (following SI Agency Guides):"/>
+    </field>
+    <field name="h_quyen_loi" type="String">
+      <header v="Quyền lợi hưởng bảo hiểm y tế (nếu có):" e="Health Insurance Benefits (if any):"/>
+    </field>
+    <field name="h_cam_doan" type="String">
+      <header v="Tôi xin cam đoan những nội dung kê khai trên là hoàn toàn đúng sự thật và xin chịu hoàn toàn trách nhiệm trước pháp luật." e="I undertake that the above information is correct and shall be fully responsible for the declared figures."/>
+    </field>
+    <field name="h_xac_nhan" type="String">
+      <header v="Xác nhận của người sử dụng lao động" e="Employer's Comfirmation"/>
+    </field>
+    <field name="h_xac_nhan2" type="String">
+      <header v="Sau khi kiểm tra đối chiếu xác nhận các nội dung kê khai trên là đúng và xin chịu hoàn toàn trách nhiệm trước pháp luật." e="After checking and comparing, we confirm that the information declared above is real and we will fully take legal responsibility."/>
+    </field>
+    <field name="h_report_date" type="String">
+      <header v="....................., ngày......... tháng......... năm..............." e="....................., Dated ......../........./..............."/>
+    </field>
+    <field name="h_nguoi_khai" type="String">
+      <header v="Người khai" e="Declared by"/>
+    </field>
+    <field name="h_thu_truong_dv" type="String">
+      <header v="Thủ trưởng đơn vị" e="Chief Officer"/>
+    </field>
+    <field name="h_duyet_cq_bhxh" type="String">
+      <header v="Duyệt của cơ quan bảo hiểm xã hội:" e="Social Insurance Agency's Comfirmation:"/>
+    </field>
+    <field name="h_cb_thu" type="String">
+      <header v="Cán bộ thu" e="Collector"/>
+    </field>
+    <field name="h_cb_so" type="String">
+      <header v="Cán bộ sổ, thẻ" e="Officer in charge of SI books, HI cards"/>
+    </field>
+    <field name="h_gd_bhxh" type="String">
+      <header v="Giám đốc BHXH" e="Director of SI Agency"/>
+    </field>
+    <field name="h_phu_luc" type="String">
+      <header v="PHỤ LỤC" e="APPENDIX: WORKING PERIOD WITH SOCIAL INSURANCE"/>
+    </field>
+    <field name="h_phu_luc2" type="String">
+      <header v="THỜI GIAN LÀM VIỆC CÓ ĐÓNG BHXH CHƯA HƯỞNG MỘT LẦN" e="PARTICIPATION WITHOUT RECEIVING ONE-OFF"/>
+    </field>
+    <field name="h_tu_thang_nam" type="String">
+      <header v="Từ tháng năm" e="From month year"/>
+    </field>
+    <field name="h_den_thang_nam" type="String">
+      <header v="Đến tháng năm" e="To month year"/>
+    </field>
+    <field name="h_dien_giai" type="String">
+      <header v="Diễn giải" e="Description"/>
+    </field>
+    <field name="h_can_cu_dong" type="String">
+      <header v="Căn cứ đóng" e="Payment Basis"/>
+    </field>
+    <field name="h_ty_le_dong" type="String">
+      <header v="Tỷ lệ đóng (%)" e="Payment Rate (%)"/>
+    </field>
+    <field name="h_bhxh" type="String">
+      <header v="BHXH" e="SI"/>
+    </field>
+    <field name="h_bhtn" type="String">
+      <header v="BHTN" e="UI"/>
+    </field>
+    <field name="h_form1" type="String">
+      <header v="Mẫu số: A01-TS" e="Form: A01-TS"/>
+    </field>
+    <field name="h_form2" type="String">
+      <header v="(Ban hành kèm theo QĐ số: 1111 QĐ-BHXH" e="(Issued with Decision No. 1111/QĐ-BHXH"/>
+    </field>
+    <field name="h_form3" type="String">
+      <header v="ngày 25/10/2011 của BHXH Việt Nam)" e="dated 25 October 2011 of Vietnam Social Insurance)"/>
+    </field>
+    <field name="h_01" type="String">
+      <header v="[01]" e="[01]"/>
+    </field>
+    <field name="h_02" type="String">
+      <header v="[02]" e="[02]"/>
+    </field>
+    <field name="h_03" type="String">
+      <header v="[03]" e="[03]"/>
+    </field>
+    <field name="h_04" type="String">
+      <header v="[04]" e="[04]"/>
+    </field>
+    <field name="h_05" type="String">
+      <header v="[05]" e="[05]"/>
+    </field>
+    <field name="h_06" type="String">
+      <header v="[06]" e="[06]"/>
+    </field>
+    <field name="h_061" type="String">
+      <header v="[06.1]" e="[06.1]"/>
+    </field>
+    <field name="h_062" type="String">
+      <header v="[06.2]" e="[06.2]"/>
+    </field>
+    <field name="h_063" type="String">
+      <header v="[06.3]" e="[06.3]"/>
+    </field>
+    <field name="h_07" type="String">
+      <header v="[07]" e="[07]"/>
+    </field>
+    <field name="h_071" type="String">
+      <header v="[07.1]" e="[07.1]"/>
+    </field>
+    <field name="h_072" type="String">
+      <header v="[07.2]" e="[07.2]"/>
+    </field>
+    <field name="h_08" type="String">
+      <header v="[08]" e="[08]"/>
+    </field>
+    <field name="h_081" type="String">
+      <header v="[08.1]" e="[08.1]"/>
+    </field>
+    <field name="h_082" type="String">
+      <header v="[08.2]" e="[08.2]"/>
+    </field>
+    <field name="h_09" type="String">
+      <header v="[09]" e="[09]"/>
+    </field>
+    <field name="h_091" type="String">
+      <header v="[09.1]" e="[09.1]"/>
+    </field>
+    <field name="h_092" type="String">
+      <header v="[09.2]" e="[09.2]"/>
+    </field>
+    <field name="h_093" type="String">
+      <header v="[09.3]" e="[09.3]"/>
+    </field>
+    <field name="h_094" type="String">
+      <header v="[09.4]" e="[09.4]"/>
+    </field>
+    <field name="h_10" type="String">
+      <header v="[10]" e="[10]"/>
+    </field>
+    <field name="h_101" type="String">
+      <header v="[10.1]" e="[10.1]"/>
+    </field>
+    <field name="h_102" type="String">
+      <header v="[10.2]" e="[10.2]"/>
+    </field>
+    <field name="h_103" type="String">
+      <header v="[10.3]" e="[10.3]"/>
+    </field>
+    <field name="h_104" type="String">
+      <header v="[10.4]" e="[10.4]"/>
+    </field>
+    <field name="h_11" type="String">
+      <header v="[11]" e="[11]"/>
+    </field>
+    <field name="h_12" type="String">
+      <header v="[12]" e="[12]"/>
+    </field>
+    <field name="h_13" type="String">
+      <header v="[13]" e="[13]"/>
+    </field>
+    <field name="h_14" type="String">
+      <header v="[14]" e="[14]"/>
+    </field>
+    <field name="h_15" type="String">
+      <header v="[15]" e="[15]"/>
+    </field>
+    <field name="h_15.1" type="String">
+      <header v="[15.1]" e="[15.1]"/>
+    </field>
+    <field name="h_15.2" type="String">
+      <header v="[15.2]" e="[15.2]"/>
+    </field>
+    <field name="h_15.3" type="String">
+      <header v="[15.3]" e="[15.3]"/>
+    </field>
+    <field name="h_15.4" type="String">
+      <header v="[15.4]" e="[15.4]"/>
+    </field>
+    <field name="h_16" type="String">
+      <header v="[16]" e="[16]"/>
+    </field>
+    <field name="h_17" type="String">
+      <header v="[17]" e="[17]"/>
+    </field>
+    <field name="h_18" type="String">
+      <header v="[18]" e="[18]"/>
+    </field>
+    <field name="h_181" type="String">
+      <header v="[18.1]" e="[18.1]"/>
+    </field>
+    <field name="h_182" type="String">
+      <header v="[18.2]" e="[18.2]"/>
+    </field>
+    <field name="h_183" type="String">
+      <header v="[18.3]" e="[18.3]"/>
+    </field>
+    <field name="h_184" type="String">
+      <header v="[18.4]" e="[18.4]"/>
+    </field>
+    <field name="h_19" type="String">
+      <header v="[19]" e="[19]"/>
+    </field>
+    <field name="h_20" type="String">
+      <header v="[20]" e="[20]"/>
+    </field>
+    <field name="h_21" type="String">
+      <header v="[21]" e="[21]"/>
+    </field>
+    <field name="h_22" type="String">
+      <header v="[22]" e="[22]"/>
+    </field>
+    <field name="h_23" type="String">
+      <header v="[23]" e="[23]"/>
+    </field>
+    <field name="h_anh" type="String">
+      <header v="Ảnh" e="Picture"/>
+    </field>
+    <field name="h_ngay_bc" type="String">
+      <header v="....................., ngày " e="....................., Dated "/>
+    </field>
+    <field name="h_thang_bc" type="String">
+      <header v=" tháng " e="/"/>
+    </field>
+    <field name="h_nam_bc" type="String">
+      <header v=" năm " e="/"/>
+    </field>
+    <field name="h_form1_1018" type="String">
+      <header v="Mẫu số: TK1-TS" e="Form: TK1-TS"/>
+    </field>
+    <field name="h_form2_1018" type="String">
+      <header v="(Ban hành kèm theo QĐ số: 1018 QĐ-BHXH" e="(Issued with Decision No. 1018/QĐ-BHXH"/>
+    </field>
+    <field name="h_form3_1018" type="String">
+      <header v="ngày 10/10/2014 của BHXH Việt Nam)" e="dated 10 October 2014 of Vietnam Social Insurance)"/>
+    </field>
+    <field name="h_tt_nguoi_tg_1018" type="String">
+      <header v="A. THÔNG TIN CỦA NGƯỜI THAM GIA:" e="A. EMPLOYEE:"/>
+    </field>
+    <field name="h_ma_so_1018" type="String">
+      <header v="Số định danh:" e="Social insurance book No.:"/>
+    </field>
+    <field name="h_19_text_1018" type="String">
+      <header v="Mức thu nhập tháng đóng bảo hiểm xã hội tự nguyện:" e="Monthly salary to pay voluntary social insurance:"/>
+    </field>
+    <field name="h_20_text_1018" type="String">
+      <header v="Phương thức đóng:" e="Payment Method:"/>
+    </field>
+    <field name="h_21_text_1018" type="String">
+      <header v="Tham gia bảo hiểm y tế theo đối tượng:" e="Health insurance by audience"/>
+    </field>
+    <field name="h_22_text_1018" type="String">
+      <header v="Mức tiền làm căn cứ đóng bảo hiểm y tế:" e="Amount as a basis for paying health insurance:"/>
+    </field>
+    <field name="h_09_text_1018" type="String">
+      <header v="Địa chỉ đăng ký hộ khẩu:" e="The address on the household:"/>
+    </field>
+    <field name="h_091_text_1018" type="String">
+      <header v="Số nhà, đường phố, thôn xóm:" e="House No, Road/Street,Village:"/>
+    </field>
+    <field name="h_10_text_1018" type="String">
+      <header v="Địa chỉ liên hệ (nơi sinh sống):" e="Contact Address:"/>
+    </field>
+    <field name="h_071_text_1018" type="String">
+      <header v="Cha hoặc Mẹ hoặc Người giám hộ:" e="Father or Mother or Guardian"/>
+    </field>
+    <field name="h_06_text_1018" type="String">
+      <header v="Nơi cấp giấy khai sinh (quê quán):" e="Place of birth"/>
+    </field>
+    <field name="h_07_text_1018" type="String">
+      <header v="Thân nhân" e="Relatives"/>
+    </field>
+    <field name="h_072_text_1018" type="String">
+      <header v="Thân nhân khác:" e="Others"/>
+    </field>
+    <field name="h_cung_tg_1018" type="String">
+      <header v="I. CÙNG THAM GIA BẢO HIỂM XÃ HỘI BẮT BUỘC, BẢO HIỂM Y TẾ" e="JOINT BOTH REQUIRED SOCIAL INSURANCE AND HEALTH INSURANCE"/>
+    </field>
+    <field name="h_chi_tg_1018" type="String">
+      <header v="III. CHỈ THAM GIA BẢO HIỂM Y TẾ" e="JOINT HEALTH INSURANCE ONLY"/>
+    </field>
+    <field name="h_tg_tn_1018" type="String">
+      <header v="II. THAM GIA BẢO HIỂM XÃ HỘI TỰ NGUYỆN" e="II. JOINT VOLUNTARY SOCIAL INSURANCE"/>
+    </field>
+    <field name="title3_1018" type ="String">
+      <header v="BẢO HIỂM XÃ HỘI" e="VIETNAM"/>
+    </field>
+    <field name="title32_1018" type ="String">
+      <header v="VIỆT NAM" e="SOCIAL INSURANCE"/>
+    </field>
+    <field name="h_tg_bhxh_bhyt_1018" type="String">
+      <header v="B. THAM GIA BẢO HIỂM XÃ HỘI, BẢO HIỂM Y TẾ" e="B. OBLIGATORY SOCIAL INSURANCE, HEALTH INSURANCE:"/>
+    </field>
+    <field name="h_xa_1018" type="String">
+      <header v="Xã, phường:" e="Ward/Commune:"/>
+    </field>
+    <field name="h_quan_1018" type="String">
+      <header v="Quận, huyện:" e="District:"/>
+    </field>
+    <field name="h_tinh_1018" type="String">
+      <header v="Tỉnh, TP:" e="Province/City:"/>
+    </field>
+    <field name="h_so_cmnd_1018" type="String">
+      <header v="Số chứng minh thư (Hộ chiếu):" e="ID Number:"/>
+    </field>
+    <field name="h_ngay_cap_1018" type="String">
+      <header v="Ngày cấp:" e="Date of Issue:"/>
+    </field>
+    <field name="h_noi_cap_1018" type="String">
+      <header v="Nơi cấp:" e="Place of Issue:"/>
+    </field>
+    <field name="h_so_dt_1018" type="String">
+      <header v="Số điện thoại liên hệ:" e="Phone Number:"/>
+    </field>
+    <field name="h_email_1018" type="String">
+      <header v="Email:" e="Email:"/>
+    </field>
+    <field name="h_noi_kham_1018" type="String">
+      <header v="Nơi đăng ký khám chữa bệnh ban đầu:" e="First Registered Medical Care Center:"/>
+    </field>
+    <field name="h_qd_td_hdld_1018" type="String">
+      <header v="Quyết định tuyển dụng, hợp đồng lao động (hợp đồng làm việc): số" e="Employment Decision, Labor Contract (Working Contract): No"/>
+    </field>
+    <field name="h_ten_cq_dv_dc_1018" type="String">
+      <header v="Tên cơ quan, đơn vị:" e="Organization, Unit:"/>
+    </field>
+    <field name="h_pc_cv_1018" type="String">
+      <header v="Chức vụ:" e="Position"/>
+    </field>
+    <field name="h_pc_tnn_1018" type="String">
+      <header v="TN nghề:" e="Occupation Seniority:"/>
+    </field>
+    <field name="h_pc_tnvk_1018" type="String">
+      <header v="TN vượt khung:" e="Off-scale Seniority:"/>
+    </field>
+    <field name="h_cam_doan_1018" type="String">
+      <header v="Tôi xin cam đoan những nội dung kê khai là đúng và chịu trách nhiệm trước pháp luật về những nội dung đã khai." e="I undertake that the above information is correct and shall be fully responsible for the declared figures."/>
+    </field>
+  </fields>
+</report>

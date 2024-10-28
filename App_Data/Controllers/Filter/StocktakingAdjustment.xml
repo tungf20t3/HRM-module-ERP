@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="kkdc" code="stt_rec, ma_kho, ma_vi_tri, ma_vt, dvt, ma_lo" order="stt_rec, ma_kho, ma_vi_tri, ma_vt, dvt, ma_lo" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Lọc dữ liệu" e="Filter Data"></title>
+
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu từ" e="Counting Date from"></header>
+      <footer v="Ngày yêu cầu từ/đến" e="Counting Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu đến" e="Counting Date to"></header>
+    </field>
+    <field name="so_ct" align="right" allowNulls="false">
+      <header v="Số yêu cầu" e="Voucher No."></header>
+      <items style="AutoComplete" controller="StocktakingRequisition" key="(ngay_ct between @d1 and @d2)" check="(ngay_ct between @d1 and @d2)"/>
+    </field>
+    <field name="ma_kho">
+      <header v="Mã kho" e="Site"></header>
+      <items style="AutoComplete" controller="Site" reference="ten_kho%l" key="status = '1'" check="1=1" information="ma_kho$dmkho.ten_kho%l"/>
+    </field>
+    <field name="ten_kho%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vt">
+      <header v="Mã vật tư" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1" information="ma_vt$dmvt.ten_vt%l" new="Default"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 100, 230, 0"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="110--1: [so_ct].Label, [so_ct], [stt_rec]"/>
+      <item value="11010: [ma_kho].Label, [ma_kho], [ten_kho%l]"/>
+      <item value="11010: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+select 'init$StocktakingAdjustment$Filter(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$StocktakingAdjustment$Filter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$StocktakingAdjustment$Filter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$none nvarchar(512), @vcID varchar(33), @vcDate smalldatetime, @isLocked tinyint
+select @vcID = replace(stt_rec, '''', ''), @vcDate = ngay_ct from kkyc with(index(so_ct)) where so_ct = @so_ct and ngay_ct between @ngay_ct1 and @ngay_ct2
+if @vcID is null begin
+  select @$none = case when @@language = 'v' then N'Không có yêu cầu kiểm kê theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+  select 'so_ct' as field, isnull(@$none, '') as message
+end else begin
+  select @isLocked = case when @vcDate <= ngay_ks_kk then 1 else 0 end from dmstt
+  select '' as field, '' as message, 'on$Filter$Retrieve$QueryComplete(this, ''' + @vcID + ''', ''' + replace(replace(@so_ct, '\', '\\'), '''', '\''') + ''', ''' + @ma_kho + ''', ''' + @ma_vt + ''', ' + str(@isLocked) + ');' as script
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function init$StocktakingAdjustment$Filter(a){a.getItem("so_ct")._idle=9}function active$StocktakingAdjustment$Filter(a){a._looking=a.getItem("so_ct")._controlBehavior;a._looking.add_loading(on$InventoryLookupFilter$Before$Loading);var b=a.getItem("ngay_ct1");b.focus();a.live(b)}function close$StocktakingAdjustment$Filter(a){try{a._looking.remove_loading(on$InventoryLookupFilter$Before$Loading)}catch(b){}}function on$InventoryLookupFilter$Before$Loading(c,f){var b=c._element.parentForm;if(!b.validFields("ngay_ct1")||!b.validFields("ngay_ct2"))f.type.cancelEvent=true;else{var d=b.getItemValue("ngay_ct1"),e=b.getItemValue("ngay_ct2");a=[{Name:"d1",Type:"DateTime",Value:d},{Name:"d2",Type:"DateTime",Value:e}];c.set_memvars(a)}}function on$Filter$Retrieve$QueryComplete(e,d,h,g,f,c){var a=e.grid,b=[];a._denyNew=a._deny$Unit;a._denyMessage=null;if(!a._denyNew)a._denyNew=c;a._denyEdit=a._denyDelete=c;a._voucherID=d;if(c==1)a._denyMessage=e._language=="v"?"Đã khóa số liệu, kiểm tra lại ngày khóa sổ.":"Data is locked, you must modify system locked date.";f&&Array.add(b,{Name:"ma_vt",Opr:"like",Value:f+"%",Type:"String",Ignore:false});g&&Array.add(b,{Name:"ma_kho",Opr:"like",Value:g+"%",Type:"String",Ignore:false});Array.add(b,{Name:"stt_rec",Opr:"=",Value:d,Type:"String",Ignore:false});a.set_externalKey(b);a._alterTitle=[null,[["%s",h.toUpperCase(),true]]]}]]>
+    </text>
+  </script>
+</dir>

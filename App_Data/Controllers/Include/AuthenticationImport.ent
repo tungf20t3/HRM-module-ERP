@@ -1,0 +1,23 @@
+﻿<!ENTITY % Conditional.Authentication SYSTEM "..\Include\Authentication.txt">
+<!ENTITY % Conditional.EIOptions SYSTEM "..\Include\EIOptions.txt">
+
+<![%Conditional.Authentication;[
+  <![%Conditional.EIOptions;[
+    <!ENTITY EIImportJoin "">
+    <!ENTITY EIImportCheckTax "">
+    <!ENTITY EIImportCheckEmail "">
+    <!ENTITY EITaxErrorCode "">
+    <!ENTITY EIEmailErrorCode "">
+  ]]>
+  <!ENTITY EIImportInsert SYSTEM "..\Templates\Upload\Include\EIImportInsert.txt">
+  <!ENTITY ESImportInsert SYSTEM "..\Templates\Upload\Include\ESImportInsert.txt">
+]]>
+
+<!ENTITY EIImportJoin "join khhddt e on m.ma_kh = e.ma_kh">
+<!ENTITY EIImportCheckTax "ma_so_thue = '' and exists(select 1 from khhddt b where b.loai_kh = '1' and @@table.ma_kh = b.ma_kh)">
+<!ENTITY EIImportCheckEmail "e_mail = '' and exists(select 1 from khhddt b where @@table.ma_kh = b.ma_kh)">
+<!ENTITY EIImportInsert "">
+<!ENTITY ESImportInsert "">
+
+<!ENTITY EITaxErrorCode "TaxCode001">
+<!ENTITY EIEmailErrorCode "Mail001">

@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY SysID "PeriodicTransactionCreateNumber">
+]>
+
+<dir id="0" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật số chứng từ cho nhiều bút toán" e="Voucher Number Mass Update"/>
+  <fields>
+    <field name="so_bd" allowNulls="false" dataFormatString="X" maxLength="-100">
+      <header v="Số bắt đầu" e="Number Start"/>
+      <items style="Mask"></items>
+    </field>
+    <field name="type" dataFormatString="0, 1" clientDefault="0" align="right">
+      <header v="Kiểu cập nhật" e="Type"></header>
+      <footer v="1 - Chép đè, 0 - Không" e="1 - Overwrite, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 330"/>
+      <item value="110-: [so_bd].Label, [so_bd]"/>
+      <item value="1110: [type].Label, [type], [type].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&SysID;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'dispose$]]>&SysID;<![CDATA[$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,g=f.grid;if(f._checked){f._checked=false;f.request("CreateNumber","CreateNumber",["so_bd","type",["ky","Decimal",g._p],["nam","Decimal",g._y],["ma_dvcs","String",g._u],["keys","Infinite",g._$k]])}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$]]>&SysID;<![CDATA[$(f) {f.add_onResponseComplete(on$]]>&SysID;<![CDATA[$ResponseComplete);}
+function dispose$]]>&SysID;<![CDATA[$(f) {try {f.remove_onResponseComplete(on$]]>&SysID;<![CDATA[$ResponseComplete);} catch (ex) {}}
+function on$]]>&SysID;<![CDATA[$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result, g = f.grid;
+  switch (context) {
+    case 'CreateNumber':
+      show$]]>&SysID;<![CDATA[$QueryComplete(f, g, result[0][1]);
+      break;
+    default:
+      break;
+  }
+}
+function show$]]>&SysID;<![CDATA[$QueryComplete(f, g, t) {
+  var v = (g._language == 'v'), msg, s, id = g.get_id();
+  switch (t) {
+    case -1:
+      s = String.format('$find(\'{0}\')._focusWhenTabChanged();', id);
+    case 0:
+      f.cancelDialog();
+      msg = (v ? 'Chương trình đã thực hiện xong.' : 'The process was completed successfully.');
+      if (t == 0) s = String.format('var g = $find(\'{0}\');g._$k = g._$c = g._$r = [];g.goToPage(-1);', id);
+      $message.show(msg, s);
+      break;
+    case 1:
+    case 2:
+    default:
+      msg = (v ? 'Phát sinh lỗi trong quá trình thực hiện.' : 'The process was failed.');
+      $message.show(msg, String.format('$find(\'{0}\').focus(\'{1}\');', f.get_id(), 'so_bd'));
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="CreateNumber">
+      <text>
+        <![CDATA[
+declare @q nvarchar(4000)
+declare @size tinyint, @count numeric(12, 0), @maxnum numeric(12, 0), @c nvarchar(1), @p1 varchar(32), @p2 varchar(32), @p3 varchar(32), @n1 varchar(32), @n2 varchar(32), @startnum numeric(12, 0), @j int, @len int, @len_p2 int
+
+select top 1 @size = b.[length] from sysobjects a join syscolumns b on a.id = b.id where a.name = 'dmpbky1' and b.name = 'so_ct'
+select top 0 stt_rec, ma_bt, so_ct, identity(int, 1, 1) as id_stt into #t from vdmpbky1
+select * into #keys from @keys
+select @so_bd = replace(@so_bd, '''', ''), @type = replace(@type, '''', ''), @ma_dvcs = replace(@ma_dvcs, '''', '')
+
+select @q = 'insert into #t (stt_rec, ma_bt, so_ct) select stt_rec, ma_bt, '''' from vdmpbky1 where ky = ' + rtrim(cast(@ky as int)) + ' and nam = ' + rtrim(cast(@nam as int)) + case when @type <> '1' then ' and ltrim(rtrim(so_ct)) = ''''' else '' end + case when @ma_dvcs <> '' then ' and dbo.ff_InList(ma_dvcs, ''' + rtrim(@ma_dvcs) + ''') = 1' else '' end  + ' and exists(select 1 from #keys where patindex(''%'' + rtrim(ltrim(ma_bt)) + ''%'', text) > 0) order by ma_dvcs, ma_bt, tk_no, tk_co'
+exec sp_executesql @q
+
+if exists(select 1 from #t) begin
+  select @j = 0, @p1 = '', @p2 = '', @p3 = '', @n1 = '', @n2 = '', @startnum = 0, @len = len(@so_bd), @len_p2 = 0, @maxnum = 0, @size = isnull(@size, 12)
+  while @j < @len begin
+    set @c = substring(@so_bd, @j + 1, 1)
+    if patindex('[0-9]', @c) > 0 begin
+      if @p3 = '' select @p2 = @p2 + @c, @n1 = @n1 + @c
+        else select @p3 = @p3 + @c, @n2 = @n2 + @c
+      if @n1 <> '' and @n2 <> '' and len(@n1) < len(@n2) select @n1 = @n2, @p1 = @p1 + @p2 + substring(@p3, 1, len(@p3) - len(@n2)), @p2 = @n2, @p3 = '', @n2 = ''
+    end else begin
+      if @p2 = '' select @p1 = @p1 + @c
+        else select @p3 = @p3 + @c, @n2 = ''
+    end
+    set @j = @j + 1
+  end
+
+  if @p2 <> '' select @len_p2 = len(@p2), @startnum = @p2, @maxnum = replicate('9', @len_p2)
+  if @p2 = '' begin
+    select '' as array$, 1 as value, rtrim(ma_bt) as ma_bt, so_ct from #t
+    return
+  end
+
+  -- Update voucher number for temp table
+  select @count = count(*) from #t
+  if (@count + @startnum) > @maxnum or (len(@p1) + @len_p2 + len(@p3)) > @size begin
+    select '' as array$, 2 as value, rtrim(ma_bt) as ma_bt, so_ct from #t
+    return
+  end
+
+  update #t set so_ct = @p1 + right(replicate('0', @size) + ltrim(@startnum + id_stt - 1), @len_p2) + @p3
+  update #t set so_ct = dbo.ff_PadL(rtrim(so_ct), @size)
+
+  update dmpbky1 set so_ct = b.so_ct from dmpbky1 a join #t b on a.stt_rec = b.stt_rec and a.ma_bt = b.ma_bt where ky = @ky and nam = @nam
+
+  select '' as array$, 0 as value, rtrim(ma_bt) as ma_bt, so_ct from #t
+end
+
+select '' as array$, -1 as value, '' as ma_bt, '' as so_ct
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

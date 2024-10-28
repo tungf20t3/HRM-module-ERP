@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tính lại tổng số tiền đã trả cho các hóa đơn" e="Recalculate Paid Amount for Invoices"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" align="left" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="From Date"></header>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" align="left" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="To Date"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="110: [ngay_ct1].Label, [ngay_ct1]"/>
+      <item value="110: [ngay_ct2].Label, [ngay_ct2]"/>
+    </view>
+  </views>
+
+  <commands>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var d1=this.getItemValue("ngay_ct1"),d2=this.getItemValue("ngay_ct2"),e=null;if(d1!=null&&d2!=null&&d1>d2)e="ngay_ct2";if(e){this._checked=false;$func.hideWait(this.get_id());$message.show(String.format($df.getResources(this._language,"Message.RequiredField"),this.getItem(e).field.Label),String.format("$find('{0}').getItem('{1}').focus()",this.get_id(),e))}]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+exec AI_ERP$Calculate$APInvoiceBalance @ngay_ct1, @ngay_ct2
+]]>
+      </text>
+    </command>
+  </commands>
+
+</dir>

@@ -1,0 +1,465 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY CheckVoucherRightBeforeProcess SYSTEM "Include\CheckVoucherRightBeforeProcess.txt">
+
+  <!ENTITY Detail "01">
+  <!ENTITY Code "H16">
+  <!ENTITY TransferID "hrTaxDeduction">
+  <!ENTITY And "&#13;">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY LockedDate "
+if @r is not null begin
+  select replace(@locked, '&#37;s', @@delta + @r) as message
+  return
+end
+">
+
+  <!ENTITY % VoucherDeleteLog SYSTEM "..\..\Include\VoucherDeleteLog.ent">
+  %VoucherDeleteLog;
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "
+declare @filename varchar(128)
+if @@language = 'v' select @filename = '&FileName.v.ext;'
+else select @filename = '&FileName.e.ext;'
+">
+
+  <!ENTITY CheckTaxCodeExtImport "
+declare @taxCodeInvalid tinyint, @taxCodeInvalidConflict nvarchar(512), @t_yn bit
+select @taxCodeInvalidConflict = case when @@language = 'v' then N'Mã số thuế &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; tại dòng &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; không đúng.' else N'The tax code &lt;span class=&quot;Highlight&quot;&gt;&#37;s1&lt;/span&gt; at row &lt;span class=&quot;Highlight&quot;&gt;&#37;s2&lt;/span&gt; has invalid value.' end
+select @taxCodeInvalid = case when exists(select 1 from options where name = 'm_kt_mst' and val = '2') then 1 else 0 end
+
+if @taxCodeInvalid = 1 begin
+  select stt, mst_kh as ma_so_thue into #t2 from @@table where mst_kh &lt;&gt; ''
+  if @$mode = 1 begin
+    select top 0 cast(0 as int) as stt into #taxCodeInvalid2
+    insert into #taxCodeInvalid2 exec AI_ERP$System$CheckTaxCode 'stt, ma_so_thue', @t_yn output, @r output, '#t2', @$mode, @$errorCount
+    &StartErrorCount;
+    &InsertErrorTable; select 'mst_kh', stt, 'TaxCode001' from #taxCodeInvalid2 order by stt
+    &EndErrorCount;
+  end else begin
+    exec AI_ERP$System$CheckTaxCode 'stt, ma_so_thue', @t_yn output, @r output, '#t2'
+    if @t_yn = 0 begin
+      select replace(replace(@taxCodeInvalidConflict, '&#37;s1', mst_kh), '&#37;s2', @@delta + @r) as message from @@table where stt = @r
+      return
+    end
+  end
+end
+">
+  <!ENTITY TaxCodeImportVariable SYSTEM "..\..\Templates\Upload\Include\TaxCodeImportVariable.txt">
+
+  <!ENTITY % ImportSqlCondition SYSTEM "..\..\Include\ImportSqlCondition.ent">
+  %ImportSqlCondition;
+
+  <!ENTITY % ImportOverwrite SYSTEM "..\..\Include\ImportOverwriteVoucher.ent">
+  %ImportOverwrite;
+  <!ENTITY ImportOverwriteMainTable "hrm&Detail;$$partition">
+  <!ENTITY ImportOverwriteLogTable "hro&Detail;$000000">
+  <!ENTITY % ImportOverwriteCommand SYSTEM "..\..\Include\ImportOverWriteVoucher.hrTaxDeduction">
+  %ImportOverwriteCommand;
+
+  <!ENTITY % CheckValidEmail SYSTEM "..\..\Include\CheckImportValidEmail.ent">
+  %CheckValidEmail;
+  <!ENTITY CheckValidEmail.FieldName "email_kh">
+  <!ENTITY CheckValidEmail.MultiEmail "1=1">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Voucher"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$hrTaxDeductionImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$hrTaxDeductionImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
+    <baseTable value="hrm&Detail;$000000, hrd&Detail;$000000"/>
+    <dependence value="hrm&Detail;$000000, hrd&Detail;$000000, hri&Detail;$000000, hrc&Detail;$000000" alias="m, d, i, g"/>
+    <listTable value="#hrm&Detail;, #hrd&Detail;, #hri&Detail;, #hri&Detail;"/>
+    <alias value="master, detail, inquiry, general"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <variable>
+    <var id="C001">
+      <header v="Chứng từ số và ngày đã tồn tại." e="The voucher number and dated already exists."/>
+    </var>
+    <var id="C002">
+      <header v="Chứng từ số, ngày và đơn vị đã tồn tại." e="The voucher number, dated and unit already exists."/>
+    </var>
+    <var id="C003">
+      <header v="Đã khóa số liệu, kiểm tra lại ngày chứng từ." e="Data is locked, please check the date of voucher."/>
+    </var>
+    &MailImportVariable;
+    &TaxCodeImportVariable;
+    &ImportOverwriteVariable;
+    &ImportLockedDateVariable;
+  </variable>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_dvcs" isPrimaryKey="true" column="." allowNulls="false" upperCase="true" resource="master, inquiry, general" check="ma_dvcs not in (select ma_dvcs from dmdvcs)&And;exists(select 1 from #unit b where @@table.ngay_ct = b.ngay_ct and @@table.so_ct = b.so_ct having count(b.ma_dvcs) > 1)&And;not exists(select 1 from sysunitrights b where @@table.ma_dvcs = b.ma_dvcs and b.user_id = @user and b.r_new = 1)" condition="&And;&And;if @admin &lt;&gt; 1 begin" tag="&And;&And;end" errorCode="00001&And;00002&And;00002" category="1"/>
+    <field name="ngay_ct" isPrimaryKey="true" column="." allowNulls="false" type="DateTime" resource="master, detail, inquiry, general"/>
+    <field name="so_ct" isPrimaryKey="true" column="." allowNulls="false" upperCase="true" resource="master, detail, inquiry, general"/>
+    <field name="ma_kh" column="." allowNulls="false" reference="0.mst_kh" insertValue="stt_rec_nv" relation="stt_rec_nv" upperCase="true" resource="master" check="not exists(select 1 from hrnv where ma_dvcs = @@table.ma_dvcs and ma_nv = @@table.ma_kh and (@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1')" errorCode="00001" category="1"/>
+    <field name="ten_kh" column="." resource="master" check="ten_kh = ''" errorCode="00001" category="1"/>
+    <field name="mst_kh" column="." resource="master"/>
+    <field name="dia_chi_kh" column="." resource="master"/>
+    <field name="doi_tuong" column="." resource="master" check="doi_tuong not in ('1', '0')" errorCode="00001" category="1"/>
+
+    <field name="ma_vt" column="." reference="1" upperCase="true" resource="detail" check="ma_vt &lt;&gt; '' and ma_vt not in (select ma_loai from hrdmtngt where loai = '1')" errorCode="00001" category="1"/>
+    <field name="ten_vt" column="." reference="1" resource="detail" check="ten_vt = ''" errorCode="00001" category="1"/>
+
+    <field name="thang_kt1" column="." reference="1" type="Decimal" allowNulls="false" resource="detail" check="thang_kt1 &lt; 1 or thang_kt1 &gt; 12 or thang_kt1 &gt; thang_kt2" errorCode="00001" category="1"/>
+    <field name="thang_kt2" column="." reference="1" type="Decimal" allowNulls="false" resource="detail" check="thang_kt2 &lt; 1 or thang_kt2 &gt; 12" errorCode="00001" category="1"/>
+    <field name="nam_kt" column="." reference="1" allowNulls="false" type="Decimal" resource="detail" check="nam_kt &lt; 2000 or nam_kt &gt; 2079" errorCode="00001" category="1"/>
+
+    <field name="tnc_thue_nt" column="." reference="1" type="Decimal" resource="detail"/>
+    <field name="giam_tru_nt" column="." reference="1" type="Decimal" resource="detail"/>
+    <field name="tnt_thue_nt" column="." reference="1" type="Decimal" resource="detail"/>
+    <field name="thue_suat" column="." reference="1" type="Decimal" resource="master, detail"/>
+    <field name="thue_nt" column="." reference="1" type="Decimal" resource="detail"/>
+    <field name="bh_bb_nt" column="." reference="1" type="Decimal" resource="detail"/>
+
+    <field name="ma_nt" column="." upperCase="true" resource="master" check="ma_nt not in (select ma_nt from dmnt)" errorCode="00001" category="1"/>
+    <field name="ty_gia" column="." type="Decimal" defaultValue="1" resource="master" check="ty_gia &lt; 0" errorCode="00001" category="1"/>
+
+    <field name="quoc_tich" column="." resource="master"/>
+    <field name="so_giay_to" column="." resource="master" check="so_giay_to = '' and mst_kh = ''" errorCode="00001" category="1"/>
+    <field name="ngay_cap_giay_to" column="." resource="master" type="DateTime" check="ngay_cap_giay_to is null and mst_kh = ''" errorCode="00001" category="1"/>
+    <field name="noi_cap_giay_to" column="." resource="master" check="noi_cap_giay_to = '' and mst_kh = ''" errorCode="00001" category="1"/>
+    <field name="dien_thoai_kh" column="." resource="master"/>
+    <field name="email_kh" column="." resource="master"/>
+    <field name="ghi_chuhoadon" column="." resource="master"/>
+
+    <field name="stt_rec" column="None" resource="master, detail, inquiry, general"/>
+    <field name="stt_rec0" column="None" resource="detail"/>
+    <field name="ngay_lct" column="None" type="DateTime" insertValue="ngay_ct" resource="master"/>
+    <field name="ma_gd" column="None" insertValue="1" resource="master"/>
+    <field name="ma_ct" column="None" insertValue="@voucherID" expression="''' + @voucherID + '''" resource="master, detail"/>
+
+    <field name="t_giam_tru_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_bh_bb_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_tnc_thue_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_tnt_thue_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_thue_nt" column="None" type="Decimal" resource="master"/>
+    <field name="t_thanh_toan_nt" column="None" type="Decimal" resource="master"/>
+
+    <field name="t_giam_tru" column="None" type="Decimal" resource="master"/>
+    <field name="t_bh_bb" column="None" type="Decimal" resource="master"/>
+    <field name="t_tnc_thue" column="None" type="Decimal" resource="master"/>
+    <field name="t_tnt_thue" column="None" type="Decimal" resource="master"/>
+    <field name="t_thue" column="None" type="Decimal" resource="master"/>
+    <field name="t_thanh_toan" column="None" type="Decimal" resource="master"/>
+
+    <field name="tnc_thue" column="None" type="Decimal" resource="detail"/>
+    <field name="giam_tru" column="None" type="Decimal" resource="detail"/>
+    <field name="tnt_thue" column="None" type="Decimal" resource="detail"/>
+    <field name="bh_bb" column="None" type="Decimal" resource="detail"/>
+    <field name="thue" column="None" type="Decimal" resource="detail"/>
+
+    <field name="line_nbr" column="None" type="Int" resource="detail"/>
+    <field name="stt" column="None" expression="stt" resource="detail"/>
+
+    <field name="c$" column="None" resource="inquiry"/>
+    <field name="m$" column="None" resource="inquiry"/>
+    <field name="d$" column="None" resource="inquiry"/>
+    <field name="e$" column="None" resource="inquiry"/>
+
+    <field name="status" column="None" insertValue="@status" expression="' + @status + '" resource="master, inquiry, general"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="@datetime0" expression="''' + @datetime0 + '''" resource="master"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="@datetime0" expression="''' + @datetime0 + '''" resource="master"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master, inquiry, general"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@user" expression="' + rtrim(@user) + '" resource="master"/>
+    <field name="stt_rec_nv" column="" resource="master, inquiry, general"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Chứng từ khấu trừ thuế TNCN" e="Certificate of Personal Income Tax Withholding"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_dvcs" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đơn vị" e="Unit"></text>
+      </field>
+      <field name="ngay_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày" e="Voucher Date"></text>
+      </field>
+      <field name="so_ct" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số chứng từ" e="Voucher Number"></text>
+      </field>
+      <field name="ma_kh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_kh" width="32" starColor="&EIT.StarColor.Sub;">
+        <text v="Tên nhân viên" e="Employee Name"/>
+      </field>
+      <field name="mst_kh" width="16">
+        <text v="Mã số thuế" e="Tax Code"/>
+      </field>
+      <field name="dia_chi_kh" width="32">
+        <text v="Địa chỉ" e="Address"/>
+      </field>
+      <field name="doi_tuong" width ="16">
+        <text v="Đối tượng" e="Resident Kind"/>
+      </field>
+
+      <field name="ma_vt" width="16">
+        <text v="Mã thu nhập" e="Income Code"></text>
+      </field>
+      <field name="ten_vt" width="32" starColor="&EIT.StarColor.Sub;">
+        <text v="Tên thu nhập" e="Income Description"></text>
+      </field>
+      <field name="thang_kt1" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Từ tháng" e="From Month"></text>
+      </field>
+      <field name="thang_kt2" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Đến tháng" e="To Month"></text>
+      </field>
+      <field name="nam_kt" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Năm khấu trừ" e="Year"></text>
+      </field>
+      <field name="tnc_thue_nt" width="16">
+        <text v="Thu nhập chịu thuế" e="Taxable Income"></text>
+      </field>
+      <field name="giam_tru_nt" width="16">
+        <text v="Giảm trừ" e="Deduction"></text>
+      </field>
+      <field name="tnt_thue_nt" width="16">
+        <text v="Thu nhập tính thuế" e="Assessable Income"></text>
+      </field>
+      <field name="thue_suat" width="16">
+        <text v="Thuế suất" e="Tax Rate (%)"></text>
+      </field>
+      <field name="thue_nt" width="16">
+        <text v="Thuế" e="Tax Amount"></text>
+      </field>
+      <field name="bh_bb_nt" width="16">
+        <text v="Bảo hiểm bắt buộc" e="Compulsory Insurance"></text>
+      </field>
+      <field name="ma_nt" width="16">
+        <text v="Mã nt" e="Currency"></text>
+      </field>
+      <field name="ty_gia" width="16">
+        <text v="Tỷ giá" e="Ex. Rate"></text>
+      </field>
+      <field name="quoc_tich" width="16">
+        <text v="Quốc tịch" e="Nationality"></text>
+      </field>
+      <field name="so_giay_to" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Số giấy tờ" e="Identity Paper No."></text>
+      </field>
+      <field name="ngay_cap_giay_to" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Ngày cấp" e="Date of Issue"></text>
+      </field>
+      <field name="noi_cap_giay_to" width="16" starColor="&EIT.StarColor.Sub;">
+        <text v="Nơi cấp" e="Place of Issue"></text>
+      </field>
+      <field name="dien_thoai_kh" width="16">
+        <text v="Điện thoại" e="Phone Number"></text>
+      </field>
+      <field name="email_kh" width="32">
+        <text v="Thư (Email)" e="Email"></text>
+      </field>
+      <field name="ghi_chuhoadon" width="32">
+        <text v="Ghi chú" e="Note"></text>
+      </field>
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      &CheckVoucherRightBeforeProcess;
+      <![CDATA[
+declare @q nvarchar(4000), @duplicate nvarchar(512), @locked nvarchar(512), @field varchar(32), @wsID varchar(8), @voucherID varchar(8)
+declare @master varchar(16), @detail varchar(16), @inquiry varchar(16), @general varchar(16), @baseCurrency varchar(8), @datetime0 char(21), @d0 datetime
+declare @user int, @admin bit, @r int, @m int, @y int, @max1 int, @max2 int, @count int, @roundPrice int, @roundAmount int, @roundFAmount int
+
+select @d0 = getdate(), @datetime0 = convert(char(8), @d0, 112) + ' ' + convert(char(12), @d0, 114), @status = left(replace(@status, '''', ''), 1)
+select @admin = @@admin, @user = @@userID, @master = 'hrm]]>&Detail;<![CDATA[$', @detail = 'hrd]]>&Detail;<![CDATA[$', @inquiry = 'hri]]>&Detail;<![CDATA[$', @general = 'hrc]]>&Detail;<![CDATA[$000000', @voucherID = ']]>&Code;<![CDATA['
+
+select @locked = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày chứng từ tại dòng <span class="Highlight">%s</span>.' else N'Data is locked, please check the date of voucher at row <span class="Highlight">%s</span>.' end
+select @duplicate = case when @@language = 'v' then N'Chứng từ số <span class="Highlight">%s1</span> ngày <span class="Highlight">%s2</span> tại dòng <span class="Highlight">%s3</span> đã tồn tại.'
+  else 'The voucher number <span class="Highlight">%s1</span> dated <span class="Highlight">%s2</span> at row <span class="Highlight">%s3</span> already exists.' end
+
+select @wsID = rtrim(val) from options where name = 'm_ws_id'
+select @baseCurrency = rtrim(val) from options where name = 'm_ma_nt0'
+select @roundPrice = cast(rtrim(val) as int) from options where name = 'm_round_gia'
+select @roundAmount = cast(rtrim(val) as int) from options where name = 'm_round_tien'
+select @roundFAmount = cast(rtrim(val) as int) from options where name = 'm_round_tien_nt'
+
+select @max1 = character_maximum_length from information_schema.columns where table_name = @master + '000000' and column_name = 'so_ct'
+select @max2 = character_maximum_length from information_schema.columns where table_name = @detail + '000000' and column_name = 'so_lsx'
+
+-- Checking
+update @@table set so_ct = space(@max1 - len(rtrim(ltrim(so_ct)))) + rtrim(ltrim(so_ct))
+]]>&ImportOverwriteData;<![CDATA[
+
+if @check$Unit <> '1' begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C001' from @@table a join hrc]]>&Detail;<![CDATA[$000000 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct]]>&ImportSqlWhere;&VoucherLogImportExtendKey;&ImportOverwriteCheckKey;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(stt) from @@table a join hrc]]>&Detail;<![CDATA[$000000 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct]]>&ImportSqlWhere;&VoucherLogImportExtendKey;&ImportOverwriteCheckKey;<![CDATA[
+  end
+end else begin
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select 'so_ct', stt, 'C002' from @@table a join hrc]]>&Detail;<![CDATA[$000000 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.ma_dvcs = b.ma_dvcs]]>&ImportSqlWhere;&VoucherLogImportExtendKey;&ImportOverwriteCheckKey;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(stt) from @@table a join hrc]]>&Detail;<![CDATA[$000000 b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct and a.ma_dvcs = b.ma_dvcs]]>&ImportSqlWhere;&VoucherLogImportExtendKey;&ImportOverwriteCheckKey;<![CDATA[
+  end
+end
+
+if @r is not null and @$mode <> 1 begin
+  if @check$Unit <> '1' select replace(replace(replace(@duplicate, '%s1', so_ct), '%s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '%s3', @@delta + @r) as message from @@table where stt = @r
+    else select replace(replace(replace(replace(@duplicate$Unit, '%s1', so_ct), '%s2', convert(varchar(12), cast(ngay_ct as smalldatetime), 103)), '%s3', rtrim(ma_dvcs)), '%s4', @@delta + @r) as message from @@table where stt = @r
+  return
+end
+
+-- Update
+update @@table set stt_rec_nv = c.stt_rec,
+    ma_nt = case when a.ma_nt <> '' then a.ma_nt else @baseCurrency end,
+    ten_vt = case when a.ten_vt <> '' then a.ten_vt else isnull(b.ten_loai, '') end,
+    ten_kh = case when a.ten_kh <> '' then a.ten_kh else isnull(rtrim(c.ho_nv) + space(1) + ltrim(c.ten_nv), '') end,
+    mst_kh = case when a.mst_kh <> '' then a.mst_kh else isnull(g.ma_so_thue, '') end,
+    dia_chi_kh = case when a.dia_chi_kh <> '' then a.dia_chi_kh else isnull((case when c.dia_chi_ht is null then '' else rtrim(c.dia_chi_ht) end) + ', ' + (case when c.dia_chi_ht_quan is null then '' else rtrim(e.ten_quan) end) + ', ' + (case when c.dia_chi_ht_tinh is null then '' else rtrim(d.ten_tinh) end), '') end,
+    doi_tuong = case when a.doi_tuong <> '' then a.doi_tuong else isnull(case when g.doi_tuong = '2' then '0' else '1' end, '1') end,
+    quoc_tich = case when a.quoc_tich <> '' then a.quoc_tich else isnull(f.ten_qt, '') end,
+    so_giay_to = case when a.so_giay_to <> '' then a.so_giay_to else isnull(c.cmnd_so, '') end,
+    ngay_cap_giay_to = case when a.ngay_cap_giay_to is not null then a.ngay_cap_giay_to else c.cmnd_ngay_hl end,
+    noi_cap_giay_to = case when a.noi_cap_giay_to <> '' then a.noi_cap_giay_to else isnull(h.ten_tinh, '') end,
+    dien_thoai_kh = case when a.dien_thoai_kh <> '' then a.dien_thoai_kh else isnull(left(c.dien_thoai_dd, 20), '') end,
+    email_kh = case when a.email_kh <> '' then a.email_kh else isnull(c.email_cty, '') end
+  from @@table a
+    left join (select ma_loai, ten_loai from hrdmtngt where loai = '1') b on a.ma_vt = b.ma_loai and a.ma_vt <> ''
+    left join hrnv c on a.ma_kh = c.ma_nv
+    left join hrdmtinh d on c.dia_chi_ht_tinh = d.ma_tinh
+    left join hrdmquan e on c.dia_chi_ht_quan = e.ma_quan
+    left join dmqt f on c.quoc_tich = f.ma_qt
+    left join hrtttncn g on c.stt_rec = g.stt_rec
+    left join hrdmtinh h on c.cmnd_noi_cap = h.ma_tinh
+
+select top 0 ma_dvcs, ngay_ct, so_ct into #unit from hrm]]>&Detail;<![CDATA[$000000
+insert into #unit select ma_dvcs, ngay_ct, so_ct from @@table group by ma_dvcs, ngay_ct, so_ct
+
+-- Locked Date
+]]>&CheckValidEmailCommandCheckingImport;<![CDATA[
+
+]]>&ImportLockedDateCheck;<![CDATA[
+
+@@checking(1);
+
+]]>
+      &CheckTaxCodeExtImport;
+      &ImportOverwriteChecking;
+      &EndErrorMode;
+      <![CDATA[
+
+-- Gather
+select top 0 stt_rec, ngay_ct, so_ct, cast(0 as int) as stt, identity(int, 1, 1) as id into #id from hrm]]>&Detail;<![CDATA[$000000
+insert into #id(stt_rec, ngay_ct, so_ct, stt) select '', a.ngay_ct, a.so_ct, min(a.stt) from @@table a]]>&ImportOverwriteIdentiyDataCondition;<![CDATA[ group by a.ngay_ct, a.so_ct order by a.ngay_ct, a.so_ct
+
+select identity(int, 1, 1) as id, cast(stt as int) as stt, convert(varchar(8), ngay_ct, 112) + so_ct as c, cast(0 as int) as ln into #ln from @@table order by ngay_ct, so_ct, stt
+exec AI_ERP$App$UpdateLineNumber
+create index i on #ln(stt)
+
+select @count = count(*) from #id
+exec AI_ERP$App$UpdateIdentityNumber @wsID, @voucherID, @count, @@userID
+]]>&ImportOverwriteProcess;<![CDATA[
+
+select top 0 stt_rec, stt_rec0, line_nbr, ngay_ct, so_ct, ma_vt, ten_vt, thang_kt1, thang_kt2, nam_kt, thue_suat, tnc_thue_nt, tnc_thue, giam_tru_nt, giam_tru, tnt_thue_nt, tnt_thue, thue_nt, thue, bh_bb_nt, bh_bb
+  into #hrd]]>&Detail;<![CDATA[ from hrd]]>&Detail;<![CDATA[$000000
+
+insert into #hrd]]>&Detail;<![CDATA[ select b.stt_rec, dbo.AI_ERP$Function$Voucher$GetRecordsGroup(i.ln), i.ln, a.ngay_ct, a.so_ct,
+    a.ma_vt, a.ten_vt, a.thang_kt1, a.thang_kt2, a.nam_kt, a.thue_suat,
+    round(tnc_thue_nt, case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(a.tnc_thue_nt * a.ty_gia, @roundAmount),
+    round(giam_tru_nt, case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(a.giam_tru_nt * a.ty_gia, @roundAmount),
+    round(tnt_thue_nt, case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(a.tnt_thue_nt * a.ty_gia, @roundAmount),
+    round(thue_nt, case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(a.thue_nt * a.ty_gia, @roundAmount),
+    round(bh_bb_nt, case when a.ma_nt = @baseCurrency then @roundAmount else @roundFAmount end), round(a.bh_bb_nt * a.ty_gia, @roundAmount)
+  from @@table a join #id b on a.ngay_ct = b.ngay_ct and a.so_ct = b.so_ct join #ln i on a.stt = i.stt
+  order by a.ngay_ct, a.so_ct, a.stt
+
+select top 0 stt_rec, status, ma_dvcs, ngay_ct, so_ct,
+    stt_rec_nv, ten_kh, mst_kh, dia_chi_kh, email_kh, doi_tuong, quoc_tich, so_giay_to, ngay_cap_giay_to, dien_thoai_kh, noi_cap_giay_to, ghi_chuhoadon,
+    thue_suat, ma_nt, ty_gia,
+    t_tnc_thue_nt, t_tnc_thue, t_giam_tru_nt, t_giam_tru, t_tnt_thue_nt, t_tnt_thue, t_thue_nt, t_thue, t_bh_bb_nt, t_bh_bb, t_thanh_toan_nt, t_thanh_toan
+  into #hrm]]>&Detail;<![CDATA[ from hrm]]>&Detail;<![CDATA[$000000
+
+-- Total
+select top 0 stt_rec, t_tnc_thue_nt, t_tnc_thue, t_giam_tru_nt, t_giam_tru, t_tnt_thue_nt, t_tnt_thue, t_thue_nt, t_thue, t_bh_bb_nt, t_bh_bb into #total from #hrm]]>&Detail;<![CDATA[
+insert into #total
+    select stt_rec, sum(tnc_thue_nt), sum(tnc_thue), sum(giam_tru_nt), sum(giam_tru), sum(tnt_thue_nt), sum(tnt_thue), sum(thue_nt), sum(thue), sum(bh_bb_nt), sum(bh_bb)
+    from #hrd]]>&Detail;<![CDATA[ group by stt_rec
+
+insert into #hrm]]>&Detail;<![CDATA[ select b.stt_rec, @status, a.ma_dvcs, a.ngay_ct, a.so_ct,
+    a.stt_rec_nv, a.ten_kh, a.mst_kh, a.dia_chi_kh, a.email_kh,
+    a.doi_tuong, a.quoc_tich, a.so_giay_to, a.ngay_cap_giay_to, a.dien_thoai_kh, a.noi_cap_giay_to, a.ghi_chuhoadon,
+    a.thue_suat, a.ma_nt, a.ty_gia,
+    d.t_tnc_thue_nt, d.t_tnc_thue, d.t_giam_tru_nt, d.t_giam_tru, d.t_tnt_thue_nt, d.t_tnt_thue, d.t_thue_nt, d.t_thue, d.t_bh_bb_nt, d.t_bh_bb, d.t_tnc_thue_nt - d.t_thue_nt, d.t_tnc_thue - d.t_thue
+  from @@table a
+    join #id b on a.stt = b.stt
+    join #unit c on a.ngay_ct = c.ngay_ct and a.so_ct = c.so_ct
+    join #total d on b.stt_rec = d.stt_rec
+
+select top 0 stt_rec, stt_rec_nv, ngay_ct, so_ct, ma_dvcs, status, user_id0, c$, m$, d$, identity(int, 1, 1) as id into #hri]]>&Detail;<![CDATA[ from hri]]>&Detail;<![CDATA[$000000
+insert into #hri]]>&Detail;<![CDATA[ select stt_rec, stt_rec_nv, ngay_ct, so_ct, ma_dvcs, @status, @user, convert(varchar(12), ngay_ct, 112) + so_ct + stt_rec,
+  '#10$' + rtrim(stt_rec_nv) + '#15$' + rtrim(1) + '#30$' + rtrim(ma_nt), '' from #hrm]]>&Detail;<![CDATA[
+select @q = dbo.AI_ERP$Function$Update$Inquiry('#hri]]>&Detail;<![CDATA[', '#hrd]]>&Detail;<![CDATA[', 'd$', 'ma_vt', '#20$', 'stt_rec', default, default, default, default, default)
+exec sp_executesql @q
+
+declare @p varchar(32), @masterTable varchar(32), @detailTable varchar(32), @inquiryTable varchar(32), @insertKey varchar(128)
+select distinct month(ngay_ct) as m, year(ngay_ct) as y into #k from #id
+select @r = min(y * 12 + m) from #k
+
+while @r is not null begin
+  select @m = m, @y = y from #k where y * 12 + m = @r
+  select @p = rtrim(@y) + replace(str(@m, 2), ' ', '0'), @insertKey = 'month(ngay_ct) = ' + rtrim(@m) + ' and year(ngay_ct) = ' + rtrim(@y)
+  select @masterTable = @master + @p, @detailTable = @detail + @p, @inquiryTable = @inquiry + @p
+
+  select @q = @@inserting(master, @masterTable, @insertKey);
+  exec sp_executesql @q
+
+  select @q = @@inserting(detail, @detailTable, @insertKey);
+  exec sp_executesql @q
+
+  select @q = @@inserting(inquiry, @inquiryTable, @insertKey);
+  exec sp_executesql @q
+]]>&ImportOverwriteInsertingByPart;<![CDATA[
+  select @r = min(y * 12 + m) from #k where y * 12 + m > @r
+end
+
+@@inserting(general);
+]]>&ImportOverwriteInserting;
+    </text>
+  </processing>
+</import>

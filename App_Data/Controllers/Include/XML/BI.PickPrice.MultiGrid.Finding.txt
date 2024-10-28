@@ -1,0 +1,81 @@
+<![CDATA[
+declare @c char(1), @d char(1), @parentController varchar(64)
+select @c = char(253), @d = char(252)
+
+select top 0 cast(0 as numeric(19, 3)) he_so, cast(0 as numeric(19, 3)) as sl_qd, cast(0 as int) as round_gia into #dmqddvt
+select * into #t from dbo.AI_ERP$Function$System$Split(@@queryString, @c)
+
+select @parentController = replace(data, @d, '''') from #t where id = (select max(id) from #t)
+]]>&CheckRelativeProcess;<![CDATA[
+
+declare @ngay_ct1 smalldatetime, @ngay_ct2 smalldatetime, @ma_dvcs varchar(32), @ma_bp0 varchar(32), @priceRound int, @ma_nt varchar(16)
+declare @ma_kh varchar(32), @ma_vt varchar(32), @ngay_hl_tu char(8), @ngay_hl_den char(8), @dvt char(10), @he_so numeric(19, 3), @so_luong numeric(19, 3)
+
+select @priceRound = rtrim(val) from options where name = 'm_round_gia'
+
+select @ma_dvcs = replace(data, @d, '''') from #t where id = 1
+select @ma_bp0 = replace(data, @d, '''') from #t where id = 2
+select @ma_kh = replace(data, @d, '''') from #t where id = 3
+select @ma_vt = replace(data, @d, '''') from #t where id = 4
+select @ngay_hl_tu = data from #t where id = 5
+select @ngay_hl_den = data from #t where id = 6
+select @dvt = data from #t where id = 7
+select @so_luong = cast(data as numeric(19, 3)) from #t where id = 8
+
+if @ma_dvcs = '' set @ma_dvcs = @@unit
+select @he_so = he_so from dmqddvt where ma_vt = @ma_vt and dvt = @dvt
+if @he_so is null set @he_so = 1
+insert into #dmqddvt select @he_so, @so_luong * @he_so, @priceRound
+
+declare @queryWhereClause nvarchar(4000), @queryFormClause nvarchar(4000)
+
+set @queryFormClause = 'bigia02 m with(nolock) join bigia01 b with(nolock) on m.stt_rec = b.stt_rec and m.stt_rec0 = b.stt_rec0 left join ]]>&VendorList;<![CDATA[ c on m.ma_kh = c.ma_kh left join dmct d on m.ma_ct = d.ma_ct left join #dmqddvt e on 1=1'
+set @queryWhereClause = 'b.status = ''1'' and m.ma_vt = ''' + replace(rtrim(@ma_vt), '''', '''''') + ''' and (m.ngay_hl_tu is null or m.ngay_hl_tu <= ''' + @ngay_hl_den + ''') and (m.ngay_hl_den is null or m.ngay_hl_den >= ''' + @ngay_hl_tu + ''')'
+
+if @ma_kh <> '' set @queryWhereClause = @queryWhereClause + ' and m.ma_kh = ''' + replace(rtrim(@ma_kh), '''', '''''') + ''''
+if @so_luong > 0 set @queryWhereClause = @queryWhereClause + ' and (b.stt_rec1 = '''' or (b.stt_rec1 <> '''' and b.so_luong = (select max(so_luong) from bigia01 x where x.stt_rec = b.stt_rec and x.stt_rec0 = b.stt_rec0 and x.so_luong <= ' + ltrim(@so_luong * @he_so) + ')))'
+
+]]>&BI.PickPrice.MultiGrid.Finding.Ext;<![CDATA[
+
+declare @q nvarchar(4000), @i int, @m int, @ct_gia_dk nvarchar(4000), @he_so1 numeric(19, 3)
+select top 0 identity(int, 1, 1) as id, stt_rec, stt_rec0, stt_rec1, ct_gia_dk as x_ct_gia_dk, he_so1 as x_he_so1 into #list from bigia01
+set @q = 'insert into #list select b.stt_rec, b.stt_rec0, b.stt_rec1, b.ct_gia_dk, he_so1 from ' + @queryFormClause + ' where ' + @queryWhereClause + ' and ct_gia_dk <> '''''
+exec sp_executesql @q
+
+select @m = max(id), @i = 1 from #list
+if @m > 0 begin
+  select top 0 b.line_nbr AS id, a.ma_loai, a.ma_loai as ma_so, b.gia_nt as gia_tri, b.ct_gia_dk as cong_thuc, b.ct_gia_dk as ghi_chu, a.kieu_tinh, a.kieu_cap_nhat
+    into #cts from bidmldkg a, bigia01 b
+  while @i <= @m begin
+    truncate table #cts
+    select @ct_gia_dk = x_ct_gia_dk, @he_so1 = x_he_so1 from #list where id = @i
+    exec dbo.[AI_ERP$App$ConvertStringArray] @ct_gia_dk, '#cts', 'id, ma_loai, ma_so, gia_tri, cong_thuc, ghi_chu'
+    update #cts set kieu_tinh = b.kieu_tinh, kieu_cap_nhat = b.kieu_cap_nhat from #cts a join bidmldkg b on a.ma_loai = b.ma_loai
+    update #cts set gia_tri = gia_tri/@he_so1 * @he_so where kieu_tinh = '2' and kieu_cap_nhat IN ('1', '2', '3')
+
+    set @ct_gia_dk = ''
+    select @ct_gia_dk = @ct_gia_dk + case when @ct_gia_dk <> '' then ',' else '' end +
+          + '["' + replace(rtrim(ma_loai), '"', '\"') + '","'
+          + replace(rtrim(ma_so), '"', '\"') + '",'
+          + ltrim(cast(isnull(gia_tri, 0) as float)) + ',"'
+          + replace(cong_thuc, '"', '\"') + '","'
+          + replace(ghi_chu, '"', '\"') + '"]'
+        from #cts
+    update #list set x_ct_gia_dk = '[' + @ct_gia_dk + ']' where id = @i
+    set @i = @i + 1
+  end
+end
+set @queryFormClause = @queryFormClause + ' left join #list l on l.stt_rec = b.stt_rec and l.stt_rec0 = b.stt_rec0 and l.stt_rec1 = b.stt_rec1'
+
+]]>&FilterInitialize;&FilterQuery;<![CDATA[
+
+declare @partitionKey nvarchar(4000), @l int, @firstItem varchar(128), @lastItem varchar(128)
+
+select @firstItem = @@firstItem, @lastItem = @@lastItem, @partitionKey = 'convert(char(8), m.ngay_hl_tu, 112) + m.so_ct + m.stt_rec + m.stt_rec0 + replace(str(b.line_nbr, 5), '' '', ''0'')'
+select @l = 24 + character_maximum_length from information_schema.columns where table_name = 'wrkcolumns' and column_name = 'so_ct'
+
+if @firstItem <> '' set @firstItem = left(@firstItem, @l) + replace(str(right(@firstItem, len(@firstItem) - @l), 5), ' ', '0')
+if @lastItem <> '' set @lastItem = left(@LastItem, @l) + replace(str(right(@lastItem, len(@lastItem) - @l), 5), ' ', '0')
+
+exec AI_ERP$Partition$ExecutePage @@refresh, @@pageIndex, @@pageCount, @@lastPage, @@lastCount, @FirstItem, @LastItem, @@textExternal, @queryFormClause, @queryWhereClause, @@textOrderBy, @partitionKey, 'm.ngay_ct', @ngay_ct1, @ngay_ct2, null, @@admin, @@userID
+]]>

@@ -1,0 +1,64 @@
+﻿<field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" width="80" allowFilter="&GridQueryAllowFilter;" readOnly="true">
+  <header v="Ngày" e="Date"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+<field name="so_ct" width="80" align="right" allowFilter="&GridQueryAllowFilter;" hyperlinkFormatString="~/AppHandler/Voucher.ashx Query: {Name: '[ma_ct]', Value: '[stt_rec_dd]'}, Script: 'beforeDrillDown(this);'" readOnly="true">
+  <header v="Số" e="Number"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+<field name="t_tt_nt" type="Decimal" dataFormatString="@foreignCurrencyAmountViewFormat" width="100" readOnly="true" aliasName="case when m.ma_nt = '' then m.t_tt else m.t_tt_nt end" allowFilter="&GridQueryAllowFilter;">
+  <header v="Tiền trên hóa đơn nt" e="FC Invoice Amount"></header>
+  <items style="Numeric"/>
+  <query>&InsertCommandFilter;</query>
+</field>
+<field name="da_tt_nt" type="Decimal" dataFormatString="@foreignCurrencyAmountViewFormat" width="100" readOnly="true" aliasName="m.t_tt_qd - isnull(tt.tt_qd, 0)" allowFilter="&GridQueryAllowFilter;">
+  <header v="Đã thanh toán" e="Received"></header>
+  <items style="Numeric"/>
+  <query>&InsertCommandFilter;</query>
+</field>
+<field name="cl_nt" type="Decimal" dataFormatString="@foreignCurrencyAmountViewFormat" width="100" readOnly="true" aliasName="case when m.ma_nt = '' then m.t_tt else m.t_tt_nt end - m.t_tt_qd + isnull(tt.tt_qd, 0)" allowFilter="&GridQueryAllowFilter;">
+  <header v="Còn phải thanh toán" e="Receivable"></header>
+  <items style="Numeric"/>
+  <query>&InsertCommandFilter;</query>
+</field>
+
+<field name="chon" type="Boolean" external="true" allowContain="true" defaultValue="0" width="60">
+  &FlowMultiGridTagHeader;
+  <items style="CheckBox"/>
+  <clientScript><![CDATA[onclick="onClick$FlowMulti$GridQuery$]]>&Identity;<![CDATA[Calculate(this);"]]></clientScript>
+</field>
+<field name="tien_nt" type="Decimal" dataFormatString="@foreignCurrencyAmountInputFormat" width="100" aliasName="m.t_tt_nt * 0" hidden="&ARInvoiceFlowMulti.GridFieldHiddenAmmount;">
+  <header v="Tiền" e="Amount"></header>
+  <items style="Numeric"/>
+  <clientScript><![CDATA[onchange="onChange$FlowMulti$GridQuery$]]>&Identity;<![CDATA[InvoiceAmount(this);"]]></clientScript>
+</field>
+
+<field name="ma_nt" readOnly="true" width="50" aliasName="case when m.ma_nt = '' then a.ma_nt0 else m.ma_nt end" allowFilter="&GridQueryAllowFilter;">
+  <header v="Mã nt" e="Currency Code"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+<field name="t_tt" type="Decimal" dataFormatString="@baseCurrencyAmountViewFormat" width="100" readOnly="true" allowFilter="&GridQueryAllowFilter;">
+  <header v="Tiền trên hóa đơn" e="Invoice Amount"></header>
+  <items style="Numeric"/>
+  <query>&InsertCommandFilter;</query>
+</field>
+<field name="dien_giai" readOnly="true" width="300" allowFilter="&GridQueryAllowFilter;">
+  <header v="Diễn giải" e="Description"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+
+<field name="stt_rec" width="0" hidden="true" readOnly="true">
+  <header v="" e=""></header>
+</field>
+<field name="stt_rec0" width="0" hidden="true" readOnly="true" external="true" defaultValue="'000'">
+  <header v="" e=""></header>
+</field>
+<field name="line_nbr" type="Decimal" width="0" hidden="true" readOnly="true" external="true" defaultValue="1">
+  <header v="" e=""></header>
+</field>
+<field name="ma_ct" width="0" hidden="true" readOnly="true">
+  <header v="" e=""></header>
+</field>
+<field name="stt_rec_dd" width="0" hidden="true" readOnly="true" aliasName="substring(m.stt_rec, 1, 10) + ma_ct">
+  <header v="" e=""></header>
+</field>

@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+
+  <!ENTITY Identity "hrTSRequisition">
+  <!ENTITY InquiryTable "hriccyccp">
+  <!ENTITY c11 "Yêu cầu từ ngày">
+  <!ENTITY c12 "Requisition Date from">
+  <!ENTITY c21 "Số yêu cầu">
+  <!ENTITY c22 "Requisition Number">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'hrTSRequisitionFilter', 'Filter', 'hrTSIssue'">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+
+<dir table="hrccyccp" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn phiếu yêu cầu cấp phát công cụ, dụng cụ" e="Select Tool &#38; Supply Requisition Form"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="&c11;" e="&c12;"></header>
+    </field>
+    <field name="so_ct" align="right" maxLength="-100" filterSource="voucherNumber" allowNulls="&FlowMultiVoucherNumberAllowNulls;">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="AutoComplete" controller="&Identity;Lookup" reference="stt_rec_yc"/>
+    </field>
+    <field name="stt_rec_yc" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_bp" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="88">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="11011: [ngay_ct1].Label, [ngay_ct1], [ngay_ct2], [ma_bp]"/>
+      <item value="11011: [so_ct].Label, [so_ct], [stt_rec_yc], [ma_dvcs]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[Filter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Filter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[Filter$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if @so_ct <> '' begin
+  declare @fields nvarchar(64), @keyFlow nvarchar(4000), @$none nvarchar(512), @keyMaster nvarchar(4000)
+  declare @vcID varchar(32), @vcNumber varchar(32), @retrieveID char(13), @i int, @l int, @c smalldatetime, @d smalldatetime, @s nvarchar(4000), @unit varchar(128), @department varchar(33), @departmentName nvarchar(511), @requestor nvarchar(511)
+
+  select @keyMaster = '', @keyFlow = 'status in (''2'', ''4'')', @$none = case when @@language = 'v' then N'Không có yêu cầu cấp phát công cụ, dụng cụ theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+  ]]>&CheckRelativeProcess;<![CDATA[
+  select @vcNumber = ltrim(rtrim(@so_ct)), @unit = case when @ma_dvcs = '' then @@unit else @ma_dvcs end
+  select @i = len(@vcNumber), @l = character_maximum_length from information_schema.columns where table_name = '@@table' and column_name = 'so_ct'
+  select @vcNumber = space(@l - @i) + @vcNumber, @c = @ngay_ct1
+
+  if @stt_rec_yc <> '' begin
+    select @retrieveID = @stt_rec_yc
+    goto Retrieve
+  end
+  else begin
+    select top 0 stt_rec into #t from ]]>&InquiryTable;<![CDATA[
+    if exists(select 1 from information_schema.tables where table_name = ']]>&InquiryTable;<![CDATA[') begin
+      set @s = 'insert into #t select top 1 stt_rec from ]]>&InquiryTable;<![CDATA['
+      set @s = @s + char(13) + 'where ngay_ct between ''' + convert(char(8), @ngay_ct1, 112) + ''' and ''' + convert(char(8), @ngay_ct2, 112) + ''''
+      set @s = @s + char(13) + 'and so_ct = ''' + replace(@vcNumber, '''', '''''') + ''' and ma_dvcs = ''' + replace(@unit, '''', '''''') + ''''
+      if @keyFlow <> '' set @s = @s + ' and (' + @keyFlow + ')'
+      if @keyMaster <> '' set @s = @s + char(13) + 'and m$ like N''' + replace(@keyMaster, '''', '''''') + ''''
+      set @s = @s + char(13) + 'order by stt_rec'
+      exec sp_executesql @s
+    end
+    if exists(select 1 from #t where (isnull(stt_rec, '') <> '')) begin
+      select @retrieveID = stt_rec from #t
+      drop table #t
+      goto Retrieve
+    end
+
+    drop table #t
+    select 'so_ct' as field, @$none as message
+    return
+  end
+
+  Retrieve:
+  select @vcID = @retrieveID, @d = ngay_ct, @department = rtrim(ma_bp), @requestor = ong_ba from hrccyccp where stt_rec = @retrieveID
+  select @departmentName = case when @@language = 'v' then ten_bp else ten_bp2 end from hrbp where ma_bp = @department
+  select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(this, ''' + replace(replace(@vcNumber, '\', '\\'), '''', '\''') + ''', ''' + @vcID + ''', ''' + convert(char(8), @d, 112) + ''', ''' + replace(replace(@department, '\', '\\'), '''', '\''') + ''', ''' + replace(replace(@departmentName, '\', '\\'), '''', '\''') + ''', ''' + replace(replace(@requestor, '\', '\\'), '''', '\''') + ''');' as script
+  return
+end else begin
+  select '' as field, '' as message, 'on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryMultiComplete(this, '''', '''', '''', '''', '']]>&Identity;<![CDATA[MultiForm'', [''' + convert(char(8), @ngay_ct1, 112) + ''' ,''' + convert(char(8), @ngay_ct2, 112) + ''']);' as script
+  return
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$]]>&Identity;<![CDATA[Filter$(f) {f.getItem('so_ct')._idle = ]]>&IdleLookupFilter;<![CDATA[;}
+function active$]]>&Identity;<![CDATA[Filter$(f) {
+  f._looking = f.getItem('so_ct')._controlBehavior;
+  f._looking.add_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);
+  var g = f.grid, w = g.get_element().parentForm, d2 = w.getItemValue('ngay_ct'), u = w.getItemValue('ma_dvcs');
+  f.setItemValues('ngay_ct2, ma_dvcs', [d2, u]);
+}
+function close$]]>&Identity;<![CDATA[Filter$(f) {try {f._looking.remove_loading(on$]]>&Identity;<![CDATA[Filter$Before$Loading);} catch (ex) {}}
+function on$]]>&Identity;<![CDATA[Filter$Before$Loading(sender, e) {
+  var f = sender._element.parentForm;
+  if (!f.validFields('ngay_ct1')) e.type.cancelEvent = true;
+  else {
+    var g = f.grid, w = g.get_element().parentForm;
+    var d1 = f.getItemValue('ngay_ct1'), d2 = w.getItemValue('ngay_ct'), u = w.getItemValue('ma_dvcs');
+
+    a = [
+      {Name: 'ngay_ct1', Type: 'DateTime', Value: d1},
+      {Name: 'ngay_ct2', Type: 'DateTime', Value: d2},
+      {Name: 'ma_dvcs', Type: 'String', Value: u}
+    ];
+    sender.set_memvars(a);
+  }
+}
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryComplete(f, c, d, e, h, m, n) {
+  var g = f.grid;
+  g._voucher$Retrieve$ID = d;
+  g._voucher$Retrieve$Number = c;
+  g._voucher$Retrieve$Date = $func.formatStringToDate(e);
+  g._voucher$Retrieve$Department = h;
+  g._voucher$Retrieve$DepartmentName = m;
+  g._voucher$Retrieve$Requestor = n;
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g);
+}
+function on$]]>&Identity;<![CDATA[Filter$Retrieve$QueryMultiComplete(f, c, d, k, e, h, l) {
+  var g = f.grid;
+  g._filter$Fields = l;
+  set$]]>&Identity;<![CDATA[Filter$FormScript(g, h);
+}
+function set$]]>&Identity;<![CDATA[Filter$FormScript(g, h) {g._formScript = 'show$]]>&Identity;<![CDATA[Filter$QueryComplete(this,\'' + (h ? h : '') + '\')';}
+function show$]]>&Identity;<![CDATA[Filter$QueryComplete(g, h) {
+  if (h != '') {
+    g.showForm(h);
+  } else {
+    g.showForm(']]>&Identity;<![CDATA[Form');
+  }
+  g._memvars = [];
+}
+]]>
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

@@ -1,0 +1,15 @@
+﻿<![CDATA[
+if not exists (select val from options where name = 'm_ma_nt0' and val = @ma_nt) begin
+  if $]]>&Tag;<![CDATA[.NewValue <> $]]>&Tag;<![CDATA[.OldValue begin
+   if exists (select 1 from dmtk a join @]]>&Tag;<![CDATA[ b on a.tk = b.tk where a.ma_nt <> (select val from options where name = 'm_ma_nt0') and @loai_ct in ('2', '9')) begin
+      select 'loai_ct' as field, @$transactionConflict as message
+      return
+    end
+  end else begin
+    if exists (select 1 from dmtk a join ]]>&Table;<![CDATA[ b on a.tk = b.tk where b.stt_rec = @stt_rec and a.ma_nt <> (select val from options where name = 'm_ma_nt0') and @loai_ct in ('2', '9')) begin
+      select 'loai_ct' as field, @$transactionConflict as message
+      return
+    end
+  end
+end
+]]>

@@ -1,0 +1,15 @@
+﻿<![CDATA[
+declare @locked nvarchar(512)
+select @locked = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ]]>&WarningFieldV;<![CDATA[ tại dòng <span class="Highlight">%s</span>.' else N'Data is locked, please check ]]>&WarningFieldE;<![CDATA[ at row <span class="Highlight">%s</span>.' end
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select ']]>&LockedDateFieldCheck;<![CDATA[', b.stt, @locked from dmstt a ]]>&LockedDateJoin;<![CDATA[ where ]]>&LockedDateKey;<![CDATA[ group by b.stt
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @r = min(stt) from dmstt a ]]>&LockedDateJoin;<![CDATA[ where ]]>&LockedDateKey;<![CDATA[
+  if @r is not null begin
+    select replace(@locked, '%s', @@delta + @r) as message
+    return
+  end
+end
+]]>

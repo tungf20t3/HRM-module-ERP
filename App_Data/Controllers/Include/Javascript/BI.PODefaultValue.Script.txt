@@ -1,0 +1,35 @@
+﻿<![CDATA[/* <flatten type="Javascript"> */
+function onClick$Form$ButtonNew(o, e) {
+  var f = o._parentForm;
+  if (f.grid._$firstAction != 'Copy') {
+    if (!f.grid._$PODefaultValue) {
+      var v = f._language == 'v', msg = (v ? 'Chưa khai báo thông tin ngầm định.' : "User's default parameter has not been declared.");
+      e.type.cancelEvent = true;
+      $message.show(msg);
+      return false;
+    }
+  }
+  f.grid._$firstAction = null;
+  return true;
+}
+function biPODefaultValue$CheckInfo(g, type) {
+  // type: 1 - Grid Loading, 2 - BeforeFormLoad (case drildown)
+  if (type == 1) {
+    g._$PODefaultValue = null;
+    g._$PODefaultForm = {};
+  }
+
+  var params = new URLSearchParams(window.location.search), query = params.get('query');
+  if (!g._$PODefaultValue && (type != 1 || (type == 1 && query == null))) {
+    var defaultValueInfo = localStorage.getItem('BIPODefaultValue');
+    var defaultPurOrg = '', defaultPurGroup = '', defaultPlant = '';
+    if (defaultValueInfo) {
+      var dv = eval(defaultValueInfo)[0], data = dv.Data;
+      defaultPurOrg = data.ma_bp0;
+      defaultPurGroup = data.ma_nh0;
+      defaultPlant = data.ma_vung;
+    }
+    g.request(g, 'PODefaultValue', 'PODefaultValue', [['ma_bp0', 'String', defaultPurOrg], ['ma_nh0', 'String', defaultPurGroup], ['ma_vung', 'String', defaultPlant]]);
+  }
+}
+/* </flatten> */]]>

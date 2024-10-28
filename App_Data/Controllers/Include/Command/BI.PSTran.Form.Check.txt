@@ -1,0 +1,50 @@
+﻿<![CDATA[
+declare @q14 nvarchar(4000), @p14 varchar(6), @r14 int
+select a.stt_rec_kt as stt_rec, min(a.line_nbr) as line_nbr into #d14 from ]]>&BI.PSTran.DetailTableSource;<![CDATA[ a where a.stt_rec_kt <> '' group by a.stt_rec_kt
+if exists(select 1 from #d14) begin
+  select distinct convert(varchar(6), a.ngay_ct, 112) as p into #p14 from bic14$000000 a where exists(select 1 from #d14 b where a.stt_rec = b.stt_rec)
+  select @p14 = min(p) from #p14
+  while @p14 is not null begin
+    select @q14 = 'select top 1 @r14 = a.line_nbr from #d14 a join bim14$' + @p14 + ' b on a.stt_rec = b.stt_rec where not ((b.chuyen_ton_kho = ''1'' and @loai_ct in (''5'', ''9'')) or (b.chuyen_ton_kho = ''0'' and @loai_ct in (''1'', ''5'', ''6'')))'
+    exec sp_executesql @q14, N'@r14 int output, @loai_ct varchar(2)', @r14 output, @loai_ct
+    if @r14 is not null begin
+      select 'd86' as fields, case when @@language = 'V' then N'Dữ liệu trong chi tiết không phù hợp với mã giao dịch.' else N'Detail data does not match transaction.' end as message, 'message$Voucher$Detail$Show(this, "d86", ' + rtrim(@r14) + ', "kt_so");' as script
+      return
+    end
+    select @p14 = min(p) from #p14 where p > @p14
+  end
+end
+
+if @status <> '0' and @tt_yn = 1 begin
+  declare @q$Delivery nvarchar(4000), @e$Delivery$Invalid nvarchar(512), @e$Delivery$Line int
+
+  select @e$Delivery$Invalid = case when @@language = 'v' then N'Đã có phát sinh liên quan đến vật tư <span class="Highlight">%s</span> của đơn hàng, không sửa hoặc xóa được.' else N'There existed processing against Purchase Order for item <span class="Highlight">%s</span>, it cannot be edited or deleted.' end
+
+  select a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_sa as stt_rec_hd, a.stt_rec0sa as stt_rec0hd, min(line_nbr) as line_nbr, cast(null as datetime) as datetime2 into #d$Delivery from ]]>&BI.PSTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and (a.stt_rec_dh <> '' or a.stt_rec_hd <> '') group by a.stt_rec, a.stt_rec0, a.stt_rec_dh, a.stt_rec0dh, a.stt_rec_sa, a.stt_rec0sa
+  #IF @@action = 'Edit' #THEN
+    update #d$Delivery set datetime2 = (select top 1 datetime2 from m86$$partition$previous where stt_rec = @stt_rec and status <> '0' and tt_yn = 1)
+  #END
+  update #d$Delivery set datetime2 = getdate() where datetime2 is null
+
+  if exists(select 1 from #d$Delivery where stt_rec_dh <> '') begin
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih94$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec <> b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 < b.datetime2
+    if @e$Delivery$Line is not null begin
+      select 'd86' as field, replace(@e$Delivery$Invalid, '%s', rtrim(a.ma_vt)) as message from ]]>&BI.PSTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih95$000000 b on a.stt_rec_dh = b.stt_rec_dh and a.stt_rec0dh = b.stt_rec0dh where a.stt_rec <> b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 < b.datetime2
+    if @e$Delivery$Line is not null begin
+      select 'd86' as field, replace(@e$Delivery$Invalid, '%s', rtrim(a.ma_vt)) as message from ]]>&BI.PSTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+  end
+
+  if exists(select 1 from #d$Delivery where stt_rec_hd <> '') begin
+    select top 1 @e$Delivery$Line = a.line_nbr from #d$Delivery a join bih06$000000 b on a.stt_rec_hd = b.stt_rec_hd and a.stt_rec0hd = b.stt_rec0hd where a.stt_rec <> b.stt_rec and (b.ma_ct = 'PD1' or (b.ma_ct in ('PXC', 'PXR') and b.tt_yn = 1)) and a.datetime2 < b.datetime2
+    if @e$Delivery$Line is not null begin
+      select 'd86' as field, replace(@e$Delivery$Invalid, '%s', rtrim(a.ma_vt)) as message from ]]>&BI.PSTran.DetailTableSource.Action;<![CDATA[ a where a.stt_rec = @stt_rec and a.line_nbr = @e$Delivery$Line
+      return
+    end
+  end
+end
+]]>

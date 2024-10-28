@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoadingCircular.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY CircularCategoryIndex "1">
+
+  <!ENTITY ReportCircularTypeFieldExtend SYSTEM "..\Include\XML\Circular\A08200\ReportCircularTypeFieldExtend.xml">
+  <!ENTITY ScriptQueryFilterString SYSTEM "..\Include\Javascript\QueryFilterString.txt">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+  <!ENTITY JavascriptReportFilterCircular SYSTEM "..\Include\Javascript\ReportFilterCircular.txt">
+
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.rptAllAccountsActivity SYSTEM "..\Include\ReportMargin.rptAllAccountsActivity">
+  %ReportMargin.rptAllAccountsActivity;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+
+  <!ENTITY % Tiny.External SYSTEM "..\Include\Tiny.External.ent">
+  %Tiny.External;
+  %Tiny.External.rptAllAccountsActivity;
+
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="0" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="tu_ngay" type="DateTime" dataFormatString="@datetimeFormat" aliasName="fromDate" defaultValue="new Date()" allowNulls="false">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Từ/đến ngày" e="Date from/to"></footer>
+    </field>
+    <field name="den_ngay" type="DateTime" dataFormatString="@datetimeFormat" aliasName="toDate" defaultValue="new Date()" allowNulls="false">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+
+    <field name="ngay3" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="Ngày mở sổ" e="Date Opened"></header>
+    </field>
+
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    &ReportCircularTypeFieldExtend;
+
+    <field name="mau_bc" clientDefault="10" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+
+    <field name="tk_so_cai" type="Boolean" clientDefault="1" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAllAccountsActivity;">
+      <header v="Xem tk số cái" e="View GL Account"></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="tk_so_cai_1" dataFormatString="0, 1" clientDefault="0" align="right" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAllAccountsActivity;">
+      <header v="" e=""></header>
+      <footer v="0 - Xem tất, 1 - Chỉ xem tk sổ cái" e="0 - All, 1 - GL Account"/>
+      <items style="Mask"></items>
+    </field>
+    <field name="tk" type="Boolean" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAllAccountsActivity;">
+      <header v="Xem tài khoản" e="Account"></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="tk_1" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAllAccountsActivity;">
+      <header v="" e=""></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk%l" key="status = '1'" check="1 = 1">
+      </items>
+    </field>
+    <field name="ten_tk%l" external="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="tk_bac" type="Boolean" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAllAccountsActivity;">
+      <header v="Xem tk có bậc &lt;=" e="Level &lt;="></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="tk_bac_1" dataFormatString="###" maxLength="3" clientDefault="99" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAllAccountsActivity;">
+      <header v="" e=""></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="xem_tat" type="Boolean" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAllAccountsActivity;">
+      <header v="Xem tất" e="All"></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+    <field name="tk_chi_tiet" type="Boolean" categoryIndex="&Tiny.External.Form.CategoryIndex.rptAllAccountsActivity;">
+      <header v="Chỉ xem tài khoản chi tiết" e="Only Detail Account"></header>
+      <items style="CheckBox"></items>
+      <clientScript><![CDATA[onClick=onchange$Item(this);]]></clientScript>
+    </field>
+
+    <field name="keys" hidden="true" readOnly="true" filterSource="Infinite">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    &Tiny.External.Form.View.rptAllAccountsActivity;
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @Detail tinyint
+select @Detail = case when @tk_chi_tiet = 1 then 1 else 0 end
+exec rs_rptAllAccountsActivity @tu_ngay, @den_ngay, @ma_dvcs, @tk_so_cai_1, @tk_1, @tk_bac_1, @Detail, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptQueryFilterString;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function onChange$VoucherFilter$Tab(o, e) {
+  var f = o.parentForm, c = f.getItemValue('tk_so_cai') ? 'tk_so_cai_1' : (f.getItemValue('tk') ? 'tk_1' : 'tk_bac_1');
+  f.focusWhenTabChanged(['ma_dvcs', c]);
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);a._tabContainer.add_activeTabChanged(onChange$VoucherFilter$Tab);a._tabContainer._loaded=true;changeLookupReadonly(a,"ma_dvcs");if(!a.getItemValue("tk_so_cai"))a.getItem("tk_so_cai_1").disabled=true;if(!a.getItemValue("tk")){var b=a.getItem("tk_1");$common.setVisible(b.a,false);b.disabled=true}if(!a.getItemValue("tk_bac"))a.getItem("tk_bac_1").disabled=a.getItem("xem_tat").disabled=a.getItem("tk_chi_tiet").disabled=true;!a.getItemValue("ngay3")&&a.setItemValue("ngay3",new Date)}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}try{f._tabContainer.remove_activeTabChanged(onChange$VoucherFilter$Tab)}catch(b){}}function on$Filter$ResponseComplete(g,c){var a=c.object,e=c.type.Context,f=c.type.Result;switch(e){case"Checking":var b=a.grid,d=a.getItemValue("chon_tt");b._ngay3=a.getItemValue("ngay3");b._hiddenFields=[{Fields:"du_dk_nt, ps_no_nt, ps_co_nt, du_ck_nt, nc_dk2, nc_ck2",Value:a.getItemValue("mau_bc")=="10"},{Fields:"nc_dk, nc_ck",Value:a.getItemValue("mau_bc")=="20"}];b._alterTitle=[null,[["%d1",a.getItem("tu_ngay").value,true],["%d2",a.getItem("den_ngay").value,true]]];b._hiddenForms=[{Form:[0,1,2,3,4],Value:d!="1"},{Form:[5,6],Value:d=="1"}];b._queryFilterString=getQueryFilterString(a,"tu_ngay, den_ngay, ma_dvcs, mau_bc");if(b._$k!=null)b._$k=[];remove$GridReport$Filter(b)}}function onchange$Item(e){var a=e.parentForm,b=e.field.Name,g=b=="tk_bac",d=["tk_so_cai","tk","tk_bac","xem_tat","tk_chi_tiet"];if(b!="xem_tat"&&b!="tk_chi_tiet")a.getItem("xem_tat").disabled=a.getItem("tk_chi_tiet").disabled=!g;$common.setVisible(a.getItem("tk_1").a,b=="tk");for(var c=0;c<d.length;c++)if(a.getItem(d[c])!=e)a.getItem(d[c]).checked=false;else a.getItem(b).checked=true;b=="tk_so_cai"&&setItemDisable(a.getItem("tk_so_cai"));if(b=="tk"){setItemDisable(a.getItem("tk"));a.getItem("tk_bac_1").value="99";a.setItemValue("tk_so_cai_1",0)}else{a.getItem("tk_1").value="";a.getItem("ten_tk%l").value=""}if(b=="tk_bac"){setItemDisable(a.getItem("tk_bac"));a.getItem("xem_tat").checked=true;a.setItemValue("tk_so_cai_1",0)}if(b=="xem_tat")a.getItem("tk_bac").checked=true;if(b=="tk_chi_tiet")a.getItem("tk_bac").checked=true;var f=a.getItemValue("tk_so_cai")?"tk_so_cai_1":a.getItemValue("tk")?"tk_1":"tk_bac_1";a.getItem(f).focus()}function setItemDisable(c){for(var d=c.parentForm,e=c.field.Name,b=["tk_1","tk_bac_1","tk_so_cai_1"],a=0;a<b.length;a++)d.getItem(b[a]).disabled=e+"_1"!=b[a]}function setItemVisible(f,e,d){for(var c=e.split(","),a=0;a<c.length;a++){var b=f.getItem($func.trim(c[a]));b.a&&$common.setVisible(b.a,!d);b.disabled=d}}]]>
+      &JavascriptReportFilterCircular;
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

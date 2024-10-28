@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY TransferID "rptInterpretationFinancialForInvestors">
+  <!ENTITY FileName "case when @@language = 'V' then 'rptInterpretationFinancialForInvestors_01BC' else 'rptInterpretationFinancialForInvestors_01FC' end + case when @chon_tt = '1' then '' else '_A04195' end">
+  <!ENTITY ReportCircularTypeField SYSTEM "..\Include\XML\Circular\A04195\ReportCircularTypeField.xml">
+
+  <!ENTITY CreateTicket "declare @ticket varchar(32), @filename varchar(128)
+select @ticket = lower(replace(newid(),'-','')), @filename = &FileName; + '.xlsx'
+insert into @@sysDatabaseName..ticket values(@ticket, @@userID, '&TransferID;', @filename, case when @@language = 'v' then N'Thuyết minh tài chính' else N'Interpretation of Financial' end, '@@appDatabaseName', getdate());">
+
+  <!ENTITY defaultTable "V20GLTCTMDT">
+  <!ENTITY defaultForm "V20GLTCTMDT">
+
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir id="2" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+
+  <fields>
+    <field name="ky_nay_tu" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date from"></header>
+      <footer v="Từ/đến ngày" e="Date from/to"></footer>
+    </field>
+    <field name="ky_nay_den" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+    <field name="type" clientDefault="10">
+      <header v="Hiển thị" e="Display"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Chỉ tiêu đơn" e="Normal"/>
+        </item>
+        <item value="20">
+          <text v="Chỉ tiêu dựng cột" e="Crosstab"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="ma_dvcs">
+      <header v="Đơn vị" e="Unit" ></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    &ReportCircularTypeField;
+
+    <field name="form" allowNulls="false">
+      <header v="Chọn báo cáo" e="Select Report"/>
+      <items style="DropDownList">
+        <item value="">
+          <text v="" e=""/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    <field name="mau_bc" clientDefault="10">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList" >
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="11001--: [ky_nay_tu].Description, [ky_nay_tu], [ky_nay_den]"/>
+      <item value="110000-: [type].Label, [type]"/>
+      <item value="110000-: [ma_dvcs].Label, [ma_dvcs]"/>
+      <item value="110000-: [chon_tt].Label, [chon_tt]"/>
+      <item value="110000-: [form].Label, [form]"/>
+      <item value="110000-: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @form nvarchar(4000), @name nvarchar(4000)
+select @form = '', @name = ''
+select @form = @form + rtrim(form) + char(255) , @name = @name + case when lower(@@language) = 'v' then rtrim(ten_maubc) else rtrim(ten_maubc2) end + char(255) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA['
+select @form = left(@form, len(@form)-1) , @name = left(@name, len(@name)-1)
+select 'this._itemValue=''' + rtrim(@form) + ''';this._itemText=''' + dbo.AI_ERP$Function$EncodeScript(@name) + ''';initForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Inserting">
+      <text>
+        &CreateTicket;
+        <![CDATA[
+select '' as field, '' as message, 'this.grid._key = ''' + @ticket + ''';remove$GridReport$Filter(this.grid);' as script
+return
+]]>
+      </text>
+    </command>
+    <command event="Processing">
+      <text>
+        <![CDATA[
+exec rs_rptInterpretationFinancialForInvestors @ky_nay_tu, @ky_nay_den, @ky_nay_tu, @ky_nay_den, @type, @ma_dvcs, @form, @@language, @@userID, @@admin
+select ]]>&FileName;<![CDATA[ as templateFile
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);changeLookupReadonly(a,"ma_dvcs")}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(l,e){var a=e.object,h=e.type.Context,k=e.type.Result;switch(h){case"Checking":var b=a.grid,i=a.getItem("ky_nay_tu").value,j=a.getItem("ky_nay_den").value,c=a.getItemValue("type"),d=a.getItemValue("mau_bc"),f=a._language;t=a.getItem("form").selectedIndex,z=a.getItem("form").options;var g=z[t].text;b._form=a.getItemValue("chon_tt");b._alterTitle=[null,[["%f1",g,true],["%d1",i,true],["%d2",j,true]]];b._hiddenFields=[{Fields:"ky_nay_nt, lk_kn_nt",Value:c=="20"||d=="10"},{Fields:"ky_nay, lk_kn",Value:c=="20"||d=="20"},{Fields:"ps_nt01, ps_nt02, ps_nt03, ps_nt04, ps_nt05, ps_nt06, tien_nt",Value:c=="10"||d=="10"},{Fields:"ps01, ps02, ps03, ps04, ps05, ps06, tien",Value:c=="10"||d=="20"}];b._hiddenForms=[{Form:[0],Value:f!="v"},{Form:[1],Value:f=="v"}]}}function initForm(c){for(var d=c.getItem("form"),b=c._itemValue.split(String.fromCharCode(255)),e=c._itemText.split(String.fromCharCode(255)),a=0;a<b.length;a++)d.options[a]=new Option(e[a],b[a]);if(b.length>1)d.options[1].selected=true}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

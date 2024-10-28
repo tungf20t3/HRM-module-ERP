@@ -1,0 +1,25 @@
+﻿  <command event="Showing">
+    <text>
+      <![CDATA[
+declare @$control char(5), @message nvarchar(4000), @$unitName nvarchar(1023), @$costUnit char(1), @objectUnit char(1)
+select @$costUnit = rtrim(val) from options where name = 'm_gt_dvcs'
+select @objectUnit = case when exists(select 1 from options where name = 'm_dtgt_dvcs' and val = '1') then '1' else '0' end
+
+select @$unitName = case when @@language = 'V' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit
+select @message = 'var f = this;f._costUnit = ' + @$costUnit + ';f._objectUnit = ' + @objectUnit + ';']]>&Control;<![CDATA[
+
+if substring(@$control, 1, 1) = 1 and @$costUnit <> 1 begin
+  select @message = @message + 'setObjectFilterHidden(f, ''ma_dvcs'', false);'
+end
+select @message = @message + 'f._unitCode=''' + @@unit + ''';f._unitName=''' + replace(replace(isnull(@$unitName, ''), '\', '\\'), '''', '\''') + ''';'
+if substring(@$control, 5, 1) = 1 begin
+  select @message = @message + 'f._lockedDate = ''' + convert(varchar(10), ngay_ks, 111) + ''';' from dmstt
+  if @$costUnit = 1 select @message = @message + 'f._lockedUnit = ''' + convert(varchar(10), ngay_ks, 111) + ''';' from dmdvcsks where ma_dvcs = @@unit and ngay_ks is not null
+end
+if @objectUnit = '1' select @message = @message + 'f.setItemValues(''ma_dvcs, ten_dvcs%l'', [f._unitCode, f._unitName]);'
+
+select @message as message
+return
+]]>
+    </text>
+  </command>

@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY LineCounter "6">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY Delta14 "0">
+  <!ENTITY Delta13 "0">
+  <!ENTITY Delta23 "0">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Chứng từ từ ngày" e="Date From"></header>
+      <footer v="Ngày chứng từ từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Chứng từ đến ngày" e="Date to"></header>
+    </field>
+    <field name="so_ct1" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="Số chứng từ từ/đến" e="Voucher No. from/to"></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="so_ct2" dataFormatString="@upperCaseFormat" align="right" maxLength="-100">
+      <header v="" e=""></header>
+      <items style="Mask"></items>
+    </field>
+    <field name="ma_nh_dt" allowNulls="false" categoryIndex="1">
+      <header v="Mã ngân hàng điện tử" e="e-Banking"></header>
+      <items style="AutoComplete" controller="EBanking" reference="ten_nh%l" key="status = '1'" check="1 = 1" information="ma_nh_dt$dmnhdt.ten_nh%l"/>
+      <clientScript><![CDATA[onchange="onChange$EBanking(this)";]]></clientScript>
+    </field>
+    <field name="ten_nh%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kn" allowNulls="false" categoryIndex="1">
+      <header v="Mã kết nối" e="Banking Connection"></header>
+      <items style="AutoComplete" controller="BankingConnection" reference="ten_kn%l" key="ma_kn in (select ma_kn from dmtknhnsd where user_id = @@userID) and (ma_nh_dt = '{$%c[ma_nh_dt]}') and status = '1'" check="ma_kn in (select ma_kn from dmtknhnsd where user_id = @@userID) and (ma_nh_dt = '{$%c[ma_nh_dt]}')" information="ma_kn$dmknnh.ten_kn%l"/>
+      <clientScript><![CDATA[onchange="onChange$BankingConnection(this)";]]></clientScript>
+    </field>
+    <field name="ten_kn%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="tk_nh" categoryIndex="1">
+      <header v="Số tài khoản" e="Account No."></header>
+    </field>
+    <field name="ma_kh" categoryIndex="1">
+      <header v="Mã khách hàng" e="Customer"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="tinh_trang" defaultValue="*" categoryIndex="1">
+      <header v="Tình trạng" e="Status"/>
+      <clientScript>&OnSelectionOutline;</clientScript>
+      <items style="DropDownList" >
+        <item value="*">
+          <text v="Tất cả" e="All"/>
+        </item>
+        <item value="0">
+          <text v="Chưa xử lý" e="Not Send"/>
+        </item>
+        <item value="1">
+          <text v="Đang xử lý" e="Sending"/>
+        </item>
+        <item value="2">
+          <text v="Hoàn thành" e="Sent"/>
+        </item>
+        <item value="3">
+          <text v="Lỗi" e="Error"/>
+        </item>
+        <item value="4">
+          <text v="Hủy" e="Cancelled"/>
+        </item>
+      </items>
+    </field>
+    <field name="ma_dvcs" categoryIndex="1">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="Lookup" controller="Unit" key="status = '1'" check="1 = 1"/>
+    </field>
+
+    <field name="maxLength" type="Int16" readOnly="true" hidden="true" maxLength="-100">
+      <header v="" e=""></header>
+    </field>
+
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 230, 0"/>
+      <item value="1101--: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="1101-1: [so_ct1].Label, [so_ct1], [so_ct2], [maxLength]"/>
+      <item value="11010-: [ma_nh_dt].Label, [ma_nh_dt], [ten_nh%l]"/>
+      <item value="11010-: [ma_kn].Label, [ma_kn], [ten_kn%l]"/>
+      <item value="1100--: [tk_nh].Label, [tk_nh]"/>
+      <item value="11010-: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+      <item value="1100--: [tinh_trang].Label, [tinh_trang]"/>
+      <item value="11000: [ma_dvcs].Label, [ma_dvcs]"/>
+
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 230, 0">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000), @bankCode varchar(32), @bankName nvarchar(128)
+select @message = ''
+if (select count(*) from dmnhdt where status = '1') = 1 begin
+  select top 1 @bankCode = rtrim(ma_nh_dt), @bankName = case when @@language = 'v' then rtrim(ten_nh) else rtrim(ten_nh2) end from dmnhdt where status = '1'
+  select @message = @message + 'init$EBank(this, ''' + @bankCode + ''', ''' + @bankName + ''');'
+end
+
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @ngay_ct1 as date_from, @ngay_ct2 as date_to, rtrim(@ma_nh_dt) as ma_nh_dt, ten_nh, ten_nh2 from dmnhdt where ma_nh_dt = @ma_nh_dt
+exec rs_rptBankingTransferTransactionStatus @ngay_ct1, @ngay_ct2, @so_ct1, @so_ct2, @maxLength, @ma_kh, @tk_nh, @tinh_trang, @ma_nh_dt, @ma_kn, @ma_dvcs, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  var o = f.getItem('maxLength');
+  o.value = o.maxLength;
+  f._$checkHash = 0;
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(i,d){var b=d.object,e=d.type.Context,c=d.type.Result;switch(e){case"EBanking":if(c[0].Value==1){b.setItemValues("ma_kn, ten_kn%l",[c[1].Value,c[2].Value]);b.setItemValues("tk_nh",[c[3].Value])}b.setReferenceKeyFilter("ma_kn");break;case"BankingConnection":b.setItemValues("tk_nh",[c[0].Value]);break;case"Checking":var a=b.grid,h=a._language=="v",f=b.getItem("ngay_ct1").value,g=b.getItem("ngay_ct2").value;a._$dFrom=b.getItemValue("ngay_ct1").z.format("yyyyMMdd");a._$dTo=b.getItemValue("ngay_ct2").z.format("yyyyMMdd");a._$unit=b.getItemValue("ma_dvcs");a._$connectionCode=b.getItemValue("ma_kn");a._$bank=b.getItemValue("ma_nh_dt");a._$bankName=b.getItemValue("ten_nh%l");a._$bankAccount=b.getItemValue("tk_nh");a._$invoiceFrom=b.getItemValue("so_ct1");a._$invoiceTo=b.getItemValue("so_ct2");a._$customer=b.getItemValue("ma_kh");a._$maxLength=b.getItemValue("maxLength");sub=h?", số tài khoản":", Bank Account";subTitle=sub+": "+a._$bankAccount;a._$subTitle=a._$bankAccount!=""?subTitle:"";a._alterTitle=[null,[["%d1",f,true],["%d2",g,true],["%s1",a._$bank,true],["%s2",a._$bankName,true],["%s9",a._$subTitle,true]]];a._$i=a._getColumnOrder("stt_rec");a._$y=a._getColumnOrder("ngay_ct");if(a._$k!=null)a._$k=[],a._$c=[]}}function onChange$EBanking(b){var a=b.parentForm;a.setReferenceKeyFilter("ma_kn");a.request("EBanking","EBanking",["ma_nh_dt"])}function onChange$BankingConnection(b){var a=b.parentForm;a.request("BankingConnection","BankingConnection",["ma_kn"])}function init$EBank(a,b,c){a.setItemValues("ma_nh_dt, ten_nh%l",[b,c]);onChange$EBanking(a.getItem("ma_nh_dt"))}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+
+  <response>
+    <action id="EBanking">
+      <text>
+        <![CDATA[
+declare @c int, @ma_kn char(16), @ten_kn nvarchar(128), @so_tk_nh varchar(32)
+select @c = 0, @ma_kn = '', @so_tk_nh = ''
+if exists(select 1 from dmknnh where ma_nh_dt = @ma_nh_dt) begin
+  select @c = count(*) from dmknnh where ma_nh_dt = @ma_nh_dt and ma_kn in (select ma_kn from dmtknhnsd where user_id = @@userID)
+  if @c = 1 select @ma_kn = ma_kn, @ten_kn = ten_kn%l, @so_tk_nh = so_tk_nh from dmknnh where ma_nh_dt = @ma_nh_dt and ma_kn in (select ma_kn from dmtknhnsd where user_id = @@userID)
+end
+select isnull(@c, 0) as c, rtrim(@ma_kn) as ma_kn, @ten_kn as ten_kn, @so_tk_nh as tk_nh
+return
+]]>
+      </text>
+    </action>
+
+    <action id="BankingConnection">
+      <text>
+        <![CDATA[
+declare @so_tk_nh varchar(32)
+select @so_tk_nh = ''
+if exists(select 1 from dmknnh where ma_kn = @ma_kn) begin
+  select @so_tk_nh = so_tk_nh from dmknnh where ma_kn = @ma_kn
+end
+select @so_tk_nh as tk_nh
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

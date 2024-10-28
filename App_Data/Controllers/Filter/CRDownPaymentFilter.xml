@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFilterFields SYSTEM "..\Include\XML\FlowFilterFields.txt">
+  <!ENTITY XMLFlowFilterViews SYSTEM "..\Include\XML\FlowFilterViews.txt">
+  <!ENTITY XMLFlowFilterCommand SYSTEM "..\Include\XML\FlowFilterCommand.txt">
+  <!ENTITY XMLFlowFilterCheck SYSTEM "..\Include\XML\FlowFilterCheck.txt">
+
+  <!ENTITY ScriptFlowFilterFunction SYSTEM "..\Include\Javascript\DPFilterFunction.txt">
+
+  <!ENTITY ScriptFlowFilterCss SYSTEM "..\Include\Javascript\FlowFilterCss.txt">
+
+  <!ENTITY Identity "CRDownPayment">
+  <!ENTITY c11 "Phiếu thu từ ngày">
+  <!ENTITY c12 "Date from">
+  <!ENTITY c21 "Số phiếu">
+  <!ENTITY c22 "Voucher Number">
+  <!ENTITY ext "41">
+
+  <!ENTITY % Control.Filter SYSTEM "..\Include\Filter.ent">
+  %Control.Filter;
+
+  <!ENTITY % CheckRelative SYSTEM "..\Include\CheckRelative.ent">
+  %CheckRelative;
+  <!ENTITY CheckRelativeParameter "'CRDownPaymentFilter', 'Filter', ''">
+  <!ENTITY CheckRelativeQuery "
+    select 'so_ct' as field, @$none as message
+    return
+">
+]>
+
+<dir table="m41$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Chọn phiếu thu" e="Select Cash Receipt"></title>
+  <fields>
+    &XMLFlowFilterFields;
+  </fields>
+
+  <views>
+    &XMLFlowFilterViews;
+  </views>
+
+  <commands>
+    &XMLFlowFilterCommand;
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @fields nvarchar(512), @keyMaster nvarchar(4000), @keyFlow nvarchar(4000), @$none nvarchar(512)
+select @keyMaster = '%#10$' + @ma_kh + '%', @fields = 'rtrim(ty_gia) + char(255) + rtrim(t_tien_nt) + char(255) + rtrim(t_tien)'
+select @keyFlow = 'status = ''2''', @$none = case when @@language = 'v' then N'Không có phiếu thu theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+]]>&CheckRelativeProcess;&XMLFlowFilterCheck;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFlowFilterFunction;
+    </text>
+  </script>
+
+  &ScriptFlowFilterCss;
+</dir>

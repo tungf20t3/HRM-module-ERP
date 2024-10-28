@@ -1,0 +1,122 @@
+﻿<!ENTITY % Conditional.PaymentApproval SYSTEM "..\Include\PaymentApproval.txt">
+<!ENTITY % Conditional.VoucherDeleteLog SYSTEM "..\Include\VoucherDeleteLog.txt">
+<!ENTITY % Conditional.EBanking SYSTEM "..\Include\EBanking.txt">
+
+
+<![%Conditional.PaymentApproval;[
+  <![%Conditional.VoucherDeleteLog;[
+    <!ENTITY PaymentApprovalKeyStatus " not in('*', '2')">
+  ]]>
+  <!ENTITY PaymentApprovalKeyStatus " not in('2')">
+
+  <!ENTITY % VoucherEditLog SYSTEM "..\Include\VoucherEditLog.ent">
+  %VoucherEditLog;
+
+  <!ENTITY PaymentApprovalBeginUpdatePaymentRequest "select @strSQL = 'if exists(select 1 from ' + @tableMaster + ' where stt_rec = '@@stt_rec' and status &lt;&gt; ''0'') exec AI_ERP$Voucher$">
+  <!ENTITY PaymentApprovalEndUpdatePaymentRequest "Update$PaymentRequest ' + @tableMaster + ', ' + @tableDetail + ', '@@stt_rec', ''Edit'', ''52'', ' + rtrim(isnull(@userID, 0))
+exec sp_executesql @strSQL
+">
+  <!ENTITY PaymentApprovalBeforeUpdatePaymentRequest "&PaymentApprovalBeginUpdatePaymentRequest;Before&PaymentApprovalEndUpdatePaymentRequest;">
+  <!ENTITY PaymentApprovalAfterUpdatePaymentRequest "&PaymentApprovalBeginUpdatePaymentRequest;After&PaymentApprovalEndUpdatePaymentRequest;">
+  <!ENTITY PaymentApprovalConflict "begin
+  select @$updateConflict as message
+  select '' as stt_rec, 0 as userid, 0 as xtype
+  return
+end
+">
+
+  <!ENTITY PaymentApprovalCheckApproveCancel "
+if exists(select 1 from cttt30 where stt_rec like (left(@@stt_rec, 10) + '&#37;') and loai_tt = 1 and loai_ct &lt;&gt; '1') &PaymentApprovalConflict;
+if exists(select 1 from cttt20 where stt_rec_tt like (left(@@stt_rec, 10) + '&#37;') and loai_tt = 1) &PaymentApprovalConflict;
+">
+
+  <!ENTITY PaymentApprovalBeforeUpdateCurrentCustomerBalance "
+select @strSQL = 'exec AI_ERP$Voucher$BeforeUpdate$CurrentCustomerBalance r00$' + @partition + ', '@@stt_rec', ''' + @voucherID + ''', ''Delete'''
+exec sp_executesql @strSQL
+">
+  <!ENTITY PaymentApprovalAfterUpdateCurrentCustomerBalance "
+select @strSQL = 'exec AI_ERP$Voucher$AfterUpdate$CurrentCustomerBalance r00$' + @partition + ', '@@stt_rec', ''' + @voucherID + ''', ''Edit'''
+exec sp_executesql @strSQL
+">
+
+  <!ENTITY PaymentApprovalDelete "
+  delete ct00 where stt_rec = @@stt_rec
+  delete ctgt30 where stt_rec = @@stt_rec
+  delete cttt20 where stt_rec like (left(@@stt_rec, 10) + '&#37;')
+  delete cttt30 where stt_rec = @@stt_rec
+  delete cttt60 where stt_rec like (left(@@stt_rec, 10) + '&#37;')
+  select @strSQL = 'delete r00$' + @partition + ' where stt_rec = '@@stt_rec''
+  exec sp_executesql @strSQL
+">
+
+  <!ENTITY PaymentApprovalRevert "
+select @strSQL = 'update r30$' + @partition + ' set status = ''0'' where stt_rec = '@@stt_rec''
+exec sp_executesql @strSQL
+">
+
+  <!ENTITY PaymentApprovalPost "
+select @strSQL = 'update r30$' + @partition + ' set status = ''2'' where stt_rec = '@@stt_rec'
+insert into ctgt30 select * from r30$' + @partition + ' where stt_rec = '@@stt_rec''
+exec sp_executesql @strSQL
+
+select @strSQL = '
+declare @loai_ct varchar(2), @group varchar(128), @id varchar(3)
+select @id = ''' + @voucherID + '''
+select @loai_ct = loai_ct from ' + @tableMaster + ' where stt_rec = '@@stt_rec'
+select @group = rtrim(groupby) from @@sysDatabaseName..voucherinfo where ma_ct = @id
+
+exec dbo.fs_PostCDTran ''' + @tableMaster + ''', ''' + @tableDetail + ''', '@@stt_rec', @group, 2' + @optionParameter + '
+exec fs20_AfterUpdateGL '@@stt_rec', ''' + @tableMaster + ''', ''' + @tableDetail + ''', @id, ' + rtrim(isnull(@userID, 0)) + '
+insert into r00$' + @partition + ' select * from ct00 where stt_rec = '@@stt_rec'
+if @loai_ct &lt;&gt; ''1'' exec AI_ERP$Posting$Allocation @id, @loai_ct, ' + @tableMaster + ', ' + @tableDetail + ', ''t_tien_nt'', ''t_tien'', ''tien_nt'', ''tien'', ''cttt60'', '@@stt_rec', ''ma_kh_i'', '''', '''', ''tk_no''
+'
+exec sp_executesql @strSQL
+&PaymentApprovalAfterUpdateCurrentCustomerBalance;
+">
+  <!ENTITY PaymentApprovalCheckLockedDate "
+if @currentStatus &PaymentApprovalKeyStatus; and @status = '2' begin
+  select @$lockedDate = case when @@language = 'v' then N'Đã khóa số liệu, kiểm tra lại ngày giới hạn hoặc ngày khóa sổ.' else N'Data is locked, you must modify system locked date.' end
+  if not exists(select 1 from dmstt where @voucherDate between ngay_gh1 and ngay_gh2) begin
+    select @$lockedDate as message
+    select '' as stt_rec, 0 as userid, 0 as xtype
+    return
+  end
+  insert into #lockedDate exec fs20_CheckLockedDateOnVoucher @voucherID, @voucherDate, @userID, @unit, 1
+  if not exists(select * from #lockedDate where r = 1) begin
+    select @$lockedDate as message
+    select '' as stt_rec, 0 as userid, 0 as xtype
+    return
+  end
+end
+">
+  <![%Conditional.EBanking;[
+    <!ENTITY PaymentApprovalEBankingCheckingDeclare "
+declare @eCheckEbanking bit
+select @strSQL = 'select top 1 @eCheckEbanking = 1 from knnh00$' + @partition + ' where stt_rec = '@@stt_rec' and tinh_trang in(''1'', ''2'', ''3'')'
+exec sp_executesql @strSQL, N'@eCheckEbanking bit output', @eCheckEbanking = @eCheckEbanking output
+      ">
+    <!ENTITY PaymentApprovalEBankingCheckingValid "
+if @eCheckEbanking = 1 begin
+  select case when @@language = 'V' then N'Chưa có &lt;span class=&quot;Highlight&quot;&gt;quyền thực hiện chức năng này&lt;/span&gt; hoặc &lt;span class=&quot;Highlight&quot;&gt;truy cập bị từ chối&lt;/span&gt;. Liên hệ với người quản trị hệ thống nếu bạn có thể được truy cập vào chức năng này.' else N'You are &lt;span class=&quot;Highlight&quot;&gt;not authorized&lt;/span&gt; or you &lt;span class=&quot;Highlight&quot;&gt;do not have permission&lt;/span&gt; to execute this action. Contact the System administrator if you believe you should be able to execute this action.' end as message
+  select '' as stt_rec, 0 as userid, 0 as xtype
+  return
+end
+      ">
+    <!ENTITY PaymentApprovalEBankingUpdateWhenPostAuthorize "
+select @strSQL = 'update knnh00$' + @partition + ' set status = ''1'' where stt_rec = '@@stt_rec''; exec sp_executesql @strSQL
+">
+    <!ENTITY PaymentApprovalEBankingUpdateWhenUnPostAuthorize "
+select @strSQL = 'update knnh00$' + @partition + ' set status = ''0'' where stt_rec = '@@stt_rec''; exec sp_executesql @strSQL
+      ">
+  ]]>
+  <!ENTITY PaymentApprovalEBankingCheckingDeclare "">
+  <!ENTITY PaymentApprovalEBankingCheckingValid "">
+  <!ENTITY PaymentApprovalEBankingUpdateWhenPostAuthorize "">
+  <!ENTITY PaymentApprovalEBankingUpdateWhenUnPostAuthorize "">
+
+  <!ENTITY PaymentApprovalMessageAction SYSTEM "..\Include\XML\PaymentApprovalMessage.xml">
+  <!ENTITY PaymentApprovalCommentAction SYSTEM "..\Include\XML\PaymentApprovalComment.xml">
+]]>
+
+<!ENTITY PaymentApprovalMessageAction "">
+<!ENTITY PaymentApprovalCommentAction "">

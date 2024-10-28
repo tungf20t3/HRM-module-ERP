@@ -1,0 +1,50 @@
+﻿&CheckValidEmailFunction;
+<![CDATA[
+function ei$Grid$ExecuteCommandEdit(g, e, f) {
+  var eiStatus = g._getItemValue(g._activeRow, g._getColumnOrder('tinh_trang_hddt')), id = g.get_id();
+  if (eiStatus != '' && eiStatus != '0') {
+    if (!g._ei$SureEdit || g._ei$SureEdit == 0) {
+      if (e) e.type.cancelEvent = true;
+        else if (f) f._$handleStatus = [];
+      g._ei$WaitSure = 0;
+      ei$EditShowConfirm(g._language, String.format('ei$Grid$GotoEdit($find(\'{0}\'));', id), String.format('$find(\'{0}\')._focusWhenTabChanged();', id));
+    } else {
+      g._ei$SureEdit = 0;
+    }
+  }
+}
+
+function ei$Form$ExecuteCommandEdit(f) {
+  if (f._usedEI && (f._action == 'View' || f._action == 'Edit')) {
+    var id = f.get_id(), btnEdit = f._findButton('Edit'), g = f.grid;
+    if (!btnEdit) return;
+    var v = g._getItemValue(g._activeRow, g._getColumnOrder('tinh_trang_hddt'));
+    if (v != '0' && v != '') {
+      if (!btnEdit._defaultOnclick) btnEdit._defaultOnclick = btnEdit.getAttribute('onclick');
+      btnEdit.setAttribute('onclick', String.format('return ei$Form$EditButtonClick(\'{0}\');', id));
+    } else if (btnEdit._defaultOnclick) {
+      btnEdit.setAttribute('onclick', btnEdit._defaultOnclick);
+    }
+  }
+}
+
+function ei$EditShowConfirm(l, s1, s2) {
+  var msg = (l == 'v' ? 'Hóa đơn đã xác thực, bạn có chắc chắn muốn sửa không?' : 'This voucher has been released, are you sure you want to edit?');
+  $message.show(msg, 0, s1, s2);
+}
+
+function ei$Grid$GotoEdit(g) {
+  g._ei$SureEdit = 1;
+  g.executeCommand({commandName:"Edit",commandArgument:"0"})
+}
+
+function ei$Form$EditButtonClick(fid) {
+  var f = $find(fid), v = f.getItemValue('tinh_trang_hddt');
+  if (v != '0' && v != '') {
+    ei$EditShowConfirm(f._language, '$find(\'' + fid + '\').executeDialog(1);', '$find(\'' + fid + '\')._findButton(\'Close\').focus();');
+    return false;
+  }
+  f.executeDialog(1);
+  return true;
+}
+]]>

@@ -1,0 +1,238 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="OriginalFile" content="CDTran.doc" />
+<title>Cập nhật quy trình sản xuất</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+</head>
+<body>
+<p id="td1">Cập nhật quy trình sản xuất</p>
+<p id="p1">Mã quy trình sản xuất là duy nhất, thể hiện một chuỗi các công đoạn thực hiện để sản xuất một mặt hàng, 
+xác định một chuỗi các hoạt động thực hiện tại Trung tâm làm việc.
+Việc xác định thông số của quy trình sản xuất phụ thuộc nhiều vào tính chất quy trình nhập liệu thực tế.
+</p>
+<p class="note">Ghi chú: <br/>
+- Các thông tin có trong màn hình nhập nhưng không được giải thích trong hướng dẫn này thì người dùng có thể không cần nhập liệu hoặc sẽ được khai báo từ phân hệ khác;<br/>
+- Do thông tin được khai báo rất nhiều nên người dùng có thể chọn cách nhập theo lưới dữ liệu hoặc màn hình nhập liệu. Nhấn <img src="vie/lotgenerate.png"/> - "Thêm chi tiết" để nhập mới công đoạn theo màn hình nhập liệu,
+ nhấn <img src="vie/undo.png"/>- "Sửa chi tiết" để sửa thông tin công đoạn theo màn hình nhập liệu.
+</p>
+<p id="pic"><img src="vie/SFRoutingMaintenance.png"/></p>
+
+<!--Routine defines the list of activities to be performed for the production process. 
+Routing defines a sequence of activities performed at the work center. 
+Routing plays in important role in calculating production cost, machine time and labor time.-->
+
+<p class="node">Mã công đoạn</p>
+<p class="node_d">Mã công đoạn xác định công đoạn hình thành nên một phần của quy trình sản xuất sản xuất một mặt hàng cụ thể.
+Tên công đoạn được nhập tự do.
+</p>
+<p class="node">Loại công đoạn</p>
+<p class="node_d">Có các loại công đoạn sau:</p>
+<p class="node_d">
+- Bình thường: áp dụng cho một công đoạn mà thời gian thực hiện phụ thuộc vào sản lượng.<br/>
+- Thời gian cố định: áp dụng cho một công đoạn mà thời gian thực hiện cố định, không tính đến sản lượng.<br/>
+- Thuê ngoài: áp dụng cho một công đoạn được giao cho một đơn vị gia công/ nhà cung cấp của công ty thực hiện.
+</p>
+
+<p class="note">Ghi chú:<br/> 
+Trong phạm vi phiên bản này chỉ đề cập loại công đoạn "Bình thường".
+</p>
+<p class="node">Công đoạn sau</p>
+<p class="node_d">Mã của công đoạn ngay sau công đoạn hiện tại. Khai báo để biết khi chọn “Tự động chuyển” (tức tự động tạo phiếu điều chuyển sang công đoạn sau) 
+hoặc khi lập phiếu chuyển thủ công sẽ nhận biết được công đoạn trước.</p>
+
+<p class="node">Mã bán thành phẩm</p>
+<p class="node_d">Mã bán thành phẩm sau khi hoàn thành công đoạn hiện tại. Trường hợp công đoạn có khai báo “Nhập sản lượng” = 0 (tức tự động nhập) thì nhập theo mã này.</p>
+<p class="node">Bán thành phẩm cộng thêm	</p>
+<p class="node_d">
+Trong giao dịch phân xưởng, bán thành phẩm sẽ bao gồm các mã bán thành phẩm khai báo trong quy trình sản xuất tại trường “bán thành phẩm” và “Danh sách bán thành phẩm cộng thêm”.
+Mục đích: để các sản phẩm khác nhau nhưng dùng chung 1 quy trình sản xuất, tránh trường hợp phải mở nhiều quy trình sản xuất cho từng sản phẩm.
+</p>
+
+<!--p class="node">Mã cụm công việc</p>
+<p class="node_d">
+Mã cụm công việc là mã của một khu vực sản xuất riêng biệt, bao gồm một hay nhiều nhân công làm việc cùng với những máy móc để hoàn tất việc sản xuất ra một sản phẩm cụ thể, 
+được chọn nhập từ danh mục trung tâm công việc.
+CRP
+</p-->
+<p class="node">Mã cụm máy</p>
+<p class="node_d">
+Mã quy định nhóm gồm nhiều máy thực hiện một công đoạn sản xuất, được chọn nhập từ danh mục cụm máy.
+Nhập mã cụm máy dùng để làm căn cứ lấy một số thông tin tiêu chuẩn khi lên “Báo cáo sử dụng nguồn lực theo yêu cầu sản xuất”. Vì khi nhập liệu giao dịch chi tiết theo máy
+ nhưng khi khai báo thông số máy thì không thể chi tiết, nên cần dựa dựa vào số liệu tổng quát hơn là cụm máy;
+</p>
+
+<!--p class="node">Kiểu công đoạn</p>
+<p class="node_d">
+Kiểu công đoạn thể hiện trình tự thực hiện các công đoạn. Có các kiểu công đoạn sau:<br/>
+1-       Đầu tiên: áp dụng cho công đoạn sản xuất đầu tiên.<br/>
+2-       Song song: áp dụng cho những công đoạn thực hiện cùng một lúc.<br/>
+3-       Đơn lẻ: áp dụng cho một công đoạn.<br/>
+4-       Tuần tự: thứ tự thực hiện các thao tác trong một công đoạn.
+</p>
+<p class="note">Ghi chú:<br/> 
+Trong phạm vi phiên bản này chỉ đề cập kiểu 1 cho công đoạn đầu và 4 cho các công đoạn sau.
+</p-->
+
+<!--p class="node">Thời gian bắt đầu công đoạn sau</p>
+<p class="node_d">Là thời gian công đoạn sau có thể vận hành mà không cần công đoạn hiện tại kết thúc hoàn toàn.
+</p>
+<p class="node">Số lượng bắt đầu công đoạn sau</p>
+<p class="node_d">Là số lượng bán thành phẩm chuyển từ công đoạn hiện tại sang công đoạn sau xử lý mà không cần công đoạn hiện tại kết thúc hoàn toàn.
+</p-->
+<!--p class="node">Thời gian chờ</p>
+<p class="node_d">
+Thời gian một công việc cần được duy trì tại trung tâm công việc sau khi hoàn tất một công đoạn, trước khi thực hiện tiếp công đoạn sau. Nếu không nhập thì lấy mặc nhiên từ danh mục cụm máy.
+</p>
+<p class="node">Thời gian cài đặt</p>
+<p class="node_d">
+Thời gian cần thiết để chuẩn bị máy móc trước khi dùng để thực hiện một công đoạn. Nếu không nhập thì lấy mặc nhiên từ danh mục cụm máy.
+</p CRP???-->
+<p class="node">Cách tính</p>
+<p class="node_d">Có 2 cách tính:<br/>
+-Giờ trên sản phẩm: quy định số giờ để hoàn thành một sản phẩm tại công đoạn đang xét.<br/>
+-Sản phẩm trên giờ: quy định số lượng sản phẩm sản xuất trong 1 giờ
+</p>
+<p class="node">Năng suất</p>
+<p class="node_d">Nhập số giờ để hoàn thành một thành phần của sản phẩm nếu cách tính là "Giờ trên sản phẩm"<br/>
+- Nhập số sản phẩm nếu cách tính là "Sản phẩm trên giờ".
+</p>
+
+<p class="note">Dùng để lập báo cáo "Báo cáo sử dụng nguồn lực theo yêu cầu sản xuất", dòng "Vận hành" cột "Giờ sử dụng tiêu chuẩn". 
+Giờ tiêu chuẩn được tính từ số lượng thực hiện của yêu cầu sản xuất kết hợp năng suất và cách tính 
+ 
+<!--???p class="node">Thời gian vệ sinh</p>
+<p class="node_d">Số giờ dùng cho việc vệ sinh trung tâm công việc sau mỗi công đoạn.
+</p>
+<p class="node">Thời gian chuyển</p>
+<p class="node_d">
+Thời gian chuyển bán thành phẩm đầu ra của một công đoạn đến công đoạn sau để tiếp tục thực hiện. Nếu không nhập thì lấy mặc nhiên từ danh mục cụm máy.
+
+</p>
+<p class="node">Nhân công cài đặt/ Nh.công chạy máy
+</p>
+<p class="node_d">
+Số nhân công được phân công cài đặt máy/ tham gia vận hành máy.
+
+</p>
+<p class="node">Công cụ sử dụng
+</p>
+<p class="node_d">
+Mã công cụ dụng cụ cần thiết để thực hiện một công đoạn.
+
+</p>
+<p class="node">Nhà cung cấp
+</p>
+<p class="node_d">
+Mã nhà cung cấp là duy nhất, xác định một nhà cung cấp hoặc một đơn vị gia công cụ thể của công ty nơi thực hiện một công đoạn xác định.
+
+</p>
+<p class="node">Thời gian gia công
+</p>
+<p class="node_d">
+Thời gian gia công. Số giờ bỏ ra trước khi công đoạn được thực hiện tại đơn vị gia công của công ty. Trường này chỉ được nhập liệu khi loại công đoạn là thuê ngoài.
+
+</p>
+<p class="node">Chi phí gia công
+</p>
+<p class="node_d">
+Chi phí gia công. Tổng chi phí của công đoạn thỏa thuận giữa doanh nghiệp và đơn vị gia công. Trường này chỉ được nhập liệu khi loại công đoạn là thuê ngoài.
+</p???-->
+<!--p class="node">Trừ định mức</p>
+<p class="node_d">
+Nếu chọn vào tùy chọn này, những vật tư cấu thành nên bán thành phẩm đó sẽ tự động xuất hiện tại ngăn “Nguyên/ phụ liệu” của giao dịch phân xưởng, xét theo ngày hiệu lực của định mức so với ngày giao dịch.
+
+</p-->
+<p class="node">Tự động chuyển</p>
+<p class="node_d">
+Khi trường thông tin này được đánh dấu thì chương trình sẽ tự động chuyển sang công đoạn sau. Một minh họa đơn giản là khi xem báo cáo "Báo cáo nhập xuất tồn theo phân xưởng" (Chi tiết theo công đoạn) sẽ thấy 
+cột số lượng nhập 
+
+</p>
+<p class="node">Dừng kiểm tra</p>
+<p class="node_d">
+Nhấp chọn tùy chọn này có nghĩa là công đoạn này nên được dừng để kiểm tra.
+</p>
+<!--	p class="node">Tự động tính phí</p>
+<p class="node_d">
+Nhấp chọn tùy chọn này nghĩa là chương trình sẽ tự động tính chi phí các nguyên vật liệu tiêu thụ cho sản xuất tại công đoạn đó. Trường này có ý nghĩa trong việc tính giá thành sản phẩm, nhưng hiện tại chưa dùng đến.
+
+</p???--->
+<p class="node">Nhập sản lượng</p>
+<p class="node_d">
+Nếu chọn vào tùy chọn này, người dùng nhập số lượng hàng vận hành thông qua giao dịch phân xưởng cho các bán thành phẩm có tính chất kiểm đếm được. 
+Với các công đoạn có tính chất không kiểm đếm được hoặc quy trình liên tục không thể dừng để thống kê thì không chọn. <br/>
+Thường dùng trong các tình huống cần có dữ liệu phân tích các thành phần cấu tạo sản phẩm nhưng yêu cầu nhập liệu tối thiểu. 
+Khi đó chỉ cần nhập liệu quy trình đầu tiên có nhập sản lượng và tự động chuyển tiếp, các công đoạn sau nếu không nhập sản lượng và tự động chuyển 
+tiếp thì sẽ tự động tạo dữ liệu cho đến công đoạn nào có nhập sản lượng hoặc cho đến công đoạn cuối. 
+</p></p>
+<p class="node">Tỷ lệ kế thừa nvl công đoạn trước (%)</p>
+<p class="node_d">
+Trong giao dịch vận hành tại phân xưởng sẽ tồn tại 2 phát sinh dữ liệu nhập xuất cho nguyên liệu đầu vào và bán thành phẩm đầu ra.<br/>
+Nếu khai báo tỷ lệ thì chương trình sẽ dựa vào tỷ lệ này để ghi nhận số lượng nhập nguyên liệu đầu vào 
+công đoạn hiện tại từ công đoạn trước. (số lượng thực hiện công đoạn trước nhân cho tỷ lệ).<br/>
+Ngoài ra, khi thực hiện giao dịch phân xưởng, chương trình sẽ cho phép chuyển theo tỷ lệ đầu vào từ công đoạn trước (với điều kiện công đoạn trước là tự động chuyển  và trong giao dịch có chọn 
+"Kế thừa từ công đoạn trước")
+</p>
+<p class="node">Tỷ lệ kế thừa bán thành phẩm công đoạn trước (%)</p>
+<p class="node_d">
+Trong giao dịch vận hành tại phân xưởng sẽ tồn tại 2 phát sinh dữ liệu nhập xuất cho nguyên liệu đầu vào và bán thành phẩm đầu ra.<br/>
+Nếu công đoạn thực hiện không được nhập liệu (tức Nhập sản lượng = 0) thì chương trình sẽ tự tạo theo tỷ lệ.
+Nếu khai báo tỷ lệ thì chương trình sẽ dựa vào tỷ lệ này để ghi nhận số lượng nhập bán thành phẩm đầu ra được thực hiện
+tại công đoạn hiện tại (số lượng thực hiện công đoạn trước nhân cho tỷ lệ) nếu thỏa mãn điều kiện. </br>
+</p>
+
+<p class="node">Tự động nhập kho</p>
+<p class="node_d">
+- Nếu chọn “Có”: hệ thống sẽ tự động tạo giao dịch nhập kho với dữ liệu từ giao dịch vận hành tại phân xưởng (ngăn bán thành phẩm), 
+với thông tin “Mã kho” từ Lệnh sản xuất (phiếu xuất lấy mã kho từ mã phân xưởng), mã khách/mã nhập xuất từ chức năng “Khai báo thông tin nhập xuất tự động từ phân xưởng”;<br/>
+- Phiếu nhập kho tạo tự động với đầy đủ thông tin phục vụ tính giá thành: bộ phận (lấy từ trung tâm công việc khai báo trong quy trình sản xuất), Lệnh sản xuất (lấy từ yêu cầu sản xuất);<br/>
+- Khi phiếu nhập kho tự động được tạo, đồng nghĩa với việc bán thành phẩm đã xuất ra khỏi khu vực xưởng, trên báo cáo tồn kho phân xưởng sẽ thể hiện phần xuất này.
+</p>
+<p class="note">
+Chú ý :<br/>
+- Nếu chọn Dừng kiểm tra là 0 thì bán thành phẩm hiện tại là chờ kiểm định nên không chọn tự động nhập;<br/>
+- Việc tạo giao dịch nhập kho với dữ liệu từ giao dịch vận hành tùy thuộc tùy chọn tách kho (thực tế và kho sổ sách); <br/>
+- Chỉ thực hiện cho các công đoạn có nhập sản lượng;<br/>
+- Nếu công đoạn tự động chuyển sang công đoạn sau thì không thể thực hiện nhập kho vật lý. Những công đoạn nào có sản phẩm phải chuyển về kho vật lý thì mới sử dụng chức năng này.
+Cần tránh nhầm lẫn với dữ liệu để tính toán chi phí giá thành sản phẩm;<br/>
+- Phiếu nhập được tạo tự động sẽ có trạng thái lập chứng từ, người dùng phải cập nhật thêm một số thông tin cần thiết.
+</p>
+<p class="node">Tự động xuất kho </p>
+<p class="node_d">
+- Nếu chọn “Có”: hệ thống sẽ tự động tạo giao dịch xuất kho với dữ liệu từ giao dịch vận hành tại phân xưởng (Ngăn Nguyên vật liệu), 
+với thông tin “Mã kho” từ mã phân xưởng, mã khách/mã nhập xuất từ chức năng “Khai báo thông tin nhập xuất tự động từ phân xưởng”;<br/>
+- Việc tạo giao dịch xuất kho với dữ liệu từ giao dịch vận hành tùy thuộc tùy chọn tách kho (thực tế và kho sổ sách); <br/>
+- Phiếu xuất kho tạo tự động với đầy đủ các thông tin phục vụ tính giá thành: bộ phận (lấy từ trung tâm công việc khai báo 
+trong quy trình sản xuất), Lệnh sản xuất  (lấy từ yêu cầu sản xuất), mã bán thành phẩm/TP từ giao dịch phân xưởng (giả định chỉ nhập 1 mã bán thành phẩm/TP trên 1 phiếu giao dịch phân xưởng);<br/>
+- Phiếu xuất được tạo tự động sẽ có trạng thái lập chứng từ, người dùng phải cập nhật thêm một số thông tin cần thiết.
+</p>
+
+<p class="note">
+Chú ý :<br/>
+- Chỉ thực hiện cho các công đoạn có nhập sản lượng;
+</p>
+
+<p class="node">Kết nhập dữ liệu từ tệp bảng tính</p>
+<p class="node_d">Chương trình hỗ trợ kết nhập dữ liệu ca từ tệp bảng tính để tiết kiệm thời gian thiết lập ban đầu.
+<br/>
+- Nhấn biểu tượng <img src="vie/download.png">,  chương trình sẽ tải tệp mẫu để người dùng chuyển dữ liệu vào tệp này;<br>
+- Sau khi đã nhập dữ liệu vào tệp bảng tính, để đưa dữ liệu này vào chương trình,  nhấn biểu tượng <img src="vie/upload.png">, chọn tệp bảng tính, chương trình sẽ tải dữ liệu từ tệp mẫu vào danh mục;<br/>
+- Chi tiết liên quan tiện ích này, đề nghị xem thêm <a href="Generallisttask.htm"> “Những hướng dẫn chung về cập nhật các danh mục”</a>, mục "Kết nhập dữ liệu từ bảng tính".</p>
+</p>
+
+
+<script type="text/javascript" src="setPageFooter.js"> 
+</script>
+</body>
+</html>

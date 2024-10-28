@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterInit SYSTEM "..\Include\XML\WhenFilterInit.xml">
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+  <!ENTITY TableDetail "bid05">
+
+  <!ENTITY % VoucherDeleteLog SYSTEM "..\Include\VoucherDeleteLog.ent">
+  %VoucherDeleteLog;
+
+  <!ENTITY % Conditional.BIMode "INCLUDE">
+  <!ENTITY % BIMode SYSTEM "..\Include\BIMode.ent">
+  %BIMode;
+]>
+
+<dir table="bim05$000000" code="stt_rec" order="stt_rec" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="ma_bp0" filterSource="master" operation="10">
+      <header v="Đơn vị mua" e="Purchasing Org."></header>
+      <items style="AutoComplete" controller="BIPurchasingOrganization.Right" reference="ten_bp0%l" key="status = '1'"/>
+    </field>
+    <field name="ten_bp0%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="loai_ky" filterSource="master" operation="20">
+      <header v="Loại kỳ" e="Period Type"></header>
+      <items style="AutoComplete" controller="BIPeriodTypeList" reference="ten_loai%l" key="status = '1'"/>
+    </field>
+    <field name="ten_loai%l" clientDefault="Default" readOnly="true" hidden="false" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ky" type="Decimal" dataFormatString="#0" aliasName="Period" defaultValue="(new Date()).getMonth() + 1">
+      <header v="Kỳ đánh giá" e="Evaluation Period"></header>
+      <footer v="Kỳ/năm đánh giá" e="Evaluation Period/Year"></footer>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="nam" type="Decimal" dataFormatString="###0" aliasName="Year" defaultValue="(new Date()).getFullYear()">
+      <header v="Năm đánh giá" e="Evaluation Year"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="ma_kh" filterSource="master" operation="30">
+      <header v="Mã nhà cung cấp" e="Vendor"></header>
+      <items style="AutoComplete" controller="&VendorController;" reference="ten_kh%l" key="cc_yn = 1 and status = '1'" check="cc_yn = 1"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_chi_tieu" filterSource="detail" operation="10" categoryIndex="1">
+      <header v="Mã chỉ tiêu" e="Sub Criterion Code"></header>
+      <items style="AutoComplete" controller="BISubCriteria" reference="ten_chi_tieu%l" key="status = '1'" check="1 = 1" information="&TableDetail;"/>
+    </field>
+    <field name="ten_chi_tieu%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''" categoryIndex="1">
+      <header v="Tên chỉ tiêu" e="Sub Criterion Name"></header>
+    </field>
+
+    <field name="ma_vt" filterSource="detail" operation="20" categoryIndex="1">
+      <header v="Mã hàng" e="Item"></header>
+      <items style="AutoComplete" controller="Item" reference="ten_vt%l" key="status = '1'" check="1 = 1" information="&TableDetail;"/>
+    </field>
+    <field name="ten_vt%l" readOnly="true" external="true" clientDefault="Default" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="user_id0" dataFormatString="0, 1" clientDefault="1" align="right" inactivate="true" categoryIndex="-1">
+      <header v="Người sử dụng" e="User"></header>
+      <footer v="1 - Lọc theo người sử dụng, 0 - Không" e="1 - Filter by User, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="64">
+      <item value="120, 30, 40, 30, 100, 100, 130"/>
+      <item value="1100100: [ma_bp0].Label, [ma_bp0], [ten_bp0%l]"/>
+      <item value="1100100: [loai_ky].Label, [loai_ky], [ten_loai%l]"/>
+      <item value="111: [ky].Description, [ky], [nam]"/>
+      <item value="1100100: [ma_kh].Label, [ma_kh], [ten_kh%l]"/>
+
+      <item value="1101000: [ma_chi_tieu].Label, [ma_chi_tieu], [ten_chi_tieu%l]"/>
+      <item value="1101000: [ma_vt].Label, [ma_vt], [ten_vt%l]"/>
+      <item value="1110000: [user_id0].Label, [user_id0], [user_id0].Description"/>
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 330">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterInit;
+  </commands>
+
+  <script>
+    <text>
+      &ScriptFilterInit;
+    </text>
+  </script>
+</dir>

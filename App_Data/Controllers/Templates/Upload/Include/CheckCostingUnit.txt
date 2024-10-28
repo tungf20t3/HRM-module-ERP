@@ -1,0 +1,55 @@
+      <![CDATA[
+declare @objectUnit char(1)
+select @objectUnit = case when exists(select 1 from options where name = 'm_dtgt_dvcs' and val = '1') then '1' else '0' end
+if @$mode = 1 begin
+  select @field = 'ma_bp'
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table where ma_bp <> '' and ma_bp not in (select ma_bp from vxdmbp where truc_tiep = '1' and ma_bp in (select ma_bp from dmbp))
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+  select @field = 'so_lsx'
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table a where a.so_lsx <> '' and a.so_lsx not in (select b.so_lsx from phlsx b where a.ma_dvcs = b.ma_dvcs or @costUnit = '0')
+  ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_bp', @r = min(stt) from @@table where ma_bp <> '' and ma_bp not in (select ma_bp from vxdmbp where truc_tiep = '1' and ma_bp in (select ma_bp from dmbp))]]>&Error;<![CDATA[
+  select @field = 'so_lsx', @r = min(a.stt) from @@table a where a.so_lsx <> '' and a.so_lsx not in (select b.so_lsx from phlsx b where a.ma_dvcs = b.ma_dvcs or @costUnit = '0')]]>&Error;<![CDATA[
+end
+  if @objectUnit = '0' begin
+    if @$mode = 1 begin
+      select @field = 'ma_bp'
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table where (@inputDept = '1' and ma_bp = '') or (@inputDept = '0' and ma_bp <> '')
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+      select @field = 'so_lsx'
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00001' from @@table where (@inputMO = '1' and so_lsx = '') or (@inputMO = '0' and so_lsx <> '')
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @field = 'ma_bp', @r = min(stt) from @@table where (@inputDept = '1' and ma_bp = '') or (@inputDept = '0' and ma_bp <> '')]]>&Error;<![CDATA[
+      select @field = 'so_lsx', @r = min(stt) from @@table where (@inputMO = '1' and so_lsx = '') or (@inputMO = '0' and so_lsx <> '')]]>&Error;<![CDATA[
+    end
+  end else begin
+    select a.ma_dvcs, isnull(b.x_dt_sp, 0) as x_dt_sp, isnull(b.x_dt_bp, 0) as x_dt_bp, isnull(b.x_dt_lsx,0) as x_dt_lsx into #dmdvcs
+      from (select distinct ma_dvcs from @@table) a left join dmdvcskb b on a.ma_dvcs = b.ma_dvcs and b.status = '1' 
+    update #dmdvcs set x_dt_sp = 1, x_dt_bp = @inputDept, x_dt_lsx = @inputMO where x_dt_sp = 0 and x_dt_bp = 0 and x_dt_lsx = 0
+    if @$mode = 1 begin
+      select @field = 'ma_bp'
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00001' from @@table a join #dmdvcs b on a.ma_dvcs = b.ma_dvcs where (b.x_dt_bp = '1' and a.ma_bp = '') or (b.x_dt_bp = '0' and a.ma_bp <> '')
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+      select @field = 'so_lsx'
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, a.stt, '00001' from @@table a join #dmdvcs b on a.ma_dvcs = b.ma_dvcs where (b.x_dt_lsx = '1' and a.so_lsx = '') or (b.x_dt_lsx = '0' and a.so_lsx <> '')
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA['00001']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @field = 'ma_bp', @r = min(a.stt) from @@table a join #dmdvcs b on a.ma_dvcs = b.ma_dvcs where (b.x_dt_bp = '1' and a.ma_bp = '') or (b.x_dt_bp = '0' and a.ma_bp <> '')]]>&Error;<![CDATA[
+      select @field = 'so_lsx', @r = min(a.stt) from @@table a join #dmdvcs b on a.ma_dvcs = b.ma_dvcs where (b.x_dt_lsx = '1' and a.so_lsx = '') or (b.x_dt_lsx = '0' and a.so_lsx <> '')]]>&Error;<![CDATA[
+    end
+  end
+]]>

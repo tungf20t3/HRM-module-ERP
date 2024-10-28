@@ -1,0 +1,117 @@
+﻿<![CDATA[
+declare @val nvarchar(128), @size int, @i int, @s char(1), @l int, @delta int
+
+select top 0 ma_vt, identity (int, 1, 1) as id  into #itemdata from dmvt
+select top 0 dvt, identity (int, 1, 1) as id  into #uomdata from dmvt
+select top 0 ma_vung, identity (int, 1, 1) as id  into #plantdata from bidmvung
+select top 0 cast(null as numeric(19, 3)) as so_luong, identity (int, 1, 1) as id  into #quantitydata
+select top 0 cast(null as int) as row, identity (int, 1, 1) as id  into #row
+select top 0 ma_vt, dvt, ma_vung, so_luong, row as id, so_luong as sl_qd, cast(1 as numeric(19, 3)) as he_so, cast(null as char(1)) as chk_vung into #data from #itemdata a, #uomdata b, #plantdata c, #quantitydata d, #row e
+
+-- Item
+select @i = 1, @s = ',', @size = 0, @l = datalength(text) from @ds_ma_vt
+select @size = charindex(@s, text, @size) from @ds_ma_vt
+while @size > 0 and @size < @l begin
+  select @val = replace(substring(text, @i, @size - @i), '''', '') from @ds_ma_vt
+  insert into #itemdata select @val
+  select @i = @size + 1, @delta = charindex(@s, substring(text, @size + 1, @l - @size)) from @ds_ma_vt
+  if @delta = 0 break
+
+  select @size = @size + @delta
+end
+
+-- UOM
+select @i = 1, @s = ',', @size = 0, @l = datalength(text) from @ds_dvt
+select @size = charindex(@s, text, @size) from @ds_dvt
+while @size > 0 and @size < @l begin
+  select @val = replace(substring(text, @i, @size - @i), '''', '') from @ds_dvt
+  insert into #uomdata select @val
+  select @i = @size + 1, @delta = charindex(@s, substring(text, @size + 1, @l - @size)) from @ds_dvt
+  if @delta = 0 break
+
+  select @size = @size + @delta
+end
+
+-- Plant
+select @i = 1, @s = ',', @size = 0, @l = datalength(text) from @ds_ma_vung
+select @size = charindex(@s, text, @size) from @ds_ma_vung
+while @size > 0 and @size < @l begin
+  select @val = replace(substring(text, @i, @size - @i), '''', '') from @ds_ma_vung
+  insert into #plantdata select @val
+  select @i = @size + 1, @delta = charindex(@s, substring(text, @size + 1, @l - @size)) from @ds_ma_vung
+  if @delta = 0 break
+
+  select @size = @size + @delta
+end
+
+-- Quantity
+select @i = 1, @s = ',', @size = 0, @l = datalength(text) from @ds_so_luong
+select @size = charindex(@s, text, @size) from @ds_so_luong
+while @size > 0 and @size < @l begin
+  select @val = replace(substring(text, @i, @size - @i), '''', '') from @ds_so_luong
+  insert into #quantitydata select @val
+  select @i = @size + 1, @delta = charindex(@s, substring(text, @size + 1, @l - @size)) from @ds_so_luong
+  if @delta = 0 break
+
+  select @size = @size + @delta
+end
+
+-- Row
+select @i = 1, @s = ',', @size = 0, @l = datalength(text) from @ds_dong
+select @size = charindex(@s, text, @size) from @ds_dong
+while @size > 0 and @size < @l begin
+  select @val = replace(substring(text, @i, @size - @i), '''', '') from @ds_dong
+  insert into #row select @val
+  select @i = @size + 1, @delta = charindex(@s, substring(text, @size + 1, @l - @size)) from @ds_dong
+  if @delta = 0 break
+
+  select @size = @size + @delta
+end
+
+insert into #data select ma_vt, dvt, ma_vung, so_luong, row as id, so_luong, 1, '0' from #itemdata a join #uomdata b on a.id = b.id join #plantdata c on a.id = c.id join #quantitydata d on a.id = d.id join #row e on a.id = e.id
+
+delete #data from #data a where not exists (select 1 from dmvt b where a.ma_vt = b.ma_vt)
+
+-- Data IR
+select top 0 cast(null as int) as dong, a.gia_chuan_nt, a.gia_nt, cast('' as varchar(16)) as so_ct, b.ma_rb, b.sl_dat_tt, b.sl_dat_td, cast(0 as numeric(5, 2)) as sai_can_duoi, cast(0 as numeric(5, 2)) as sai_can_tren, b.so_ngay_giao,
+  a.ct_gia_dk, a.ck_dv_nt, a.cp_dv_nt, a.ck_nt, a.cp_nt, cast('' as char(1)) as exist_price, b.stt_rec, b.stt_rec0 into #ir from bigia01 a, bigia02 b
+
+declare @unitCode varchar(32), @chkPlant char(1)
+select @unitCode = case when @ma_dvcs = '' then @@unit else @ma_dvcs end
+
+update #data set chk_vung = '1' from #data a join bidmvung b on a.ma_vung = b.ma_vung
+  where b.ma_dvcs = @unitCode
+    and (@@admin = 1 or not exists(select 1 from bisysplantrights where user_id = @@userID) or exists(select 1 from bisysplantrights where ma_vung = a.ma_vung and user_id = @@userID))
+    and (not exists(select 1 from bidmbp0g1 where ma_vung = a.ma_vung) or exists(select 1 from bidmbp0g1 where ma_vung = a.ma_vung and ma_bp0 = @ma_bp0))
+delete #data where chk_vung = '0' and ma_vung <> ''
+if exists (select 1 from #data) begin
+  update #data set he_so = b.he_so, sl_qd = so_luong * isnull(b.he_so, 1) from #data a join dmqddvt b on a.dvt = b.dvt and (a.ma_vt = b.ma_vt OR b.ma_vt = '*')
+  insert into #ir(dong, gia_chuan_nt, gia_nt, so_ct, ma_rb, sl_dat_tt, sl_dat_td, so_ngay_giao, ct_gia_dk, ck_dv_nt, cp_dv_nt, ck_nt, cp_nt, stt_rec, stt_rec0)
+    exec [AI_ERP$BI$GetInfoRecord$Multi]
+      @unitCode, @ma_bp0, @ma_nh0, @ma_kh, @ma_nt, @ngay_lct, @defaultUOM,
+        'xgroup, gia_chuan_nt, gia_nt, so_ct, ma_rb, sl_dat_tt, sl_dat_td, so_ngay_giao, ct_gia_dk, ck_dv_nt, cp_dv_nt, ck_nt, cp_nt, stt_rec, stt_rec0',
+        @voucherCode, @@userID, @@admin, 1
+    if exists(select 1 from #ir) update #ir set exist_price = 1
+      else insert into #ir select id, null, null, '', '', 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, '', '' from #data
+
+    if exists(select 1 from #ir where isnull(ma_rb, '') = '') begin
+      declare @rule varchar(16), @k1 nvarchar(128), @k2 nvarchar(128), @k3 nvarchar(128), @row int
+      select top 0 dong, ma_rb into #rb from #ir
+
+      select @row = min(dong) from #ir where isnull(ma_rb, '') = ''
+      while @row is not null begin
+        select @k1 = 'ma_vt = ''' + replace(ma_vt, '''', '''''') + ''' and ma_vung = ''' + replace(ma_vung, '''', '''''') + '''', @k2 = 'ma_vt = ''' + replace(ma_vt, '''', '''''') + '''', @k3 = 'controller = ''Item'''
+          from #data where id = @row
+        exec dbo.AI_ERP$BI$Options$GetValue 'ma_rb', @rule out, 'bidmvttsvung', @k1, 'bidmvtts', @k2, 'bidmts', @k3
+        insert into #rb select @row, @rule
+        select @row = min(dong) from #ir where isnull(ma_rb, '') = '' and dong > @row
+      end
+
+      update #ir set ma_rb = isnull(b.ma_rb, '') from #ir a join #rb b on a.dong = b.dong
+    end
+    select '' as array$, *, @getPrice as get_price from #ir order by dong
+    return
+end
+select '1' as c
+return
+]]>

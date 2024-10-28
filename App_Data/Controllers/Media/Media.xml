@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<media table="media" code="syskey" key="rkey" file="file_name" fileEncode="file_enc" data="file_data" xmlns="urn:schemas-ai-erp:data-media">
+  <setting>
+    <thumbWidth value="360" />
+    <thumbHeight value="240" />
+    <maxWith value="0"/>
+    <maxHeight value="0"/>
+    <folder value="Item"/>
+    <maxFileSize value="5" />
+    <uploadTimeOut value="30" />
+    <processDelayTime value="1000" />
+    <fileRecordTimeOut value="1740" />
+    <allowFileExtension value="gif, png, jpg, gpeg" />
+  </setting>
+
+  <queries>
+    <query event="Updated">
+      <text>
+        <![CDATA[
+declare @rkey char(32)
+select @rkey = file_enc from @@table where controller = @@controller and syskey = @@syskey
+update @@baseTable set @@external = isnull(@rkey, '') where @@field = @@syskey
+]]>
+      </text>
+    </query>
+  </queries>
+
+  <map>
+    <controller id="Item" table="dmvt" field="ma_vt" external="ikey"/>
+  </map>
+
+</media>

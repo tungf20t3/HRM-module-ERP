@@ -1,0 +1,14 @@
+﻿<![CDATA[
+declare @$hs numeric(13,3), @$hs2 numeric(13,3), @$dvt nvarchar(33), @environmentAmount numeric(19, 2), @environmentPercent numeric(5, 2)
+
+select top 1 @$dvt = dvt, @environmentAmount = muc_thue, @environmentPercent = ty_le from dmkbtmt where ma_vt = @ma_vt and ngay_hl <= @$ngay_lct and status = 1 and loai = ']]>&EnvironmentTaxType;<![CDATA[' order by ngay_hl desc
+select @$hs = case when @$dvt = @dvt then 1 when @$dvt is null then 0 end
+
+if @$hs is null and @$dvt is not null begin
+  if exists(select 1 from dmqddvt where dvt = @$dvt and ma_vt = @ma_vt) begin
+    select @$hs = he_so from dmqddvt where dvt = @$dvt and ma_vt = @ma_vt
+    select @$hs2 = he_so from dmqddvt where dvt = @dvt and ma_vt = @ma_vt
+    select @$hs = he_so/@$hs*@$hs2 from dmqddvt where xtype = 'S' and ma_vt = @ma_vt
+  end
+end
+]]>

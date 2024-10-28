@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"/>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu từ" e="Counting Date from"></header>
+      <footer v="Ngày yêu cầu từ/đến" e="Counting Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Ngày yêu cầu đến" e="Counting Date to"></header>
+    </field>
+    <field name="so_ct" align="right" allowNulls="false">
+      <header v="Số yêu cầu" e="Voucher No."></header>
+      <items style="AutoComplete" controller="StocktakingRequisition" key="(ngay_ct between @d1 and @d2)" check="(ngay_ct between @d1 and @d2)"/>
+    </field>
+    <field name="dien_giai" readOnly="true" defaultValue="''" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="mau_bc" clientDefault="10">
+      <header v="Mẫu báo cáo" e="Report Form"/>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu nội bộ" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Khác" e="Other"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="126">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="110100: [so_ct].Label, [so_ct], [dien_giai]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$StocktakingResultReport$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+
+    <command event="Processing">
+      <text>
+        <![CDATA[
+declare @vcID varchar(33)
+select @vcID = stt_rec from kkyc where so_ct = @so_ct
+exec rs_rptStocktakingResultReport @vcID, @mau_bc, @@language, @@userID, @@admin
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @$none nvarchar(512), @vcDate smalldatetime
+select @vcDate = ngay_ct from kkyc with(index(so_ct)) where so_ct = @so_ct and ngay_ct between @ngay_ct1 and @ngay_ct2
+if @vcDate is null begin
+  select @$none = case when @@language = 'v' then N'Không có yêu cầu kiểm kê theo điều kiện đang lọc.' else N'No data matching filter condition.' end
+  select 'so_ct' as field, isnull(@$none, '') as message
+end
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &JavascriptReportFilter;
+      &OutlineEntry;
+      <![CDATA[function init$StocktakingResultReport$(a){a.getItem("so_ct")._idle=9}function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);a._looking=a.getItem("so_ct")._controlBehavior;a._looking.add_loading(onclick$StocktakingResultReport$Before$Loading)}function close$VoucherFilter$(a){try{a._looking.remove_loading(on$StocktakingResultReport$Before$Loading)}catch(b){}try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,b){var a=b.object,e=b.type.Context,f=b.type.Result;switch(e){case"Checking":var c=a.grid,d=a.getItemValue("mau_bc");a.grid._alterTitle=[null,[["%s",a.getItemValue("so_ct").toUpperCase(),true]]];c._hiddenFields=[{Fields:"ma_vi_tri, ma_lo",Value:d=="20"}];c._hiddenForms=[{Form:[1],Value:d=="10"},{Form:[0],Value:d=="20"}];remove$GridReport$Filter(c)}}function onclick$StocktakingResultReport$Before$Loading(c,f){var b=c._element.parentForm;if(!b.validFields("ngay_ct1")||!b.validFields("ngay_ct2"))f.type.cancelEvent=true;else{var g=b.grid,h=g.get_element().parentForm,d=b.getItemValue("ngay_ct1"),e=b.getItemValue("ngay_ct2");a=[{Name:"d1",Type:"DateTime",Value:d},{Name:"d2",Type:"DateTime",Value:e}];c.set_memvars(a)}}
+]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

@@ -1,0 +1,23 @@
+﻿    <action id="UOM">
+      <text>
+        <![CDATA[
+declare @rate numeric(16, 5), @$r1 numeric(13,3), @$r2 numeric(13,3), @$uom nvarchar(33), @environmentAmount numeric(19, 2), @environmentPercent numeric(5, 2)
+if exists(select 1 from dmqddvt where dvt = @dvt and (ma_vt = @ma_vt or ma_vt = '*')) begin
+
+  select top 1 @$uom = dvt, @environmentAmount = muc_thue, @environmentPercent = ty_le from dmkbtmt where ma_vt = @ma_vt and ngay_hl <= @$ngay_lct and status = 1 and loai = '1' order by ngay_hl desc
+  select @$r1 = case when @$uom = @dvt then 1 when @$uom is null then 0 end
+  if @$r1 is null and @$uom is not null begin
+    if exists(select 1 from dmqddvt where dvt = @$uom and ma_vt = @ma_vt) begin
+      select @$r1 = he_so from dmqddvt where dvt = @$uom and ma_vt = @ma_vt
+      select @$r2 = he_so from dmqddvt where dvt = @dvt and ma_vt = @ma_vt
+      select @$r1 = he_so / @$r1 * @$r2 from dmqddvt where xtype = 'S' and ma_vt = @ma_vt and @$r1 <> 0
+    end
+  end
+
+  select @rate = he_so from dmqddvt where dvt = @dvt and (ma_vt = @ma_vt or ma_vt = '*')
+  select isnull(@rate, 1) as he_so, isnull(@$r1, 0) as he_so_mt, isnull(@environmentAmount, 0) as muc_thue, isnull(@environmentPercent, 0) as tl_chiu_thue
+  return
+end
+]]>
+      </text>
+    </action>

@@ -1,0 +1,846 @@
+﻿<action id="CDApproval" table="m51$000000" v="Phiếu chi tiền mặt chờ duyệt" e="Cash disbursement approval waiting for approval">
+<notification v="Tình trạng duyệt phiếu chi tiền mặt" e="Cash disbursement approval workflow process"/>
+<fields>
+<field name="h_so_ct">
+<header v="Số chứng từ" e="Number"/>
+</field>
+<field name="h_ngay_ct">
+<header v="Ngày" e="Date"/>
+</field>
+<field name="h_ma_kh">
+<header v="Khách hàng" e="Customer"/>
+</field>
+<field name="h_ma_kh_ct">
+<header v="Mã khách" e="Customer ID"/>
+</field>
+<field name="h_ten_kh_ct">
+<header v="Tên khách hàng" e="Customer Name"/>
+</field>
+<field name="h_ly_do">
+<header v="Lý do thanh toán" e="Memo"/>
+</field>
+<field name="h_alink">
+<header v="Đường dẫn duyệt" e="Link for approval"/>
+</field>
+<field name="h_clink">
+<header v="Đường dẫn hủy" e="Link for cancellation"/>
+</field>
+<field name="h_tk">
+<header v="Tk nợ" e="Debit Account"/>
+</field>
+<field name="h_ten_tk">
+<header v="Tên tài khoản" e="Account Description"/>
+</field>
+<field name="h_so_hd">
+<header v="Số hóa đơn" e="Invoice No."/>
+</field>
+<field name="h_ngay_hd">
+<header v="Ngày hóa đơn" e="Invoice Date"/>
+</field>
+<field name="h_tien_hd_nt">
+<header v="Tiền trên hóa đơn" e="Invoice Amount"/>
+</field>
+<field name="h_ma_nt_i">
+<header v="Ngoại tệ" e="Currency"/>
+</field>
+<field name="h_approve">
+<header v="Duyệt phiếu chi tiền mặt" e="Approve"/>
+</field>
+<field name="h_cancel">
+<header v="Hủy phiếu chi tiền mặt" e="Cancel"/>
+</field>
+<field name="h_n_approve">
+<header v="Trong trường hợp cần nhập lý do trước khi duyệt nhấn vào đây" e="In case of need to input a reason for the approval, click here"/>
+</field>
+<field name="h_n_cancel">
+<header v="Trong trường hợp cần nhập lý do trước khi hủy nhấn vào đây" e="In case of need to input a reason for the approval, click here"/>
+</field>
+<field name="h_dien_giai">
+<header v="Diễn giải" e="Description"/>
+</field>
+<field name="h_tien">
+<header v="Tiền" e="Amount"/>
+</field>
+<field name="h_t_tien">
+<header v="Tiền" e="Amount"/>
+</field>
+<field name="h_t_thue">
+<header v="Thuế" e="Tax Amount"/>
+</field>
+<field name="h_t_tt">
+<header v="Tổng thanh toán" e="Total"/>
+</field>
+<field name="h_in_words">
+<header v="Bằng chữ" e="In Words"/>
+</field>
+</fields>
+
+<messages>
+<state id="complete">
+<label v="Chương trình đã thực hiện xong." e="The process completed successfully."/>
+</state>
+<state id="invalid">
+<label v="Phiếu chi tiền mặt này đã được duyệt, hủy hoặc thay đổi thông tin." e="This cash disbursement has been approved, canceled or changed by another user."/>
+</state>
+</messages>
+
+<query id="checking">
+<text>
+<![CDATA[
+declare @invalid nvarchar(1024), @xtype int, @receiveCode varchar(32), @cancelCode varchar(32), @voucherDate smalldatetime, @unit varchar(32), @$lockedDate nvarchar(512)
+select @invalid = case when @@language = 'V' then N'Phiếu chi tiền mặt này đã được duyệt, hủy hoặc thay đổi thông tin.' else N'This cash disbursement has been approved, canceled or changed by another user.' end
+]]>&NotifyCheckApproveCancel;<![CDATA[
+
+declare @voucherType varchar(32), @tableDetail varchar(33), @tableMaster varchar(33), @partition varchar(6), @strSQL nvarchar(4000), @userID int, @ustatus varchar(32), @status varchar(32), @currentStatus varchar(32), @categoryApprove varchar(32), @role varchar(32), @typeVC char(2), @voucherID char(3), @optionParameter varchar(128), @$updateConflict nvarchar(512)
+select @partition = convert(char(6), ngay_ct, 112), @voucherDate = ngay_ct, @unit = ma_dvcs from c51$000000 where stt_rec = @@stt_rec
+select @voucherType = '00620', @tableDetail = 'd51$' + @partition, @tableMaster = 'm51$' + @partition, @userID = @@userID, @optionParameter = ', default, default]]>&DeductibleOption;<![CDATA['
+
+select @strSQL = 'select top 1 @ustatus = u_status, @status = status, @categoryApprove = kieu_duyet, @typeVC = loai_ct, @voucherID = ma_ct from ' + @tableMaster + ' where stt_rec = '@@stt_rec''
+exec sp_executesql @strSQL, N'@ustatus varchar(32) output, @status varchar(32) output, @categoryApprove varchar(32) output, @typeVC varchar(32) output, @voucherID varchar(3) output', @ustatus = @ustatus output, @status = @status output, @categoryApprove = @categoryApprove output, @typeVC = @typeVC output, @voucherID = @voucherID output
+
+create table #checkexists (val int)
+create table #lockedDate (r int)
+
+if @@type = '0' begin
+  if (@status = '2') begin
+    select @currentStatus = '1', @$updateConflict = case when @@language = 'v' then N'Đã có chứng từ thanh toán cho hóa đơn này, không thể bỏ duyệt được.' else N'Can not undo this voucher, It was received or paid.' end
+    ]]>&PaymentApprovalCheckLockedDate;&PaymentApprovalCheckApproveCancel;&PaymentApprovalBeforeUpdateCurrentCustomerBalance;&PaymentApprovalDelete;&PaymentApprovalRevert;<![CDATA[
+  end
+  exec AI_ERP$APV$UnPostAuthorize @voucherType, @@userID, @@stt_rec, '@@sysDatabaseName', @@language, ]]>&NotifyPushFlag;<![CDATA[, @@comment
+  return
+end
+
+if @@type = '1' begin
+  exec AI_ERP$APV$GetApprovalRole @voucherType, @@userID, @ustatus, @categoryApprove, @role output
+  select @currentStatus = @status
+  select @status = status2 from gndmquyenct where loai_duyet = @voucherType and ma_quyen = @role and status = @ustatus and kieu_duyet = @categoryApprove
+  ]]>&PaymentApprovalCheckLockedDate;<![CDATA[
+  exec AI_ERP$APV$PostAuthorize @voucherType, '1', @@userID, @@stt_rec, '@@sysDatabaseName', @@language, default, default, default, ]]>&NotifyPushFlag;<![CDATA[, ]]>&VoucherApproveLog;<![CDATA[, @@comment
+  if @currentStatus]]>&PaymentApprovalKeyStatus;<![CDATA[ and @status = '2' begin
+    ]]>&PaymentApprovalPost;<![CDATA[
+  end
+  return
+end
+
+if @@type = '2' begin
+  exec AI_ERP$APV$GetApprovalRole @voucherType, @@userID, @ustatus, @categoryApprove, @role output
+  select @currentStatus = @status
+  select @status = status0 from gndmquyenct where loai_duyet = @voucherType and ma_quyen = @role and status = @ustatus and kieu_duyet = @categoryApprove
+  ]]>&PaymentApprovalCheckLockedDate;<![CDATA[
+  exec AI_ERP$APV$PostAuthorize @voucherType, '2', @@userID, @@stt_rec, '@@sysDatabaseName', @@language, default, default, default, ]]>&NotifyPushFlag;<![CDATA[, ]]>&VoucherApproveLog;<![CDATA[, @@comment
+  if @currentStatus]]>&PaymentApprovalKeyStatus;<![CDATA[ and @status = '2' begin
+    ]]>&PaymentApprovalPost;<![CDATA[
+  end
+  return
+end
+]]>
+</text>
+</query>
+
+<query id="report">
+<command id="master">
+<text>
+<![CDATA[
+declare @id int, @l varchar(8)
+select @id = @@contactID
+select @l = d_language from @@sysDatabaseName..userinfo2 where id = @id
+
+create table #msg (smsg varchar(10), msg0 nvarchar(4000), msg1 nvarchar(4000), msg2 nvarchar(4000), msg3 nvarchar(4000), msg4 nvarchar(4000), msg5 nvarchar(4000), msg6 nvarchar(4000), msg7 nvarchar(4000), msg8 nvarchar(4000), msg9 nvarchar(4000))
+insert into #msg exec AI_ERP$APV$GetApprovalDetail @@stt_rec, '00620', @l, 1, 1
+
+select case when loai_ct = '3' then 'body2' when loai_ct = '1' then 'body3' else 'body' end as bodyID, ltrim(so_ct) as so_ct, ma_nt, convert(varchar(12), a.ngay_ct, 103) as ngay_ct,
+    convert(varchar(32), a.datetime2, 121) as datetime2, case @l when 'v' then d.ten_kh else d.ten_kh2 end as ten_kh,
+    dien_giai, b.dien_thoai, b.e_mail, b.d_language, upper(ma_nhan) as ma_nhan, upper(ma_huy) as ma_huy, m.smsg, m.msg0, m.msg1, m.msg2, m.msg3, m.msg4, m.msg5, m.msg6, m.msg7, m.msg8, m.msg9
+  from @@table a, @@sysDatabaseName..userinfo2 b, dmxn c, dmkh d, #msg m
+  where a.stt_rec = @@stt_rec and b.id = @id and a.stt_rec = c.stt_rec and a.ma_kh = d.ma_kh and b.id = c.user_id
+]]>
+</text>
+</command>
+<command id="detail">
+<text>
+<![CDATA[
+declare @amountFormat varchar(32), @strSQL nvarchar(4000), @typeVC varchar(32), @tableMaster varchar(33), @field varchar(512), @join varchar(512), @currency varchar(32)
+declare @t table(field varchar(32), format varchar(128))
+select @currency = val from options where name = 'm_ma_nt0'
+select @tableMaster = 'm51$' + convert(char(6), ngay_ct, 112) from c51$000000 where stt_rec = @@stt_rec
+select @strSQL = 'select top 1 @typeVC = loai_ct from ' + @tableMaster + ' where stt_rec = '@@stt_rec''
+exec sp_executesql @strSQL, N'@typeVC varchar(32) output', @typeVC = @typeVC output
+
+if exists(select 1 from options where name = 'm_ma_nt0' and rtrim(val) = @@ma_nt) begin
+  select @amountFormat = rtrim(val) from options where name = 'm_ip_tien'
+end else begin
+  select @amountFormat = rtrim(val) from options where name = 'm_ip_tien_nt'
+end
+
+insert into @t select 'tien', @amountFormat
+insert into @t select 'tien_hd_nt', @amountFormat
+
+select @join = case
+  when @typeVC = '3' then ' left join dmkh c on a.ma_kh_i = c.ma_kh'
+  when @typeVC = '1' then ' left join cttt30 d on a.stt_rec_tt = d.stt_rec'
+  else ' left join dmtk b on a.tk_no = b.tk'
+end
+
+select @field = case
+  when @typeVC = '3' then ', a.ma_kh_i as ma_kh, ' + case when @@language = 'v' then 'c.ten_kh' else 'c.ten_kh2' end
+  when @typeVC = '1' then ', rtrim(isnull(d.so_ct, '''')) as so_hd, convert(varchar(12), d.ngay_ct, 103) as ngay_hd, case when d.ma_nt = '''' then d.t_tt else d.t_tt_nt end as tien_hd_nt, case when isnull(d.ma_nt, '''') = '''' then ''' + @currency + ''' else d.ma_nt end as ma_nt_i'
+  else ',' + case when @@language = 'v' then 'b.ten_tk' else 'b.ten_tk2' end + ' as ten_tk'
+end
+
+select @strSQL = 'select a.tk_no as tk, a.dien_giai, cast(tien_nt as varchar) as tien' + @field
+select @strSQL = @strSQL + ' from @@table a ' + @join
+select @strSQL = @strSQL + ' where a.stt_rec = '@@stt_rec' order by a.line_nbr'
+exec sp_executesql @strSQL
+select * from @t
+]]>
+</text>
+</command>
+<command id="footer">
+<text>
+<![CDATA[
+declare @amountFormat varchar(32)
+declare @t table(field varchar(32), format varchar(128))
+
+if exists(select 1 from options where name = 'm_ma_nt0' and rtrim(val) = @@ma_nt) select @amountFormat = rtrim(val) from options where name = 'm_ip_tien'
+else select @amountFormat = rtrim(val) from options where name = 'm_ip_tien_nt'
+
+insert into @t select 't_tien_nt', @amountFormat
+insert into @t select 't_thue_nt', @amountFormat
+insert into @t select 't_tt_nt', @amountFormat
+
+select cast(t_tien_nt as varchar) as t_tien_nt,
+cast(t_thue_nt as varchar) as t_thue_nt,
+cast(t_tt_nt as varchar) as t_tt_nt
+from @@table where stt_rec = @@stt_rec
+
+select * from @t
+]]>
+</text>
+</command>
+</query>
+
+<query id="process">
+<command id="approve">
+<text>
+<![CDATA[
+declare @voucherType varchar(32), @tableDetail varchar(33), @tableMaster varchar(33), @partition varchar(6), @strSQL nvarchar(4000), @userID int, @ustatus varchar(32), @status varchar(32), @currentStatus varchar(32), @categoryApprove varchar(32), @role varchar(32), @invalid nvarchar(512), @voucherID char(3), @optionParameter varchar(128), @$updateConflict nvarchar(512), @voucherDate smalldatetime, @unit varchar(32), @$lockedDate nvarchar(512)
+select @partition = convert(char(6), ngay_ct, 112), @voucherDate = ngay_ct, @unit = ma_dvcs from c51$000000 where stt_rec = @@stt_rec
+select @voucherType = '00620', @tableDetail = 'd51$' + @partition, @tableMaster = 'm51$' + @partition, @userID = @@contactID, @optionParameter = ', default, default]]>&DeductibleOption;<![CDATA['
+
+select @strSQL = 'select top 1 @ustatus = u_status, @status = status, @categoryApprove = kieu_duyet, @voucherID = ma_ct from ' + @tableMaster + ' where stt_rec = '@@stt_rec''
+exec sp_executesql @strSQL, N'@ustatus varchar(32) output, @status varchar(32) output, @categoryApprove varchar(32) output, @voucherID varchar(3) output', @ustatus = @ustatus output, @status = @status output, @categoryApprove = @categoryApprove output, @voucherID = @voucherID output
+
+create table #checkexists (val int)
+create table #lockedDate (r int)
+
+exec AI_ERP$APV$GetApprovalRole @voucherType, @userID, @ustatus, @categoryApprove, @role output
+select @currentStatus = @status
+select @status = status2 from gndmquyenct where loai_duyet = @voucherType and ma_quyen = @role and status = @ustatus and kieu_duyet = @categoryApprove
+]]>&PaymentApprovalCheckLockedDate;<![CDATA[
+exec AI_ERP$APV$PostAuthorize @voucherType, '1', @@contactID, @@stt_rec, '@@sysDatabaseName', @@language, default, 1, default, ]]>&NotifyPushFlag;<![CDATA[, ]]>&VoucherApproveLog;<![CDATA[, @@comment
+if @currentStatus]]>&PaymentApprovalKeyStatus;<![CDATA[ and @status = '2' begin
+  ]]>&PaymentApprovalPost;<![CDATA[
+end
+return
+]]>
+</text>
+</command>
+<command id="cancel">
+<text>
+<![CDATA[
+declare @voucherType varchar(32), @tableDetail varchar(33), @tableMaster varchar(33), @partition varchar(6), @strSQL nvarchar(4000), @userID int, @ustatus varchar(32), @status varchar(32), @currentStatus varchar(32), @categoryApprove varchar(32), @role VARCHAR(32), @invalid nvarchar(512), @voucherID char(3), @optionParameter varchar(128), @voucherDate smalldatetime, @unit varchar(32), @$lockedDate nvarchar(512)
+select @partition = convert(char(6), ngay_ct, 112), @voucherDate = ngay_ct, @unit = ma_dvcs from c51$000000 where stt_rec = @@stt_rec
+select @voucherType = '00620', @tableDetail = 'd51$' + @partition, @tableMaster = 'm51$' + @partition, @userID = @@contactID, @optionParameter = ', default, default]]>&DeductibleOption;<![CDATA['
+
+select @strSQL = 'select top 1 @ustatus = u_status, @status = status, @categoryApprove = kieu_duyet, @voucherID = ma_ct from ' + @tableMaster + ' where stt_rec = '@@stt_rec''
+exec sp_executesql @strSQL, N'@ustatus varchar(32) output, @status varchar(32) output, @categoryApprove varchar(32) output, @voucherID varchar(3) output', @ustatus = @ustatus output, @status = @status output, @categoryApprove = @categoryApprove output, @voucherID = @voucherID output
+
+create table #checkexists (val int)
+create table #lockedDate (r int)
+
+exec AI_ERP$APV$GetApprovalRole @voucherType, @userID, @ustatus, @categoryApprove, @role output
+select @currentStatus = @status
+select @status = status0 from gndmquyenct where loai_duyet = @voucherType and ma_quyen = @role and status = @ustatus and kieu_duyet = @categoryApprove
+]]>&PaymentApprovalCheckLockedDate;<![CDATA[
+exec AI_ERP$APV$PostAuthorize @voucherType, '2', @@contactID, @@stt_rec, '@@sysDatabaseName', @@language, default, 1, default, ]]>&NotifyPushFlag;<![CDATA[, ]]>&VoucherApproveLog;<![CDATA[, @@comment
+if @currentStatus]]>&PaymentApprovalKeyStatus;<![CDATA[ and @status = '2' begin
+  ]]>&PaymentApprovalPost;<![CDATA[
+end
+return
+]]>
+</text>
+</command>
+</query>
+
+<body>
+<header>
+<text>
+<![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#003399;">{!h_alink}</td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}" style="color:#003399;" target="_blank">{!h_approve}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#003399;"></td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}&n=1" style="color:#003399;" target="_blank">{!h_n_approve}</a></td></tr>
+</table>
+<br />
+<table class="ts" border="1" cellspacing="1" cellpadding="1"><tr class="h"><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tk}</td><td style="width:300px;]]>&HeaderColor;<![CDATA[">{!h_ten_tk}</td><td style="width:300px;]]>&HeaderColor;<![CDATA[">{!h_dien_giai}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tien}</td></tr>
+]]>
+</text>
+</header>
+
+<detail>
+<text>
+<![CDATA[
+<tr class="h"><td class="{!s0}">{!tk}</td><td class="{!s1}">{!ten_tk}</td><td class="{!s1}">{!dien_giai}</td><td class="{!s3}">{!tien}</td></tr>
+]]>
+</text>
+</detail>
+
+<footer>
+<text>
+<![CDATA[
+<tr class="h"><td colspan="3" style="text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td colspan="3" style="text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td colspan="3" style="text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_in_words}</td><td class="r9">{!in_words}</td></tr></table>
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div>
+<br />
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#FF3300;">{!h_clink}</td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}" style="color:#FF3300;" target="_blank">{!h_cancel}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#FF3300;"></td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}&n=1" style="color:#FF3300;" target="_blank">{!h_n_cancel}</a></td></tr>
+</table>
+</body></html>
+]]>
+</text>
+</footer>
+</body>
+<body2>
+<header>
+<text>
+<![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#003399;">{!h_alink}</td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}" style="color:#003399;" target="_blank">{!h_approve}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#003399;"></td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}&n=1" style="color:#003399;" target="_blank">{!h_n_approve}</a></td></tr>
+</table>
+<br />
+<table class="ts" border="1" cellspacing="1" cellpadding="1">
+<tr class="h"><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tk}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_ma_kh_ct}</td><td style="width:300px;]]>&HeaderColor;<![CDATA[">{!h_ten_kh_ct}</td><td style="width:300px;]]>&HeaderColor;<![CDATA[">{!h_dien_giai}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tien}</td></tr>
+]]>
+</text>
+</header>
+
+<detail>
+<text>
+<![CDATA[
+<tr class="h"><td class="{!s0}">{!tk}</td><td class="{!s0}">{!ma_kh}</td><td class="{!s1}">{!ten_kh}</td><td class="{!s1}">{!dien_giai}</td><td class="{!s3}">{!tien}</td></tr>
+]]>
+</text>
+</detail>
+
+<footer>
+<text>
+<![CDATA[
+<tr class="h"><td colspan="4" style="text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td colspan="4" style="text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td colspan="4" style="text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_in_words}</td><td class="r9">{!in_words}</td></tr></table>
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div>
+<br />
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#FF3300;">{!h_clink}</td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}" style="color:#FF3300;" target="_blank">{!h_cancel}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#FF3300;"></td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}&n=1" style="color:#FF3300;" target="_blank">{!h_n_cancel}</a></td></tr>
+</table>
+</body></html>
+]]>
+</text>
+</footer>
+</body2>
+<body3>
+<header>
+<text>
+<![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#003399;">{!h_alink}</td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}" style="color:#003399;" target="_blank">{!h_approve}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#003399;"></td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}&n=1" style="color:#003399;" target="_blank">{!h_n_approve}</a></td></tr>
+</table>
+<br />
+<table class="ts" border="1" cellspacing="1" cellpadding="1"><tr class="h"><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_so_hd}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_ngay_hd}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tk}</td><td style="width:300px;]]>&HeaderColor;<![CDATA[">{!h_dien_giai}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tien_hd_nt}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_ma_nt_i}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tien}</td></tr>
+]]>
+</text>
+</header>
+
+<detail>
+<text>
+<![CDATA[
+<tr class="h"><td class="{!s0}">{!so_hd}</td><td class="{!s0}" style="text-align: center;">{!ngay_hd}</td><td class="{!s0}">{!tk}</td><td class="{!s1}">{!dien_giai}</td><td class="{!s3}">{!tien_hd_nt}</td><td class="{!s0}">{!ma_nt_i}</td><td class="{!s3}">{!tien}</td></tr>
+]]>
+</text>
+</detail>
+
+<footer>
+<text>
+<![CDATA[
+<tr class="h"><td colspan="6" style="text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td colspan="6" style="text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td colspan="6" style="text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_in_words}</td><td class="r9">{!in_words}</td></tr></table>
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div>
+<br />
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#FF3300;">{!h_clink}</td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}" style="color:#FF3300;" target="_blank">{!h_cancel}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#FF3300;"></td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}&n=1" style="color:#FF3300;" target="_blank">{!h_n_cancel}</a></td></tr>
+</table>
+</body></html>
+]]>
+</text>
+</footer>
+</body3>
+</action>
+
+<action id="CPApproval" table="m56$000000" v="Giấy báo nợ chờ duyệt" e="Bank debit advice approval waiting for approval">
+<notification v="Tình trạng duyệt giấy báo nợ" e="Bank debit advice approval workflow process"/>
+<fields>
+<field name="h_so_ct">
+<header v="Số chứng từ" e="Number"/>
+</field>
+<field name="h_ngay_ct">
+<header v="Ngày" e="Date"/>
+</field>
+<field name="h_ma_kh">
+<header v="Khách hàng" e="Customer"/>
+</field>
+<field name="h_ma_kh_ct">
+<header v="Mã khách" e="Customer ID"/>
+</field>
+<field name="h_ten_kh_ct">
+<header v="Tên khách hàng" e="Customer Name"/>
+</field>
+<field name="h_ly_do">
+<header v="Lý do thanh toán" e="Memo"/>
+</field>
+<field name="h_alink">
+<header v="Đường dẫn duyệt" e="Link for approval"/>
+</field>
+<field name="h_clink">
+<header v="Đường dẫn hủy" e="Link for cancellation"/>
+</field>
+<field name="h_tk">
+<header v="Tk nợ" e="Debit Account"/>
+</field>
+<field name="h_ten_tk">
+<header v="Tên tài khoản" e="Account Description"/>
+</field>
+<field name="h_so_hd">
+<header v="Số hóa đơn" e="Invoice No."/>
+</field>
+<field name="h_ngay_hd">
+<header v="Ngày hóa đơn" e="Invoice Date"/>
+</field>
+<field name="h_tien_hd_nt">
+<header v="Tiền trên hóa đơn" e="Invoice Amount"/>
+</field>
+<field name="h_ma_nt_i">
+<header v="Ngoại tệ" e="Currency"/>
+</field>
+<field name="h_approve">
+<header v="Duyệt giấy báo nợ" e="Approve"/>
+</field>
+<field name="h_cancel">
+<header v="Hủy giấy báo nợ" e="Cancel"/>
+</field>
+<field name="h_n_approve">
+<header v="Trong trường hợp cần nhập lý do trước khi duyệt nhấn vào đây" e="In case of need to input a reason for the approval, click here"/>
+</field>
+<field name="h_n_cancel">
+<header v="Trong trường hợp cần nhập lý do trước khi hủy nhấn vào đây" e="In case of need to input a reason for the approval, click here"/>
+</field>
+<field name="h_dien_giai">
+<header v="Diễn giải" e="Description"/>
+</field>
+<field name="h_tien">
+<header v="Tiền" e="Amount"/>
+</field>
+<field name="h_t_tien">
+<header v="Tiền" e="Amount"/>
+</field>
+<field name="h_t_thue">
+<header v="Thuế" e="Tax Amount"/>
+</field>
+<field name="h_t_tt">
+<header v="Tổng thanh toán" e="Total"/>
+</field>
+<field name="h_in_words">
+<header v="Bằng chữ" e="In Words"/>
+</field>
+</fields>
+
+<messages>
+<state id="complete">
+<label v="Chương trình đã thực hiện xong." e="The process completed successfully."/>
+</state>
+<state id="invalid">
+<label v="Giấy báo nợ này đã được duyệt, hủy hoặc thay đổi thông tin." e="This bank debit advice has been approved, canceled or changed by another user."/>
+</state>
+</messages>
+
+<query id="checking">
+<text>
+<![CDATA[
+declare @invalid nvarchar(1024), @xtype int, @receiveCode varchar(32), @cancelCode varchar(32), @voucherDate smalldatetime, @unit varchar(32), @$lockedDate nvarchar(512)
+select @invalid = case when @@language = 'V' then N'Giấy báo nợ này đã được duyệt, hủy hoặc thay đổi thông tin.' else N'This bank debit advice request has been approved, canceled or changed by another user.' end
+]]>&NotifyCheckApproveCancel;<![CDATA[
+
+declare @voucherType varchar(32), @tableDetail varchar(33), @tableMaster varchar(33), @partition varchar(6), @strSQL nvarchar(4000), @userID int, @ustatus varchar(32), @status varchar(32), @currentStatus varchar(32), @categoryApprove varchar(32), @role varchar(32), @voucherID char(3), @optionParameter varchar(128), @$updateConflict nvarchar(512)
+select @partition = convert(char(6), ngay_ct, 112), @voucherDate = ngay_ct, @unit = ma_dvcs from c56$000000 where stt_rec = @@stt_rec
+select @voucherType = '00610', @tableDetail = 'd56$' + @partition, @tableMaster = 'm56$' + @partition, @userID = @@userID, @optionParameter = ', null, 1]]>&DeductibleOption;<![CDATA['
+
+select @strSQL = 'select top 1 @ustatus = u_status, @status = status, @categoryApprove = kieu_duyet, @voucherID = ma_ct from ' + @tableMaster + ' where stt_rec = '@@stt_rec''
+exec sp_executesql @strSQL, N'@ustatus varchar(32) output, @status varchar(32) output, @categoryApprove varchar(32) output, @voucherID varchar(3) output', @ustatus = @ustatus output, @status = @status output, @categoryApprove = @categoryApprove output, @voucherID = @voucherID output
+]]>&PaymentApprovalEBankingCheckingDeclare;<![CDATA[
+create table #checkexists (val int)
+create table #lockedDate (r int)
+
+if @@type = '0' begin
+  if (@status = '2') begin
+    select @currentStatus = '1', @$updateConflict = case when @@language = 'v' then N'Đã có chứng từ thanh toán cho hóa đơn này, không thể bỏ duyệt được.' else N'Can not undo this voucher, It was received or paid.' end
+    ]]>&PaymentApprovalEBankingCheckingValid;&PaymentApprovalCheckLockedDate;&PaymentApprovalCheckApproveCancel;&PaymentApprovalBeforeUpdateCurrentCustomerBalance;&PaymentApprovalDelete;&PaymentApprovalRevert;<![CDATA[
+  end
+  exec AI_ERP$APV$UnPostAuthorize @voucherType, @@userID, @@stt_rec, '@@sysDatabaseName', @@language, ]]>&NotifyPushFlag;<![CDATA[, @@comment
+  ]]>&PaymentApprovalEBankingUpdateWhenUnPostAuthorize;<![CDATA[
+  return
+end
+
+if @@type = '1' begin
+  exec AI_ERP$APV$GetApprovalRole @voucherType, @@userID, @ustatus, @categoryApprove, @role output
+  select @currentStatus = @status
+  select @status = status2 from gndmquyenct where loai_duyet = @voucherType and ma_quyen = @role and status = @ustatus and kieu_duyet = @categoryApprove
+  ]]>&PaymentApprovalCheckLockedDate;<![CDATA[
+  exec AI_ERP$APV$PostAuthorize @voucherType, '1', @@userID, @@stt_rec, '@@sysDatabaseName', @@language, default, default, default, ]]>&NotifyPushFlag;<![CDATA[, ]]>&VoucherApproveLog;<![CDATA[, @@comment
+   if @currentStatus]]>&PaymentApprovalKeyStatus;<![CDATA[ and @status = '2' begin
+    ]]>&PaymentApprovalPost;<![CDATA[
+    ]]>&PaymentApprovalEBankingUpdateWhenPostAuthorize;<![CDATA[
+  end
+  return
+end
+
+if @@type = '2' begin
+  exec AI_ERP$APV$GetApprovalRole @voucherType, @@userID, @ustatus, @categoryApprove, @role output
+  select @currentStatus = @status
+  select @status = status0 from gndmquyenct where loai_duyet = @voucherType and ma_quyen = @role and status = @ustatus and kieu_duyet = @categoryApprove
+  ]]>&PaymentApprovalCheckLockedDate;<![CDATA[
+  exec AI_ERP$APV$PostAuthorize @voucherType, '2', @@userID, @@stt_rec, '@@sysDatabaseName', @@language, default, default, default, ]]>&NotifyPushFlag;<![CDATA[, ]]>&VoucherApproveLog;<![CDATA[, @@comment
+  if @currentStatus]]>&PaymentApprovalKeyStatus;<![CDATA[ and @status = '2' begin
+    ]]>&PaymentApprovalPost;<![CDATA[
+  end
+  return
+end
+]]>
+</text>
+</query>
+
+<query id="report">
+<command id="master">
+<text>
+<![CDATA[
+declare @id int, @l varchar(8)
+select @id = @@contactID
+select @l = d_language from @@sysDatabaseName..userinfo2 where id = @id
+
+create table #msg (smsg varchar(10), msg0 nvarchar(4000), msg1 nvarchar(4000), msg2 nvarchar(4000), msg3 nvarchar(4000), msg4 nvarchar(4000), msg5 nvarchar(4000), msg6 nvarchar(4000), msg7 nvarchar(4000), msg8 nvarchar(4000), msg9 nvarchar(4000))
+insert into #msg exec AI_ERP$APV$GetApprovalDetail @@stt_rec, '00610', @l, 1, 1
+
+select case when loai_ct = '3' then 'body2' when loai_ct = '1' then 'body3' else 'body' end as bodyID, ltrim(so_ct) as so_ct, ma_nt, convert(varchar(12), a.ngay_ct, 103) as ngay_ct,
+    convert(varchar(32), a.datetime2, 121) as datetime2, case @l when 'v' then d.ten_kh else d.ten_kh2 end as ten_kh,
+    dien_giai, b.dien_thoai, b.e_mail, b.d_language, upper(ma_nhan) as ma_nhan, upper(ma_huy) as ma_huy, m.smsg, m.msg0, m.msg1, m.msg2, m.msg3, m.msg4, m.msg5, m.msg6, m.msg7, m.msg8, m.msg9
+  from @@table a, @@sysDatabaseName..userinfo2 b, dmxn c, dmkh d, #msg m
+  where a.stt_rec = @@stt_rec and b.id = @id and a.stt_rec = c.stt_rec and a.ma_kh = d.ma_kh and b.id = c.user_id
+]]>
+</text>
+</command>
+<command id="detail">
+<text>
+<![CDATA[
+declare @amountFormat varchar(32), @strSQL nvarchar(4000), @typeVC varchar(32), @tableMaster varchar(33), @field varchar(512), @join varchar(512), @currency varchar(32)
+declare @t table(field varchar(32), format varchar(128))
+select @currency = val from options where name = 'm_ma_nt0'
+select @tableMaster = 'm56$' + convert(char(6), ngay_ct, 112) from c56$000000 where stt_rec = @@stt_rec
+select @strSQL = 'select top 1 @typeVC = loai_ct from ' + @tableMaster + ' where stt_rec = '@@stt_rec''
+exec sp_executesql @strSQL, N'@typeVC varchar(32) output', @typeVC = @typeVC output
+
+if exists(select 1 from options where name = 'm_ma_nt0' and rtrim(val) = @@ma_nt) begin
+  select @amountFormat = rtrim(val) from options where name = 'm_ip_tien'
+end else begin
+  select @amountFormat = rtrim(val) from options where name = 'm_ip_tien_nt'
+end
+
+insert into @t select 'tien', @amountFormat
+insert into @t select 'tien_hd_nt', @amountFormat
+
+select @join = case
+  when @typeVC = '3' then ' left join dmkh c on a.ma_kh_i = c.ma_kh'
+  when @typeVC = '1' then ' left join cttt30 d on a.stt_rec_tt = d.stt_rec'
+  else ' left join dmtk b on a.tk_no = b.tk'
+end
+
+select @field = case
+  when @typeVC = '3' then ', a.ma_kh_i as ma_kh, ' + case when @@language = 'v' then 'c.ten_kh' else 'c.ten_kh2' end
+  when @typeVC = '1' then ', rtrim(isnull(d.so_ct, '''')) as so_hd, convert(varchar(12), d.ngay_ct, 103) as ngay_hd, case when d.ma_nt = '''' then d.t_tt else d.t_tt_nt end as tien_hd_nt, case when isnull(d.ma_nt, '''') = '''' then ''' + @currency + ''' else d.ma_nt end as ma_nt_i'
+  else ',' + case when @@language = 'v' then 'b.ten_tk' else 'b.ten_tk2' end + ' as ten_tk'
+end
+
+select @strSQL = 'select a.tk_no as tk, a.dien_giai, cast(tien_nt as varchar) as tien' + @field
+select @strSQL = @strSQL + ' from @@table a ' + @join
+select @strSQL = @strSQL + ' where a.stt_rec = '@@stt_rec' order by a.line_nbr'
+exec sp_executesql @strSQL
+select * from @t
+]]>
+</text>
+</command>
+<command id="footer">
+<text>
+<![CDATA[
+declare @amountFormat varchar(32)
+declare @t table(field varchar(32), format varchar(128))
+
+if exists(select 1 from options where name = 'm_ma_nt0' and rtrim(val) = @@ma_nt) select @amountFormat = rtrim(val) from options where name = 'm_ip_tien'
+else select @amountFormat = rtrim(val) from options where name = 'm_ip_tien_nt'
+
+insert into @t select 't_tien_nt', @amountFormat
+insert into @t select 't_thue_nt', @amountFormat
+insert into @t select 't_tt_nt', @amountFormat
+
+select cast(t_tien_nt as varchar) as t_tien_nt,
+cast(t_thue_nt as varchar) as t_thue_nt,
+cast(t_tt_nt as varchar) as t_tt_nt
+from @@table where stt_rec = @@stt_rec
+
+select * from @t
+]]>
+</text>
+</command>
+</query>
+
+<query id="process">
+<command id="approve">
+<text>
+<![CDATA[
+declare @voucherType varchar(32), @tableDetail varchar(33), @tableMaster varchar(33), @partition varchar(6), @strSQL nvarchar(4000), @userID int, @ustatus varchar(32), @status varchar(32), @currentStatus varchar(32), @categoryApprove varchar(32), @role varchar(32), @invalid nvarchar(512), @voucherID char(3), @optionParameter varchar(128), @$updateConflict nvarchar(512), @voucherDate smalldatetime, @unit varchar(32), @$lockedDate nvarchar(512)
+select @partition = convert(char(6), ngay_ct, 112), @voucherDate = ngay_ct, @unit = ma_dvcs from c56$000000 where stt_rec = @@stt_rec
+select @voucherType = '00610', @tableDetail = 'd56$' + @partition, @tableMaster = 'm56$' + @partition, @userID = @@contactID, @optionParameter = ', null, 1]]>&DeductibleOption;<![CDATA['
+
+select @strSQL = 'select top 1 @ustatus = u_status, @status = status, @categoryApprove = kieu_duyet, @voucherID = ma_ct from ' + @tableMaster + ' where stt_rec = '@@stt_rec''
+exec sp_executesql @strSQL, N'@ustatus varchar(32) output, @status varchar(32) output, @categoryApprove varchar(32) output, @voucherID varchar(3) output', @ustatus = @ustatus output, @status = @status output, @categoryApprove = @categoryApprove output, @voucherID = @voucherID output
+
+create table #checkexists (val int)
+create table #lockedDate (r int)
+
+exec AI_ERP$APV$GetApprovalRole @voucherType, @userID, @ustatus, @categoryApprove, @role output
+select @currentStatus = @status
+select @status = status2 from gndmquyenct where loai_duyet = @voucherType and ma_quyen = @role and status = @ustatus and kieu_duyet = @categoryApprove
+]]>&PaymentApprovalCheckLockedDate;<![CDATA[
+exec AI_ERP$APV$PostAuthorize @voucherType, '1', @@contactID, @@stt_rec, '@@sysDatabaseName', @@language, default, 1, default, ]]>&NotifyPushFlag;<![CDATA[, ]]>&VoucherApproveLog;<![CDATA[, @@comment
+if @currentStatus]]>&PaymentApprovalKeyStatus;<![CDATA[ and @status = '2' begin
+  ]]>&PaymentApprovalPost;<![CDATA[
+end
+return
+]]>
+</text>
+</command>
+<command id="cancel">
+<text>
+<![CDATA[
+declare @voucherType varchar(32), @tableDetail varchar(33), @tableMaster varchar(33), @partition varchar(6), @strSQL nvarchar(4000), @userID int, @ustatus varchar(32), @status varchar(32), @currentStatus varchar(32), @categoryApprove varchar(32), @role varchar(32), @invalid nvarchar(512), @voucherID char(3), @optionParameter varchar(128), @voucherDate smalldatetime, @unit varchar(32), @$lockedDate nvarchar(512)
+select @partition = convert(char(6), ngay_ct, 112), @voucherDate = ngay_ct, @unit = ma_dvcs from c56$000000 where stt_rec = @@stt_rec
+select @voucherType = '00610', @tableDetail = 'd56$' + @partition, @tableMaster = 'm56$' + @partition, @userID = @@contactID, @optionParameter = ', null, 1]]>&DeductibleOption;<![CDATA['
+
+select @strSQL = 'select top 1 @ustatus = u_status, @status = status, @categoryApprove = kieu_duyet, @voucherID = ma_ct from ' + @tableMaster + ' where stt_rec = '@@stt_rec''
+exec sp_executesql @strSQL, N'@ustatus varchar(32) output, @status varchar(32) output, @categoryApprove varchar(32) output, @voucherID varchar(3) output', @ustatus = @ustatus output, @status = @status output, @categoryApprove = @categoryApprove output, @voucherID = @voucherID output
+
+create table #checkexists (val int)
+create table #lockedDate (r int)
+
+exec AI_ERP$APV$GetApprovalRole @voucherType, @userID, @ustatus, @categoryApprove, @role output
+select @currentStatus = @status
+select @status = status0 from gndmquyenct where loai_duyet = @voucherType and ma_quyen = @role and status = @ustatus and kieu_duyet = @categoryApprove
+]]>&PaymentApprovalCheckLockedDate;<![CDATA[
+exec AI_ERP$APV$PostAuthorize @voucherType, '2', @@contactID, @@stt_rec, '@@sysDatabaseName', @@language, default, 1, default, ]]>&NotifyPushFlag;<![CDATA[, ]]>&VoucherApproveLog;<![CDATA[, @@comment
+if @currentStatus]]>&PaymentApprovalKeyStatus;<![CDATA[ and @status = '2' begin
+  ]]>&PaymentApprovalPost;<![CDATA[
+end
+return
+]]>
+</text>
+</command>
+</query>
+
+<body>
+<header>
+<text>
+<![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#003399;">{!h_alink}</td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}" style="color:#003399;" target="_blank">{!h_approve}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#003399;"></td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}&n=1" style="color:#003399;" target="_blank">{!h_n_approve}</a></td></tr>
+</table>
+<br />
+<table class="ts" border="1" cellspacing="1" cellpadding="1"><tr class="h"><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tk}</td><td style="width:300px;]]>&HeaderColor;<![CDATA[">{!h_ten_tk}</td><td style="width:300px;]]>&HeaderColor;<![CDATA[">{!h_dien_giai}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tien}</td></tr>
+]]>
+</text>
+</header>
+
+<detail>
+<text>
+<![CDATA[
+<tr class="h"><td class="{!s0}">{!tk}</td><td class="{!s1}">{!ten_tk}</td><td class="{!s1}">{!dien_giai}</td><td class="{!s3}">{!tien}</td></tr>
+]]>
+</text>
+</detail>
+
+<footer>
+<text>
+<![CDATA[
+<tr class="h"><td colspan="3" style="text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td colspan="3" style="text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td colspan="3" style="text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_in_words}</td><td class="r9">{!in_words}</td></tr></table>
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div>
+<br />
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#FF3300;">{!h_clink}</td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}" style="color:#FF3300;" target="_blank">{!h_cancel}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#FF3300;"></td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}&n=1" style="color:#FF3300;" target="_blank">{!h_n_cancel}</a></td></tr>
+</table>
+</body></html>
+]]>
+</text>
+</footer>
+</body>
+
+<body2>
+<header>
+<text>
+<![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#003399;">{!h_alink}</td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}" style="color:#003399;" target="_blank">{!h_approve}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#003399;"></td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}&n=1" style="color:#003399;" target="_blank">{!h_n_approve}</a></td></tr>
+</table>
+<br />
+<table class="ts" border="1" cellspacing="1" cellpadding="1">
+<tr class="h"><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tk}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_ma_kh_ct}</td><td style="width:300px;]]>&HeaderColor;<![CDATA[">{!h_ten_kh_ct}</td><td style="width:300px;]]>&HeaderColor;<![CDATA[">{!h_dien_giai}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tien}</td></tr>
+]]>
+</text>
+</header>
+
+<detail>
+<text>
+<![CDATA[
+<tr class="h"><td class="{!s0}">{!tk}</td><td class="{!s0}">{!ma_kh}</td><td class="{!s1}">{!ten_kh}</td><td class="{!s1}">{!dien_giai}</td><td class="{!s3}">{!tien}</td></tr>
+]]>
+</text>
+</detail>
+
+<footer>
+<text>
+<![CDATA[
+<tr class="h"><td colspan="4" style="text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td colspan="4" style="text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td colspan="4" style="text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_in_words}</td><td class="r9">{!in_words}</td></tr></table>
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div>
+<br />
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#FF3300;">{!h_clink}</td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}" style="color:#FF3300;" target="_blank">{!h_cancel}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#FF3300;"></td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}&n=1" style="color:#FF3300;" target="_blank">{!h_n_cancel}</a></td></tr>
+</table>
+</body></html>
+]]>
+</text>
+</footer>
+</body2>
+
+<body3>
+<header>
+<text>
+<![CDATA[
+<html>]]>&CssClass;<![CDATA[
+<body>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_so_ct}</td><td class="r4">{!so_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ngay_ct}</td><td class="r4">{!ngay_ct}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ma_kh}</td><td class="r4">{!ten_kh}</td></tr>
+<tr class="h"><td style="width:120px;text-align:left;">{!h_ly_do}</td><td class="r9">{!dien_giai}</td></tr>
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#003399;">{!h_alink}</td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}" style="color:#003399;" target="_blank">{!h_approve}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#003399;"></td><td style="color:#003399;white-space:nowrap;text-align:left;"><a href="{!alink}&n=1" style="color:#003399;" target="_blank">{!h_n_approve}</a></td></tr>
+</table>
+<br />
+<table class="ts" border="1" cellspacing="1" cellpadding="1"><tr class="h"><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_so_hd}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_ngay_hd}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tk}</td><td style="width:300px;]]>&HeaderColor;<![CDATA[">{!h_dien_giai}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tien_hd_nt}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_ma_nt_i}</td><td style="width:100px;]]>&HeaderColor;<![CDATA[">{!h_tien}</td></tr>
+]]>
+</text>
+</header>
+
+<detail>
+<text>
+<![CDATA[
+<tr class="h"><td class="{!s0}">{!so_hd}</td><td class="{!s0}" style="text-align: center;">{!ngay_hd}</td><td class="{!s0}">{!tk}</td><td class="{!s1}">{!dien_giai}</td><td class="{!s3}">{!tien_hd_nt}</td><td class="{!s0}">{!ma_nt_i}</td><td class="{!s3}">{!tien}</td></tr>
+]]>
+</text>
+</detail>
+
+<footer>
+<text>
+<![CDATA[
+<tr class="h"><td colspan="6" style="text-align: right;">{!h_t_tien}</td><td class="r3">{!t_tien_nt}</td></tr>
+<tr class="h"><td colspan="6" style="text-align: right;">{!h_t_thue}</td><td class="r3">{!t_thue_nt}</td></tr>
+<tr class="h"><td colspan="6" style="text-align: right;">{!h_t_tt}</td><td class="r3">{!t_tt_nt}</td></tr>
+</table>
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h"><td style="width:120px;text-align:left;">{!h_in_words}</td><td class="r9">{!in_words}</td></tr></table>
+<div style="padding-top:4px;display:{!smsg};" class="info r9">{!msg0}{!msg1}{!msg2}{!msg3}{!msg4}{!msg5}{!msg6}{!msg7}{!msg8}{!msg9}</div>
+<br />
+<table class="ts" border="0" cellpadding="1" cellspacing="1">
+<tr class="h" style="display:{!slink}"><td style="width:120px;text-align:left;color:#FF3300;">{!h_clink}</td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}" style="color:#FF3300;" target="_blank">{!h_cancel}</a></td></tr>
+<tr class="h" style="display:{!nlink}"><td style="width:120px;text-align:left;color:#FF3300;"></td><td style="color:#ff3300;white-space:nowrap;text-align:left;"><a href="{!clink}&n=1" style="color:#FF3300;" target="_blank">{!h_n_cancel}</a></td></tr>
+</table>
+</body></html>
+]]>
+</text>
+</footer>
+</body3>
+
+</action>

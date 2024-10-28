@@ -1,0 +1,61 @@
+﻿<!ENTITY % Conditional.BIMode.AccountAssignment SYSTEM "..\Include\BIMode.txt">
+
+<![%Conditional.BIMode.AccountAssignment;[
+  <!ENTITY BI.AccountAssignment.Fields.Detail SYSTEM "..\Include\XML\BI.AccountAssignment.Fields.Detail.txt">
+  <!ENTITY BI.AccountAssignment.Views.Detail SYSTEM "..\Include\XML\BI.AccountAssignment.Views.Detail.xml">
+
+  <!ENTITY BI.AccountAssignment.Button SYSTEM "..\Include\XML\BI.AccountAssignment.Button.txt">
+  <!ENTITY BI.AccountAssignment.Css SYSTEM "..\Include\XML\BI.AccountAssignment.Css.txt">
+  <!ENTITY BI.AccountAssignment.Script SYSTEM "..\Include\Javascript\BI.AccountAssignment.Script.txt">
+
+  <!ENTITY BI.AccountAssignment.Post "exec dbo.AI_ERP$BI$AccountAssignment$Post '&BI.AccountAssignment.DetailTable;$$partition$current', 'biaa00$$partition$current', @stt_rec, @@id, @@userID, @@admin, '@@sysDatabaseName'">
+  <!ENTITY BI.AccountAssignment.APVEdit "
+select top 0 a.stt_rec, a.stt_rec0, a.ngay_ct, a.ma_vt, a.ma_loai, a.so_luong, a.ty_le, a.tk, a.ma_vv, a.ma_sp, a.ma_bp, a.so_lsx, a.ma_hd, a.ma_ku, a.ma_phi, a.line_nbr into #editaa from biaa00$000000 a right join (select top 0 null a) b on 1 = 0
+insert into #editaa exec dbo.AI_ERP$BI$AccountAssignment$Post '#editdetail', 'biaa00$$partition$current', @stt_rec, @@id, @@userID, @@admin, '@@sysDatabaseName', 2
+">
+
+  <!ENTITY BI.AccountAssignment.Grid.Showing "select @message = @message + 'showGrid$GridVoucherDetail$(this);'">
+
+  <!ENTITY BI.AccountAssignment.Grid.Loading "
+declare @h0 varchar(1024), @h1 varchar(1024), @h2 varchar(1024)
+select @h1 = hide from @@sysDatabaseName..voucherinfo where ma_ct = @@id
+select @h2 = hide from @@sysDatabaseName..bivoucherinfo where ma_ct = @@id and [user_id] = @@userID
+select @h0 = dbo.AI_ERP$MergeList(@h1, @h2, ',')
+select @message = @message + 'this._$hide$AA = ''' + rtrim(isnull(@h0, '')) + ''';this._$hide$Voucher = ''' + rtrim(isnull(@h2, '')) + ''';'
+">
+
+  <!ENTITY BI.AccountAssignment.Render.Add "g.add_onRender(onGrid$GridVoucherDetail$Render);">
+  <!ENTITY BI.AccountAssignment.Render.Remove "try {g.remove_onRender(onGrid$GridVoucherDetail$Render);} catch (ex) {}">
+  <!ENTITY BI.AccountAssignment.ExecuteCommand "
+case 'AccountAssignment':
+  var r = g._activeRow, c0 = g._getColumnOrder('loai_dt'), c1 = g._getColumnOrder('ct_dt_pb'), c2 = g._getColumnOrder('ma_vt'), c3 = g._getColumnOrder('ten_vt&#37;l'), c4 = g._getColumnOrder('dvt'), c5 = g._getColumnOrder('ten_loai&#37;l'), c6 = g._getColumnOrder('kieu_pb');
+  if (!r || r &lt; 0) return;
+  var v0 = g._getItemValue(r, c0);
+  if (&BI.AccountAssignment.Views.Type; == 1 &amp;&amp; v0 == '') return;
+  var v1 = g._getItemValue(r, c1), v2 = g._getItemValue(r, c2), v3 = g._getItemValue(r, c3), v4 = g._getItemValue(r, c4), v5 = g._getItemValue(r, c5), v6 = (c6 &gt; 0 ? g._getItemValue(r, c6) : null), ml = g._fields[c1 - 1].MaxLength, chk = g._getItem(r, c3);
+  if (v2 == '' || (chk.Checked &amp;&amp; !chk.checked)) {
+    g._errorObject = g._getItem(r, c2);
+    return $message.show(String.format($df.getResources(f._language, &quot;Message.RequiredField&quot;), g._fields[c2 - 1].Label), String.format('$find(\'{0}\').focus(\'&BI.AccountAssignment.DetailTable;\');$find(\'{1}\')._errorObject.focus()', f.get_id(), g.get_id()));
+  }
+  g._detailInfo = {data: v1, maxLength: ml, handle: on$GridVoucherDetail$AccountAssignment$Retrieve, ma_vt: v2, ten_vt: v3, dvt: v4, loai_dt: v0, ten_loai_dt: v5, kieu_pb: v6, h: f.grid._$hide$AA};
+  g.showForm('BIAccountAssignmentForm');
+  break;
+">
+
+  <!ENTITY BI.AccountAssignment.Grid.Join "left join bidmlcddt d on a.loai_dt = d.ma_loai">
+]]>
+
+<!ENTITY BI.AccountAssignment.Views.Type "0">
+<!ENTITY BI.AccountAssignment.Fields.Detail "">
+<!ENTITY BI.AccountAssignment.Views.Detail "">
+<!ENTITY BI.AccountAssignment.Button "">
+<!ENTITY BI.AccountAssignment.Css "">
+<!ENTITY BI.AccountAssignment.Script "">
+<!ENTITY BI.AccountAssignment.Post "">
+<!ENTITY BI.AccountAssignment.APVEdit "">
+<!ENTITY BI.AccountAssignment.Grid.Showing "">
+<!ENTITY BI.AccountAssignment.Grid.Loading "">
+<!ENTITY BI.AccountAssignment.Render.Add "">
+<!ENTITY BI.AccountAssignment.Render.Remove "">
+<!ENTITY BI.AccountAssignment.ExecuteCommand "">
+<!ENTITY BI.AccountAssignment.Grid.Join "">

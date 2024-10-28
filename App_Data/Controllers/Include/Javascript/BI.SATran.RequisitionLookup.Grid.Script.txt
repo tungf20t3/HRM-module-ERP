@@ -1,0 +1,237 @@
+﻿<![CDATA[
+function set$]]>&Identity;<![CDATA[GridVoucherDetail$AllocationQuantity$(f, g, quantity, level, t) {
+  var plant = f.getItemValue('ma_vung'), uom = f.getItemValue('dvt'), r$Active = g._activeRow, k0 = (g._$a ? '' : ' && ([so_luong0] == 0)'), k1, k2, q, exp;
+  quantity = (t == 1 ? (quantity - g._getItemValue(1, g._getColumnOrder('sl_dh'))) : quantity);
+
+  if (t == 1) {
+    for (var i = 0; i < g._rowCount; i++) {
+      var o = g._getItem((i + 1), g._getColumnOrder('so_luong0'));
+      o.row = (i+1);
+      g.setItemGridBehavior(o, [['so_luong0', 0, null, null], ['chon', 0, null, null]]);
+    }
+  }
+
+  if (!level) {
+    if (query$Select(g, 'count$1 $groupBy ma_nguon $where ([ma_nguon] == "P02")').length > 0) level = 1;
+    else {
+      if (query$Select(g, 'count$1 $groupBy ma_nguon $where ([ma_nguon] == "P01")').length > 0) level = 2;
+      else level = 3;
+    }
+  }
+
+  switch (level) {
+    case 1:
+      q = '([ma_nguon] == "P02") && ([sl_han_ngach] > 0) && ([kieu_han_ngach] == "1") && ([so_luong1] <= [sl_han_ngach])' + k0;
+      k1 = 'ma_kh, stt_rec_ng';
+      k2 = k1 + ', stt_han_ngach, sl_han_ngach, plant_order, stt_ngm, ncc_tx_sl, ngay_ct1, gia_nt';
+      exp = [[2,1], [3,-1], [4,1], [5,1], [6,-1], [7,-1], [8,1]];
+      
+      if (t == 1 && query$Select(g, 'count$1 $groupBy ma_nguon $where (([ma_nguon] == "P02") && ([sl_han_ngach] > 0))').length <= 0) {
+        $message.show((f._language == 'v' ? 'Hạn ngạch còn lại đã hết, không phân bổ được.': 'Cannot allocate due to out of quota.'), String.format('$find(\'{0}\')._focusWhenTabChanged();', g.get_id()));
+        return;
+      }
+      break;
+    case 2:
+      q = '([ma_nguon] == "P01") && ([so_luong1] <= ' + quantity + ')' + k0;
+      k1 = 'cd_ncc_sl, ma_kh, stt_rec_gia';
+      k2 = k1 + ', plant_order, stt_ngm, ncc_tx_sl, ngay_ct1, gia_nt';
+      exp = [[0,-1], [3,1], [4,1], [5,-1], [6,-1], [7,1]];
+      break;
+    case 3:
+      q = '([ma_nguon] != "P02") && ([ma_nguon] != "P01") && ([so_luong1] <= ' + quantity + ')' + k0;
+      k1 = 'ma_kh, stt_rec_gia';
+      k2 = k1 + ', plant_order, stt_ngm, ncc_tx_sl, ngay_ct1, gia_nt';
+      exp = [[2,1], [3,1], [4,-1], [5,-1], [6,1]];
+      break;
+    default:
+      break;
+  }
+  quantity = array$AllocationQuantity$(g, quantity, level, k1, k2, q, exp, 1);
+  if (level == 1 && quantity > 0) {
+    q = '([ma_nguon] == "P02") && ([sl_han_ngach] > 0) && ([kieu_han_ngach] == "2") && ([so_luong1] <= [sl_han_ngach])' + k0;
+    k1 = 'ma_kh, stt_rec_ng';
+    k2 = k1 + ', plant_order, stt_ngm, ncc_tx_sl, ngay_ct1, gia_nt';
+    exp = [[2,1], [3,1], [4,-1], [5,-1], [6,1]];
+    quantity = array$AllocationQuantity$(g, quantity, level, k1, k2, q, exp, 2);
+  }
+  if (t == -1 && level < 3 && quantity > 0) {
+    level++;
+    set$]]>&Identity;<![CDATA[GridVoucherDetail$AllocationQuantity$(f, g, quantity, level, t);
+  }
+  g._activeRow = r$Active;
+  if (g._activeCell) g._activeCell.focus();
+  g.executeAggregate([['t_so_luong', 'so_luong0']]);
+}
+function array$AllocationQuantity$(g, quantity, level, k1, k2, q, exp, t) {
+  var a0 = query$Select(g, 'count$1 $groupBy ' + k1 + ' $where (' + q + ')'), a1 = query$Select(g, 'min$line_nbr $groupBy ' + k2 + ' $where (' + q + ')');
+  var n = a0.length, iRow = k2.replaceAll(" ", "").split(',').length, qa = quantity;
+  var l0 = g._getColumnOrder('so_luong0'), l1 = g._getColumnOrder('so_luong1'), l2 = g._getColumnOrder('so_luong2'), l4 = g._getColumnOrder('sl_han_ngach'), l5 = g._getColumnOrder('tt_han_ngach');
+
+  array$Sort(a1, exp);
+  while (a0.length > 0 && a1.length > 0 && n > 0) {
+    for (var i = 0; i < a1.length; i++) {
+      if (a0.length <= 0 || quantity <= 0) return quantity;
+      var r = a1[i][iRow], c = a1[i][0], s = a1[i][1], q1 = g._getItemValue(r, l1), q2 = g._getItemValue(r, l2), q4 = g._getItemValue(r, l4);
+      var q0 = (level == 1 ? (t == 1 ? quantity : ((quantity * g._getItemValue(r, l5))/100)) : quantity)
+      if (level == 1) {
+        var a2 = query$Select(g, 'sum$so_luong0 $groupBy ma_kh $where (([so_luong0] != 0) && ([ma_kh] == "' + c + '") && ([stt_rec_ng] == "' + s + '"))');
+        q4 = q4 - (a2.length > 0 ? a2[0][1] : 0);
+        q0 = (q0 <= q4 ? q0 : q4);
+      }
+      q0 = (((q0 >= q1 && q0 < q2) || (q2 == 0 && q0 >= q1)) ? q0 : 0);
+      if (q0 != 0) {
+        var o = g._getItem(r, l0);
+        o.row = r;
+        g.setItemGridBehavior(o, [['so_luong0', q0, null, null], ['chon', 1, null, null]]);
+        g._activeRow = o.row;
+        ]]>&BI.SATran.RequisitionLookup.Grid.PriceChanged;<![CDATA[
+        if (t != 2) quantity = quantity - q0;
+        else qa = qa - q0;
+        for (var j = 0; j < a0.length; j++) {if (a0[j][0] == c && a0[j][1] == s) a0.splice(j, 1);}
+      }
+    }
+    n--;
+  }
+  return (t != 2 ? quantity : qa);
+}
+
+function on$GridVoucherDetail$ResponseComplete(sender, e) {
+  var g = e.object, context = e.type.Context, result = e.type.Result, o = e.type.Object, f = g.get_element().parentForm;
+  switch (context) {
+]]>&PriceDetailResponseConditionTypeRef;<![CDATA[
+    default:
+      break;
+  }
+}
+
+
+/* <flatten type="Javascript"> */
+function array$Sort(a, exp) {
+  return array$QuickSort(a, 0, a.length - 1, exp);
+}
+function array$QuickSort(a, l, r, exp) {
+  var index;
+
+  if (a.length > 1) {
+    index = array$Partition(a, l, r, exp);
+    if (l < index - 1) {
+      array$QuickSort(a, l, index - 1, exp);
+    }
+    if (index < r) {
+      array$QuickSort(a, index, r, exp);
+    }
+  }
+  return a;
+}
+function array$Partition(a, l, r, exp) {
+  var b = a[Math.floor((r + l) / 2)], i = l, j = r;
+
+  while (i <= j) {
+    while (array$Compare(a[i], b, exp) < 0) i++;
+    while (array$Compare(a[j], b, exp) > 0) j--;
+    if (i <= j) {
+      array$Swap(a, i, j);
+      i++;
+      j--;
+    }
+  }
+  return i;
+}
+
+
+function array$Compare(a, b, exp) {
+  var l = exp.length, i = 0;
+
+  while (i < l) {
+    var type$Sort = exp[i][1], index$Sort = exp[i][0], v1, v2;
+    if (!a[index$Sort].z) {
+      v1 = a[index$Sort];
+      v2 = b[index$Sort];
+    } else {
+      v1 = a[index$Sort].z.getTime();
+      v2 = b[index$Sort].z.getTime();
+    }
+    if (v1 != v2) return (type$Sort * (v1 > v2 ? 1 : -1));
+    else {
+      if (i == (l - 1)) return 0;
+      else i++;
+    }
+  }
+}
+function array$Swap(a, i, j) {
+    var t = a[i];
+    a[i] = a[j];
+    a[j] = t;
+}
+
+
+function on$GridVoucherDetail$PriceDetailRetrieve(g, result) {
+  var l1 = g._getColumnOrder('ct_gia_pv'), l2 = g._getColumnOrder('ct_gia_dk'), l3 = g._getColumnOrder('pp_thay_doi');
+  var l4 = g._getColumnOrder('gia_chuan_nt'), l5 = g._getColumnOrder('gia_chuan_yn'), l6 = g._getColumnOrder('gia_nt'), l7 = g._getColumnOrder('gia_yn'), l8 = g._getColumnOrder('so_tham_chieu');
+  var k = priceDetail$InitRetrieve(g, result, [l1, l2, l3, l4, l5, l6, l6, l7, l8]);
+  on$GridVoucherDetail$CalcPrice(g, g._activeRow, k[0], null, k[2]);
+  g._focusWhenTabChanged();
+}
+function on$GridVoucherDetail$CalcPrice(g, r, jdata, jref, type, runIndex, liveField, runTimes) {
+  var l1 = g._getColumnOrder('gia_chuan_nt'), l2 = g._getColumnOrder('gia_nt');
+  var q = g._getItemValue(r, g._getColumnOrder('so_luong0')), p = g._getItemValue(r, l1);
+  var arr = priceDetail$InitPrice(g, r, q, jdata, jref, type, runIndex, runTimes);
+
+  if (arr != null) {
+    var kq = priceDetail$CalcPrice(g, r, q, p, arr), a = kq[1];
+    g.setItemGridBehavior({row: r}, [
+          ['gia_nt', [a[5], true], null, null],
+          ['pp_gia_cl_nt', [a[0], true], null, null],
+          ['pp_ck_dv_nt', [a[1], true], null, null],
+          ['pp_cp_dv_nt', [a[2], true], null, null],
+          ['pp_ck_nt', [a[3], true], null, null],
+          ['pp_cp_nt', [a[4], true], null, null]
+        ]);
+    g._getItem(r, l2)._lastValue = g._getItemValue(r, l2);
+    return true;
+  }
+  return false;
+}
+function on$GridVoucherDetail$GetPrice(o, name, defaultUOM, force) {
+  var g = o.grid, r = o.row, getPrice = '1', v = [
+    g._getItemValue(r, g._getColumnOrder('ct_gia_pv')),
+    g._getItemValue(r, g._getColumnOrder('ct_gia_dk')),
+    g._getItemValue(r, g._getColumnOrder('ma_vt')),
+    g._getItemValue(r, g._getColumnOrder('loai_hang')),
+    g._getItemValue(r, g._getColumnOrder('pp_thay_doi')),
+    g._getItemValue(r, g._getColumnOrder('stt_rec_bg'))
+  ];
+
+  if (v[2] == '' || v[3] != '1' || (v[4] && (v[0] != '' || v[1] != '')) || v[5] != '') getPrice = '0';
+  if (force || getPrice == '1') {
+    var a = [['voucherCode', 'String', g._voucherCode], ['defaultUOM', 'String', defaultUOM], ['getPrice', 'String', getPrice], 'ma_dvcs', 'ma_bp0', 'ma_nh0', 'ma_kh', 'ngay_lct', 'ma_nt'];
+    g.request(o, name, name, ['ma_vt', 'dvt', 'ma_vung', 'so_luong'], a, true);
+    return true;
+  }
+  return false;
+}
+function run$Delete(g, t) {
+  var l0 = g._getColumnOrder('so_luong0'), o;
+  switch (t) {
+    case 1:
+      g._removeRowNumber(g._activeRow);
+      break;
+    case 2:
+      g._rows = [];
+      g._rowCount = 0;
+      g._render();
+      break;
+    case 3:
+      for (var i = 1; i <= g._rowCount; i++) {
+        o = g._getItem(i, l0);
+        o.row = i;
+        g.setItemGridBehavior(o, [['so_luong0', 0, null, null], ['chon', 0, null, null]]);
+      }
+      if (g._activeCell) g._activeCell.focus();
+      g.executeAggregate([['t_so_luong', 'so_luong0']]);
+      break;
+    default:
+      break;
+  }
+}
+/* </flatten> */]]>

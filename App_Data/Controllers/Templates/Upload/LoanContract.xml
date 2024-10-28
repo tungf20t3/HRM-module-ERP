@@ -1,0 +1,297 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY IrregularValue SYSTEM "Include\Irregular.txt">
+
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Irregular "
+if @r is not null begin
+  select @irregular as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Duplicate "
+if @r is not null begin
+  select @duplicate as message, @field as field, @r as record
+  return
+end
+">
+
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % Nested SYSTEM "..\..\Include\Nested.ent">
+  %Nested;
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+  <!ENTITY Controller "LoanContract">
+  <!ENTITY TableNameImport "#m2">
+  <!ENTITY PrimeFieldImport "ma_ku">
+  <!ENTITY % ListEditLog SYSTEM "..\..\Include\ListEditLog.ent">
+  %ListEditLog;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'LoanContract' else 'LoanContract2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$LoanContractImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$LoanContractImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="dmku"/>
+    <table value="dmku" alias="a"/>
+    <temporary value="#m2" alias="b"/>
+    <listTable value ="#m1"/>
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+  <variable>
+    <var id="00003">
+      <header v="Giá trị &LoanContract.Nested.Message.v;." e="The value is &LoanContract.Nested.Message.e;." />
+    </var>
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_ku" column="A" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None"/>
+    <field name="ten_ku" column="B" allowNulls="false"/>
+    <field name="ten_ku2" column="C"/>
+    <field name="loai_ku" column="D" defaultValue="1" type="Decimal" check="loai_ku not in ('1', '2')" errorCode="00002"/>
+    <field name="ngay_ku" column="E" type="DateTime"/>
+    <field name="so_ku" column="F" allowNulls="false" upperCase="true"/>
+    <field name="ku_sd_pslk" column="G" defaultValue="0" type="Decimal" check="ku_sd_pslk not in ('0', '1')" errorCode="00002"/>
+    <field name="ma_nt" column="H" upperCase="true" check="ma_nt not in (select ma_nt from dmnt)" errorCode="00001"/>
+    <field name="ls_td" column="I" type="Decimal"/>
+    <field name="tien_nt" column="J" type="Decimal"/>
+    <field name="tien" column="K" type="Decimal"/>
+    <field name="ngay_ku1" column="L" type="DateTime"/>
+    <field name="ngay_ku2" column="M" type="DateTime" allowNulls="false"/>
+    <field name="ck_tt" column="N" type="Decimal"/>
+    <field name="sl_tt" column="O" type="Decimal"/>
+    <field name="tk" column="P" allowNulls="false" upperCase="true" check="tk not in (select tk from dmtk where loai_tk = 1)" errorCode="00001"/>
+    <field name="ma_kh" column="Q" allowNulls="false" upperCase="true" check="ma_kh not in (select ma_kh from dmkh)" errorCode="00001"/>
+    <field name="ma_bp" column="R" upperCase="true" check="ma_bp &lt;&gt; '' and ma_bp not in (select ma_bp from dmbp)" errorCode="00001"/>
+    <field name="ma_hd" column="S" upperCase="true" check="ma_hd &lt;&gt; '' and ma_hd not in (select ma_hd from dmhd)" errorCode="00001"/>
+    <field name="ma_vv" column="T" upperCase="true" check="ma_vv &lt;&gt; '' and ma_vv not in (select ma_vv from dmvv)" errorCode="00001"/>
+    <field name="ls" column="U" type="Decimal" check="ls = 0 and ngay_hl is not null" errorCode="00002"/>
+    <field name="ngay_hl" column="V" isPrimaryKey="true" type="DateTime" check="ls &lt;&gt; 0 and ngay_hl is null" errorCode="00002"/>
+
+    <field name="tinh_trang" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="status" column="None" insertValue="'1'" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Danh mục khế ước" e="Loan Contract List"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_ku" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã khế ước" e="Contract Code"/>
+      </field>
+      <field name="ten_ku"  width="32" starColor="&EIT.StarColor.Require;">
+        <text v="Tên khế ước" e="Description"/>
+      </field>
+      <field name="ten_ku2" width="32">
+        <text v="Tên khác" e="Other Name"/>
+      </field>
+      <field name="loai_ku" width="16">
+        <text v="Loại khế ước" e="Contract Type"/>
+      </field>
+      <field name="ngay_ku" width="16">
+        <text v="Ngày" e="Date"/>
+      </field>
+      <field name="so_ku" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Số khế ước" e="Contract Number"/>
+      </field>
+      <field name="ku_sd_pslk" width="16">
+        <text v="Theo dõi số dư" e="Balance Tracking"/>
+      </field>
+      <field name="ma_nt" width="16">
+        <text v="Mã nt" e="Currency Code"/>
+      </field>
+      <field name="ls_td" width="16">
+        <text v="Lãi suất tối đa (%)" e="Max Interest Rate (%)"/>
+      </field>
+      <field name="tien_nt" width="16">
+        <text v="Tiền vay ngoại tệ" e="FC Loan Amount"/>
+      </field>
+      <field name="tien" width="16">
+        <text v="Tiền vay" e="Loan Amount"/>
+      </field>
+      <field name="ngay_ku1" width="16">
+        <text v="Ngày vay" e="Loan Date"/>
+      </field>
+      <field name="ngay_ku2" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngày đáo hạn" e="Due Date"/>
+      </field>
+
+      <field name="ck_tt" width="16">
+        <text v="Chu kỳ thanh toán" e="Payment Cycle"/>
+      </field>
+      <field name="sl_tt" width="16">
+        <text v="Số lần thanh toán" e="Number of Payments"/>
+      </field>
+      <field name="tk" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Tài khoản vay" e="Loan Account"/>
+      </field>
+
+      <field name="ma_kh" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Ngân hàng" e="Bank"/>
+      </field>
+      <field name="ma_bp" width="16">
+        <text v="Bộ phận thực hiện" e="Department"/>
+      </field>
+      <field name="ma_hd" width="16">
+        <text v="Mã hợp đồng" e="Contract"/>
+      </field>
+      <field name="ma_vv" width="16">
+        <text v="Mã vụ việc" e="Job"/>
+      </field>
+      <field name="ls" width="16">
+        <text v="Lãi suất (%)" e="Interest Rate (%)"/>
+      </field>
+      <field name="ngay_hl" width="16">
+        <text v="Hiệu lực từ" e="Effective Date"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+if @@admin = 0 and @type = '1' begin
+  if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'LoanContract', 'Edit') = 0 select @type = '0'
+end
+
+declare @message nvarchar(4000), @q nvarchar(4000), @duplicate nvarchar(4000), @irregular nvarchar(4000), @irregularChars varchar(128), @field varchar(32), @baseCurrency varchar(8), @r int, @count int
+
+select @irregularChars = ]]>&IrregularValue;<![CDATA[
+select @duplicate = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> ]]>&LoanContract.Nested.Message.v;<![CDATA[.' else 'The value of cell <span class="Highlight">%invalidCell</span> is ]]>&LoanContract.Nested.Message.e;<![CDATA[.' end
+select @irregular = case @@language when 'v' then N'Giá trị tại ô <span class="Highlight">%invalidCell</span> có chứa các ký tự: ' + @irregularChars else 'The value of cell <span class="Highlight">%invalidCell</span> contains any of the following characters: ' + @irregularChars  end
+select @baseCurrency = rtrim(val) from options where rtrim(name) = 'm_ma_nt0'
+
+-- Delete
+if @type = '0' delete @@table where ma_ku in (select ma_ku from dmku)
+
+if @$mode = 1 begin
+  ]]>&IrregularMessage;<![CDATA[
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'ma_ku', stt, @message from @@table where ma_ku like '%[' + @irregularChars + ']%'
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'ma_ku', @r = min(stt) from @@table where ma_ku like '%[' + @irregularChars + ']%']]>&Irregular;<![CDATA[
+end
+
+-- Update
+update @@table set ma_nt = @baseCurrency where ma_nt = ''
+
+-- Checking
+]]>&Checking;<![CDATA[
+
+-- Gather
+select a.* into #m1 from @@table a join (select ma_ku, min(stt) as stt from @@table group by ma_ku) b on a.stt = b.stt
+select ma_ku, cast(0 as numeric(3, 0)) as line_nbr, ls, ngay_hl into #d1 from @@table where ngay_hl is not null
+
+select a.* into #m2 from #m1 a join dmku b on a.ma_ku = b.ma_ku
+
+-- Do not delete following line
+-- #OverwriteChecking
+
+if @type = '1' delete #m1 from #m1 a where exists(select 1 from #m2 b where a.ma_ku = b.ma_ku)
+
+-- Checking
+create index i on #m1 (ma_ku)
+
+select @field = 'ma_ku'
+]]>&LoanContract.Nested.Key.b;<![CDATA[
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from #m1 a, #m1 b with (index(i)) where a.ma_ku <> b.ma_ku and a.ma_ku like rtrim(b.ma_ku) + ''%''
+      ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, a.stt, ''00003'' from #m1 a with (index(i)), dmku b with (index(PK_dmku)) where a.ma_ku like rtrim(b.ma_ku) + ''%''
+      ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[a.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by a.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+    ]]>&StartErrorCount;<![CDATA[
+    select @q = ']]>&InsertErrorTable;<![CDATA[ select @field, b.stt, ''00003'' from dmku a with (index(PK_dmku)), #m1 b with (index(i)) where a.ma_ku like rtrim(b.ma_ku) + ''%''
+      ]]>&w1;<![CDATA[@field, ''@@primaryKeyList'']]>&w2;<![CDATA[b.stt]]>&w3;<![CDATA[''00003'']]>&w4;<![CDATA[ group by b.stt'
+    exec sp_executesql @q, N'@field varchar(32)', @field
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @q = 'select top 1 @r = a.stt from #m1 a, #m1 b with (index(i)) where a.ma_ku <> b.ma_ku and a.ma_ku like rtrim(b.ma_ku) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = a.stt from #m1 a with (index(i)), dmku b with (index(PK_dmku)) where a.ma_ku like rtrim(b.ma_ku) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+    select @q = 'select top 1 @r = b.stt from dmku a with (index(PK_dmku)), #m1 b with (index(i)) where a.ma_ku like rtrim(b.ma_ku) + ''%'''
+    exec sp_executesql @q, N'@r int output', @r = @r output]]>&Duplicate;<![CDATA[
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+
+select b.ma_ku, b.line_nbr, a.ls, a.ngay_hl into #d2 from #d1 a join ctdmku b on a.ma_ku = b.ma_ku and a.ngay_hl = b.ngay_hl
+if @type = '1' delete #d1 from #d1 a where exists(select 1 from #d2 b where a.ma_ku = b.ma_ku and a.ngay_hl = b.ngay_hl)
+
+-- Insert
+]]>&Inserting;<![CDATA[
+
+select @count = count(*) from #d1
+if @count > 0 begin
+  select top 0 ma_ku, cast(null as smalldatetime) as ngay_hl, identity(int, 1, 1) as stt into #o1 from dmku
+  select top 0 ma_ku, cast(0 as int) as line_nbr into #stt from #o1
+
+  insert into #stt select b.ma_ku, max(b.line_nbr)
+    from #d1 a join ctdmku b on a.ma_ku = b.ma_ku group by b.ma_ku, a.ngay_hl
+  insert into #o1(ma_ku, ngay_hl) select ma_ku, ngay_hl from (select ma_ku, ngay_hl from #d1 union select distinct ma_ku, null from #d1) a order by ma_ku, ngay_hl
+
+  select stt, ma_ku into #o2 from #o1 where ngay_hl is null
+
+  update #d1 set line_nbr = b.stt + isnull(c.line_nbr, 0) from #d1 a
+    left join (select c.stt - d.stt as stt, c.ma_ku, c.ngay_hl from #o1 c join #o2 d on c.ma_ku = d.ma_ku) b
+      on a.ma_ku = b.ma_ku and a.ngay_hl = b.ngay_hl
+    left join #stt c
+      on a.ma_ku = c.ma_ku
+  insert into ctdmku(ma_ku, line_nbr, ls, ngay_hl) select ma_ku, line_nbr, ls, ngay_hl from #d1
+end
+
+-- Update
+if @type = '1' begin
+  ]]>&ListWhenBeforeImportUpdateLog;<![CDATA[
+  update dmku set @@list from dmku a, #m2 b where a.ma_ku = b.ma_ku
+  update ctdmku set ls = b.ls from ctdmku a, #d2 b where a.ma_ku = b.ma_ku and a.line_nbr = b.line_nbr
+end
+]]>
+    </text>
+  </processing>
+
+</import>

@@ -1,0 +1,18 @@
+﻿  <command event="Showing">
+    <text>
+      <![CDATA[
+declare @message nvarchar(4000), @costUnit char(1)
+select @costUnit = rtrim(val) from options where name = 'm_gt_dvcs'
+select @message = 'this._costUnit=' + case when @costUnit = '1' then 'true' else 'false' end  + ';'
+if @costUnit = '1' begin
+	if @@admin <> 1 and not exists(select 1 from sysunitrights where user_id = @@userID and ma_dvcs = @@unit and r_new = 1) select @message = @message + 'this._denyNew = true; this._deny$Unit = true;'
+end else select @message = @message + 'this._fields[this._getColumnOrder(''ma_dvcs'') - 1].Visible = false;'
+
+select @message = @message + 'this._fields[this._getColumnOrder(''ma_bp'') - 1].Visible = this._objectDept;'
+select @message = @message + 'this._fields[this._getColumnOrder(''so_lsx'') - 1].Visible = this._objectMO;'
+
+select @message as message
+return
+]]>
+    </text>
+  </command>

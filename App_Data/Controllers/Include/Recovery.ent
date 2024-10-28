@@ -1,0 +1,44 @@
+﻿<!ENTITY RecoveryField SYSTEM "..\Include\XML\RecoveryField.xml">
+<!ENTITY RecoveryView SYSTEM "..\Include\XML\RecoveryView.xml">
+<!ENTITY RecoveryInvoiceScript "
+function recovery$Invoice(g) {
+  var id = g.get_id();
+  if (g._$process != 9 || !isCheck$Grid(g)) return;
+  if (g._$k.length > 1) {
+    var v = (g._language == 'v');
+    var m1 = (v ? 'Chỉ chọn một hóa đơn khi cập nhật thông tin.' : 'Please select only one invoice at a time.')
+    $message.show(m1, String.format('$find(\'{0}\')._focusWhenTabChanged();', id));
+    return;
+  }
+  g.showForm('EITranUpdate');
+}
+">
+<!ENTITY RecoveryIssueScript "
+function recovery$Issue(g) {
+  var id = g.get_id();
+  if (g._$process != 9 || !isCheck$Grid(g)) return;
+  if (g._$k.length > 1) {
+    var v = (g._language == 'v');
+    var m1 = (v ? 'Chỉ chọn một chứng từ khi cập nhật thông tin.' : 'Please select only one voucher at a time.')
+    $message.show(m1, String.format('$find(\'{0}\')._focusWhenTabChanged();', id));
+    return;
+  }
+  g.showForm('ESTranUpdate');
+}
+">
+<!ENTITY RecoveryProcessModeScript "
+function onChange$Form$ProcessMode(o) {
+  var f = o.parentForm, name = o.field.Name;
+  switch (name) {
+    case 'adjust_mode':
+    case 'debug_mode':
+      if ($func.trim(o.value) == '1') f.setItemValue('recovery_mode', 0);
+      break;
+    case 'recovery_mode':
+      if ($func.trim(o.value) == '1') f.setItemValues('adjust_mode, debug_mode', [0, 0]);
+      break;
+    default:
+      break;
+  }
+}
+">

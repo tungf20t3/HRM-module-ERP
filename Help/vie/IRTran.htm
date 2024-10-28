@@ -1,0 +1,275 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="ITTran.doc" />
+<title>Phiếu nhập kho</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+  if (innerWidth !=origWidth || innerHeight !=origHeight)
+     location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+
+</head>
+<body>
+
+<p id="td1">Phiếu nhập kho</p>
+<p id="td2">Màn hình Phiếu nhập kho</p>
+<p id="pic"><img src="vie\IRTran.png"/></p>
+
+<p id="td2">Giải thích các trường thông tin chung</p>
+<p class="node">Mã khách</p>
+<p class="node_d">Mã đối tượng nhập xuất vật tư. Thông thường mã khách hàng, nhà cung cấp được dùng để theo dõi công nợ, trong trường hợp 
+phiếu nhập kho có liên quan tới các nghiệp vụ công nợ như mượn vật tư của đơn vị khác. Tuy nhiên, trong một số trường hợp không liên quan 
+công nợ, thông tin này được dùng theo dõi các đối tượng nội bộ như dây chuyền, xưởng…Thông tin được chọn nhập từ danh mục khách hàng, nhà 
+cung cấp.</p>
+<p class="node">Người giao</p>
+<p class="node_d">Thông tin về người giao vật tư. Thông tin người giao vật tư được trả về từ trường “Đối tác” trong danh mục khách 
+hàng, nhà cung cấp và có thể được nhập lại.</p>
+<p class="node">Mã giao dịch</p>
+<p class="node_d">Mã giao dịch được xây dựng dựa trên loại chứng từ, dùng để phân biệt phạm vi sử dụng của phiếu nhập. 
+<br/>
+Chọn mã giao dịch chỉ nhằm mục đích phân loại, thống kê sau này. Về xử lý dữ liệu khi lưu, các mã giao dịch có xử lý như nhau.
+<br/>Tuy nhiên, lưu ý phải chọn mã giao dịch đúng, nhất là mã giao dịch nhập kho thành phẩm phải chọn loại 4 (thuộc loại chứng từ 2) 
+thì chương trình tính giá thành mới thực hiện đúng.<br/>
+
+Với mã giao dịch từ loại "3 - Nhập mua ngoài", có thể dùng để kế thừa dữ liệu sang hóa đơn mua hàng.
+</p>
+
+<p class="node">Diễn giải</p>
+<p class="node_d">Diễn giải thêm trong chứng từ.</p>
+<p class="node">Số phiếu nhập/ Ngày lập / Ngày hạch toán</p>
+<p class="node_d">Thông tin về số chứng từ, ngày lập, ngày hạch toán. Số chứng từ có thể do hệ thống tự tạo (định dạng số) hoặc do người sử dụng chủ động 
+nhập vào. Ngày lập chứng từ và ngày hạch toán có thể khác nhau.</p>
+<p class="node">Tỷ giá</p>
+<p class="node_d">Sử dụng trong trường hợp theo dõi nhập theo ngoại tệ. Tỷ giá được lấy từ danh mục tỷ giá quy đổi gần nhất trước ngày lập chứng từ.</p>
+<p class="node">Trạng thái</p>
+<p class="node_d">Trạng thái của chứng từ. Có 3 trạng thái:</p>
+
+
+<ul class="lo_2">
+- Lập chứng từ: Chưa chuyển vào bất kỳ sổ sách nào;<br/>
+-      Chuyển KTTH: Nếu có chứng từ thuế VAT thì hóa đơn sẽ chuyển vào sổ sách, báo cáo thuế. Nếu là chứng từ liên quan thanh toán theo hóa đơn, sẽ được 
+chuyển vào sổ công nợ chi tiết theo hóa đơn;
+<br/>
+-      Đã chuyển vào sổ cái: ghi vào tất cả sổ sách liên quan.
+</ul>
+<p id="td2">Giải thích các trường thông tin chi tiết</p>
+<p class="node">Mã hàng</p>
+<p class="node_d">Mã hàng sẽ được nhập. Tuỳ thuộc vào cách khai báo trong danh mục vật tư, sẽ ảnh hưởng đến cách nhập của các trường khác trong chứng từ. 
+Khi tìm kiếm có thể cập nhật lại danh mục vật tư.</p>
+<p class="node">Mã kho</p>
+<p class="node_d">Mặc nhiên sẽ được trả về từ danh mục vật tư, nếu kho mặc nhiên không thuộc đơn vị hiện hành, chương trình sẽ để trống. Mã kho được nhập theo quyền đơn vị và quyền truy nhập. Trường hợp thêm mới chứng từ, trường mã kho cho phép chọn nhập những kho thuộc đơn vị truy nhập hiện tại. Trường hợp sửa chứng từ, trường mã kho cho phép chọn nhập những kho thuộc đơn vị trên phiếu hiện hành.</p>
+<p class="node">Mã vị trí</p>
+<p class="node_d">Nếu doanh nghiệp theo dõi tồn kho theo vị trí kho thì phải nhập thêm thông tin về vị trí kho sẽ nhập vật tư.</p>
+<p class="node">Mã lô</p>
+<p class="node_d">Số lô của hàng hóa, được sử dụng trong trường hợp doanh nghiệp có theo dõi vật tư theo lô. Khai báo về lô hàng được thực hiện ở phân 
+hệ hàng tồn kho.<br/>
+Nếu mã hàng có chọn "Theo dõi lô" và "Cho phép tạo lô ngay khi nhập" thì chương trình cho phép người dùng tạo lô ngay khi nhập liệu các phiếu làm tăng 
+tồn kho (phiếu nhập, hóa đơn mua hàng,...). 
+<br/>
+Nhấn biểu tượng “ <img src="vie/Lotgenerate.png"/> – Cập nhật lô” để xuất hiện lên màn hình “Cập nhật danh mục lô” và cập nhật thông tin cần thiết về lô, bao gồm:</p>
+<ul class="lo_2">
+    - Mã vật tư: mang từ lưới chi tiết sang;<br/>
+    - Mã lô: Chương trình tự động tạo mã lô, quy tắc tạo được trình bày trong tham số "Mã lô tự động" trong tham số tùy chọn của phần quản lý hàng tồn kho;<br/>
+    - Ngày nhập: ngầm định lần đầu khi thêm mới, lấy từ ngày lập chứng từ và cho phép sửa lại;<br/>
+    - Tên lô/ Tên 2/ Ghi chú: thông tin diễn giải thêm về tên lô, tên lô bằng tiếng Anh và các ghi chú khác. Tên lô hình thành từ mã lô và ngày nhập;<br/>
+    - Ngày sản xuất: thông tin diễn giải thêm về ngày sản xuất của hàng hóa vật tư;<br/>
+    - Hạn sử dụng: hạn dùng của vật tư hàng hóa. Nếu khai báo về lô trong danh mục vật tư là “Tính theo ngày nhập” thì hạn dùng sẽ tự động được tính từ ngày nhập cộng thêm số ngày “Vòng đời sp”;<br/>
+    - Hạn bảo hành: ngày bảo hành của vật tư hàng hóa. Ngày bảo hành sẽ tự động được tính từ ngày nhập cộng thêm số ngày “Thời gian bảo hành”.
+</ul>
+<p class="node">Số lượng</p>
+<p class="node_d">Số lượng vật tư cần nhập. Nếu vật tư tính theo giá trung bình, có thể sử dụng để nhập chi phí để tính giá bằng cách nhập số lượng 0. 
+Nếu vật tư tính theo giá NTXT, thì chương trình không cho phép nhập số lượng 0.</p>
+<p class="node">Giá tb</p>
+<p class="node_d">Giá nhập kho theo giá trung bình trong trường hợp vật tư được tính theo phương pháp trung bình tháng.
+<br/>
+Trong một số trường hợp nhập lại kho do sản xuất thừa (hoặc những trường hợp khác) từ phiếu xuất trong tháng và cần phải lấy giá nhập theo đúng giá trung 
+bình tính được thì phải chọn tùy chọn này.</p>
+<p class="node">Giá</p>
+<p class="node_d">Giá nhập của mặt hàng. Trong trường hợp dùng Mã giao dịch 4, thì giá thành tính được sẽ cập nhật vào trường này.</p>
+<p class="node">Tiền</p>
+<p class="node_d">Bằng Số lượng*giá nhưng cho phép sửa lại.</p>
+<p class="node">Mã nx / tài khoản nợ / tài khoản có</p>
+<p class="node_d">Thông tin về hình thức nhập hàng và hạch toán của phiếu nhập.
+<br/>
+Mã nhập xuất mô tả lý do nhập xuất, được chọn nhập từ “Danh mục lý do”.
+<br/>
+Tài khoản nợ được lấy tự động từ tài khoản vật tư được nhập. Tài khoản nợ có thể nhập lại nếu mã vật tư này được khai báo cho phép sửa tài khoản vật tư. 
+Tài khoản có được lấy tự động từ trường tài khoản trong mã nhập xuất đã chọn. Tài khoản này có thể nhập lại.</p>
+
+
+<p class="node">Vụ việc</p>
+<p class="node_d">Nếu phiếu nhập có liên quan tới các sự vụ, vụ việc cần theo dõi thì cần phải chọn nhập từ “Danh mục vụ việc”.</p>
+
+<p id="td2">Chứng từ gốc</p>
+<p class="node"> Kèm theo/ Chứng từ gốc</p>
+<p class="node_d">
+Phần thông tin chứng từ gốc dùng để lưu các thông tin số lượng chứng từ kèm theo và ghi chú các chứng từ, thông tin này dùng để in chứng từ.</p>
+
+<p id="td2">Tệp đính kèm</p>
+<p id="p2">Chương trình cho phép tải tệp đính kèm vào chứng từ. Tham khảo "Thao tác với tệp đính kèm".</p>
+<p id="td2"> Ngăn "Ghi chú"</p>
+<p id="p2"> Ngăn "Ghi chú" dùng để chia sẻ thông tin và tương tác với những người dùng khác, cho phép người 
+sử dụng có thể khai thác các tính năng: <br/>
+    - Đăng tin, ảnh, đoạn phim ngắn, tải tập tin có tính chất chia sẻ chung cho mọi người;<br/>
+    - Xem nhanh thông tin tình hình phản hồi;
+</p>
+<p class="note">
+Lưu ý:<br/>
+- Những thông tin mang tính chất riêng tư không nên đăng trên chức năng này;<br/>
+- Chỉ người dùng có quyền "quản trị" mới xóa các nội dung  của người khác; Với người dùng thông thường, chỉ xóa các nội dung do người dùng đó tạo ra;<br/>
+- Khi xóa 1 dòng nội dung  thì các nội dung "trả lời" cũng bị xóa;<br/>
+- Khi xem vẫn cho nhập nội dung, kể cả không có quyền sửa chứng từ. Những người dùng có quyền truy nhập vào chứng từ có thể tham gia viết;<br/>
+- Khi có nhiều nội dung viết, muốn xem các nội dung bị che khuất, nhấn "Xem thêm...";<br/>
+- Sau khi nhập đoạn văn bản, chèn hình ảnh...phải nhấn "Gửi nội dung", nếu không, khi thoát chứng từ, các nội dung sẽ không được lưu.
+</p>
+
+<p id="td2">Một số thao tác khi cập nhật chứng từ </p>
+<p class="node">Lấy số liệu từ phiếu nhập kho thực tế</p>
+<p class="node_d">
+Để lấy dữ liệu từ số liệu phiếu nhập kho thực tế, đầu tiên tạo mới phiếu nhập, chọn mã giao dịch có loại chứng từ khác 3, 
+nhấn chức năng “<img src="vie\retrieve.png"> - “Lấy số liệu từ phiếu nhập kho thực tế”, 
+nhập "Phiếu nhập từ ngày", sau đó nhấn tìm phiếu nhập kho thực tế. <br>
+Chọn phiếu nhập kho thực tế cần chuyển, chọn dòng cần chuyển. Có thể nhập sửa số lượng yêu cầu, sau đó thoát khỏi màn hình phiếu nhập kho thực tế.  
+Chương trình sẽ tự động cập nhật vào phiếu xuất những dòng hàng hóa đã chọn trong danh sách trên.</p>
+
+<p class="node">Lấy số liệu từ phiếu nhập mua hàng</p>
+<p class="node_d">
+Để lấy dữ liệu từ số liệu phiếu nhu cầu vật tư, đầu tiên tạo mới phiếu xuất, chọn mã giao dịch có loại chứng từ là 3, 
+nhấn chức năng “<img src="vie\retrieve.png"> - “Lấy số liệu từ phiếu nhập mua hàng”, 
+nhập "Phiếu nhập mua hàng từ ngày", sau đó nhấn tìm phiếu nhập mua hàng. <br>
+Chọn phiếu nhập mua hàng cần chuyển, chọn dòng cần chuyển. Có thể nhập sửa số lượng, sau đó nhận để thoát khỏi màn hình phiếu nhập mua hàng.  
+Chương trình sẽ tự động cập nhật vào phiếu xuất những dòng hàng hóa đã chọn trong danh sách trên.</p>
+
+<p class="node"> Kết nhập dữ liệu từ tệp bảng tính (chi tiết từng chứng từ)</p>
+<p class="node_d">
+Chương trình cho phép đưa dữ liệu từ bảng tính vào chương trình để tiết kiệm thời gian nhập liệu cho người dùng.
+<br/>Quy trình thực hiện như sau:</p>
+
+<ul class="lo_2">
+	- Vào phiếu nhập kho;<br/>
+	- Nhấn biểu tượng <img src="vie/download.png"/>, chương trình sẽ tải tệp mẫu để người dùng chuyển dữ liệu vào tệp này;<br/>
+	- Sau khi đã đổ dữ liệu vào tệp bảng tính, để đưa dữ liệu này vào chương trình, nhấn biểu tượng <img src="vie/upload.png"/>, chọn tệp bảng tính, 
+	chương trình sẽ tải dữ liệu từ tệp mẫu vào chi tiết của phiếu.
+</ul>
+<p class="note">Ghi chú về cách nhập các cột dữ liệu của tệp mẫu:<br/>
+- Giá trung bình: Chấp nhận giá trị 1 hoặc 0;<br/>
+- Mã hàng, Đvt,	Mã kho, Mã nx, Tk nợ/có, Vụ việc, Bộ phận, Lsx, Sản phẩm, Hợp đồng, Phí, Khế ước, Mã vị trí, Mã lô: Nhập các mã 
+tồn tại trong danh mục tương ứng, độ dài tương ứng với cách nhập trong màn hình thêm mới (sửa) danh mục. Tài khoản phải là tài khoản chi tiết;<br/>
+- Mã kho: Các kho thuộc đvcs được phân quyền;<br/>
+- Mã vị trí: Chỉ nhập khi kho có theo dõi vị trí;<br/>
+- Mã lô: Chỉ nhập khi vật tư có theo dõi lô;<br/>
+- Số lượng: Nhập kiểu số, độ dài tối đa 9 số và 3 số lẻ (theo chuẩn chương trình);Với mã hàng có cách tính giá NTXT thì không được phép nhập số lượng = 0;<br/>
+- Giá: Nhập kiểu số, độ dài tối đa 12 số và 4 số lẻ (theo chuẩn chương trình);<br/>
+- Tiền: Nhập kiểu số, độ dài tối đa 14 số và 2 số lẻ (theo chuẩn chương trình).</p>
+						
+
+
+<p class="note">Chú ý: <br/>
+Chương trình sẽ báo lỗi trong 1 số trường hợp sau:<br/>
+	- Dữ liệu các cột chứa mã các đối tượng liên quan không có trong các danh mục hiện có (vật tư, mã kho,...), trong
+ trường hợp này, chương trình vẫn mang dữ liệu vào màn hình chi tiết nhưng khi lưu sẽ cảnh báo "Trường xxx chưa nhập hoặc giá trị nhập
+  không hợp lệ", người dùng phải chỉnh sửa trước khi lưu;<br/>
+	- Dữ liệu chuỗi dài quá độ rộng cho phép (độ dài tối đa khi nhập liệu thủ công);<br/>
+	- Dữ liệu có kiểu không hợp lệ (ví dụ: 1,0 hoặc có/không), trong trường hợp này, chương trình sẽ chỉ rõ địa chỉ ô không hợp lệ.</p>
+
+<p class="note">Ghi chú khác:
+<br/>
+- Chương trình chỉ hỗ trợ chuyển dữ liệu chi tiết của từng phiếu;<br/>
+- Với các trường có giá trị có/không, phải nhập giá trị 1/0 hoặc true/false; <br/>
+- Nếu không có quyền "Mới", không thể chuyển thêm dữ liệu chưa có trong chi tiết;<br/>
+- Nếu không có quyền "Sửa", không thể sửa dữ liệu đã có;<br/>
+- Các trường tên trong chứng từ, người dùng không cần nhập, chương trình sẽ tự cập nhật lại.</p>
+
+<p class="node"> Kết nhập dữ liệu từ tệp bảng tính (hàng loạt)</p>
+<p class="node_d">
+Chương trình cho phép đưa dữ liệu từ bảng tính vào chương trình để tiết kiệm thời gian nhập liệu cho người dùng. <br/>
+
+Quy trình thực hiện như sau:<br/>
+- Vào Phiếu nhập kho;<br/>
+- Nhấn biểu tượng <img src="vie/download.png"/> , chương trình sẽ tải tệp mẫu để người dùng chuyển dữ liệu vào tệp này;<br/>
+- Sau khi đã đổ dữ liệu vào tệp bảng tính, để đưa dữ liệu này vào chương trình, nhấn biểu tượng <img src="vie/upload.png"/>, chọn
+ tệp bảng tính, chương trình sẽ tải dữ liệu từ tệp mẫu vào.</p>
+<p class="note">
+Ghi chú về cách nhập các cột dữ liệu của tệp mẫu:<br/>
+
+- Số chứng từ: Cho phép nhập dạng chuỗi, độ dài tối đa 12 ký tự;<br/>
+- Ngày chứng từ : Định dạng theo kiểu ngày tháng. Ngày khóa sổ tổng, khóa sổ theo đơn vị, khóa sổ theo chứng từ trước ngày chứng từ nhập vào;<br/>
+
+- Giá trung bình: Chấp nhận giá trị 1 hoặc 0;<br/>
+- Mã khách, Mã hàng, Đvt, Mã kho, Mã nx, Tk nợ/có, Vụ việc, Bộ phận, Lsx, Sản phẩm, Hợp đồng, Phí, Khế ước, Mã vị trí, Mã lô: Nhập các mã tồn
+ tại trong danh mục tương ứng, độ dài tương ứng với cách nhập trong màn hình thêm mới (sửa) danh mục. Tài khoản phải là tài khoản chi tiết;<br/>
+
+- Nếu trong danh mục của vật tư cần kết nhập có chọn kho đại lý và Tk đại lý thì Tk nợ = Tk đại lý
+, nếu không chọn Tk đại lý trong danh mục thì Tk nợ = Tk vật tư;<br/>
+
+- Mã kho: Các kho thuộc đvcs được phân quyền;<br/>
+- Mã vị trí: Chỉ nhập khi kho có theo dõi vị trí;<br/>
+- Mã lô: Chỉ nhập khi vật tư có theo dõi lô;<br/>
+- Số lượng: Nhập kiểu số, độ dài tối đa 9 số và 3 số lẻ (theo chuẩn chương trình);Với mã hàng có cách tính giá NTXT thì không được phép nhập số lượng = 0;<br/>
+- Giá: Nhập kiểu số, độ dài tối đa 12 số và 4 số lẻ (theo chuẩn chương trình);<br/>
+- Tiền: Nhập kiểu số, độ dài tối đa 14 số và 2 số lẻ (theo chuẩn chương trình).</p>
+
+<p class="note">
+Chương trình sẽ thông báo lỗi trong 1 số trường hợp sau:<br/>
+- Dữ liệu các cột chứa mã các đối tượng liên quan không có trong các danh mục hiện có. Tài khoản không có trong các danh mục 
+tài khoản hoặc tài khoản tổng hợp. Trong trường hợp này, chương trình sẽ chỉ rõ địa chỉ ô không hợp lệ;<br/>
+- Các trường hợp buộc nhập số liệu nhưng lại để rỗng (đơn vị, số chứng từ, ngày chứng từ...);<br/>
+- Dữ liệu chuỗi dài quá độ rộng cho phép (độ dài tối đa khi nhập liệu thủ công);<br/>
+- Dữ liệu có kiểu không hợp lệ (ví dụ: 1,0 hoặc có/không), trong trường hợp này, chương trình sẽ chỉ rõ địa chỉ ô không hợp lệ.</p>
+<p class="note"> Chương trình cho phép lựa chọn trạng thái cập nhật khi tải dữ liệu, người sử dụng cần phải được phân quyền tương ứng:<br/>
+0. Lập chứng từ: có quyền "Mới";<br/>
+1. Nhập kho: có quyền "Mới" và "Nhập kho";<br/>
+2. Chuyển KTTH: có quyền "Mới" và "Chuyển KTTH";<br/>
+3. Chuyển sổ cái: có quyền "Mới" và "Chuyển sổ cái".</p>
+
+<p class="note">
+Ghi chú khác: <br/>
+- Khi đã khóa số liệu hệ thống, khóa theo đơn vị hoặc khóa số liệu theo chứng từ (có ngày khóa sau ngày bắt đầu nhập liệu) thì 
+không thể chuyển dữ liệu;<br/>
+- Nếu cột Mã nt không cập nhật thì không nhập trường tỷ giá;<br/>
+- Có thể tải dữ liệu cho nhiều đvcs. Tuy nhiên, khi trùng đồng thời số chứng từ, ngày chứng từ thì chương trình sẽ cảnh báo, không cho phép 
+tải một lần mà phải tải nhiều lần giữa các đvcs khác nhau;<br/>
+Nếu đã khóa số liệu theo đơn vị hiện thời, chương trình sẽ báo ngay khi nhấn biểu 
+tượng <img src="vie/download.png"/>. Nếu đã khóa số liệu theo đơn vị khác hiện thời, chương trình sẽ báo khi xử lý tệp, trong trường 
+hợp này, chương trình sẽ chỉ rõ địa chỉ ô không hợp lệ;<br/>
+
+- Chỉ kiểm tra trùng chứng từ (nếu tồn tại số chứng từ), không kiểm tra chi tiết theo các tham số khác trong danh mục chứng từ;<br/>
+- Muốn cập nhật chi tiết nhiều dòng cho một chứng từ, thì người dùng nhập liệu nhiều dòng trong bảng tính có cùng số chứng từ và ngày
+ chứng từ, trong trường hợp đó, chương trình sẽ kết nhập thành một chứng từ tương ứng;<br/>
+- Các trường tên trong danh mục, người dùng không cần nhập, chương trình sẽ tự cập nhật lại;<br/>
+- Không hỗ trợ các tệp bảng tính chứa macro;<br/>
+- Bảng tính có phiên bản 2007 trở lên.</p>
+<p class="node_d">
+Về màu sắc liên quan tính chất bắt buộc nhập giá trị trong tệp, đề nghị xem thêm <a href="GeneralVouchertask.htm"> “Những hướng dẫn chung về cập nhật các chứng từ”</a>, mục "Kết nhập dữ liệu từ bảng tính"
+</p>
+
+	
+	
+<p id="p1"> Chi tiết các thao tác làm việc với chứng từ đề nghị xem thêm <a href=GeneralVouchertask.htm> “Những hướng dẫn chung về cập nhật các chứng từ”</a></p>
+<script type="text/javascript" src="setPageFooter.js"></script>
+
+</body>
+</html>

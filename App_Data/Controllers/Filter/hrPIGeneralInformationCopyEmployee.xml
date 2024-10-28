@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="hrnv" code="stt_rec" order="stt_rec" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Sao chép nhân viên" e="Copy Employee"></title>
+
+  <fields>
+    <field name="ma_nv2" allowNulls="false">
+      <header v="Từ nhân viên" e="Source Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_nv2" key="ma_nv &lt;&gt; '{$%c[ma_nv3]}' and (@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="ma_nv &lt;&gt; '{$%c[ma_nv3]}' and (@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID))"/>
+      <clientScript><![CDATA[onchange=onChange$GeneralInformation$CopyEmployee(this);]]></clientScript>
+    </field>
+    <field name="ten_nv2" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv3" allowNulls="false">
+      <header v="Đến nhân viên" e="Target Employee"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ten_nv3" key="ma_nv &lt;&gt; '{$%c[ma_nv2]}' and (@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="ma_nv &lt;&gt; '{$%c[ma_nv2]}' and (@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID))"/>
+      <clientScript><![CDATA[onchange=onChange$GeneralInformation$CopyEmployee(this);]]></clientScript>
+    </field>
+    <field name="ten_nv3" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="type" type="Boolean">
+      <header v="" e=""></header>
+      <footer v="Xác nhận sao chép" e="Confirm copy"></footer>
+      <items style="CheckBox"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 20, 80, 100, 230"/>
+      <item value="11010: [ma_nv2].Label, [ma_nv2], [ten_nv2]"/>
+      <item value="11010: [ma_nv3].Label, [ma_nv3], [ten_nv3]"/>
+      <item value="-1100: [type], [type].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$GeneralInformation$CopyEmployee(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$GeneralInformation$CopyEmployee(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var f = this, g = f.grid, l = (f._language == 'v'), t = f.getItemValue('type');
+var e = (l ? 'Không thể sao chép nhân viên. Nhân viên đã bị xóa hoặc chưa xác nhận thông tin cần sao chép.' : 'Cannot copy this item. You have not confirmed yet or invalid employee.');
+if (!t) $message.show(e, String.format('$find(\'{0}\').focus(\'{1}\');', f.get_id(), 'type'));
+  else f.request('CopyEmployee', 'CopyEmployee', ['ma_nv2', 'ma_nv3']);
+f._checked = false;
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$GeneralInformation$CopyEmployee(f) {
+  f.add_onResponseComplete(on$GeneralInformation$ResponseComplete);
+  var g = f.grid;
+  f.getItem('ma_nv3').value = g._employeeID;
+  f.setReferenceKeyFilter('ma_nv2');
+  f.setReferenceKeyFilter('ma_nv3');
+}
+function close$GeneralInformation$CopyEmployee(f) {f.remove_onResponseComplete(on$GeneralInformation$ResponseComplete);}
+function onChange$GeneralInformation$CopyEmployee(o) {
+  var name = o.field.Name, f = o.parentForm;
+  switch (name) {
+    case 'ma_nv2':
+      f.setReferenceKeyFilter('ma_nv3');
+      break;
+    case 'ma_nv3':
+      f.setReferenceKeyFilter('ma_nv2');
+      break;
+    default:
+      break;
+  }
+}
+function on$GeneralInformation$ResponseComplete(f, e) {
+  var f = e.object, g = f.grid, context = e.type.Context, result = e.type.Result, v = (g._language == 'v'), msg, id;
+  switch (context) {
+    case 'CopyEmployee':
+      msg = ((result[0].Value) ? (v ? 'Chương trình đã thực hiện xong.' : 'The process was completed successfully.') : (v ? 'Phát sinh lỗi trong quá trình thực hiện.' : 'The process was failed.'));
+      id = f.get_id();
+      $message.show(msg, String.format(((result[0].Value) ? 'refresh$PageTab($find(\'{0}\'));' : '$find(\'{0}\').focus(\'{1}\');'), id, 'ma_nv2'));
+      break;
+    default:
+	    break;
+  }
+}
+function refresh$PageTab(f) {
+  var g = f.grid, o = $find(g._id + g._view._activeTab);
+  if(o) o.goToPage(-1);
+  f.cancelDialog();
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="CopyEmployee">
+      <text>
+        <![CDATA[
+declare @c bit
+exec hs_CopyEmployeeInformation @ma_nv2, @ma_nv3, @c output, @@userID, @@admin
+select isnull(@c, 0) as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

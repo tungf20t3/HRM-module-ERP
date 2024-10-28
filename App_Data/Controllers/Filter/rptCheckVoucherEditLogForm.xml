@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY Identity "rptCheckVoucherEditLogForm">
+  <!ENTITY ParentController "rptCheckVoucherEditLog">
+  <!ENTITY GridController "rptCheckVoucherEditLogGrid">
+
+  <!ENTITY FormTask.HiddenOrChangeCaption SYSTEM "..\Include\Javascript\Button.txt">
+
+  <!ENTITY % FlowMultiVoucher SYSTEM "..\Include\FlowMultiVoucher.ent">
+  %FlowMultiVoucher;
+]>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Nhật ký thay đổi chứng từ chi tiết" e="Voucher Logs Detail"></title>
+  <fields>
+    &FlowMultiFormField;
+  </fields>
+
+  <views>
+    &FlowMultiFormView;
+  </views>
+
+  <commands>
+    &FlowMultiFormCommand;
+  </commands>
+
+  <script>
+    <text>
+      &FormTask.HiddenOrChangeCaption;
+      <![CDATA[
+function show$]]>&Identity;<![CDATA[$(f) {
+  var z = f.grid, h = z.get_element().parentForm, queryFilterString = '', c = String.fromCharCode(253), c1 = String.fromCharCode(252);
+  var queryFilterString = z._filter$Fields.join(c).replaceAll("'", c1);
+  show$FlowMulti$Form(f, queryFilterString, ']]>&Identity;<![CDATA[DataGridPanel', ']]>&ParentController;<![CDATA[', ']]>&GridController;<![CDATA[', '');
+  form$Button$SetCaption(f, [['Ok', null], ['Cancel', f._language == 'v' ? 'Đón<u>g</u>' : 'C<u>l</u>ose']]);
+}
+
+function active$]]>&Identity;<![CDATA[$(f) {active$FlowMulti$Form(f);}
+function close$]]>&Identity;<![CDATA[$(f) {close$FlowMulti$Form(f);}
+]]>
+    </text>
+  </script>
+</dir>

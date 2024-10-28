@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<!DOCTYPE initialize [
+  <!ENTITY % Initialize SYSTEM "Initialize.ent">
+  %Initialize;
+
+  <!ENTITY % Control.Unit SYSTEM "..\..\Include\Unit.ent">
+  %Control.Unit;
+  %Control.Unit.Ignore;
+
+  <!ENTITY % BIMode SYSTEM "Include\BIMode.ent">
+  %BIMode;
+]>
+
+
+<initialize xmlns="urn:schemas-ai-erp:data-initialize">
+  <controllers>
+    &Controller.Voucher;
+    &Controller.Balance;
+    &Controller.Site;
+    &Controller.Asset;
+    &Controller.Tool;
+    &Controller.Supply;
+    &Controller.Unit;
+    &Controller.Parent;
+
+    &Controller.List;
+    <controller name="JobAccumulationBalance" type="Dir" group="Accumulation" description="Input Project/Job Accumulation"/>
+
+    &Controller.Dir;
+
+    &Controller.BI.Dir;
+  </controllers>
+
+
+  <groups>
+    <group id="Voucher" field="ma_dvcs"/>
+    <group id="Balance" field="ma_dvcs"/>
+    <group id="Site" field="ma_kho"/>
+    <group id="Asset" field="so_the_ts"/>
+    <group id="Tool" field="so_the_ts"/>
+    <group id="Supply" field="ma_dc"/>
+    <group id="Unit" field="ma_dvcs"/>
+    <group id="Parent">
+      <text>
+        <![CDATA[return instance._grant.form.grid.get_element().parentForm.getItemValue('ma_dvcs');]]>
+      </text>
+    </group>
+
+    <group id="Accumulation" field="ma_dvcs"/>
+
+    <group id="List.Account">
+      <text>
+        <![CDATA[return '';]]>
+      </text>
+    </group>
+    <group id="List.Customer">
+      <text>
+        <![CDATA[return '';]]>
+      </text>
+    </group>
+    <group id="List.Item">
+      <text>
+        <![CDATA[return '';]]>
+      </text>
+    </group>
+    <group id="List.Item.UnitConversion">
+      <text>
+        <![CDATA[return '';]]>
+      </text>
+    </group>
+    <group id="List.Product">
+      <text>
+        <![CDATA[return '';]]>
+      </text>
+    </group>
+
+    <group id="Dir">
+      <text>
+        <![CDATA[return '';]]>
+      </text>
+    </group>
+  </groups>
+
+
+  <lookup>
+    <queries>
+      <query id="&Query;" variable="unit$Filter$" type="Session">
+        <text>&q1;;&q2;'' &q3;{0}&g2;{1}&g3;{0}&g4;</text>
+      </query>
+      <query id="Extension" variable="unit$Filter$" type="Session">
+        <text>&q1;;&q2;'' &q3;{0}&g2;{1}&g3;{2}&g9;</text>
+      </query>
+    </queries>
+
+
+    <controllers>
+      &Lookup.Account;
+
+      &Lookup.Customer;
+      &Lookup.Supplier;
+
+      &Lookup.Item;
+      &Lookup.Product;
+
+      &Lookup.Department;
+
+      &Lookup.MO;
+
+      &Lookup.Job;
+      &Lookup.Contract;
+      &Lookup.Expense;
+      &Lookup.LoanContract;
+
+      &Lookup.Account.JobAccumulation;
+      &Lookup.Item.ItemUOMConversion;
+
+      &Lookup.Section;
+      &Lookup.Unit;
+      &Lookup.Site;
+
+      &Lookup.VoucherBook;
+
+      &Lookup.BI.Plant;
+
+      &Lookup.BI.PurchasingOrganization.Right;
+      &Lookup.BI.PurchasingGroup.Right;
+      &Lookup.BI.Plant.Right;
+
+      &Lookup.BI.BlockOrderByItem;
+
+      &Lookup.BI.InspectionLotOrigin;
+    </controllers>
+  </lookup>
+</initialize>

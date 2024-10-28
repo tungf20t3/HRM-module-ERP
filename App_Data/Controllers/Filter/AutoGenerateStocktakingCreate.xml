@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir id="0" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Tạo chênh lệch kiểm kê tự động" e="Auto generation"></title>
+  <fields>
+
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Ngày" e="Date"></header>
+    </field>
+    <field name="ma_kh" allowNulls="false">
+      <header v="Mã khách" e="Customer ID"></header>
+      <items style="AutoComplete" controller="Customer" reference="ten_kh%l" key="status = '1'" check="1 = 1" information="ma_kh$dmkh.ten_kh%l" new="Default"/>
+    </field>
+    <field name="ten_kh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="dien_giai">
+      <header v="Diễn giải" e="Description"></header>
+    </field>
+    <field name="tk" allowNulls="false">
+      <header v="Tài khoản" e="Account"></header>
+      <items style="AutoComplete" controller="Account" reference="ten_tk%l" key="status = '1' and loai_tk = '1'" check="loai_tk = '1'" information="tk$dmtk.ten_tk%l" new="Default"/>
+    </field>
+    <field name="ten_tk%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nx" allowNulls="false">
+      <header v="Mã nhập xuất" e="Reason Code"></header>
+      <items style="AutoComplete" controller="Reason" reference="ten_nx%l" key="status = '1'" check="1 = 1" information="ma_nx$dmnx.ten_nx%l"/>
+    </field>
+    <field name="ten_nx%l" readOnly="true" external="true" defaultValue="''" >
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_quyen" onDemand="true">
+      <header v="Mã quyển" e="Book Code"/>
+      <items style="AutoComplete" controller="VoucherBook" reference="ten_quyen%l" key="((ma_dvcs = '') or (ma_dvcs = '{$%c[ma_dvcs]}')) and ((case when replace('{$%c[ngay_ct]}', ' ', '') = '//' then '' else convert(smalldatetime, '{$%c[ngay_ct]}', 103) end &gt;= ngay_hl_tu or ngay_hl_tu is null) and (case when replace('{$%c[ngay_ct]}', ' ', '') = '//' then '' else convert(smalldatetime, '{$%c[ngay_ct]}', 103) end &lt;= ngay_hl_den or ngay_hl_den is null)) and ma_nk in (select ma_nk from v20dmctnk where ma_ct = '{$%c[ma_ct]}' and (lstuser = '' or charindex(',' + rtrim(@@userName) + ',', ',' + replace(lstuser, ' ', '') + ',') &gt; 0)) and status = '1'" check="((ma_dvcs = '') or (ma_dvcs = '{$%c[ma_dvcs]}')) and ((case when replace('{$%c[ngay_ct]}', ' ', '') = '//' then '' else convert(smalldatetime, '{$%c[ngay_ct]}', 103) end &gt;= ngay_hl_tu or ngay_hl_tu is null) and (case when replace('{$%c[ngay_ct]}', ' ', '') = '//' then '' else convert(smalldatetime, '{$%c[ngay_ct]}', 103) end &lt;= ngay_hl_den or ngay_hl_den is null)) and ma_nk in (select ma_nk from v20dmctnk where ma_ct = '{$%c[ma_ct]}' and (lstuser = '' or charindex(',' + rtrim(@@userName) + ',', ',' + replace(lstuser, ' ', '') + ',') &gt; 0))" information="ma_nk$v20dmnk.ten_nk%l"/>
+    </field>
+    <field name="ten_quyen%l" readOnly="true" external="true">
+      <header v="" e=""/>
+    </field>
+
+    <field name="status" inactivate="true" clientDefault="0">
+      <header v="Trạng thái" e="Status"></header>
+      <items style="DropDownList">
+        <item value="0">
+          <text v="0. Lập chứng từ" e="0. No Action"/>
+        </item>
+        <item value="1">
+          <text v="1. Nhập kho" e="1. Receipt"/>
+        </item>
+        <item value="2">
+          <text v="2. Chuyển KTTH" e="2. Release Later"/>
+        </item>
+        <item value="3">
+          <text v="3. Chuyển sổ cái" e="3. Release"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+
+    <field name="stt_rec" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dvcs" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_kho" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="type" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay" type="DateTime" dataFormatString="@datetimeFormat" align="left" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_ct" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="110---1: [ngay_ct].Label, [ngay_ct], [stt_rec]"/>
+      <item value="1101001: [ma_kh].Label, [ma_kh], [ten_kh%l], [ma_dvcs]"/>
+      <item value="1100001: [dien_giai].Label, [dien_giai], [ma_kho]"/>
+      <item value="1101001: [tk].Label, [tk], [ten_tk%l], [type]"/>
+      <item value="1101001: [ma_nx].Label, [ma_nx], [ten_nx%l], [ngay]"/>
+      <item value="110100-: [ma_quyen].Label, [ma_quyen], [ten_quyen%l]"/>
+      <item value="1100--1: [status].Label, [status], [ma_ct]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$AutoGenerateStocktakingCreate$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'dispose$AutoGenerateStocktakingCreate$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,d1=f.getItemValue("ngay_ct"),d2=f.getItemValue("ngay");if(d1<d2){f._checked=false;$func.hideWait(f.get_id());$message.show(String.format($df.getResources(f._language,"Message.RequiredField"),f.getItem("ngay_ct").field.Label),String.format("$find('{0}').getItem('{1}').focus()",f.get_id(),"ngay_ct"))}]]>
+      </text>
+    </command>
+
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+declare @field varchar(64), @message nvarchar(512)
+exec rs_AutoGenerateStocktakingChecking @stt_rec, @ma_dvcs, @ma_kho, @type, @ngay_ct, @ma_kh, @tk, @ma_nx, @ma_quyen, 1, @field out, @message out, @@language, @@userID, @@admin, '@@sysDatabaseName'
+if isnull(@message, '') <> '' begin
+  select @field as field, @message as message, '' as script
+  return
+end
+
+exec rs_AutoGenerateStocktaking @stt_rec, @ma_dvcs, @ma_kho, @type, @ngay_ct, @ma_kh, @dien_giai, @tk, @ma_nx, @ma_quyen, @status, 1, @field out, @message out, @@language, @@userID, @@admin, '@@sysDatabaseName'
+if isnull(@message, '') <> '' begin
+  select @field as field, @message as message, '' as script
+  return
+end
+select '' as field, '' as message, 'on$AutoGenerateStocktakingCreate$QueryComplete(this);' as script
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function load$AutoGenerateStocktakingCreate$(a){var b=a.grid,d=a._language=="v",c=a.getItem("status");a.add_onResponseComplete(on$AutoGenerateStocktakingCreate$ResponseComplete);a._looking=a.getItem("ma_quyen")._controlBehavior;a._looking.add_loading(on$AutoGenerateStocktakingCreate$Before$Loading);a.setItemValues("stt_rec, ma_dvcs, ma_kho, type, ma_ct",[b._$k,b._$u,b._$s,b._$t,b._$t=="1"?"PXA":"PND"]);c.options[1].text=d?b._$t=="1"?"1. Xuất kho":"1. Nhập kho":b._$t=="1"?"1. Issue":"1. Receipt";a.request("StocktakingCreate","StocktakingCreate",["stt_rec","ma_dvcs","type"]);a.getItem("ngay_ct").focus();a.setReferenceKeyFilter("ma_quyen")}function dispose$AutoGenerateStocktakingCreate$(a){try{a._looking.remove_loading(on$AutoGenerateStocktakingCreate$Before$Loading)}catch(b){}try{a.remove_onResponseComplete(on$AutoGenerateStocktakingCreate$ResponseComplete)}catch(b){}}function on$AutoGenerateStocktakingCreate$ResponseComplete(e,c){var b=c.object,d=c.type.Context,a=c.type.Result;switch(d){case"StocktakingCreate":b.setItemValues("ngay_ct, ngay",[a[0].Value,a[0].Value]);if(a[1]){b.setItemValue("dien_giai",a[3].Value);b.setItemControlBehavior("ma_kh",a[1].Value,a[2].Value,true);b.setItemControlBehavior("tk",a[4].Value,a[5].Value,true);b.setItemControlBehavior("ma_nx",a[6].Value,a[7].Value,true)}}}function on$AutoGenerateStocktakingCreate$Before$Loading(a,b){var c=a._element.parentForm;if(!c.validFields("ngay_ct"))b.type.cancelEvent=true}function on$AutoGenerateStocktakingCreate$QueryComplete(a){var b=a.grid;b._formScript="show$AutoGenerateStocktakingCreate$QueryComplete(this)"}function show$AutoGenerateStocktakingCreate$QueryComplete(a){var d=a._language=="v",b=a.get_id(),c=d?"Chương trình đã thực hiện xong.":"The process was completed successfully.";$message.show(c,String.format("$find('{0}')._focusWhenTabChanged();",b));a._focusWhenTabChanged()}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="StocktakingCreate">
+      <text>
+        <![CDATA[
+declare @d smalldatetime
+select @d = ngay_ct from kkyc where stt_rec = @stt_rec
+if exists(select 1 from dmclkktd where ma_dvcs = @ma_dvcs) begin
+  if @type = '1'
+    select @d as ngay_ct, rtrim(a.ma_kh_thieu) as ma_kh_thieu, b.ten_kh%l, a.dien_giai_thieu, rtrim(a.tk_kk_thieu) as tk_kk_thieu, c.ten_tk%l, rtrim(a.ma_nx_thieu) as ma_nx_thieu, d.ten_nx%l
+      from dmclkktd a
+        left join dmkh b on a.ma_kh_thieu = b.ma_kh
+        left join dmtk c on a.tk_kk_thieu = c.tk
+        left join dmnx d on a.ma_nx_thieu = d.ma_nx
+      where ma_dvcs = @ma_dvcs
+  else
+    select @d as ngay_ct, rtrim(a.ma_kh_thua) as ma_kh_thua, b.ten_kh%l, a.dien_giai_thua, rtrim(a.tk_kk_thua) as tk_kk_thua, c.ten_tk%l, rtrim(a.ma_nx_thua) as ma_nx_thua, d.ten_nx%l
+      from dmclkktd a
+        left join dmkh b on a.ma_kh_thua = b.ma_kh
+        left join dmtk c on a.tk_kk_thua = c.tk
+        left join dmnx d on a.ma_nx_thua = d.ma_nx
+      where ma_dvcs = @ma_dvcs
+  return
+end
+select @d as ngay_ct
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  &OutlineCss;
+</dir>

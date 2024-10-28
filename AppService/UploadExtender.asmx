@@ -1,0 +1,1 @@
+﻿<%@ WebService Class="FileUploadExtender.UploadExtender.UploadExtender" %>

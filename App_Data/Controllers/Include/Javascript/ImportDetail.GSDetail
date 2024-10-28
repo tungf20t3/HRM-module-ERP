@@ -1,0 +1,48 @@
+﻿<![CDATA[
+function set$Grid$ImportResult(z) {
+  var g = z.grid, f = z.form, w = g.get_element().parentForm, result = z.result, row = g._rowCount, first = true, refIndex = 12;
+  var c0 = g._getColumnOrder('tk'), c02 = g._getColumnOrder('ten_tk%l'), c1 = g._getColumnOrder('ma_kh'), c12 = g._getColumnOrder('ten_kh%l');
+  ]]>&ImportUserDefinedDeclare;<![CDATA[
+  var beginUDIndex = 0;
+  var fields = 'tk, ten_tk%l, ma_kh, ten_kh%l, tk_cn, ps_no_nt, ps_co_nt, dien_giai, ' + ']]>&ImportUserDefinedFields;<![CDATA[' + ',nh_dk';
+
+  for (var i = 0; i < result.length; i++) {
+    var ins = true, row = g._rowCount, importItems = result[i];
+    if (first && row > 0) if (g.blankMemvar(row)) {ins = false; first = false;}
+    if (ins) g._appendRow(null, true);
+    row = g._rowCount;
+    var o = g._getItem(row, c0);
+    o.row = row;
+    insert$Import$Items(g, fields, row, importItems);
+
+    var accountID = g._getItemValue(row, c0), accountName = g._getItemValue(row, c02), b0 = (accountName != '' || accountID == '');
+    var customerID = g._getItemValue(row, c1), customerName = g._getItemValue(row, c12), b1 = (customerName != '' || customerID == '');
+
+    var ref = importItems[refIndex];
+    var itemGridBehavior = [
+        ['tk', accountID, [accountName, b0], true],
+        ['ma_kh', customerID, [customerName, b1], true]
+    ];
+    ]]>&ImportUserDefinedSetItem;<![CDATA[
+
+    g.executeExpression(o, [g.$a.ps_no, g.$a.ps_co]);
+  }
+  on$GridVoucherDetail$RowChange(g, w);
+  g._focusWhenTabChanged();
+  f._busy = false;
+  parent.$func.hideWait(f.get_id());
+  ]]>&ImportDetailCloseForm;<![CDATA[
+  z.parentNode.removeChild(z);
+}
+function insert$Import$Items(g, fields, row, value) {
+  var field = fields.split(',');
+  for (var i = 0; i < field.length; i++) {
+    var column = g._getColumnOrder(parent.$func.trim(field[i]));
+    if (column > 0) {
+      var f = g._fields[column - 1], v = value[i];
+      if (f.ItemStyle == 'AutoComplete' && v && !$func.trim(v)) v = '';
+      g._setItemValue(row, column, v);
+    }
+  }
+}
+]]>

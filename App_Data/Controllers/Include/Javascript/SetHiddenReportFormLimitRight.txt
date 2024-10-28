@@ -1,0 +1,39 @@
+﻿<![CDATA[
+function grid$Hidden$FormReportLimitRight(g) {
+  if(g._gfa$Grid$HiddenForms) {
+    g._gfa$Grid$HiddenForms = g._gfa$Grid$HiddenForms.concat(g._grid$IdHidden$FormReport)
+    return;
+  }
+  var hfo = g._grid$IdHidden$FormReport;
+  if (hfo && g._toolbar) {
+    var hiddenForms = null, toolbarIndex = -1;
+    for (var i = 0; i < g._toolbar.length; i++) {
+      if (g._toolbar[i][0] == 'Print') {
+        toolbarIndex = i;
+        break;
+      }
+    }
+    if (toolbarIndex == -1) return;
+
+    var targets, toolbarForm = g._toolbar[toolbarIndex][2], formIndex = [];
+    for (var i = 0; i < toolbarForm.length; i++) {
+      if (toolbarForm[i].Target) {
+        targets = toolbarForm[i].Target.split(',');
+        if (targets.length > 1 && Array.contains(hfo, targets[1])) formIndex.unshift(i);
+      } else if (toolbarForm[i].MenuItems) {
+        var subToolbar = toolbarForm[i].MenuItems;
+        for (var j = 0; j < subToolbar.length; j++) {
+          targets = subToolbar[j].Target.split('','');
+          if (targets.length > 1 && Array.contains(hfo, targets[1])) formIndex.unshift(parseFloat(i + ''.'' + j));
+        }
+      }
+    }
+    if (formIndex.length > 0) {
+      var o = {Form: formIndex, Value: 1};
+      if (g._hiddenForms) Array.add(g._hiddenForms, o);
+      else g._hiddenForms = [o];
+      g._grid$IdHidden$FormReport = o;
+    }
+  }
+}
+]]>

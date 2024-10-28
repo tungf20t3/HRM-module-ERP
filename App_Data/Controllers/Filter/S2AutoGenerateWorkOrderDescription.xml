@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="options" code="name" order="name" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Cập nhật tên yêu cầu sản xuất ngầm định" e="Update Work Order Name with Default Value"></title>
+  <fields>
+    <field name="val1" maxLength="100">
+      <header v="Tên yêu cầu sản xuất" e="Work Order Name"></header>
+    </field>
+    <field name="val2" maxLength="100">
+      <header v="Tên khác" e="Other Name"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 200, 130, 0"/>
+      <item value="1100: [val1].Label, [val1]"/>
+      <item value="1100: [val2].Label, [val2]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'var f = this; f.setItemValues(''val1, val2'', [f.grid._desc1, f.grid._desc2]); $func.setCurPos(f.getItem(''val1''), 0);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+update @@table set val = rtrim(@val1), datetime2 = getdate(), user_id2 = @@userID where name = 'm_yc_tu_dong'
+update @@table set val = rtrim(@val2), datetime2 = getdate(), user_id2 = @@userID where name = 'm_yc_tu_dong2'
+
+/*
+]]>
+      </text>
+    </command>
+
+    <command event="Inserted">
+      <text>
+        <![CDATA[
+*/
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[this.grid._desc1=this.getItemValue("val1");this.grid._desc2=this.getItemValue("val2");this._flowScript="//"]]>
+      </text>
+    </command>
+  </commands>
+</dir>

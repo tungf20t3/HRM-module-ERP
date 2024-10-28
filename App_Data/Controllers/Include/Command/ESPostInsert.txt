@@ -1,0 +1,16 @@
+﻿<![CDATA[
+if @usedEI = '1' begin
+  if @$sd_hddt_yn = 1 begin
+    set @q = 'insert into hddt00$' + convert(char(6), @ngay_ct, 112) + ' (stt_rec, ngay_ct, ma_ct, ma_dvcs, mau_hddt, so_seri_hddt, so_ct_hddt, tinh_trang_hddt, trang_thai_tt, status, datetime0, datetime2, user_id0, user_id2)'
+    set @q = @q + ' select stt_rec, ngay_ct, ma_ct, ma_dvcs, '''', '''', '''', ''0'', ''0'', status, datetime0, datetime2, user_id0, user_id2'
+    set @q = @q + ' from @@table where stt_rec = ''' + replace(@stt_rec, '''', '''''') + ''''
+    set @q = @q + ' insert into hddt01$' + convert(char(6), @ngay_ct, 112) + ' (stt_rec, so_bi_mat) select ''' + @stt_rec + ''', '''''
+    exec sp_executesql @q
+  end
+
+  if @$e_mail <> '' begin
+    set @q = 'insert into v05$' + convert(char(6), @ngay_ct, 112) + '(stt_rec, ma_ct, e_mail) select ''' + @stt_rec + ''', '@@id', @$e_mail'
+    exec sp_executesql @q, N'@$e_mail nvarchar(1024)', @$e_mail
+  end
+end
+]]>&EINotePostInsert;

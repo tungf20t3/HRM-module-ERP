@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Identity "InputInvoice">
+  <!ENTITY InputInvoiceFields SYSTEM "Include\InputInvoiceFields.txt">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <type value="Voucher"/>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XML)$"/>
+    <onProcessFail value="this.frameElement.messageID=&quot;@@messageID&quot;;parent.on$&Identity;$Fail(this.frameElement);"/>
+    <onProcessComplete value=""/>
+    <baseTable value=""/>
+  </setting>
+
+  <fields identity="true" name="stt">
+    &InputInvoiceFields;
+  </fields>
+
+  <processing>
+    <text>
+      <![CDATA[
+select '' as message, 'this.frameElement.result = @@result;parent.set$Grid]]>&Identity;<![CDATA[$ImportResult(this.frameElement);' as script
+select *, cast('' as varchar(32)) as ma_vt2 into #result from @@table
+select ma_vt, ten_vt into #dmvt from dmvt with(nolock)
+update #result set thue_suat = dbo.ff_GetTaxCode2TaxRate(ma_thue)
+update #result set ma_vt2 = b.ma_vt from #result a left join #dmvt b with(nolock) on a.ten_vt = b.ten_vt
+select * from #result order by stt
+return
+]]>
+    </text>
+  </processing>
+</import>

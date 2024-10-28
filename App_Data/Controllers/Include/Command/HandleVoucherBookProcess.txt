@@ -1,0 +1,11 @@
+﻿<![CDATA[
+declare @$msgVoucherBook nvarchar(4000)
+if @ma_nk <> '' begin
+  if not exists(select 1 from v20dmnk where ma_nk = @ma_nk and ((@ngay_ct >= ngay_hl_tu or ngay_hl_tu is null) and (@ngay_ct <= ngay_hl_den or ngay_hl_den is null))) begin
+    set @$msgVoucherBook = case when @@language = 'v' then N'Kiểm tra lại ngày hiệu lực của quyển chứng từ <span class="Highlight">%s</span>.' else N'Check the effective date of book vouchers <span class="Highlight">%s</span>.' end
+    select 'so_ct' as field, replace(@$msgVoucherBook, '%s', replace(replace(replace(rtrim(@ma_nk), '&', '&amp;'), '<', '&lt;'), '>', '&gt;')) as message
+    return
+  end
+  select @$voucherBookUnit = ma_dvcs, @$voucherNumberType = m_trung_so, @$currentVoucherNumber = so_ct0, @$minVoucherNumber = so_ct1, @$maxVoucherNumber = so_ct2 from v20dmnk where ma_nk = @ma_nk
+end
+]]>

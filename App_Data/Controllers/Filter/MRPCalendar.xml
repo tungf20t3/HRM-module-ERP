@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+]>
+
+<dir table="vmdmlichlv" code="ngay_nghi" order="ngay_nghi" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="nam" type="Decimal" dataFormatString="###0" allowNulls="false">
+      <header v="Năm" e="Year"></header>
+      <items style="Numeric"></items>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 40, 60, 330"/>
+      <item value="11--: [nam].Label, [nam]"/>
+    </view>
+  </views>
+
+  <commands>
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[function active$VoucherFilter$(a){a.add_onResponseComplete(on$Filter$ResponseComplete);if(!a.getItemValue("nam"))a.getItem("nam").value=(new Date).getFullYear();a.live(a.getItem("nam"))}function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(g,a){var b=a.object,e=a.type.Context,f=a.type.Result;switch(e){case"Checking":var c=b.grid,d=[];c._$year=b.getItemValue("nam");Array.add(d,{Name:"year(ngay_nghi)",Opr:"=",Value:b.getItemValue("nam"),Type:"Numeric",Ignore:false});c.set_externalKey(d)}}]]>
+    </text>
+  </script>
+</dir>

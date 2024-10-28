@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLFlowFormFields SYSTEM "..\Include\XML\FlowFormFields.txt">
+  <!ENTITY XMLFlowFormViews SYSTEM "..\Include\XML\FlowFormViews.txt">
+  <!ENTITY XMLFlowFormCommand SYSTEM "..\Include\XML\FlowFormCommand.txt">
+  <!ENTITY XMLHiddenFields SYSTEM "..\Include\XML\UserDefinedHiddenFieldsDeclare.txt">
+  <!ENTITY ScriptFlowFormFunction SYSTEM "..\Include\Javascript\FlowFormFunction.txt">
+  <!ENTITY ScriptQueryData SYSTEM "..\Include\Javascript\QueryData.txt">
+
+  <!ENTITY Identity "JPTranImport">
+  <!ENTITY DetailTable "d39f">
+  <!ENTITY c11 "Mã ncc">
+  <!ENTITY c12 "Supplier">
+  <!ENTITY c21 "Số hóa đơn">
+  <!ENTITY c22 "Invoice Number">
+  <!ENTITY c31 "Ngày hóa đơn">
+  <!ENTITY c32 "Invoice Date">
+
+  <!ENTITY % InputInvoice SYSTEM "..\Include\InputInvoice.ent">
+  %InputInvoice;
+  %InputInvoice.Include.JPTran;
+]>
+
+<dir table="m39$000000" code="stt_rec" order="ngay_ct, so_ct" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Hóa đơn" e="Invoice"></title>
+  <fields>
+    <field name="stt_rec" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_ncc">
+      <header v="Tên ncc gốc" e="Original &c12;"></header>
+    </field>
+    <field name="ma_kh">
+      <header v="&c11;" e="&c12;"></header>
+    </field>
+    <field name="so_ct" dataFormatString="@upperCaseFormat" align="right" inactivate="true">
+      <header v="&c21;" e="&c22;"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" align="left" inactivate="true">
+      <header v="&c31;" e="&c32;"></header>
+    </field>
+
+    <field name="tk" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_tk%l" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_tt" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_tt%l" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ma_dvcs" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ong_ba" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="dia_chi" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_so_thue" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nvbh" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_nvbh%l" readOnly="true" hidden="true" filterSource="Vacant">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="&DetailTable;" external="true" clientDefault="0" defaultValue="0" rows="208" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label >
+      <items style="Grid" controller="&Identity;Grid" row="1">
+        <item value="ForeignKey">
+          <text v ="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+
+  </fields>
+
+  <views>
+    <view id="Dir" height="268" anchor="6" split="10">
+      <item value="100, 30, 70, 35, 65, 0, 0, 37, 100, 100, 8, 58, 50, 100"/>
+      <item value="1100000000-101: [ten_ncc].Label, [ten_ncc], [so_ct].Label, [so_ct]"/>
+      <item value="110--------101: [ma_kh].Label, [ma_kh], [ngay_ct].Label, [ngay_ct]"/>
+
+      <item value="1: [&DetailTable;]"/>
+
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Created">
+      <text>
+        <![CDATA[
+select 'init$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$]]>&Identity;<![CDATA[Form$(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &ScriptQueryData;
+      <![CDATA[
+function active$]]>&Identity;<![CDATA[Form$(f) {
+  f.setReadOnlyFields('ten_ncc, ma_kh, so_ct, ngay_ct');
+  f.add_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);
+}
+function init$]]>&Identity;<![CDATA[Form$(f) {
+  var g = f.grid, w = g.get_element().parentForm;
+  f._denyFocus = true;
+  f.setItemValues('ten_ncc, dia_chi, ma_so_thue, ong_ba', [g._result[0][29], g._result[0][30], g._result[0][31], g._result[0][32]]);
+  if (!(g._inputInvoiceLength && g._inputInvoiceLength > 1)) f.setItemValues('so_ct, ngay_ct', [g._result[0][1], g._result[0][2]]);
+}
+function close$]]>&Identity;<![CDATA[Form$(f) {
+  try {f.remove_onResponseComplete(on$]]>&Identity;<![CDATA[Form$ResponseComplete);} catch (ex) {}
+  var input = $get('fileuploadXml');
+  if (input) input.value = '';
+}
+function on$]]>&Identity;<![CDATA[Form$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      set$]]>&Identity;<![CDATA[Form$FlowScript(f);
+      break;
+    default:
+      break;
+  }
+}
+function set$]]>&Identity;<![CDATA[Form$FlowScript(f) {f._flowScript = 'insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(this)';}
+function insert$]]>&Identity;<![CDATA[Form$Retrieve$Data(df) {
+  var gridf = df.grid, gf = df.getItem(']]>&DetailTable;<![CDATA[')._controlBehavior,
+    f = gridf.get_element().parentForm, g = f.grid, d = f.getItem('d39')._controlBehavior, r = f.getItem('r30')._controlBehavior,
+    result = gridf._result, count = gf._rowCount;
+
+  if (count == 0) return;
+
+  // Insert Master:
+  f.setItemValues('ma_nt, ty_gia, t_ps_no_nt, t_ps_co_nt', [result[0][5], result[0][6], result[0][7], result[0][7]]);
+  if (!(d._inputInvoiceLength && d._inputInvoiceLength > 1)) f.setItemValues('so_ct0, ngay_ct0, ngay_ct, ngay_lct, dien_giai', [result[0][1], result[0][2], result[0][2], result[0][2], result[0][15]]);
+
+  // Insert Tab Detail:
+  insert$Form$Data$Detail(f, d, gf, result, count, true);
+
+  f._tabContainer.set_activeTabIndex(1);
+  f._tabContainer.raiseActiveTabChanged();
+  set$DefaultPosition]]>&Identity;<![CDATA[Grid(r);
+
+  // Insert Tab Tax:
+  insert$Form$Data$Tax(f, r, gf, result, count, false);
+
+  on$GridVoucherTax$RowChange(r, f);
+  f._tabContainer.set_activeTabIndex(0);
+  f._tabContainer.raiseActiveTabChanged();
+}
+]]>&IIInsertDataScriptDetail;<![CDATA[
+]]>&IIInsertDataScriptTax;<![CDATA[
+function set$DefaultPosition]]>&Identity;<![CDATA[Grid(g) {
+  g._scrollLeft = 0;
+  g._changePosition(1, 0);
+  g._divGrid.scrollLeft = 0;
+  g._divHeader.scrollLeft = 0;
+}
+]]>
+    </text>
+  </script>
+</dir>

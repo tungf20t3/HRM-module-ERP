@@ -1,0 +1,538 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="generator" content="Adobe RoboHelp 8" />
+<meta name="OriginalFile" content="v20crpdmhspbnl.doc" />
+<title>Lập luận chung về hoạch định sản suất</title>
+<link rel="stylesheet" href="ai_erp.css" type="text/css" />
+<script type="text/javascript" language="JavaScript">
+//<![CDATA[
+function reDo() {
+ if (innerWidth !=origWidth || innerHeight !=origHeight)
+ location.reload();
+}
+if ((parseInt(navigator.appVersion)==4) && (navigator.appName=="Netscape")) {
+	origWidth=innerWidth;
+	origHeight=innerHeight;
+	onresize=reDo;
+}
+onerror=null; 
+//]]>
+</script>
+<style type="text/css">
+</style>
+<script type="text/javascript" language="javascript1.2" src="whmsg.js"></script>
+<script type="text/javascript" language="javascript" src="whver.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whproxy.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whutils.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whlang.js"></script>
+<script type="text/javascript" language="javascript1.2" src="whtopic.js"></script>
+
+</head>
+
+<p id="td1">Lý thuyết chung</p>
+<p id="p1">Hệ thống hoạch định kế hoạch sản xuất (MPS) sẽ giúp doanh nghiệp trả lời các câu hỏi sau:</p>
+<ul class="lo_2">
+- Cần sản xuất (đáp ứng) thực tế là bao nhiêu với quá nhiều dữ liệu nhu cầu và cung ứng?<br/>
+- Khi nào sản xuất là tốt nhất?<br/>
+- Chính sách sản xuất cho từng thành phẩm, bán thành phẩm như thế nào trong kế hoạch sản xuất?<br/>
+- Có đáp ứng được những sự thay đổi vốn không thể thiếu trong quá trình phát sinh nhu cầu cũng như quá trình cung ứng?<br/>
+- Bảo đảm hoạch định kế hoạch sản xuất trong một thời gian tương đối dài hạn?<br/>
+- Khi có 1 khách hàng yêu cầu mua hàng với số lượng và thời gian giao hàng xác định, doanh nghiệp có khả năng đáp ứng hay không?<br/>
+- Với kế hoạch sản xuất hiện tại, lượng tồn kho mong đợi có thể đáp ứng được nhu cầu của bao nhiêu kỳ tiếp theo.<br/>
+</ul>
+<p id="p1">
+Những vấn đề trên nếu tổng hợp thành một hệ thống tính toán thủ công sẽ quá lớn đối với công tác hoạch định kế hoạch sản xuất của doanh nghiệp.<br/>
+Về bản chất, để trả lời chính xác các vấn đề trên, chỉ cần xác định tương đối chính xác cân đối giữa nhu cầu và khả năng cung ứng sao cho đáp 
+ứng các thời điểm trong tương lai. Cân đối giữa nhu cầu và khả năng cung ứng gọi là tồn kho mong đợi.</p>
+<p class="node"> Nhu cầu</p>
+<p class="node_d">
+Nhu cầu vật tư có thể xuất phát từ mỗi yếu tố trong chuỗi quy trình sau:</p>
+<ul class="lo_2">
+- Dự báo bán hàng (tiêu thụ): một dự báo cũng có thể làm tăng nhu cầu trong tương lai, doanh nghiệp phải chủ động hoạch định kế hoạch 
+sản xuất số lượng dự báo này;<br/>
+- Đơn hàng bán: một đơn hàng bán cũng góp phần làm tăng nhu cầu trong tương lai; một đơn hàng bán cũng có thể phát sinh ngoài dự báo 
+hoặc có thể xuất phát từ dự báo; vì thế, khi quy trình tồn tại dự báo và đơn hàng bán, cần phải tính ròng cho các nhu cầu này.<br/>
+- Lệnh sản xuất: ở cấp thành phẩm, lệnh sản xuất là đáp ứng nhưng sẽ là nhu cầu ở các cấp bán thành phẩm kế tiếp.
+</ul>
+<p class="node"> Đáp ứng</p>
+<p class="node_d">Khả năng đáp ứng những nhu cầu nói trên có thể bao gồm những yếu tố sau:</p>
+<ul class="lo_2">
+ - Tồn kho thực tế: những thành phẩm, bán thành phẩm có sẵn trong kho.<br/>
+ - Lệnh sản xuất thành phẩm, bán thành phẩm được xem như nhu cầu đã chuyển hóa thành đáp ứng.<br/>
+- Yêu cầu mua: một yêu cầu mua được duyệt cũng cung ứng một lượng mong đợi trong tương lai.<br/>
+- Đơn hàng mua: những đơn hàng mở (đang thực hiện) cũng hứa hẹn một lượng tương đối chắc chắn trong tương lai.
+</ul>
+ 
+<p id="td2">Quy trình dữ liệu tổng quát</p>
+<p id="td3">Đầu vào</p>
+<ul class="lo_2">
+- Cấu trúc sản phẩm - Làm SP như thế nào?<br/>
+- Nhu cầu – Đơn hàng bán thực tế (Orders Booked), dự báo bán hàng (Forecast Demand)?<br/>
+- Hồ sơ tồn kho - Tình hình hiện tại của tồn kho? Những đơn hàng mua đang thực hiện?<br/>
+- Lệnh sản xuất dở dang (WIP MO)?
+</ul>
+<p id="td3">Hoạch định</p>
+<ul class="lo_2">
+- Tính toán lại dự báo (bao nhiêu dự báo sẽ được tiêu thụ bởi các đơn hàng).<br/>
+- Xác định số lượng của các đơn hàng bán đã được khách hàng xác nhận theo kỳ hoạch định (Orders Booked).<br/>
+- Phân rã cấu trúc cho từng cấp (thành phẩm, bán thành phẩm) trong sơ đồ trúc sản phẩm.<br/>
+- Tính số lượng nhận theo kế hoạch (Scheduled Receipts).<br/>
+- Xác định nhu cầu “ròng” (Net Requirements).<br/>
+- Tính số lượng kế hoạch sản xuất (MPS Quantity).<br/>
+- Tính ngày kế hoạch sản xuất (MPS Start).<br/>
+- Tính mức độ bao phủ kỳ (Period Coverage).
+</ul>
+<p id="td3">Đầu ra</p>
+<ul class="lo_2">
+- Thời gian kế hoạch sản xuất, số lượng cần sản xuất.<br/>
+- Hệ thống các cảnh báo.<br/>
+- Truy vấn khả năng đáp ứng đơn hàng.
+</ul>
+<p id="td2">Chế độ hoạch định</p>
+<p id="p2">
+Tuy tính chất của việc hoạch định là tương đối dài hạn (3 tháng, 6 tháng), nhưng do những thay đổi trong thực tế, vật tư phải được hoạch định 
+lại rất nhiều lần (hàng tuần) để đáp ứng những nhu cầu hiện tại.</p>
+<p id="td3">Thay đổi ròng</p>
+<p id="p3">
+Hoạch định thay đổi ròng chỉ hoạch định cho những thành phẩm, bán thành phẩm với thay đổi tình trạng kể từ lần hoạch định lần cuối. Hoạch định
+ thay đổi ròng không thay đổi toàn kế hoạch của những thành phẩm, bán thành phẩm này một cách toàn bộ mà chỉ tính lại những phần bị thay đổi.<br/>
+Những đơn hàng kế hoạch kể từ lần hoạch định lần cuối chỉ được thay đổi cho phù hợp với sự đáp ứng nhu cầu hiện tại bằng cách tạo ra những đơn
+ hàng mới bổ sung cho sự thiếu hụt nếu có.</p>
+ <p class="note"> Những đơn hàng kế hoạch kể cả chưa được xác nhận cũng không thay đổi mà chỉ được điều chỉnh cho phù hợp. 
+ Khi nhu cầu hiện tại vượt quá những đơn hàng kế hoạch, các đơn hàng kế hoạch mới sẽ được bổ sung tương ứng. Ngược lại, sẽ có những cảnh
+ báo để điều chỉnh các đơn hàng cho phù hợp.</p>
+<p id="td3">Tái sinh</p>
+<p id="p3">
+Hoạch định tái sinh sẽ tạo lại tất cả các đơn hàng kế hoạch kể từ lần hoạch định lần cuối nếu chúng chưa được xác nhận đặt hàng.<br/>
+Trong môi trường hoạch định tái sinh, những đơn hàng kế hoạch chưa xác nhận sẽ được thay thế hoàn toàn bằng những đơn hàng mới.</p>
+<p id="td2">Lập luận chung về các tính toán</p>
+<p id="td3">Xác định số lượng sản phẩm cần hoạch định kế hoạch sản xuất</p>
+<p id="p3">
+Đầu tiên, phải xác định số lượng cần hoạch định kế hoạch sản xuất; những đối tượng này có thể biểu hiện dưới các hình thức:</p>
+<ul class="lo_2">
+- Dự báo tiêu thụ thành phẩm;<br/>
+- Đơn hàng bán;<br/>
+- Lệnh sản xuất;
+</ul>
+<p id="p3">Về lý thuyết, các yếu tố trên sẽ được xét như sau:</p>
+<p class="node"> Dự báo tiêu thụ thành phẩm</p>
+<p class="node_d">
+Số lượng dự báo còn lại sau khi trừ bớt số lượng đã được “tiêu thụ” bởi đơn hàng. Dự báo tiêu thụ thành phẩm phải được xét theo số lượng hiệu 
+lực trước và sau bao nhiêu ngày nhất định. (Xem Backward/Forward Consumption Days)</p>
+<p class="node"> Đơn hàng bán</p>
+<p class="node_d">
+Dựa vào hạn giao hàng mà xác định được số lượng đơn hàng cần phải đáp ứng theo từng kỳ. Loại trừ các số lượng đã giao trước hạn.</p>
+<p class="node"> Lệnh sản xuất</p>
+<p class="node_d">
+Lệnh sản xuất được xem như là 1 đáp ứng nhu cầu ở cấp thành phẩm trong sơ đồ cấu trúc sản phẩm. Tuy nhiên, ở cấp bán thành phẩm thì trở thành
+ nhu cầu.Vì tính chất của hoạch định kế hoạch sản xuất là lập kế hoạch cho từng cấp trong sơ đồ cấu trúc sản phẩm.Vì vậy nhu cầu của lệnh sản
+ xuất ở cấp bán thành phẩm được xác định dựa trên phân rã cấu trúc của các cấp cao hơn trong sơ đồ cấu trúc sản phẩm.
+</p>
+<p class="e">
+Ví dụ: Tại thời điểm t tồn tại 1 nhu cầu 10 xe đạp với định mức của 1 xe đạp cần 2 bánh xe (bán thành phẩm), 1 khung xe (bán thành phẩm).
+ Tại thời điểm T cũng tồn tại 1 lệnh sản xuất dở dang 3 xe đạp. Tồn kho thực tế = 0. <br/>
+ Như vậy, lập kế hoạch sản xuất cho nhu cầu thực tế của xe đạp là 7 (10 – 3); 
+ lập kế hoạch sản xuất cho bán thành phẩm bánh xe là 20(7x2 + 3x2); 
+ lập kế hoạch sản xuất cho bán thành phẩm khung xe là 10 (7x1 +3x1).
+</p>
+<ul class="lo_2">
+- Nếu kỳ hoạch định nằm trong vùng không hoạch định nhu cầu (Demand Time Fence) thì tổng nhu cầu là các đơn hàng bán đã được xác nhận của 
+khách hàng và số lượng lệnh sản xuất thành phẩm sau khi phân rã thành các cấp bán thành phẩm tương ứng (nếu có).<br/>
+- Ngược lại, tổng nhu cầu là số lớn nhất giữa dự báo kỳ hiện hành sau khi trừ bớt số lượng đã được “tiêu thụ” bởi đơn hàng (không bao gồm 
+các đơn hàng bán kỳ hiện hành) theo tham số “số ngày dự báo trước” và “số ngày dự báo sau” và tổng các đơn hàng bán đã được xác nhận trong 
+kỳ hiện hành và số lượng lệnh sản xuất thành phẩm sau khi phân rã thành các cấp bán thành phẩm tương ứng (nếu có).
+</ul>
+<p id="td3">Tính tồn kho thực tế</p>
+<p id="p3">
+Tồn kho thực tế tại thời điểm tính toán của từng kho trong một chuỗi cung ứng.</p>
+<p id="td3">Tính lượng nhận theo kế hoạch</p>
+<p id="p3">
+Cách tính tổng quát bằng số lượng:</p>
+<ul class="lo_2">
+- Số lượng còn lại trên yêu cầu mua hàng<br/>
+- Số lượng còn lại trên đơn hàng mua<br/>
+- Số lượng kế hoạch nhập kho theo lệnh sản xuất
+</ul>
+<p id="td3">Tính thành phẩm đã sản xuất hoàn thành và nhập kho cho lệnh sản xuất</p>
+<p id="p3">
+Cần phải xác định số lượng còn phải sản xuất cho các lệnh sản xuất còn dở dang. Số lượng này được xem như là 1 đáp ứng cho các nhu cầu 
+trong tương lai.</p>
+<p id="td3">Phân rã cấu trúc sản phẩm thành các bán thành phẩm cho từng cấp</p>
+<p id="p3">
+Dựa vào số lượng sản phẩm cần hoạch định kế hoạch sản xuất (1) và định mức để phân rã thành các bán thành phẩm cho từng cấp của cấu trúc
+sản phầm.</p>
+<p class="note">Lưu ý:<br/>
+- Các bán thành phẩm ở cấp thấp hơn phải có 1 ngày trước khi sản xuất bán thành phẩm của cấp cao hơn --> Ngày cần bán thành phẩm ở cấp thấp 
+hơn trừ thêm 1 ngày vào công thức (tham số hệ thống). Ví dụ: cần 1 tuần (7 ngày) để sản xuất thành phẩm A, nhưng cần phải có trước 1 ngày khi 
+A bắt đầu sản xuất.<br/>
+- Ngày cần bán thành phẩm, phải trừ những ngày nghỉ không sản xuất theo lịch ngày nghỉ.</p>
+<p id="td3">Tồn kho mong đợi</p>
+<p id="p3">
+Nếu gọi:</p>
+<ul class="lo_2">
+INP.O.H (kỳ i) Tồn kho mong đợi.<br/>
+QPL.O (kỳ i-1) Số lượng cần phải sản xuất kỳ cận trước (khi tính toán ban đầu, do phải xóa dữ liệu các lần tính trước nên luôn bằng 0)<br/>
+QPL.R (kỳ i-1) Nhận theo kế hoạch kỳ cận trước (bằng tổng các đơn hàng đã duyệt nhưng trừ đi số lượng trên các phiếu nhập mua)<br/>
+QFD (kỳ i-1) Số lượng dự báo kỳ cận trước đã xét đến các đơn hàng tiêu thụ nó, ngoại trừ các đơn hàng trong kỳ hiện hành. Dự báo sau khi bị 
+các đơn hàng (không bao gồm đơn hàng hiện hành) trong vùng “Số ngày dự báo trước) và “Số ngày dự báo sau” tiêu thụ.<br/>
+QBO (kỳ i-1) Các đơn hàng bán đã được khách hàng xác nhận kỳ cận trước.
+</ul>
+<p id="p3">
+Thì công thức tổng quát của tồn kho mong đợi là:</p>
+<p class="fml">INP.O.H (kỳ i)=INP.O.H (kỳ i-1) + QPL.O (kỳ i-1) + QPL.R (kỳ i-1) – Max(QFD (kỳ i-1), QBO (kỳ i-1))</p>
+<p id="p3">Trong công thức trên,
+
+- Nếu là kỳ đầu tiên INP.O.H Tồn kho mong đợi=tồn kho thực tế đầu kỳ.
+
+Nếu kỳ hoạch định nằm trong vùng không hoạch định nhu cầu (Demand Time Fence – xem phần thuật ngữ) thì sử dụng công thức:</p>
+<p class="fml">INP.O.H (kỳ i)=INP.O.H (kỳ i-1) + QPL.O (kỳ i-1) + QPL.R (kỳ i-1) – QBO (kỳ i-1)</p>
+ </p>
+<p id="td3">Tính nhu cầu ròng</p>
+<p id="p3">
+Nếu gọi:</p>
+<ul class="lo_2">
+
+INP.O.H (kỳ i) Tồn kho mong đợi kỳ này<br/>
+INSty Tồn kho an toàn<br/>
+QNt.R (kỳ i) Nhu cầu ròng kỳ này<br/>
+QPL.R Nhận theo kế hoạch<br/>
+QFD Số lượng dự báo sau khi đã bị các đơn hàng bán tiêu thụ
+ (không bao gồm đơn hàng bán kỳ hiện hành)<br/>
+QBO Số lượng đơn hàng bán đã được khách hàng xác nhận.
+</ul>
+ </p>
+<p id="p3">
+- Thì công thức tổng quát của nhu cầu ròng là:</p>
+<p class="fml">QNt.R=MAX([Max(QFD, QBO) - INP.O.H - QPL.R + INSty], 0)
+ 
+
+(Nếu Max(QFD(kỳ i), QBO(kỳ i))s + INSty < INP.O.H (kỳ i) + QPL.R thì không cần phải sản xuất thêm)</p>
+<p id="td3">Tính kế hoạch sản xuất (đơn hàng kế hoạch)</p>
+<p id="p3">
+Dựa vào chính sách sản xuất của từng thành phẩm, bán thành phẩm để xác định số lượng trên từng kế hoạch sản xuất.</p>
+<p class="node"> “Rời rạc” - Discrete</p>
+<p class="node_d">
+Trong “rời rạc”, lượng kế hoạch sản xuất bằng nhu cầu ròng.
+QPL.R (kỳ i)=QNt.R (kỳ i)
+ </p>
+<p class="node"> “Cố định số lượng sản xuất theo cỡ lô”- Fixed Order Quantity</p>
+<p class="node_d">
+Nếu gọi Qlot là cỡ lô của mặt hàng thì trong 
+ “Cố định số lượng sản xuất theo cỡ lô”, lượng sản xuất bằng bội số nhỏ nhất (thương số giữa nhu cầu ròng và cỡ lô) của cỡ lô.</p>
+<p class="fml"> QPL.R (kỳ i)=ROUNDUP(QNt.R (kỳ i)Qlot ,0)*Qlot</p>
+<p class="node_d">(ROUNDUP: Hàm làm tròn số tăng)</p>
+<p id="td3">Tính thời gian của kế hoạch sản xuất (MPS Start)</p>
+<p id="p3">
+Dựa vào chính sách<br/>
+Tính thời điểm sẽ phải giải phóng kế hoạch sản xuất<br/>
+Kỳ giải phóng đơn hàng (TRl) bằng kỳ nhu cầu (TRq) trừ đi (-) thời gian thực hiện sản xuất (TLt) (Mfg Leadtime)</p>
+<p class="fml">TRl=TRq - TLt
+ </p>
+<p id="td3">Tính hệ số đảm bảo kỳ (Period Coverage)</p>
+<p id="p3">
+Số lượng kỳ nhỏ nhất, bắt đầu bằng kỳ kế tiếp, mà cộng dồn các dự báo và yêu cầu có thể tiêu thụ hoàn toàn tồn kho mong đợi cuối kỳ của kỳ 
+hiện hành.<br/>
+Nếu gọi:</p>
+<ul class="lo_2">
+INP.O.H (kỳ i) Tồn kho mong đợi cuối kỳ của kỳ hiện hành. Tương ứng với tồn kho mong đợi đầu kỳ i+1<br/>
+FD (kỳ i++) Số lượng dự báo kỳ đã xét đến các đơn hàng tiêu thụ nó, ngoại trừ các đơn hàng trong kỳ hiện hành. Dự báo sau khi bị các đơn hàng 
+(không bao gồm đơn hàng hiện hành) trong vùng Backward và Forward Comsumption tiêu thụ.<br/>
+BO (kỳ i++) Các đơn hàng bán đã được khách hàng xác nhận.<br/>
+PC (kỳ i) Hệ số đảm bảo kỳ i.<br/>
+ </ul>
+<p id="p3">Thì công thức hệ số đảm bảo kỳ là:</p>
+<p class="fml">
+ PC i = Prj.OH (kỳ i)Sum(Max(FD i++,BO i++)) </p>
+<p id="td2">Hệ thống cảnh báo</p>
+<p id="p2">
+Hệ thống cảnh báo là những thông điệp được tạo ra bởi hệ thống để hỗ trợ quyết định. Khi phát hiện một sự mất cân đối trong việc cung ứng
+nhu cầu, hệ thống sẽ tự động kết xuất hệ thống cảnh báo đến người hoạch định. Một cảnh báo sẽ chỉ rõ sự mất cân đối và đề nghị phương án để đạt
+ sự cân đối này. Trong từng trường hợp cụ thể, hệ thống có thể kết xuất những cảnh báo như sau:</p>
+<p class="node"> Hủy</p>
+<p class="node_d">Hủy một đơn hàng (kế hoạch sản xuất) hiện hữu nếu không có một nhu cầu nào trong tương lai.
+Điều kiện kết xuất cảnh báo là:</p>
+<ul class="lo_2">
+- Không có nhu cầu nào trong tương lai kể từ kỳ có cảnh báo;<br/>
+- Tồn tại những đơn hàng kế hoạch (đã lập trước lần hoạch định gần nhất) trong kỳ có cảnh báo;<br/>
+- Tồn kho mong đợi (chưa bao gồm đơn hàng kế hoạch có cảnh báo) cao hơn tồn kho an toàn tại một thời điểm tính toán nào đó bất kỳ sau đó.
+</ul>
+<p class="e"> Ví dụ: <br/>
+- Giả sử tồn kho an toàn của mã hàng là 100 và tồn kho thực tế là 0. Khi chạy MPS sẽ xuất hiện đơn hàng kế hoạch là 100. Xác nhận đơn hàng này;<br/>
+- Tạo đơn hàng bán và duyệt 1000 đơn vị. Khi chạy MPS sẽ xuất hiện thêm đơn hàng kế hoạch là 1000. Xác nhận đơn hàng này;<br/>
+- Bỏ duyệt đơn hàng 1000. Khi chạy MPS sẽ xuất hiện cảnh báo hủy đơn hàng 1000 đã xác nhận.
+</p>
+<p class="node"> Thay đổi số lượng - Tăng số lượng lên “n”</p>
+<p class="node_d">
+Thay đổi số lượng trong một đơn hàng kế hoạch (cho kỳ hiện tại) đề đáp ứng một thay đổi hoặc một nhu cầu mới.<br/>
+Điều kiện kết xuất cảnh báo là:</p>
+<ul class="lo_2">
+- Tồn tại những đáp ứng (đã lập trước lần hoạch định gần nhất) trong kỳ có cảnh báo;<br/>
+- Tồn kho mong đợi (chưa bao gồm đơn hàng kế hoạch) thấp hơn tồn kho an toàn tại thời điểm xét nhu cầu hiện tại;<br/>
+- Tồn kho mong đợi (đã bao gồm đơn hàng kế hoạch) vẫn thấp hơn tồn kho an toàn tại thời điểm xét nhu cầu hiện tại.
+</ul>
+<p class="note">Lưu ý:<br/>
+
+- Số lượng yêu cầu bằng chênh lệch giữa tồn kho an toàn và tồn kho mong đợi.</p>
+<p class="node"> Thay đổi số lượng - Giảm đi một lượng “n”</p>
+<p class="node_d">
+Thay đổi số lượng trong một đơn hàng kế hoạch đề đáp ứng một thay đổi hoặc một nhu cầu mới.<br/>
+Điều kiện kết xuất cảnh báo là:</p>
+<ul class="lo_2">
+- Tồn tại những đơn hàng kế hoạch (đã lập trước lần hoạch định gần nhất) trong kỳ có cảnh báo;<br/>
+- Tồn kho mong đợi (đã bao gồm đơn hàng kế hoạch) cao hơn tồn kho an toàn tại thời điểm xét nhu cầu hiện tại;<br/>
+- Không có nhu cầu nào trong tương lai.</ul>
+<p class="note">Lưu ý:<br/>
+- Số lượng yêu cầu bằng chênh lệch giữa tồn kho an toàn và tồn kho mong đợi.</p>
+
+<p class="e"> Ví dụ: <br/>
+- Giả sử tồn kho an toàn của mã hàng là 100 và tồn kho thực tế là 0. Khi chạy MPS sẽ xuất hiện đơn hàng kế hoạch là 100. Xác nhận đơn hàng này;<br/>
+- Tạo đơn hàng bán và duyệt 1000 đơn vị. Khi chạy MPS sẽ xuất hiện thêm đơn hàng kế hoạch là 1000. Xác nhận đơn hàng này;<br/>
+- Bỏ duyệt đơn hàng 1000 và chạy MPS;<br/>
+- Bỏ xác nhận đơn hàng kế hoạch 100. Khi chạy MPS sẽ xuất hiện cảnh báo giảm đơn hàng 1000 xuống còn 100.
+</p>
+
+<p class="node"> Đổi ngày - Dịch lên trước ngày “d”</p>
+<p class="node_d">
+Thay đổi thời điểm yêu cầu của đơn hàng kế hoạch đến một thời điểm khác thích hợp hơn (sớm hơn); ở thời điểm đó, tồn kho mong đợi đạt hơn 
+mức cân bằng một lượng không quá tồn kho an toàn.<br/>
+Điều kiện kết xuất cảnh báo là:</p>
+<ul class="lo_2">
+- Tồn tại những đơn hàng kế hoạch (đáp ứng) đã có trong tương lai (của lần tính trước đây);<br/>
+- Thiếu hụt tại thời điểm cần đáp ứng trong hiện tại, tồn kho mong đợi thấp hơn tồn kho an toàn tại thời điểm xét nhu cầu cần đáp ứng trong 
+hiện tại khi chưa dời;<br/>
+- Đáp ứng vừa đủ nhu cầu hiện tại sau khi dời;</ul>
+<p id="pic"><img src="vie/mps_logic1.png"></img></p>
+ </p>
+<p class="note">Lưu ý:<br/>
+- Ngày mới trong đơn hàng kế hoạch là thời điểm tồn kho mong đợi đạt hơn mức cân bằng một lượng không quá lượng tồn kho an toàn.</p>
+<p class="node"> Đổi ngày - Dịch xuống sau ngày “d”</p>
+<p class="node_d">
+Thay đổi thời điểm yêu cầu của đơn hàng kế hoạch đến một thời điểm khác thích hợp hơn (trễ hơn); ở thời điểm đó, tồn kho mong đợi đạt hơn 
+mức cân bằng một lượng không quá tồn kho an toàn.<br/>
+Điều kiện kết xuất cảnh báo là:</p>
+<ul class="lo_2">
+- Tồn tại những đơn hàng kế hoạch đã có trong hiện tại (của lần tính trước đây);<br/>
+- Không tồn tại những nhu cầu cần đáp ứng trong hiện tại;<br/>
+- Tồn tại những nhu cầu cần đáp ứng trong tương lai kể từ kỳ có cảnh báo;<br/>
+- Thiếu hụt tại thời điểm cần đáp ứng trong tương lai, không có đáp ứng nào cho các nhu cầu trong tương lai kể từ kỳ có cảnh báo;<br/>
+- Đáp ứng vừa đủ nhu cầu tương lai sau khi dời.</ul>
+<p id="pic"><img src="vie/mps_logic2.png"></img></p>
+ </p>
+<p class="note">Lưu ý:<br/>
+- Ngày mới trong đơn hàng kế hoạch là thời điểm tồn kho mong đợi đạt hơn mức cân bằng một lượng không quá lượng tồn kho an toàn.</p>
+<p class="node"> Đổi ngày và số lượng - Giảm số lượng xuống “n” đơn vị và dịch lên trước ngày “d”</p>
+<p class="node_d">
+Nếu trong trường hợp đã dời một đáp ứng trong tương lai lên ngày hiện tại mà tồn kho mong đợi hiện tại vẫn cao hơn tồn kho an toàn thì hệ 
+thống sẽ cảnh báo giảm đi một lượng. Trong trường hợp này, việc mua hàng hoặc kế hoạch sản xuất quá nhiều sẽ gây tồn trữ cao, lãng phí về 
+các chi phí lưu kho.
+
+Điều kiện kết xuất cảnh báo là:</p>
+<ul class="lo_2">
+- Thiếu hụt tại thời điểm hiện tại, tồn kho mong đợi thấp hơn tồn kho an toàn tại thời điểm xét nhu cầu hiện tại;<br/>
+- Tồn tại những đáp ứng đã có trong tương lai (của lần tính trước đây);<br/>
+- Không có nhu cầu nào cần đáp ứng trong trương lai;<br/>
+- Đã dời ngày đáp ứng mà tồn kho mong đợi vẫn cao hơn tồn kho an toàn tại thời điểm hiện tại.</ul>
+<p class="node"> Đổi ngày và số lượng - Tăng số lượng lên “n” đơn vị và dịch lên trước ngày “d”</p>
+<p class="node_d">
+Nếu trong trường hợp đã dời một đáp ứng trong tương lai lên ngày hiện tại mà vẫn không đủ đáp ứng nhu cầu hiện tại thì hệ thống sẽ cảnh 
+báo tăng một lượng.<br/>
+Điều kiện kết xuất cảnh báo là:</p>
+<ul class="lo_2">
+
+
+- Thiếu hụt tại thời điểm hiện tại, tồn kho mong đợi thấp hơn tồn kho an toàn tại thời điểm xét nhu cầu hiện tại;<br/>
+- Tồn tại những đáp ứng đã có trong tương lai (của lần tính trước đây);<br/>
+- Không có nhu cầu nào cần đáp ứng trong trương lai;<br/>
+- Đã dời ngày đáp ứng mà tồn kho mong đợi thấp hơn tồn kho an toàn tại thời điểm hiện tại.</ul>
+<p class="node"> Đổi ngày và số lượng - Giảm số lượng xuống “n” đơn vị và dời lại sau ngày “d”</p>
+<p class="node_d">
+Nếu trong trường hợp đã dời lại ngày của một đáp ứng hiện tại đến một thời điểm tương lai mà vẫn đáp ứng quá mức nhu cầu tương lai thì 
+hệ thống sẽ cảnh báo giảm đi một lượng. Trong trường hợp này, việc mua hàng hoặc kế hoạch sản xuất quá nhiều sẽ gây tồn trữ cao, lãng phí 
+về các chi phí lưu kho.<br/>
+Điều kiện kết xuất cảnh báo là:</p>
+<ul class="lo_2">
+
+
+- Đã đáp ứng tại thời điểm hiện tại, tồn kho mong đợi cao hơn tồn kho an toàn tại thời điểm xét nhu cầu hiện tại một lượng cho phép;<br/>
+- Tồn tại những đáp ứng đã có trong thời điểm xét nhu cầu hiện tại (của lần tính trước đây);<br/>
+- Có nhu cầu cần đáp ứng trong trương lai;<br/>
+- Đã dời ngày đáp ứng trễ lại mà tồn kho mong đợi cao hơn tồn kho an toàn tại thời điểm tương lai.</ul>
+<p class="node"> Đổi ngày và số lượng - Tăng số lượng lên “n” đơn vị và dời lại sau ngày “d”</p>
+<p class="node_d">
+Nếu trong trường hợp đã dời lại ngày của một đáp ứng hiện tại đến một thời điểm tương lai mà đáp ứng đó không đáp ứng nhu cầu thì hệ thống
+ sẽ cảnh báo tăng một lượng.<br/>
+Điều kiện kết xuất cảnh báo là:</p>
+<ul class="lo_2">
+
+
+- Đã đáp ứng tại thời điểm hiện tại, tồn kho mong đợi cao hơn tồn kho an toàn tại thời điểm xét nhu cầu hiện tại một lượng cho phép;<br/>
+- Tồn tại những đáp ứng đã có trong thời điểm xét nhu cầu hiện tại (của lần tính trước đây);<br/>
+- Có nhu cầu cần đáp ứng trong trương lai;<br/>
+- Đã dời ngày đáp ứng trễ lại mà tồn kho mong đợi cao thấp hơn tồn kho an toàn tại thời điểm tương lai.</ul>
+<p class="node"> Lập đơn hàng mới</p>
+<p class="node_d">
+Trong cả chế độ hoạch định thay đổi ròng hoặc tái sinh, việc tạo ra những đơn hàng kế hoạch sẽ có cảnh báo cho biết những đơn hàng mới tạo.</p>
+<p class="node"> Nhận hàng quá chậm</p>
+<p class="node_d">
+Ngày nhận hàng trước ngày hiện tại, số liệu đã không còn thực tế. Áp dụng trong những đáp ứng đã quá hạn. Trong trường hợp này cần hủy những
+ đơn hàng (mua), lệnh sản xuất và lập những đáp ứng mới.</p>
+<p class="node"> Đặt hàng, kế hoạch sản xuất quá chậm</p>
+<p class="node_d">
+Ngày đặt hàng, kế hoạch trước ngày hiện tại, cảnh báo giúp nhắc nhở xúc tiến nhanh đặt hàng, kế hoạch sản xuất hoặc cần hủy những đơn hàng (mua),
+ các đơn hàng kế hoạch và lập những đáp ứng mới.</p>
+<p id="td2">Khả năng đáp ứng các đơn hàng mới (Available to Promise)</p>
+<p id="td3">
+Phương pháp tính “đáp ứng rời rạc” – Decrete ATP</p>
+<p id="p3">
+Bước quan trọng trong việc tính số lượng “đáp ứng rời rạc” là phải trừ các cam đoan giao hàng (Promised Deliveries) trong kỳ mà ATP được tính 
+và cả những kỳ tiếp theo mà không có số lượng sản xuất nào được lên kế hoạch sản xuất (MPS). Thêm vào đó 2 thông tin cần được quan tâm:</p>
+<ul class="lo_2">
+
+- Thứ nhất, trong kỳ tính đầu tiên, phải cộng thêm tồn kho ban đầu cho ATP<br/>
+- Thứ hai, kỳ nào mà không có kế hoạch sản xuất thì ATP của kỳ đó luôn luôn bằng 0.
+</ul>
+<p id="p3">
+Nếu gọi:<br/>
+ATP i	Số lượng hàng hóa có thể đáp ứng các đơn hàng mới kỳ i.<br/>
+OH	Tồn kho thực tế.<br/>
+MPS i	Số lượng đơn hàng kế hoạch sản xuất kỳ i<br/>
+Tổng số lượng các đơn hàng bán đã được xác nhận từ kỳ hiện hành đến kỳ cận trước kỳ xuất hiện MPS kế tiếp (đáp ứng mới) là :</p>
+<p id="pic"><img src="vie/mps_logic0a.png"></img></p> </p>
+<p id="p3"> Các cam đoan giao hàng kỳ từ kỳ hiện hành đến kỳ xuất hiện MPS kế tiếp là </p>
+<p id="pic"><img src="vie/mps_logic0b.png"></img></p> </p>
+<p id="p3">Thì công thức khả năng đáp ứng cho kỳ đầu tiên là:</p>
+<p id="pic"><img src="vie/mps_logic0c.png"></img></p> </p>
+<p id="p3">Công thức khả năng đáp ứng cho các kỳ tiếp theo là:</p>
+<p id="pic"><img src="vie/mps_logic0d.png"></img></p> </p>
+<p id="td3">Phương pháp tính “đáp ứng lũy kế” – Cumulative ATP</p>
+<p id="p3">
+Được tính bằng tổng của ATP kỳ trước và kế hoạch sản xuất, trừ các cam đoan giao hàng của kỳ được xét. Điểm khác nhau giữa phương pháp này 
+và phương pháp rời rạc là ATP kỳ này có thể bao gồm số lượng đã được bao gồm trong ATP của những kỳ trước.<br/>
+Nếu gọi:<br/>
+ CATP i	Số lượng hàng hóa có thể đáp ứng các đơn hàng mới lũy kế đến kỳ i.<br/>
+CATP i-1	Số lượng hàng hóa có thể đáp ứng các đơn hàng mới lũy kế đến kỳ cận trước.<br/>
+ATP i	Số lượng hàng hóa có thể đáp ứng các đơn hàng mới kỳ i.<br/>
+
+
+Thì công thức tính “đáp ứng lũy kế” sẽ là:</p>
+<p id="pic"><img src="vie/mps_logic0e.png"></img></p> </p>
+<p class="e">Ví dụ: <br/>Chi tiết tác dụng của ATP
+Trước khi xuất hiện đơn hàng mới cần đáp ứng (Promise)</p>
+<p id="pic"><img src="vie/mps_logic3.png"></img></p>
+<p class="e"> Một khách hàng thông báo là sẽ mua 200 đơn vị nếu ta có thể giao hàng vào kỳ 5. Bảng sau đây sẽ trình làm thế nào để có thể đáp 
+ứng 200 đơn vị vào kỳ 5 và làm thế nào để phân bổ đơn hàng 200 đơn vị này vào các kỳ 1, 3 và 5 và điều chỉnh ATP.
+ </p>
+<p id="pic"><img src="vie/mps_logic4.png"></img></p>
+ </p>
+<p class="e">
+Trả lời câu hỏi “Tại sao dòng Promises lại có các con số như vậy?”.<br/>
+Như theo bảng 1 thì dồn tích ATP đến kỳ 5 là 240 > 200 số lượng đơn hàng cần được đáp ứng nên ta có khả năng xác nhận và phân bổ số lượng xác 
+nhận này từ phải sang trái bắt đầu từ kỳ cần giao hàng. Sau đó tính lại ATP và ATP lũy kế.</p>
+<p class="e">
+Ví dụ 2: <br/>Các trường hợp xử lý của ATP khi xuất hiện đơn hàng mới cần đáp ứng.<br/>
+Tồn kho thực tế=85</p>
+<p id="pic"><img src="vie/mps_logic5.png"></img></p>
+<p class="e">
+Khách hàng A muốn 50 đơn vị vào kỳ 3 – Có thể đảm bảo giao hàng hay không?<br/>
+ĐẢM BẢO</p>
+<p id="pic"><img src="vie/mps_logic6.png"></img></p>
+<p class="e"></p>
+<p class="e">Khách hàng B muốn 200 đơn vị vào kỳ 6 – Có thể đảm bảo giao hàng được không?<br/>
+KHÔNG</p>
+<p id="pic"><img src="vie/mps_logic7.png"></img></p>
+<p class="e">Vì số lượng ATP dồn tích tại kỳ 5 là 197 < 200</p>
+<p id="pic"><img src="vie/mps_logic8.png"></img></p>
+<p class="e">Khách hàng C muốn 175 đơn vị vào kỳ 4 – Có thể đảm bảo giao hàng được không? <br/>ĐẢM BẢO</p>
+<p id="pic"><img src="vie/mps_logic9.png"></img></p>
+<p class="e">Để đảm bảo giao hàng 175 đơn vị vào kỳ 4, lấy số lượng 162 từ kỳ 4 và số lượng 13 từ kỳ 2 (tuần tự từ phải sang trái). Không 
+được trừ từ trái sang phải vì sẽ làm mất cơ hội bán hàng của kỳ tương lai gần trong khi số lượng ATP của các kỳ tương lai xa hơn vẫn có khả 
+năng đáp ứng.
+ </p>
+<p id="td2">Giới hạn phạm vi nghiệp vụ trong phiên bản này</p>
+<p id="pic"><img src="vie/mps_logic10.png"></img></p>
+<p id="p2">
+CRP: Capacity Requirements Planning - Hoạch định công xuất<br/>
+MPS: Master Production Schedule - Kế hoạch sản xuất chính</p>
+<p id="td3">Xác định số lượng dự báo còn lại</p>
+<p id="p3">
+Số lượng dự báo bán hàng của thành phẩm, bán thành phẩm kỳ sau khi trừ bớt các đơn hàng bán tiêu thụ nhưng không bao gồm đơn hàng bán kỳ đang 
+xét.<br/>
+Dự báo tiêu thụ thành phẩm phải được xét theo số lượng hiệu lực trước và sau bao nhiêu ngày nhất định.</p>
+<p id="td3">Xác định số lượng nhu cầu/phân bổ</p>
+<p id="p3">
+Số lượng này:</p>
+<ul class="lo_2">
+
+- Là “nhu cầu” nếu trong hoạch định kế hoạch sản xuất chỉ xét đến yếu tố đơn hàng. Nhu cầu có thể là đơn hàng, lệnh sản xuất 
+(cấp bán thành phẩm).<br/>
+- Là “phân bổ” nếu trong hoạch định kế hoạch sản xuất xét đến cả 2 yếu tố đơn hàng và dự báo. Trong số lượng dự báo đó thì số 
+lượng của đơn hàng bán, lệnh sản xuất (cấp bán thành phẩm) chiếm bao nhiêu.
+</ul>
+<p id="td3">Tính tồn kho thực tế</p>
+<p id="p3">
+Tồn kho thực tế tại thời điểm tính toán của tất cả các kho trong một tổ chức sản xuất.</p>
+<p id="td3">Xác định thời điểm yêu cầu</p>
+<p id="p3">
+Hoạch định kế hoạch sản xuất xác định kế hoạch tại từng cấp thành phẩm, bán thành phẩm. Vì vậy cần xác định thời điểm của nhu cầu,
+ phân rã cấu trúc sản phẩm theo từng cấp và dựa vào thời gian thực hiện sản xuất ước tính (leadtime) của từng sản phẩm, bán thành
+ phẩm để xác định được thời điểm của nhu cầu.</p>
+<p id="td3">Tính các đơn hàng kế hoạch</p>
+<p id="p3">
+Những chính sách được đề cập trong phiên bản:</p>
+<ul class="lo_2">
+
+- “Cố định số lượng đặt hàng theo cỡ lô”- Fixed Order Quantity<br/>
+- “Rời rạc” - Discrete (Lot for Lot)</ul>
+<p id="td3">Tính tỷ lệ đảm bảo kỳ</p>
+<p id="p3">
+Tỷ lệ này xác định số kỳ mà tồn kho mong đợi kỳ hiện hành có thể đảm bảo các dự báo và các yêu cầu trong các kỳ tiếp theo.</p>
+<p id="td3">Tính khả năng đáp ứng các đơn hàng (Available to Promise – ATP)</p>
+<p id="p3">
+Khả năng đáp ứng được đề cập trong phiên bản</p>
+<ul class="lo_2">
+
+- “Rời rạc” – Discrete ATP<br/>
+- “Lũy kế” – Cumulative ATP</ul>
+<p id="td2">Điều kiện tiên quyết</p>
+<p id="p2">
+Để có thể ứng dụng được chương trình hoạch định kế hoạch sản xuất, cần tuân thủ một số các điều kiện sau:</p>
+<p class="node"> Thời điểm hoạch định kế hoạch sản xuất</p>
+<p class="node_d">
+Do tính chất là hoạch định nên thời gian tính MPS phải luôn luôn là ngày hiện tại (hệ thống). Dựa vào ngày hệ thống để MPS đưa ra 
+các cảnh báo quá hạn cho những thành phẩm, bán thành phẩm không thể thực hiện đặt mua được hoặc sản xuất hoặc nằm trong kế hoạch cận kề.</p>
+<p class="node"> Quy trình</p>
+<p class="node_d">
+Do hoạch định liên quan tới tính toán cân đối thực hiện ở nhiều bước trong quy trình sản xuất kinh doanh, nên việc quan trọng nhất
+ là phải tuân theo quy trình. Những quy trình bắt buộc được nêu ra cụ thể dưới đây:</p>
+<ul class="lo_2">
+
+- Lập lệnh sản xuất từ kế hoạch sản xuất;<br/>
+- Đóng tất cả những lệnh sản xuất đã quá hạn;<br/>
+- Không cập nhật đơn hàng khi trả lại nhà cung cấp. Hàng trả lại không được cập nhật lại đơn hàng mà phải tạo đơn hàng mới;<br/>
+- Trường hợp vật tư xuất dùng bị hỏng, phải lập phiếu nhập lại vật tư hỏng vào kho;<br/>
+- Các phiếu xuất phải được xuất trước ngày hoạch định (ngày của máy chủ), không cho phép xuất trong tương lai;<br/>
+- Những đơn hàng kế hoạch đã xác nhận nhưng chưa chuyển sang lệnh sản xuất phải được hủy xác nhận.</ul>
+<p class="node"> Điều kiện triển khai</p>
+<p class="node_d">
+Nhiều yêu cầu phải được đáp ứng để tạo cho dự án triển khai MPS một cơ hội thành công:</p>
+<ul class="lo_2">
+
+- Phải có máy vi tính đủ mạnh làm cơ sở cho hệ thống sản xuất. Dù hoạch định kế hoạch sản xuất vẫn có thể được tính bằng tay, nhưng 
+do tính chất thay đổi cao của môi trường sản xuất, chúng phải luôn được cập nhật.<br/>
+- Cấu trúc nguyên vật liệu nên chính xác. Chúng cần phải được nhanh chóng cập nhật để phản ánh những thay đổi công nghệ cho sản phẩm. 
+Nếu một phần yếu tố thành phẩm, bán thành phẩm bị bỏ qua trong cấu trúc sản phẩm thì hệ thống sẽ không bao giờ lập yêu cầu.<br/>
+- Thông tin tồn kho nên miêu tả chính xác thực tế, nếu không quy trình tính toán và việc phát sinh những đơn hàng kế hoạch trở nên vô 
+nghĩa.<br/>
+- Thời gian mua hàng tồn kho nên được nhập vào cho hệ thống MPS biết.<br/>
+- Nguyên tắc xưởng sản xuất là cần thiết để bảo đảm rằng các lệnh sản xuất được xử lý phù hợp với sự ưu tiên đã được thiết lập. 
+Nếu không thời gian sản xuất lập trong MPS sẽ không thực hiện được.
+ 
+</ul>
+
+<script type="text/javascript" src="setPageFooter.js"> </script>
+</body>
+</html>

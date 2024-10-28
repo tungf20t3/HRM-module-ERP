@@ -1,0 +1,18 @@
+﻿        <![CDATA[
+if (this._checked && this._usedDP) {
+  var y$ = this.getItem('p]]>&Tag;<![CDATA[')._controlBehavior, t$ = this.getItemValue('ma_kh'), id$ = this.get_id(), column$Order = y$._getColumnOrder('stt_rec_phieu');
+  var e$ = ((this._language == 'v') ? 'Thông tin khách hàng hoặc nhà cung cấp của hóa đơn phải giống với chứng từ ứng trước.' : 'Invoice should have same customer or supplier information as Down Payment.');
+  for (var i$ = 1; i$ <= y$._rowCount; i$++) {
+    if (y$._getItemValue(i$, column$Order)) {
+      var z$ = y$._getItem(i$, 1)._customerIdentity;
+      if (!z$) z$ = (this._action == 'Edit') ? this._customerIdentity : t$;
+      if (t$ != z$) {
+        $func.hideWait(id$);
+        $message.show(e$, String.format('$find(\'{0}\').getItem(\'ma_kh\').focus()', id$));
+        this._checked = false;
+        break;
+      }
+    }
+  }
+}
+]]>

@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir xmlns="urn:schemas-ai-erp:data-dir" cache="true">
+  <title v="Cập nhật thông tin phản hồi từ cơ quan thuế" e="Tax Authority Feedback Update"></title>
+  <fields>
+    <field name="ngay_ct1" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="fromDate" defaultValue="new Date()">
+      <header v="Từ ngày" e="Date From"></header>
+      <footer v="Ngày từ/đến" e="Date from/to"></footer>
+    </field>
+    <field name="ngay_ct2" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" aliasName="toDate" defaultValue="new Date()">
+      <header v="Đến ngày" e="Date to"></header>
+    </field>
+    <field name="ma_dvcs" allowNulls="false">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="ma_dvcs in (select ma_dvcs from dmdvcs where @@admin = 1 or ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID) and status = '1')" check="ma_dvcs in (select ma_dvcs from dmdvcs where @@admin = 1 or ma_dvcs in (select ma_dvcs from sysunitrights where user_id = @@userID))"/>
+      <clientScript><![CDATA[onchange="onChange$Form$Unit(this);"]]></clientScript>
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nk" onDemand="true" external="true" filterSource="Optional">
+      <header v="Mã quyển" e="Voucher Book"></header>
+      <items style="AutoComplete" controller="EIVoucherBook" reference="ten_nk%l" key="loai_sd ='{$%c[loai_sd]}' and (ma_dvcs = '{$%c[ma_dvcs]}' or ma_dvcs = '') and (lstuser = '' or charindex(',' + rtrim(@@userName) + ',', ',' + replace(lstuser, ' ', '') + ',') &gt; 0) and status = '1'" check="loai_sd = '{$%c[loai_sd]}' and (ma_dvcs = '{$%c[ma_dvcs]}' or ma_dvcs = '') and (lstuser = '' or charindex(',' + rtrim(@@userName) + ',', ',' + replace(lstuser, ' ', '') + ',') &gt; 0)"/>
+    </field>
+    <field name="ten_nk%l" readOnly="true" external="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="loai_sd" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230"/>
+      <item value="1101: [ngay_ct1].Description, [ngay_ct1], [ngay_ct2]"/>
+      <item value="11010: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
+      <item value="110101: [ma_nk].Label, [ma_nk], [ten_nk%l], [loai_sd]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @unitName nvarchar(256)
+select @unitName = case when @@language = 'v' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit
+select 'this._unitCode=''' + @@unit + ''';this._unitName=''' + replace(replace(isnull(@unitName, ''), '\', '\\'), '''', '\''') + ''';' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'var f=this;f._url$EInvoice=''~/AppService/AI_ERP.EInvoice.ServiceGetInformation.asmx'';active$TaxAuthorityFeedbackUpdate$(f);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$TaxAuthorityFeedbackUpdate$(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[var f=this,id=f.get_id(),v=f._language=="v",e1=v?"Chỉ được cập nhật các hóa đơn thuộc cùng một kỳ dữ liệu.":"Only update the invoices with the same period.";if(f.getItemValue("loai_sd")=="2")e1=v?"Chỉ được cập nhật các chứng từ thuộc cùng một kỳ dữ liệu.":"Only update the vouchers with the same period.";var e2=v?'Trường <span class="Highlight">Từ ngày</span> phải nhỏ hơn hoặc bằng <span class="Highlight">Đến ngày</span>.':'<span class="Highlight">Date from</span> must be less than or equal to <span class="Highlight">Date to</span>.',k1=f.getItemValue("ngay_ct1"),k2=f.getItemValue("ngay_ct2");if(f._checked)if(k1>k2){$func.hideWait(id);$message.show(e2,String.format("$find('{0}').getItem('ngay_ct1').focus()",id));f._checked=false}if(f._checked)if(k1.getYear()!=k2.getYear()||k1.getMonth()!=k2.getMonth()){$func.hideWait(id);$message.show(e1,String.format("$find('{0}').getItem('ngay_ct1').focus()",id));f._checked=false}]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$TaxAuthorityFeedbackUpdate$(a){var b=a.grid;a.add_onResponseComplete(on$TaxAuthorityFeedbackUpdate$ResponseComplete);a.getItemValue("ma_dvcs")==""&&a.setItemControlBehavior("ma_dvcs",a._unitCode,a._unitName,null);a.setItemValue("loai_sd",b._$loai_sd);valid$Form$VoucherBook(a)}function close$TaxAuthorityFeedbackUpdate$(a){try{a.remove_onResponseComplete(on$TaxAuthorityFeedbackUpdate$ResponseComplete)}catch(b){}}function onChange$Form$Unit(a){valid$Form$VoucherBook(a.parentForm)}function valid$Form$VoucherBook(a){a.setReferenceKeyFilter("ma_nk")}function on$TaxAuthorityFeedbackUpdate$ResponseComplete(e,a){var b=a.object,c=a.type.Context,d=a.type.Result;switch(c){case"Checking":b._checked=false;request$Feedback(b)}}function request$Feedback(a,d){var c=a.grid,b=a._id,h=a.getItemValue("type");if(!d){busy$Page(a,true);window.setTimeout(function(){request$Feedback(a,true)},2);return}$func.showWait(b);var e=Sys.Serialization.JavaScriptSerializer.serialize({unit:a.getItemValue("ma_dvcs"),dFrom:$func.formatDateOrder(a.getItemValue("ngay_ct1")),dTo:$func.formatDateOrder(a.getItemValue("ngay_ct2")),numFrom:"",numTo:"",invoiceCategory:a.getItemValue("ma_nk"),invoiceType:a.getItemValue("loai_sd")}),g="8200",f=0;Sys.Net.WebServiceProxy.invoke($func.resolveClientUrl(a._url$EInvoice,c._baseUrl),c._service$Method,false,{method:g,action:f,query:e},onProcess$Completed,onProcess$Failed,b)}function onProcess$Completed(h,g){var a=$find(g),b=a.grid,c=b._language=="v",d=true,e=h.Success=="1",f=e?c?"Chương trình đã thực hiện xong.":"The process was completed successfully.":c?"Phát sinh lỗi trong quá trình thực hiện.":"The process was failed.",i;a,false;$message.show(f,String.format(d?"refresh$Page($find('{0}'));":"$find('{0}')._focusWhenTabChanged();",b._id));a.cancelDialog()}function onProcess$Failed(b,a){busy$Page($find(a),false);$message.showError(b)}function busy$Page(c,a){var b=c._id;c._busy=a;if(a)$func.showWait(b);else $func.hideWait(b);$func.enableButtons(!a)}function refresh$Page(a){a.goToPage(-1)}]]>
+    </text>
+  </script>
+</dir>

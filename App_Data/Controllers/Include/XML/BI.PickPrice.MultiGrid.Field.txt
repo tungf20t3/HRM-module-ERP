@@ -1,0 +1,88 @@
+<field name="ma_kh" width="100" aliasName="m" allowFilter="&GridQueryAllowFilter;" readOnly="true">
+  <header v="Mã ncc" e="&BI.PickPrice.Vendor;"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+<field name="ten_kh%l" width="&FlowMultiGridWidthOfNameField;" aliasName="c" allowFilter="&GridQueryAllowFilter;" readOnly="true">
+  <header v="Tên nhà cung cấp" e="&BI.PickPrice.Vendor; Description"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+
+
+<field name="chon" type="Boolean" external="true" allowContain="true" defaultValue="0" width="60">
+  &FlowMultiGridTagHeader;
+  <items style="CheckBox"/>
+  <clientScript><![CDATA[onclick="onClick$FlowMulti$GridQuery$]]>&Identity;<![CDATA[Calculate(this);"]]></clientScript>
+</field>
+
+<field name="gia_chuan_nt" type="Decimal" dataFormatString="@foreignCurrencyPriceViewFormat" width="0" hidden="true" readOnly="true" aliasName="b.gia_chuan_nt * isnull(e.he_so, 1)">
+  <header v="" e=""></header>
+  <items style="Numeric"/>
+</field>
+<field name="gia_nt" type="Decimal" dataFormatString="@foreignCurrencyPriceViewFormat" width="100" readOnly="true" aliasName="case when b.ck_nt &lt;&gt; 0 or cp_nt  &lt;&gt; 0 or ck_dv_nt  &lt;&gt; 0 or cp_dv_nt  &lt;&gt; 0 then case when e.sl_qd &lt;&gt; 0 then (e.sl_qd * b.gia_nt - b.ck_nt + b.cp_nt - e.sl_qd * b.ck_dv_nt + e.sl_qd * b.cp_dv_nt) / e.sl_qd else b.gia_nt - b.ck_nt + b.cp_nt end else b.gia_nt end * isnull(e.he_so, 1)">
+  <header v="Giá" e="Price"></header>
+  <items style="Numeric"/>
+</field>
+
+<field name="ma_nt" width="50" allowFilter="&GridQueryAllowFilter;" aliasName="m" readOnly="true">
+  <header v="Mã nt" e="Currency"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+<field name="ma_vung" width="100" allowFilter="&GridQueryAllowFilter;" aliasName="m" readOnly="true">
+  <header v="Mã vùng" e="Plant"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+
+<field name="ngay_hl_tu" type="DateTime" dataFormatString="@datetimeFormat" readOnly="true" width="80" align="left" aliasName="m" allowFilter="&GridQueryAllowFilter;">
+  <header v="Hiệu lực từ" e="Effective Date from"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+<field name="ngay_hl_den" type="DateTime" dataFormatString="@datetimeFormat" readOnly="true" width="80" align="left" aliasName="m" allowFilter="&GridQueryAllowFilter;">
+  <header v="Đến" e="To"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+
+<field name="so_ngay_giao" type="Decimal" dataFormatString="### ##0" width="100" readOnly="true" aliasName="m">
+  <header v="Số ngày giao hàng" e="Delivery Day"></header>
+  <items style="Numeric"/>
+</field>
+<field name="so_luong" type="Decimal" dataFormatString="@quantityViewFormat" width="100" readOnly="true" aliasName="b">
+  <header v="Số lượng từ" e="Quantity from"></header>
+  <items style="Numeric"/>
+</field>
+<field name="sl_dat_tt" type="Decimal" dataFormatString="@quantityViewFormat" width="100" readOnly="true" aliasName="m">
+  <header v="Sl đặt tối thiểu" e="Min Order Quantity"></header>
+  <items style="Numeric"/>
+</field>
+<field name="sl_dat_td" type="Decimal" dataFormatString="@quantityViewFormat" width="100" readOnly="true" aliasName="m">
+  <header v="Sl đặt tối đa" e="Max Order Quantity"></header>
+  <items style="Numeric"/>
+</field>
+
+
+<field name="ten_ct%l" width="&FlowMultiGridWidthOfNameField;" aliasName="d" allowFilter="&GridQueryAllowFilter;" readOnly="true">
+  <header v="Nguồn" e="Resource"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+<field name="so_ct" width="80" align="right" allowFilter="&GridQueryAllowFilter;" hyperlinkFormatString="~/AppHandler/Voucher.ashx Query: {Name: '[ma_ct]', Value: '[stt_rec]'}, Script: 'beforeDrillDown(this);'" readOnly="true" aliasName="m">
+  <header v="Số tham chiếu giá mua" e="Info Record"></header>
+  <query>&InsertCommandFilter;</query>
+</field>
+
+<field name="ngay_ct" type="DateTime" dataFormatString="@datetimeFormat" width="0" hidden="true" readOnly="true" aliasName="m">
+  <header v="Ngày" e="Date"></header>
+</field>
+<field name="stt_rec" width="0" hidden="true" readOnly="true" aliasName="m">
+  <header v="" e=""></header>
+</field>
+<field name="stt_rec0" width="0" hidden="true" aliasName="m" readOnly="true">
+  <header v="" e=""></header>
+</field>
+<field name="stt_rec1" width="0" hidden="true" aliasName="b" readOnly="true">
+  <header v="" e=""></header>
+</field>
+<field name="line_nbr" type="Decimal" width="0" hidden="true" readOnly="true" aliasName="b">
+  <header v="" e=""></header>
+</field>
+<field name="ma_ct" width="0" hidden="true" readOnly="true" aliasName="m">
+  <header v="" e=""></header>
+</field>

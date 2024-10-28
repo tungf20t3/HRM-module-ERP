@@ -1,0 +1,17 @@
+﻿<![CDATA[
+function onChange$GridVoucherTax$TaxCode(a){a.grid.request(a,"GetTaxRate","TaxCode",["ma_thue"],a)}function onChange$GridVoucherTax$TaxAccount(a){a.grid.request(a,"GetAccountType","AccountType",["tk_du"],a)}function onChange$GridVoucherTax$Supplier(a){a.grid.request(a,"Supplier","Supplier",["ma_kh"],a)}function on$GridVoucherTax$ExecuteCommand(a,d){var c=d.type.Action,h=a,g=d.type.Object,b=h.get_element().parentForm;switch(c){case"AfterRemoveRow":on$GridVoucherTax$RowChange(h,b);break;case"AfterCloneRow":h.setItemFieldValue("stt_rec0",d.type.Value,"");on$GridVoucherTax$RowChange(h,b);break;case"AfterInsertRow":var h=b.getItem("r30")._controlBehavior;setDefault$Voucher$Tax(b);break;case"Check":h.validRowExpression("ma_kh2",'([ma_thue] == "") || (![tk_cn]) || ([ma_kh2] != "")');break;default:break}}function onChange$GridVoucherTax$(c,a){var g=a.get_object(),e=g.grid,d=e.get_element().parentForm,b=g.field.Name;switch(b){case"t_tien_nt":e.validExpression(g,[e.$a.z_t_tien,e.$a.z_t_thue_nt,e.$a.z_t_thue],[e.$a.t_thue_nt,e.$a.t_thue],[e.$a.t_tt_nt,e.$a.t_tt]);break;case"t_thue_nt":e.validExpression(g,[e.$a.z_t_thue,e.$a.z_t_thue_tg],[e.$a.t_thue_nt,e.$a.t_thue],[e.$a.t_tt_nt,e.$a.t_tt]);break;case"t_tien":e.validExpression(g,[e.$a.z_t_thue],[e.$a.t_thue],[e.$a.t_tt],"t_thue");break;case"t_thue":e.validExpression(g,null,[e.$a.t_thue],[e.$a.t_tt]);break;default:break}}function on$GridVoucherTax$RowChange(b,a){b.executeAggregate([b.$a.t_thue_nt,b.$a.t_thue]);a.executeExpression([b.$a.t_tt_nt,b.$a.t_tt])}function on$GridVoucherTax$ResponseComplete(c,h){var j=h.object,b=h.type.Context,a=h.type.Result,i=h.type.Object,g=j.get_element().parentForm;switch(b){case"TaxCode":var d=a[0].Value;if(j._getItemValue(i.row,j._getColumnOrder("thue_suat"))!=d){j.setItemGridBehavior(i,[["thue_suat",a[0].Value,"",false]]);j.validExpression(i,[j.$a.z_t_thue_nt,j.$a.z_t_thue],[j.$a.t_thue_nt,j.$a.t_thue],[j.$a.t_tt_nt,j.$a.t_tt])}j.setItemGridBehavior(i,[["tk_thue_no",a[1].Value,"",true],["tk_cn",a[2].Value,"",false]]);break;case"AccountType":j.setItemGridBehavior(i,[["tk_cn",a[0].Value,"",false]]);break;case"Supplier":j.setItemGridBehavior(i,[["dia_chi",a[0].Value,"",true],["ma_so_thue",a[1].Value,"",true]]);j.live(i,"dia_chi");break;default:break}}function dispose$GridVoucherTax$(b){b.$a=null;try{b.remove_commandEvent(on$GridVoucherTax$ExecuteCommand)}catch(a){}try{b.remove_itemValueChanged(onChange$GridVoucherTax$)}catch(a){}try{b.remove_onResponseComplete(on$GridVoucherTax$ResponseComplete)}catch(a){}}function setDefaultTaxItems(g,e,c,d,a){for(var b=0;b<c.length;b++){if(a){setDefaultTaxItem(g,e,c[b],d,a[b])}else{setDefaultTaxItem(g,e,c[b],d[b])}}}function setDefaultTaxItem(d,c,a,b,e){if(e!=null){d._setItemValue(c,d._getColumnOrder(a),b.getItemValue(e))}else{d._setItemValue(c,d._getColumnOrder(a),b)}}
+function load$GridVoucherTax$(z) {
+  z.add_itemValueChanged(onChange$GridVoucherTax$);
+  z.add_onResponseComplete(on$GridVoucherTax$ResponseComplete);
+  z.add_commandEvent(on$GridVoucherTax$ExecuteCommand);
+  z.$a = {  
+    z_t_tien: '[t_tien]:=[t_tien_nt]*[$ty_gia]',    
+    z_t_thue_nt: '[t_thue_nt]:=[t_tien_nt]*[thue_suat]/100',
+    z_t_thue: '[t_thue]:=[t_tien]*[thue_suat]/100',
+    z_t_thue_tg: 't_thue:=[t_thue_nt]*[$ty_gia]',
+
+    t_tien_nt: ['t_tien_nt', 't_tien_nt'],
+    t_tien: ['t_tien', 't_tien'],   
+    t_thue: ['t_thue', 't_thue'],
+    t_thue_nt: ['t_thue_nt', 't_thue_nt']
+]]>

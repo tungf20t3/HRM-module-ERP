@@ -1,0 +1,190 @@
+﻿<![%Conditional.BIMode;[
+  <!ENTITY BIScriptQueryData SYSTEM "..\Include\Javascript\QueryData.txt">
+  <!ENTITY BI.Contact.SourceTable "bidmncclh">
+  <!ENTITY BI.Contact.DetailName "CustomerContactDetail">
+  <!ENTITY BI.Parameter.SourceTable "bidmnccts">
+
+  <!ENTITY BI.Purchasing.SourceTable "bidmnccbp0">
+  <!ENTITY BI.Purchasing.DetailName "CustomerPurchasingDetail">
+  <!ENTITY BI.Purchasing.DestinatonTable "bidmncctsbp0">
+  <!ENTITY BI.Purchasing.Table "bidmbp0">
+  <!ENTITY BI.Purchasing.TableRight "bisyspurorgrights">
+  <!ENTITY BI.Purchasing.Field "ma_bp0">
+  <!ENTITY BI.Purchasing.Field1 "ma_bp">
+  <!ENTITY BI.Purchasing.KeyExtension "">
+  <!ENTITY BI.Purchasing.Message.v "đơn vị mua">
+  <!ENTITY BI.Purchasing.Message.e "purchasing organization">
+
+  <!ENTITY BI.Dir.Field.Code SYSTEM "..\Include\XML\CodeBIModeDirField.txt">
+  <!ENTITY BI.Dir.Field.PurchasingDetail SYSTEM "..\Include\XML\CustomerPurchasingDetailBIModeDirField.txt">
+  <!ENTITY BI.Dir.Field.ContactDetail SYSTEM "..\Include\XML\CustomerContactDetailBIModeDirField.txt">
+
+  <!ENTITY BI.Dir.View.Code SYSTEM "..\Include\XML\CodeBIModeDirView.txt">
+  <!ENTITY BI.Dir.View.PurchasingDetail SYSTEM "..\Include\XML\CustomerPurchasingDetailBIModeDirView.txt">
+  <!ENTITY BI.Dir.View.ContactDetail SYSTEM "..\Include\XML\CustomerContactDetailBIModeDirView.txt">
+
+  <!ENTITY BI.Dir.Tab.Region SYSTEM "..\Include\XML\CustomerRegionBIModeDirTab.txt">
+  <!ENTITY BI.Dir.Tab.Purchasing SYSTEM "..\Include\XML\CustomerPurchasingBIModeDirTab.txt">
+  <!ENTITY BI.Dir.Tab.Contact SYSTEM "..\Include\XML\CustomerContactBIModeDirTab.txt">
+
+  <!ENTITY BI.Dir.Height "302">
+  <!ENTITY BI.Dir.H2 "242">
+  <!ENTITY BI.Form.View.Customer SYSTEM "..\Include\XML\BI.Form.View.Customer.txt">
+  <!ENTITY BI.Form.View.Customer.Css "2.25">
+  <!ENTITY BI.Form.View.CustomerType.CategoryIndex "1">
+  <!ENTITY BIUnitCategoryColumn "769">
+  <!ENTITY BIUnitCategoryRows "242">
+
+  <!ENTITY BIController "&Identification;">
+  <!ENTITY BIParameterTable "bidmnccts">
+  <!ENTITY BIFieldKey "&k;">
+  <!ENTITY BIParameterController "CustomerParameterDetail">
+  <!ENTITY BIParameterCategoryIndex "7">
+  <!ENTITY BIParameterRows "242">
+  <!ENTITY BIParameterCategoryColumn "769">
+  <!ENTITY BIParameterField SYSTEM "..\Include\XML\BIModeDirParameterField.txt">
+  <!ENTITY BIParameterView SYSTEM "..\Include\XML\BIParameterView.txt">
+  <!ENTITY BIParameterCategory SYSTEM "..\Include\XML\ItemBIModeDirParameterView.txt">
+  <!ENTITY BIPostParameterInserting SYSTEM "..\Include\Command\BIPostParameterInserting.txt">
+  <!ENTITY BIPostParameterInserted SYSTEM "..\Include\Command\BIPostParameterInserted.txt">
+  <!ENTITY BIPostParameterUpdating SYSTEM "..\Include\Command\BIPostParameterUpdating.txt">
+  <!ENTITY BIPostParameterUpdated SYSTEM "..\Include\Command\BIPostParameterUpdated.txt">
+  <!ENTITY BIPostParameterDeleting SYSTEM "..\Include\Command\BIPostParameterDeleting.txt">
+  <!ENTITY BIPostParameterScript SYSTEM "..\Include\Javascript\BIPostParameterScript.txt">
+
+  <!ENTITY BI.Dir.Inserting "
+update @&BI.Purchasing.SourceTable; set &k; = @&k;
+update @&BI.Contact.SourceTable; set &k; = @&k;
+">
+  <!ENTITY BI.Dir.Inserted "
+insert into &BI.Purchasing.SourceTable; select * from @&BI.Purchasing.SourceTable;
+insert into &BI.Contact.SourceTable; select * from @&BI.Contact.SourceTable;
+">
+  <!ENTITY BI.Dir.Updating.UpdateOldValue "
+if $&BI.Purchasing.SourceTable;.NewValue = $&BI.Purchasing.SourceTable;.OldValue update &BI.Purchasing.SourceTable; set &k; = @&k; where &k; = $&k;.OldValue
+if $&BI.Contact.SourceTable;.NewValue = $&BI.Contact.SourceTable;.OldValue update &BI.Contact.SourceTable; set &k; = @&k; where &k; = $&k;.OldValue
+">
+  <!ENTITY BI.Dir.Updating "
+update @&BI.Purchasing.SourceTable; set &k; = @&k;
+update @&BI.Contact.SourceTable; set &k; = @&k;
+">
+  <!ENTITY BI.Dir.Updating.DeleteOldValue "
+if $&BI.Purchasing.SourceTable;.NewValue &lt;&gt; $&BI.Purchasing.SourceTable;.OldValue delete &BI.Purchasing.SourceTable; where &k; = $&k;.OldValue
+if $&BI.Contact.SourceTable;.NewValue &lt;&gt; $&BI.Contact.SourceTable;.OldValue delete &BI.Contact.SourceTable; where &k; = $&k;.OldValue
+">
+  <!ENTITY BI.Dir.Updated.Insert "
+if $&BI.Purchasing.SourceTable;.NewValue &lt;&gt; $&BI.Purchasing.SourceTable;.OldValue insert into &BI.Purchasing.SourceTable; select * from @&BI.Purchasing.SourceTable;
+if $&BI.Contact.SourceTable;.NewValue &lt;&gt; $&BI.Contact.SourceTable;.OldValue insert into &BI.Contact.SourceTable; select * from @&BI.Contact.SourceTable;
+">
+  <!ENTITY BI.Dir.Deleting "
+delete &BI.Purchasing.SourceTable; where &k; = @&k;
+delete &BI.Contact.SourceTable; where &k; = @&k;
+">
+
+  <!ENTITY BI.Contact.BeforeUpdate "
+if @&k; &lt;&gt; $&k;.OldValue begin
+  if $&BI.Purchasing.SourceTable;.NewValue = $&BI.Purchasing.SourceTable;.OldValue
+    update &BI.Purchasing.SourceTable; set &k; = @&k; where &k; = $&k;.OldValue
+end
+
+update @&BI.Contact.SourceTable; set &k; = @&k;
+if $&BI.Contact.SourceTable;.NewValue &lt;&gt; $&BI.Contact.SourceTable;.OldValue
+  delete &BI.Contact.SourceTable; where &k; = $&k;.OldValue
+">
+
+  <!ENTITY BI.Detail.Checking "
+var g2 = this.getItem('&BI.Contact.SourceTable;')._controlBehavior;
+if (this._checked) {
+  var c2 = g2._getColumnOrder('line_nbr');
+  for (var i = 0; i &lt; g2._rowCount; i++) {
+    g2._setItemValue(i + 1, c2, i + 1);
+  }
+}
+">
+
+  <!ENTITY BI.Dir.TabChange.Region ", 'ma_qg' ">
+  <!ENTITY BI.Dir.TabChange.Purchasing ", '&BI.Purchasing.SourceTable;' ">
+  <!ENTITY BI.Dir.TabChange.Parameter ", '&BI.Parameter.SourceTable;' ">
+  <!ENTITY BI.Dir.TabChange.Contact ", '&BI.Contact.SourceTable;' ">
+
+  <!ENTITY BI.Dir.Account.CategoryIndex "2">
+
+  <!ENTITY PurOrgFilter "@@1">
+  <!ENTITY PurOrgQuery "declare @p varchar(1024);exec AI_ERP$BI$GetPurOrgFilter '', @@userID, @@admin, '', '&k;', 'ma_bp0', 'ds_dvmh', 'bidmnccbp0', @p output;">
+  <!ENTITY Filter ", '&amp;' + char(255) + ';' + case when @p = '' then '' else ' (' + @p + ')' end as filter">
+]]>
+
+<!ENTITY BIScriptQueryData "&ScriptQueryData;">
+<!ENTITY BI.Contact.SourceTable "bidmncclh">
+<!ENTITY BI.Contact.DetailName "CustomerContactDetail">
+<!ENTITY BI.Parameter.SourceTable "bidmnccts">
+
+<!ENTITY BI.Purchasing.SourceTable "">
+<!ENTITY BI.Purchasing.DetailName "">
+<!ENTITY BI.Purchasing.DestinatonTable "">
+<!ENTITY BI.Purchasing.Table "">
+<!ENTITY BI.Purchasing.TableRight "">
+<!ENTITY BI.Purchasing.Field "">
+<!ENTITY BI.Purchasing.Field1 "">
+<!ENTITY BI.Purchasing.KeyExtension "">
+<!ENTITY BI.Purchasing.Message.v "">
+<!ENTITY BI.Purchasing.Message.e "">
+
+<!ENTITY BI.Dir.Field.Code "">
+<!ENTITY BI.Dir.Field.PurchasingDetail "">
+<!ENTITY BI.Dir.Field.ContactDetail "">
+
+<!ENTITY BI.Dir.View.Code "">
+<!ENTITY BI.Dir.View.PurchasingDetail "">
+<!ENTITY BI.Dir.View.ContactDetail "">
+
+<!ENTITY BI.Dir.Tab.Region "">
+<!ENTITY BI.Dir.Tab.Purchasing "">
+<!ENTITY BI.Dir.Tab.Contact "">
+
+<!ENTITY BI.Dir.Height "274">
+<!ENTITY BI.Dir.H2 "214">
+<!ENTITY BI.Form.View.Customer SYSTEM "..\Include\Standard\XML\BI.Form.View.Customer.Default.txt">
+<!ENTITY BI.Form.View.Customer.Css "1">
+<!ENTITY BI.Form.View.CustomerType.CategoryIndex "9">
+<!ENTITY BIUnitCategoryColumn "566">
+<!ENTITY BIUnitCategoryRows "214">
+
+<!ENTITY BI.Dir.Inserting "">
+<!ENTITY BI.Dir.Inserted "">
+<!ENTITY BI.Dir.Updating.UpdateOldValue "">
+<!ENTITY BI.Dir.Updating "">
+<!ENTITY BI.Dir.Updating.DeleteOldValue "">
+<!ENTITY BI.Dir.Updated.Insert "">
+<!ENTITY BI.Dir.Deleting "">
+<!ENTITY BI.Contact.BeforeUpdate "">
+
+<!ENTITY BI.Detail.Checking "">
+
+<!ENTITY BI.Dir.TabChange.Region "">
+<!ENTITY BI.Dir.TabChange.Purchasing "">
+<!ENTITY BI.Dir.TabChange.Parameter "">
+<!ENTITY BI.Dir.TabChange.Contact "">
+
+<!ENTITY BI.Dir.Account.CategoryIndex "1">
+
+<!ENTITY BIController "">
+<!ENTITY BIParameterTable "">
+<!ENTITY BIFieldKey "">
+<!ENTITY BIParameterController "">
+<!ENTITY BIParameterCategoryIndex "">
+<!ENTITY BIParameterRows "">
+<!ENTITY BIParameterCategoryColumn "">
+<!ENTITY BIParameterField "">
+<!ENTITY BIParameterView "">
+<!ENTITY BIParameterCategory "">
+<!ENTITY BIPostParameterInserting "">
+<!ENTITY BIPostParameterInserted "">
+<!ENTITY BIPostParameterUpdating "">
+<!ENTITY BIPostParameterUpdated "">
+<!ENTITY BIPostParameterDeleting "">
+<!ENTITY BIPostParameterScript "">
+
+<!ENTITY PurOrgFilter "">
+<!ENTITY PurOrgQuery "">
+<!ENTITY Filter "">

@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+
+  <!ENTITY defaultForm "DTSOCPDTXD">
+  <!ENTITY circularForm195 "DTSOCPDTXD_A04195">
+  <!ENTITY circularForm200 "DTSOCPDTXD_A08200">
+  <!ENTITY circularForm133 "DTSOCPDTXD_A08133">
+  <!ENTITY CircularCategoryIndex "">
+
+  <!ENTITY % CompactMode SYSTEM "..\Include\CompactMode.ent">
+  %CompactMode;
+]>
+
+<dir table="dtsocpdtxd" code="form" order="form" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    &CircularTypeField;
+  </fields>
+
+  <views>
+    <view id="Dir" height="210">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="11000-: [chon_tt].Label, [chon_tt]"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @defaultForm varchar(33), @reportType char(1)
+select @reportType = rtrim(val) from options where name = 'm_kieu_bc'
+select top 1 @defaultForm = rtrim(upper(form)) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA[' and (kieu_bc = 0 or kieu_bc = @reportType) and nd_yn = 1
+if @defaultForm is null select top 1 @defaultForm = rtrim(upper(form)) from v20dmmaubc where ma_maubc = ']]>&defaultForm;<![CDATA[' and (kieu_bc = 0 or kieu_bc = @reportType)
+
+select 'this._defaultForm = ''' + @defaultForm + '''; this._reportType = ''' + @reportType + ''';initFormFilter(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$VoucherFilter$(sender) {
+  sender.add_onResponseComplete(on$Filter$ResponseComplete);
+  sender.grid._defaultForm = ']]>&defaultForm;<![CDATA[';
+  sender.getItem('chon_tt').focus();
+}
+function close$VoucherFilter$(sender) {try {sender.remove_onResponseComplete(on$Filter$ResponseComplete);} catch (ex) {}}
+function on$Filter$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      var g = f.grid, k = new Array(), v = f.getItemValue('chon_tt');
+      ]]>&CircularKey;<![CDATA[
+      Array.add(k, {Name: 'form', Opr: '=', Value: g._key, Type: 'String', Ignore: false});
+      g.set_externalKey(k);
+      break;
+    default:
+      break;
+  }
+}
+]]>
+      &CircularScript;
+    </text>
+  </script>
+  &OutlineCss;
+</dir>

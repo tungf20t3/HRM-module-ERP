@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY XMLWhenFilterLoading SYSTEM "..\Include\XML\WhenFilterLoading.xml">
+  <!ENTITY XMLWhenFilterClosing SYSTEM "..\Include\XML\WhenFilterClosing.xml">
+  <!ENTITY ScriptFilterInit SYSTEM "..\Include\Javascript\FilterInit.txt">
+
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+  <!ENTITY JavascriptReportFilter SYSTEM "..\Include\Javascript\ReportFilter.txt">
+
+  <!ENTITY LineCounter "7">
+  <!ENTITY ExtensionCounter "1">
+  <!ENTITY ReportMarginCategoryIndex "&ReportSign.Filter.CategoryIndex;">
+  <!ENTITY % ReportMargin.rptLoanContractList SYSTEM "..\Include\ReportMargin.rptLoanContractList">
+  %ReportMargin.rptLoanContractList;
+  <!ENTITY % ReportMargin SYSTEM "..\Include\ReportMargin.ent">
+  %ReportMargin;
+  <!ENTITY % TabHeightFomula SYSTEM "..\Include\TabHeightFomula.ent">
+  %TabHeightFomula;
+]>
+
+<dir id="1" type="Report" cache="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="Điều kiện lọc" e="Filter Condition"></title>
+  <fields>
+    <field name="date_from" type="DateTime" dataFormatString="@datetimeFormat" aliasName="fromDate" defaultValue="new Date()" allowNulls="false">
+      <header v="Ngày vay từ" e="Date from"></header>
+    </field>
+    <field name="date_to" type="DateTime" dataFormatString="@datetimeFormat" aliasName="toDate" defaultValue="new Date()" allowNulls="false">
+      <header v="Ngày vay đến" e="Date to"></header>
+    </field>
+    <field name="ds_acc" categoryIndex="1">
+      <header v="Ds tài khoản vay" e="Loan Account List"></header>
+      <items style="Lookup" controller="Account" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="loai_ku" dataFormatString="1, 2" clientDefault="1" align="right" allowNulls="false" categoryIndex="1">
+      <header v="Loại khế ước" e="Contract Type"></header>
+      <footer v="1 - Đi vay, 2 - Cho vay" e=" 1 - Borrow, 2 - Lend"></footer>
+      <items style="Mask"/>
+      <clientScript><![CDATA[onchange="onChange$LoanContractType(this);"]]></clientScript>
+    </field>
+    <field name="ma_ku" onDemand="true" categoryIndex="1">
+      <header v="Mã khế ước" e="Loan Contract Code"></header>
+      <items style="AutoComplete" controller="LoanContract" reference="ten_ku%l" key="loai_ku = '{$%c[loai_ku]}' and status = '1'" check="loai_ku = '{$%c[loai_ku]}'"/>
+    </field>
+    <field name="ten_ku%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vv" categoryIndex="1">
+      <header v="Mã vụ việc" e="Job Code"></header>
+      <items style="AutoComplete" controller="Job" reference="ten_vv%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_vv%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_hd" categoryIndex="1">
+      <header v="Mã hợp đồng" e="Contract Code"></header>
+      <items style="AutoComplete" controller="Contract" reference="ten_hd%l" key="status = '1'" check="1 = 1"/>
+    </field>
+    <field name="ten_hd%l" external="true" readOnly="true" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="status" clientDefault="1" categoryIndex="1">
+      <header v="Danh sách trạng thái" e="Status List"></header>
+      <items style="Lookup" controller="Lookup" key="type = '001'" check="1 = 1"/>
+    </field>
+    <field name="mau_bc" categoryIndex="1">
+      <header v="Mẫu báo cáo" e="Report Form"></header>
+      <items style="DropDownList">
+        <item value="10">
+          <text v="Mẫu chuẩn" e="Standard Form"/>
+        </item>
+        <item value="20">
+          <text v="Mẫu ngoại tệ" e="FC Form"/>
+        </item>
+      </items>
+      <clientScript>&OnSelectionOutline;</clientScript>
+    </field>
+    &ReportSign.Filter.Fields;
+    &ReportMarginFieldExtend;
+  </fields>
+
+  <views>
+    <view id="Dir" height="&TabHeightFomula;">
+      <item value="120, 30, 70, 100, 100, 130"/>
+      <item value="110-: [date_from].Label, [date_from]"/>
+      <item value="110-: [date_to].Label, [date_to]"/>
+      <item value="11000: [ds_acc].Label, [ds_acc]"/>
+      <item value="111000: [loai_ku].Label, [loai_ku], [loai_ku].Description"/>
+      <item value="110100: [ma_ku].Label, [ma_ku], [ten_ku%l]"/>
+      <item value="110100: [ma_vv].Label, [ma_vv], [ten_vv%l]"/>
+      <item value="110100: [ma_hd].Label, [ma_hd], [ten_hd%l]"/>
+      <item value="11000: [status].Label, [status]"/>
+      <item value="11000: [mau_bc].Label, [mau_bc]"/>
+      &ReportSign.Filter.Views;
+      &ReportMarginView;
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        &ReportSign.Filter.Categories;
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Initialize">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'init$VoucherFilter$(this);'
+]]>&ReportSign.Filter.Initialize;<![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    &XMLWhenFilterLoading;
+    &XMLWhenFilterClosing;
+    <command event="Processing">
+      <text>
+        <![CDATA[
+select @date_from as tu_ngay, @date_to as den_ngay
+exec rs_rptLoanContractList @date_from, @date_to, @ds_acc, @status, @loai_ku, @ma_ku, @ma_vv, @ma_hd, @@language, @@userID, @@admin
+]]>
+        &ReportMarginProcessing;
+        &ReportSign.Filter.Query;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      &JavascriptReportFilter;
+      &ScriptFilterInit;
+      <![CDATA[
+function active$VoucherFilter$(f) {
+  f.add_onResponseComplete(on$Filter$ResponseComplete);
+  changeLookupReadonly(f, 'ds_acc');
+  changeLookupReadonly(f, 'status', true);
+  f.setReferenceKeyFilter('ma_ku');
+  ]]>&ReportSign.Filter.Active;<![CDATA[
+}
+function close$VoucherFilter$(a){try{a.remove_onResponseComplete(on$Filter$ResponseComplete)}catch(b){}}function on$Filter$ResponseComplete(h,b){var a=b.object,d=b.type.Context,g=b.type.Result;switch(d){case"Checking":var c=a.grid,e=a.getItem("date_from").value,f=a.getItem("date_to").value;c._hiddenFields=[{Fields:"tien_nt",Value:a.getItemValue("mau_bc")=="10"}];c._alterTitle=[null,[["%d1",e,true],["%d2",f,true]]];remove$GridReport$Filter(c)}}function onChange$LoanContractType(b){var a=b.parentForm;a.setReferenceKeyFilter("ma_ku")}]]>
+    </text>
+  </script>
+
+  &OutlineCss;
+</dir>

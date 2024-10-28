@@ -1,0 +1,29 @@
+﻿<!ENTITY % Conditional.VoucherGoodsType.SDTran SYSTEM "..\Include\VoucherGoodsType.txt">
+
+<![%Conditional.VoucherGoodsType.SDTran;[
+  <!ENTITY VoucherGoodsTypeImportUpdateDetailValue ", gia_nt = 0, gia = 0, ma_thue = '', ma_kh2 = '', thue_suat = 0, thue_nt = 0, thue = 0, tk_thue = '', dvt = ''">
+  <!ENTITY VoucherGoodsTypeImportPost "
+update #m&Detail; set t_tien_nt2 = t_tien_nt2&VoucherGoodsTypeImportFieldMasterInsertTotal.ForeignCurrency;, t_tien2 = t_tien2&VoucherGoodsTypeImportFieldMasterInsertTotal.BaseCurrency;
+update #d&Detail; set tien_nt2 = -tien_nt2, tien2 = -tien2 where loai = '90'
+">
+  <!ENTITY VoucherGoodsTypeImportMasterUpdateValue ", t_tien_nt2 = isnull(t_tien_nt2, 0), t_tien2 = isnull(t_tien2, 0), t_thue_nt = isnull(t_thue_nt, 0), t_thue = isnull(t_thue, 0)">
+
+  <!ENTITY VoucherGoodsTypeCurrencyFields.ForeignCurrency "(([loai] == &quot;90&quot; ? (-1) : (1)) * [tien_nt2])">
+  <!ENTITY VoucherGoodsTypeCurrencyFields.BaseCurrency "(([loai] == &quot;90&quot; ? (-1) : (1)) * [tien2])">
+
+  <!ENTITY VoucherGoodsTypeHandleFields "dvt,so_luong,gia_nt,gia,tien_nt2,tien2,ma_thue,thue_nt,thue">
+
+  <!ENTITY VoucherGoodsTypeResponseComplete "
+    case 'GoodsType':
+      if (result[0].Value != '') {g.setItemGridBehavior(o, [['dvt', '', '', null], ['so_luong', 0, null, null], ['gia_nt', 0, null, null], ['ma_thue', '', '', null], ['thue_suat', 0, null, null], ['tk_thue', '', '', null], ['thue_nt', 0, null, null], ['ma_kh2', '', '', null]]);}
+      g.validExpression(o, [g.$a.gia_nt_sl, g.$a.gia_tg, g.$a.tien2, g.$a.thue_nt, g.$a.thue_tl]);
+      on$GridVoucherDetail$AmountChange(o, g, f);
+      g.live(o, 'tien_nt2');
+      break;
+">
+  <!ENTITY VoucherGoodsTypeAllocate.SDTran "select @amountTotalFC = sum(a.tien_nt2), @amountTotal = sum(a.tien2) from &TableDeTail; a where a.loai &lt;&gt; '90'">
+]]>
+
+<!ENTITY VoucherGoodsTypeCurrencyFields.ForeignCurrency "[tien_nt2]">
+<!ENTITY VoucherGoodsTypeCurrencyFields.BaseCurrency "[tien2]">
+<!ENTITY VoucherGoodsTypeAllocate.SDTran "select @amountTotalFC = @t_tien_nt2, @amountTotal = @t_tien2">

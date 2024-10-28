@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrDepartmentProductQuantityInput' else 'hrDepartmentProductQuantityInput2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$DepartmentProductQuantityImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$DepartmentProductQuantityImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="d04$000000"/>
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <fields identity="true" name="stt">
+    <field name="ma_bp" column="A" allowNulls="false" upperCase="true"/>
+    <field name="ma_sp" column="C" allowNulls="false" upperCase="true"/>
+    <field name="so_luong" column="E" type="Decimal"/>
+    <field name="dien_giai" column="F"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật số lượng sản phẩm theo bộ phận" e="Department Product Quantity Input"/>
+      </downloadFile>
+    </setting>
+    <fields row="5">
+      <field name="ma_bp" width ="16">
+        <text v="Mã bộ phận" e="Employee ID"/>
+      </field>
+      <field name="ten_bp" width ="32" afterField="ma_bp">
+        <text v="Tên bộ phận" e="Description"/>
+      </field>
+      <field name="ma_sp" width ="16">
+        <text v="Mã sản phẩm" e="Product Code"/>
+      </field>
+      <field name="ten_sp" width ="32" afterField="ma_sp">
+        <text v="Tên sản phẩm" e="Product Name"/>
+      </field>
+      <field name="so_luong" width ="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="dien_giai" width ="50">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @message nvarchar(4000), @user int, @admin bit, @language char(1), @sys varchar(32)
+select @admin = @@admin, @user = @@userID, @language = @@language, @sys = '@@sysDatabaseName'
+select @message = case @language when 'v' then N'Dữ liệu trong tệp không có hoặc không hợp lệ.' else N'The content of the data file is empty or invalid.' end
+
+create table #r(ma_bp varchar(32), ma_sp varchar(32), so_luong numeric(19, 4), dien_giai nvarchar(512), stt int)
+
+select @q = 'insert into #r select a.ma_bp, a.ma_sp, a.so_luong, a.dien_giai, a.stt '
+select @q = @q + 'from @@table a join hrbp b on a.ma_bp = b.ma_bp where b.ma_dvcs = ''' + replace(@ma_dvcs, '''', '''''') + ''''
+exec sp_executesql @q
+
+--Result
+if exists(select 1 from #r) begin
+  select '' as message, 'this.frameElement.result = @@result;parent.set$Grid$ImportResult(this.frameElement);' as script
+  select rtrim(a.ma_bp) as ma_bp, case @language when 'v' then b.ten_bp else b.ten_bp2 end as ten_bp, rtrim(a.ma_sp) as ma_sp, case @language when 'v' then c.ten_sp else c.ten_sp2 end as ten_sp, a.so_luong, a.dien_giai
+    from #r a left join hrbp b on a.ma_bp = b.ma_bp left join hrdmsp c on a.ma_sp = c.ma_sp order by a.stt
+  return
+end else begin
+  select @message as message
+  return
+end
+]]>
+    </text>
+  </processing>
+
+</import>

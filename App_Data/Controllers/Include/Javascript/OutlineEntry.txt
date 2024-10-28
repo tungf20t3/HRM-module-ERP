@@ -1,0 +1,20 @@
+﻿<![CDATA[
+function onSelectionOutlineEntry(o, type) {
+  if ((!$func.isCs) && (!$func.isFF)) return;
+  if (type) Sys.UI.DomElement.addCssClass(o, 'SelectionOutline');
+    else Sys.UI.DomElement.removeCssClass(o, 'SelectionOutline');
+}
+function changeLookupReadonly(f, c, force) {
+  if (force && !$func.isFF) return;
+  var o = f.getItem(c);
+  f._setReadOnly(o, false);
+  if ($func.isIF) o.readOnly = false; else {
+    if (!force) try {
+      $removeHandler(o, 'keydown', f._readOnlyKeyHandler);
+      if ($func.isOpr) $removeHandler(o, 'keypress', f._readOnlyKeyHandler);
+      o.AddReadOnlyKeyHandler = null;
+    } catch (ex) {}
+  }
+  if (force && $func.isFF) $addHandler(o, 'keydown', f._readOnlyKeyHandler);
+}
+]]>

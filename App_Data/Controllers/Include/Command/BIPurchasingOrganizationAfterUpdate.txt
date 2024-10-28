@@ -1,0 +1,7 @@
+﻿      <![CDATA[
+declare @$purOrg varchar(512)
+select @$purOrg = ''
+select @$purOrg = @$purOrg + dbo.ff_Dec2Seq(b.id) + '#' from ]]>&BIPurchasingOrganizationTable;<![CDATA[ a join bidmbp0 b on a.ma_bp0 = b.ma_bp where ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;<![CDATA[ order by b.id
+if @$purOrg <> '' select @$purOrg = '#' + @$purOrg
+update @@table set ds_bp0 = @$purOrg where ]]>&BIFieldKey;<![CDATA[ = @]]>&BIFieldKey;
+

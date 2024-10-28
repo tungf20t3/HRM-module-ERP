@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE import [
+  <!ENTITY Error "
+if @r is not null begin
+  select '' as message, @field as field, @r as record
+  return
+end
+">
+  <!ENTITY Quantity "
+if @r is not null begin
+  select replace(@quantity, '&#37;s', @@delta + @r) as message
+  return
+end
+">
+  <!ENTITY Checking "@@checking">
+  <!ENTITY Inserting "@@inserting">
+  <!ENTITY Updating "@@updating">
+
+  <!ENTITY % ImportErrorMode SYSTEM "..\..\Include\ImportErrorMode.ent">
+  %ImportErrorMode;
+
+  <!ENTITY % ExportImportTemplate SYSTEM "..\..\Include\ExportImportTemplate.ent">
+  %ExportImportTemplate;
+  <!ENTITY ExportQueryStaticFile "select case when @@language = 'V' then 'hrTSOpening' else 'hrTSOpening2' end as file_name">
+]>
+
+<import xmlns="urn:schemas-ai-erp:data-import">
+  <setting>
+    <startRow value="6"/>
+    <maxFileSize value="10"/>
+    <uploadTimeOut value="120"/>
+    <importRecordTimeout value="1740"/>
+    <allowFileExtension value="^(.XLSX)$"/>
+    <onProcessFail value="parent.on$hrTSOpeningImportForm$Fail(this.frameElement)"/>
+    <onProcessComplete value="parent.on$hrTSOpeningImportForm$Complete(this.frameElement)"/>
+    <uploadContentType value="application/ms-excel;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+    <baseTable value="hrccdk, hrnv"/>
+    <table value="hrccdk" alias="a"/>
+    <listTable value="@@table2"/>
+    <temporary value="#k" alias="b"/>
+
+    &UploadModeProcess;
+  </setting>
+
+  <query>
+    <command>
+      <text>
+        &ExportImportTemplateQuery;
+      </text>
+    </command>
+  </query>
+
+  <variable>
+    <var id="E0001">
+      <header v="Trường Số lượng chưa nhập hoặc giá trị không hợp lệ, kiểm tra lại số lượng." e="Field Quantity must not be blank or has invalid value, please check the quantity." />
+    </var>
+  </variable>
+
+  <fields identity="true" name="stt">
+    <field name="ma_nv" column="A" isPrimaryKey="true" allowNulls="false" reference="1" upperCase="true" updateValue="None" check="ma_nv not in (select ma_nv from hrnv)" errorCode="00001"/>
+    <field name="ma_cc" column="C" isPrimaryKey="true" allowNulls="false" upperCase="true" updateValue="None" check="ma_cc not in (select ma_cc from hrcc)" errorCode="00001"/>
+    <field name="so_luong" column="E" type="Decimal"/>
+    <field name="ngay_hh" isPrimaryKey="true" column="F" type="DateTime" updateValue="None"/>
+    <field name="ghi_chu" column="G"/>
+
+    <field name="stt_rec_nv" column="None" updateValue="None"/>
+    <field name="nam" column="None" insertValue="@year" type="Decimal" updateValue="None"/>
+    <field name="ngay_hh0" column="None" insertValue="case when ngay_hh is null then '' else convert(char(8), ngay_hh, 112) end" updateValue="None"/>
+    <field name="datetime0" column="None" type="DateTime" insertValue="getdate()" updateValue="None"/>
+    <field name="datetime2" column="None" type="DateTime" insertValue="getdate()" updateValue="getdate()"/>
+    <field name="user_id0" column="None" type="Int" insertValue="@@userID" updateValue="None"/>
+    <field name="user_id2" column="None" type="Int" insertValue="@@userID" updateValue="@@userID"/>
+  </fields>
+
+  <template>
+    <setting>
+      <downloadFile>
+        <text v="Cập nhật công cụ, dụng cụ sử dụng đầu kỳ" e="Tool &amp; Supply Opening Quantity Input"/>
+      </downloadFile>
+    </setting>
+
+    <fields row="5">
+      <field name="ma_nv" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã nhân viên" e="Employee ID"/>
+      </field>
+      <field name="ten_nv" width="32" afterField="ma_nv" textColor="&EIT.TextColor.Sub;">
+        <text v="Họ và tên" e="Employee Name"/>
+      </field>
+      <field name="ma_cc" width="16" starColor="&EIT.StarColor.Require;">
+        <text v="Mã công cụ" e="Tool &amp; Supply Code"/>
+      </field>
+      <field name="ten_cc" width="32" afterField="ma_cc" textColor="&EIT.TextColor.Sub;">
+        <text v="Tên công cụ" e="Tool &amp; Supply Name"/>
+      </field>
+
+      <field name="so_luong" width="16">
+        <text v="Số lượng" e="Quantity"/>
+      </field>
+      <field name="ngay_hh" width="16">
+        <text v="Ngày hết hạn" e="Expiry Date"/>
+      </field>
+      <field name="ghi_chu" width="32">
+        <text v="Ghi chú" e="Note"/>
+      </field>
+
+      &EIT.NoteField;
+    </fields>
+  </template>
+
+  <processing>
+    <text>
+      <![CDATA[
+declare @q nvarchar(4000), @field varchar(32), @user int, @admin bit, @unit varchar(32), @year int, @r int, @quantity nvarchar(512)
+select @admin = @@admin, @user = @@userID, @unit = @@unit, @year = nam_bd from dmstt
+select @quantity = case when @@language = 'v' then N'Trường <span class="Highlight">Số lượng</span> chưa nhập hoặc giá trị không hợp lệ, kiểm tra lại số lượng tại dòng <span class="Highlight">%s</span>.' else N'Field <span class="Highlight">Quantity</span> must not be blank or has invalid value, please check the quantity at row <span class="Highlight">%s</span>.' end
+
+-- Check
+]]>&Checking;<![CDATA[
+if @$mode = 1 begin
+  ]]>&StartErrorCount;<![CDATA[
+  ]]>&InsertErrorTable;<![CDATA[ select 'so_luong', stt, 'E0001' from @@table where so_luong <= 0
+  ]]>&EndErrorCount;<![CDATA[
+end else begin
+  select @field = 'so_luong', @r = min(stt) from @@table where so_luong <= 0]]>&Quantity;<![CDATA[
+end
+
+select a.*, b.stt_rec as stt_rec_nv into @@table2 from @@table a left join hrnv b with(nolock) on a.ma_nv = b.ma_nv
+
+create table #unit(ma_dvcs char(32), stt_rec_nv char(13), stt int)
+insert into #unit select b.ma_dvcs, a.stt_rec_nv, min(a.stt) from @@table2 a join hrnv b with(nolock) on a.stt_rec_nv = b.stt_rec group by b.ma_dvcs, a.stt_rec_nv
+
+select @field = 'ma_nv'
+if @admin = 0 begin
+  if @type = '1' begin
+    if @@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'hrTSOpening', 'Edit') = 0 select @type = 0
+  end
+
+  if @$mode = 1 begin
+    ]]>&StartErrorCount;<![CDATA[
+    ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from #unit a where not exists(select 1 from hrccdk b where a.stt_rec_nv = b.stt_rec_nv) and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)
+    ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+    ]]>&EndErrorCount;<![CDATA[
+  end else begin
+    select @r = min(a.stt) from #unit a where not exists(select 1 from hrccdk b where a.stt_rec_nv = b.stt_rec_nv) and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_new = 1)]]>&Error;<![CDATA[
+  end
+
+  if @type = '1' begin
+    if @$mode = 1 begin
+      ]]>&StartErrorCount;<![CDATA[
+      ]]>&InsertErrorTable;<![CDATA[ select @field, stt, '00002' from #unit a where exists(select 1 from hrccdk b where a.stt_rec_nv = b.stt_rec_nv) and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)
+      ]]>&w1;<![CDATA[@field]]>&w2;<![CDATA[stt]]>&w3;<![CDATA['00002']]>&w4;<![CDATA[
+      ]]>&EndErrorCount;<![CDATA[
+    end else begin
+      select @r = min(stt) from #unit a where exists(select 1 from hrccdk b where a.stt_rec_nv = b.stt_rec_nv) and a.ma_dvcs not in (select distinct ma_dvcs from sysunitrights where user_id = @user and r_edit = 1)]]>&Error;<![CDATA[
+    end
+  end
+end
+]]>&EndErrorMode;<![CDATA[
+if @type = '0' delete @@table2 from @@table2 a where exists(select 1 from hrccdk b where a.stt_rec_nv = b.stt_rec_nv and a.ma_cc = b.ma_cc and ((a.ngay_hh is null and b.ngay_hh is null) or (a.ngay_hh = b.ngay_hh)) and b.nam = @year)
+
+select a.* into #k
+  from @@table2 a join hrccdk b on a.stt_rec_nv = b.stt_rec_nv and a.ma_cc = b.ma_cc and ((a.ngay_hh is null and b.ngay_hh is null) or (a.ngay_hh = b.ngay_hh)) and b.nam = @year
+delete @@table2 from @@table2 a where exists(select 1 from #k b where a.stt_rec_nv = b.stt_rec_nv and a.ma_cc = b.ma_cc and ((a.ngay_hh is null and b.ngay_hh is null) or (a.ngay_hh = b.ngay_hh)))
+
+-- Insert
+]]>&Inserting;<![CDATA[
+-- Update
+if @type = '1' begin
+  update hrccdk set @@list from hrccdk a join #k b on a.stt_rec_nv = b.stt_rec_nv and a.ma_cc = b.ma_cc and (a.ngay_hh = b.ngay_hh or (a.ngay_hh is null and b.ngay_hh is null)) where a.nam = @year end
+]]>
+    </text>
+  </processing>
+
+</import>

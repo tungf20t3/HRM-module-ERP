@@ -1,0 +1,94 @@
+﻿  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load]]>&Identification;<![CDATA[(this);' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'dispose]]>&Identification;<![CDATA[(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load]]>&Identification;<![CDATA[(g) {
+  g.add_onResponseComplete(on]]>&Identification;<![CDATA[ResponseComplete);
+  g.add_commandEvent(on]]>&Identification;<![CDATA[ExecuteCommand);
+}
+function dispose]]>&Identification;<![CDATA[(g) {
+  try {g.remove_commandEvent(on]]>&Identification;<![CDATA[ExecuteCommand);} catch (ex) {}
+  try {g.remove_onResponseComplete(on]]>&Identification;<![CDATA[ResponseComplete);} catch (ex) {}
+}
+function on]]>&Identification;<![CDATA[ResponseComplete(sender, e) {
+  var g = e.object, context = e.type.Context, result = e.type.Result, o = e.type.Object, f = g.get_element().parentForm;
+  switch (context) {
+    case 'Retrieve':
+      var l = g._getColumnOrder('ma_dvcs'), first = true, a, ins, row, c;
+      for (var i = 0; i < result.length; i++) {
+        a = result[i], ins = true, row = g._rowCount, c = false;
+        for (var j = 1; j <= g._rowCount; j++) {
+          if (a[1] == $func.trim(g._getItemValue(j, l).toUpperCase())) {
+            c = true;
+            break;
+          }
+        }
+        if (!c) {
+          if (first && row > 0) {if (g.blankMemvar(row)) {ins = false; first = false;}}
+          g._appendRow(null, true);
+          row = g._rowCount;
+          var o = g._getItem(row, l);
+          o.row = row;
+          insert]]>&Identification;<![CDATA[Items(g, row, 'ma_dvcs, ten_dvcs%l', [a[1], a[2]]);
+        }
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+function on]]>&Identification;<![CDATA[ExecuteCommand(sender, e) {
+  var action = e.type.Action, g = sender, f = g.get_element().parentForm;
+  switch (action) {
+    case 'Retrieve':
+      if (f._action == 'View') break;
+      if (!f.validFields('ma_kh')) break;
+      var c = f.getItemValue('ma_kh');
+      g.request(g, 'Retrieve', 'Retrieve', [['ma_kh', 'String', c]]);
+      break;
+    default:
+      break;
+  }
+}
+function insert]]>&Identification;<![CDATA[Items(g, r, columns, v) {
+  var a = columns.split(',');
+  for (var i = 0; i < a.length; i++) {
+    var l = g._getColumnOrder($func.trim(a[i]));
+    g._setItemValue(r, l, v[i]);
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Retrieve">
+      <text>
+        <![CDATA[
+if exists(select 1 from dmkh where ma_kh = @ma_kh) begin
+  select '' as array$, rtrim(a.ma_dvcs) as ma_dvcs, b.ten_dvcs%l from dmkhdv a join dmdvcs b on a.ma_dvcs = b.ma_dvcs and a.ma_kh = @ma_kh order by a.line_nbr
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>

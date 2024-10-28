@@ -1,0 +1,254 @@
+﻿<!ENTITY % Conditional.BIMode.AccessRight SYSTEM "..\Include\BIMode.txt">
+
+<![%Conditional.BIMode.AccessRight;[
+  <!ENTITY BI.AccessRight.Fields SYSTEM "..\Include\XML\BI.AccessRight.Fields.txt">
+  <!ENTITY BI.AccessRight.Type SYSTEM "..\Include\XML\BI.AccessRight.Fields.Type.txt">
+  <!ENTITY BI.AccessRight.Views SYSTEM "..\Include\XML\BI.AccessRight.Views.xml">
+
+  <!ENTITY BI.AccessRight.Report.Pdf.Form SYSTEM "..\Report\Include\BI.AccessRight.Report.Pdf.Form.xml">
+  <!ENTITY BI.AccessRight.Report.Excel.Form SYSTEM "..\Report\Include\BI.AccessRight.Report.Excel.Form.xml">
+
+  <!ENTITY BI.AccessRight.Type.PurOrg "6">
+  <!ENTITY BI.AccessRight.Type.PurGr "7">
+  <!ENTITY BI.AccessRight.Type.Plant "8">
+  <!ENTITY BI.AccessRight.Type.Inspection "9">
+
+  <!ENTITY BI.AccessRight.Command.Processing "
+if @phan_loai = '6' select @typeName = case when @@language = 'V' then N'theo đơn vị mua' else 'by Purchasing Organization' end
+if @phan_loai = '7' select @typeName = case when @@language = 'V' then N'theo nhóm mua' else 'by Purchasing Group' end
+if @phan_loai = '8' select @typeName = case when @@language = 'V' then N'theo vùng' else 'by Plant' end
+if @phan_loai = '9' select @typeName = case when @@language = 'V' then N'theo nguồn kiểm định' else 'by Inspection Lot Origin' end
+if @user &lt;&gt; '' begin
+  if @phan_loai in ('6') select @label = case when @@language = 'V' then N'Đơn vị mua' else 'Purchasing Organization' end
+  if @phan_loai in ('7') select @label = case when @@language = 'V' then N'Nhóm mua' else 'Purchasing Group' end
+  if @phan_loai in ('8') select @label = case when @@language = 'V' then N'Đơn vị' else 'Unit' end
+  if @phan_loai in ('9') select @label = case when @@language = 'V' then N'Nguồn kiểm định' else 'Inspection Lot Origin' end
+end
+if @phan_loai = '6' and @ma_bp0 &lt;&gt; '' begin
+  select @description = case when @@language = 'V' then N'đơn vị mua: ' + rtrim(@ma_bp0) + ' - ' + ten_bp else 'Purchasing Organization: ' + rtrim(@ma_bp0) + ' - ' + ten_bp2 end from bidmbp0 where ma_bp = @ma_bp0
+  select @label = case when @@language = 'V' then N'Người sử dụng' else 'User(s)' end, @u = @ma_bp0
+end
+if @phan_loai = '9' and @ma_nguon &lt;&gt; '' begin
+  select @description = case when @@language = 'V' then N'nguồn kiểm định: ' + rtrim(@ma_nguon) + ' - ' + ten_nguon else 'Inspection Lot Origin: ' + rtrim(@ma_nguon) + ' - ' + ten_nguon2 end from bikddmnguon where ma_nguon = @ma_nguon
+  select @label = case when @@language = 'V' then N'Người sử dụng' else 'User(s)' end, @u = @ma_nguon
+end
+if @phan_loai not in ('6', '9') and @ma_bp0 = '' and @ma_nguon = '' select @u = @ma_dvcs
+">
+
+  <!ENTITY BI.AccessRight.Script.ResponseComplete "
+case '6':
+  s = (v ? 'Loại phân quyền theo đơn vị mua, ' : 'Type Access Right by Purchasing Organization, ');
+  if (u != ' - ') {
+    s = s + (f.getItem('user').field.Label.toLowerCase() + ': ' + u);
+    g._headerID = (v ? 'Đơn vị mua' : 'Purchasing Organization');
+    g._headerName = (v ? 'Tên đơn vị mua' : 'Purchasing Organization Name');
+  }
+  else {
+    s = s + (f.getItem('ma_bp0').field.Label.toLowerCase() + ': ' + f.getItemValue('ma_bp0') + ' - ' + f.getItemValue('ten_bp0&#37;l'));
+    g._headerID = (v ? 'Người sử dụng' : 'User(s)');
+    g._headerName = (v ? 'Tên đầy đủ' : 'Full Name');
+  }
+  break;
+case '7':
+  s = (v ? 'Loại phân quyền theo nhóm mua, ' : 'Type Access Right by Purchasing Group, ');
+  s = s + (f.getItem('user').field.Label.toLowerCase() + ': ' + u);
+  g._headerID = (v ? 'Nhóm mua' : 'Purchasing Group');
+  g._headerName = (v ? 'Tên nhóm mua' : 'Purchasing Group Name');
+  break;
+case '8':
+  s = (v ? 'Loại phân quyền theo vùng, ' : 'Type Access Right by Plant, ');
+  s = s + (f.getItem('user').field.Label.toLowerCase() + ': ' + u);
+  g._headerID = (v ? 'Đơn vị' : 'Unit');
+  g._headerName = (v ? 'Tên đơn vị' : 'Unit Name');
+  break;
+case '9':
+  s = (v ? 'Loại phân quyền theo nguồn kiểm định, ' : 'Type Access Right by Inspection Lot Origin, ');
+  if (u != ' - ') {
+    s = s + (f.getItem('user').field.Label.toLowerCase() + ': ' + u);
+    g._headerID = (v ? 'Nguồn kiểm định' : 'Inspection Lot Origin');
+    g._headerName = (v ? 'Tên nguồn kiểm định' : 'Inspection Lot Origin Name');
+  }
+  else {
+    s = s + (f.getItem('ma_nguon').field.Label.toLowerCase() + ': ' + f.getItemValue('ma_nguon') + ' - ' + f.getItemValue('ten_nguon&#37;l'));
+    g._headerID = (v ? 'Người sử dụng' : 'User(s)');
+    g._headerName = (v ? 'Tên đầy đủ' : 'Full Name');
+  }
+  break;
+">
+  <!ENTITY BI.AccessRight.Script.Check "
+g._$h$ID = (t == '8' ? (v ? 'Mã vùng' : 'Plant') : (v ? 'Mã kho' : 'Site'));
+g._$h$Name = (t == '8' ? (v ? 'Tên vùng' : 'Plant Name') : (v ? 'Tên kho' : 'Site Name'));
+">
+  <!ENTITY BI.AccessRight.Script.ChangeItem "
+function onChange$Item(o, force) {
+  var f = o.parentForm, name = o.field.Name, u = f.getItem('user'), d = f.getItem('ma_dvcs'), v, d$ext = f.getItem('ma_bp0'), v$ext, d$insp = f.getItem('ma_nguon'), v$insp;
+  switch (name) {
+    case 'phan_loai':
+      v$insp = ('9'.indexOf(f.getItem('phan_loai').value) &gt; -1);
+      $common.setVisible(d$insp.a, v$insp);
+      d$insp.disabled = !v$insp;
+
+      v$ext = ('6'.indexOf(f.getItem('phan_loai').value) &gt; -1);
+      $common.setVisible(d$ext.a, v$ext);
+      d$ext.disabled = !v$ext;
+
+      v = ('2'.indexOf(f.getItem('phan_loai').value) &gt; -1);
+      $common.setVisible(d.a, v);
+      d.disabled = !v;
+      setItemAllowNulls(f, 'user', (!v &amp;&amp; !v$ext &amp;&amp; !v$insp));
+      if (f.getItem('phan_loai').value == 5) {
+        setItemAllowNulls(f, 'user', false);
+        setItemAllowNulls(f, 'ma_dvcs', false);
+        setItemAllowNulls(f, 'ma_bp0', false);
+        setItemAllowNulls(f, 'ma_nguon', false);
+      } else {
+        setItemAllowNulls(f, 'ma_dvcs', v);
+        setItemAllowNulls(f, 'ma_bp0', v$ext);
+        setItemAllowNulls(f, 'ma_nguon', v$insp);
+      }
+      if (!force) {
+        setFieldsEmpty(f, 'ma_dvcs', v);
+        if (!v) f.setItemControlBehavior('ma_dvcs', '', '');
+        setFieldsEmpty(f, 'ma_bp0', v$ext);
+        if (!v$ext) f.setItemControlBehavior('ma_bp0', '', '');
+        setFieldsEmpty(f, 'ma_nguon', v$insp);
+        if (!v$insp) f.setItemControlBehavior('ma_nguon', '', '');
+        f.setItemControlBehavior('user', '', '', false);
+      }
+      f.live(u);
+      break;
+    case 'user':
+      d.value = '';
+      v = (f.getItem('phan_loai').value == 5);
+      setItemAllowNulls(f, 'ma_dvcs', false);
+      f.setItemControlBehavior('ma_dvcs', '', '');
+      setItemAllowNulls(f, 'ma_bp0', false);
+      f.setItemControlBehavior('ma_bp0', '', '');
+      setItemAllowNulls(f, 'ma_nguon', false);
+      f.setItemControlBehavior('ma_nguon', '', '');
+      if (!v) {
+        setItemAllowNulls(f, name, true);
+      } else {
+        if (u.value == '') {
+          setItemAllowNulls(f, name, false);
+        } else {
+          setItemAllowNulls(f, name, true);
+        }
+      }
+      break;
+    case 'ma_nguon':
+    case 'ma_bp0':
+    case 'ma_dvcs':
+      u.value = '';
+      setItemAllowNulls(f, 'user', false);
+      f.setItemControlBehavior('user', '', '');
+      setItemAllowNulls(f, name, true);
+      break;
+    default:
+      break;
+  }
+}">
+  <!ENTITY BI.AccessRight.Script.HiddenForms "
+g._hiddenForms = [
+  {Form: [0, 1, 3, 4, 6, 7, 9, 10], Value: (t == '4')},
+  {Form: [1, 2, 3, 4, 7, 8, 9, 10], Value: (t == '1' || t == '2' || t == '5' || t == '6' || t == '9')},
+  {Form: [0, 2, 3, 4, 6, 8, 9, 10], Value: (t == '3')},
+  {Form: [0, 1, 2, 3, 6, 7, 8, 9], Value: (t == '7')},
+  {Form: [0, 1, 2, 4, 6, 7, 8, 10], Value: (t == '8')}
+];
+">
+
+  <!ENTITY BI.AccessRight.Grid.Site.v "&lt;span id = 'idf_detail12'&gt;Mã kho&lt;/span&gt;">
+
+  <!ENTITY BI.AccessRight.Grid.Site.e "&lt;span id = 'idf_detail12'&gt;Site&lt;/span&gt;">
+  <!ENTITY BI.AccessRight.Grid.SiteName.v "&lt;span id = 'idf_detail22'&gt;Tên kho&lt;/span&gt;">
+  <!ENTITY BI.AccessRight.Grid.SiteName.e "&lt;span id = 'idf_detail22'&gt;Site Name&lt;/span&gt;">
+  <!ENTITY BI.AccessRight.Grid.Script "
+var j2 = g._getColumnOrder('name2'), k2 = g._getColumnOrder('description2'), fieldID2 = g._fields[j2 - 1], fieldName2 = g._fields[k2 - 1];
+var h12 = $get(g._id + '_HeaderText_name2'), c12 = $get('idf_detail12'), title12 = h12.title;
+var h22 = $get(g._id + '_HeaderText_description2'), c22 = $get('idf_detail22'), title22 = h22.title;
+h12.title = $func.replace(title12, fieldID2.HeaderText, g._$h$ID);
+h22.title = $func.replace(title22, fieldName2.HeaderText, g._$h$Name);
+c12.innerHTML = g._$h$ID, c22.innerHTML = g._$h$Name;
+Array.add(g._externalHeaderFields, {Index: fieldID2.Index, Header: g._$h$ID});
+Array.add(g._externalHeaderFields, {Index: fieldName2.Index, Header: g._$h$Name});
+g._setHeaderItemText(j2, g._$h$ID);
+g._setHeaderItemText(k2, g._$h$Name);
+">
+]]>
+
+<!ENTITY BI.AccessRight.Fields "">
+<!ENTITY BI.AccessRight.Type "">
+<!ENTITY BI.AccessRight.Views "">
+
+<!ENTITY BI.AccessRight.Report.Pdf.Form "">
+<!ENTITY BI.AccessRight.Report.Excel.Form "">
+
+<!ENTITY BI.AccessRight.Type.PurOrg "">
+<!ENTITY BI.AccessRight.Type.PurGr "">
+<!ENTITY BI.AccessRight.Type.Plant "">
+<!ENTITY BI.AccessRight.Type.Inspection "">
+
+<!ENTITY BI.AccessRight.Command.Processing "select @u = @ma_dvcs">
+
+<!ENTITY BI.AccessRight.Script.ResponseComplete "">
+<!ENTITY BI.AccessRight.Script.Check "">
+<!ENTITY BI.AccessRight.Script.ChangeItem "
+function onChange$Item(o, force) {
+  var f = o.parentForm, name = o.field.Name, u = f.getItem('user'), d = f.getItem('ma_dvcs'), v;
+  switch (name) {
+    case 'phan_loai':
+      v = (f.getItem('phan_loai').value == 2);
+      $common.setVisible(d.a, v);
+      d.disabled = !v;
+      setItemAllowNulls(f, 'user', !v);
+      if (f.getItem('phan_loai').value == 5) {
+        setItemAllowNulls(f, 'user', false);
+        setItemAllowNulls(f, 'ma_dvcs', false);
+      } else {
+        setItemAllowNulls(f, 'ma_dvcs', v);
+      }
+      if (!force) {
+        setFieldsEmpty(f, 'ma_dvcs', v);
+        if (!v) f.setItemControlBehavior('ma_dvcs', '', '');
+        f.setItemControlBehavior('user', '', '');
+      }
+      f.live(u);
+      break;
+    case 'user':
+      d.value = '';
+      v = (f.getItem('phan_loai').value == 5);
+      setItemAllowNulls(f, 'ma_dvcs', false);
+      f.setItemControlBehavior('ma_dvcs', '', '');
+      if (!v) {
+        setItemAllowNulls(f, name, true);
+      } else {
+        if (u.value == '') {
+          setItemAllowNulls(f, name, false);
+        } else {
+          setItemAllowNulls(f, name, true);
+        }
+      }
+      break;
+    case 'ma_dvcs':
+      u.value = '';
+      setItemAllowNulls(f, 'user', false);
+      f.setItemControlBehavior('user', '', '');
+      setItemAllowNulls(f, name, true);
+      break;
+    default:
+      break;
+  }
+}">
+<!ENTITY BI.AccessRight.Script.HiddenForms "
+g._hiddenForms = [
+  {Form: [0, 1, 4, 5], Value: (t == '4')},
+  {Form: [1, 2, 5, 6], Value: (t == '1' || t == '2' || t == '5')},
+  {Form: [0, 2, 4, 6], Value: (t == '3')}
+];
+">
+<!ENTITY BI.AccessRight.Grid.Script "">
+<!ENTITY BI.AccessRight.Grid.Site.v "Mã kho">
+<!ENTITY BI.AccessRight.Grid.Site.e "Site">
+<!ENTITY BI.AccessRight.Grid.SiteName.v "Tên kho">
+<!ENTITY BI.AccessRight.Grid.SiteName.e "Site Name">
