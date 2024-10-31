@@ -1,0 +1,300 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY ScriptQueryData SYSTEM "..\Include\Javascript\QueryData.txt">
+  <!ENTITY ScriptIrregular SYSTEM "..\Include\Javascript\Irregular.txt">
+  <!ENTITY ScriptCheckGridIrregularCode SYSTEM "..\Include\Javascript\CheckGridIrregularCode.txt">
+
+  <!ENTITY Controller "hrPosition">
+  <!ENTITY PrimeField "'ma_vtr'">
+  <!ENTITY PrimeFieldOldValue "$ma_vtr.OldValue">
+  <!ENTITY PrimeFieldNewValue "@ma_vtr">
+  <!ENTITY % ListEditLog SYSTEM "..\Include\ListEditLog.ent">
+  %ListEditLog;
+]>
+
+<dir table="hrvt" code="ma_vtr" order="stt" name="cookie" check="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="vị trí công việc" e="Position"></title>
+  <fields>
+    <field name="ma_vtr" isPrimaryKey="true" dataFormatString="@upperCaseFormat" allowNulls="false">
+      <header v="Mã vị trí" e="Position"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ten_vtr" allowNulls="false">
+      <header v="Tên vị trí" e="Description"></header>
+    </field>
+    <field name="ten_vtr2">
+      <header v="Tên khác" e="Other Name"></header>
+    </field>
+
+    <field name="ma_bac" categoryIndex="1">
+      <header v="Bậc quản lý" e="Job Grade"></header>
+      <items style="AutoComplete" controller="hrManagerLevel" reference="ten_bac%l" key="status = '1'" check="1 = 1" information="ma_bac$hrdmbql.ten_bac%l" new="Default"/>
+    </field>
+    <field name="ten_bac%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vtr1" categoryIndex="1">
+      <header v="Nhóm vị trí 1" e="Position Group 1"></header>
+      <items style="AutoComplete" controller="hrPositionGroup" reference="ten_nh1%l" key="status ='1' and loai_nh = 1" check="loai_nh = 1" information="ma_nh$hrdmnhvt.ten_nh%l"/>
+    </field>
+    <field name="ten_nh1%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vtr2" categoryIndex="1">
+      <header v="Nhóm vị trí 2" e="Position Group 2"></header>
+      <items style="AutoComplete" controller="hrPositionGroup" reference="ten_nh2%l" key="status ='1' and loai_nh = 2" check="loai_nh = 2" information="ma_nh$hrdmnhvt.ten_nh%l"/>
+    </field>
+    <field name="ten_nh2%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="nh_vtr3" categoryIndex="1">
+      <header v="Nhóm vị trí 3" e="Position Group 3"></header>
+      <items style="AutoComplete" controller="hrPositionGroup" reference="ten_nh3%l" key="status ='1' and loai_nh = 3" check="loai_nh = 3" information="ma_nh$hrdmnhvt.ten_nh%l"/>
+    </field>
+    <field name="ten_nh3%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="stt" type="Decimal" dataFormatString="####0" categoryIndex="1">
+      <header v="Stt sắp xếp" e="Ordinal Number"></header>
+      <items style="Numeric"/>
+    </field>
+
+    <field name="status" dataFormatString="0, 1" clientDefault="1" align="right" categoryIndex="1">
+      <header v="Trạng thái" e="Status"></header>
+      <footer v="1 - Còn sử dụng, 0 - Không còn sử dụng" e="1 - Active, 0 - Inactive"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ghi_chu" categoryIndex="1">
+      <header v="Ghi chú" e="Note"></header>
+    </field>
+
+    <field name="hrctvt" external="true" clientDefault="0" defaultValue="0" rows="124" filterSource="Tidy" categoryIndex="2">
+      <header v="" e=""></header>
+      <label v="Chi tiết công việc" e="Job Detail"></label >
+      <items style="Grid" controller="hrPositionDetail" row="1">
+        <item value="ForeignKey">
+          <text v ="String: ma_vtr, ma_vtr" e="String: ma_vtr, ma_vtr"></text>
+        </item>
+      </items>
+    </field>
+
+    <field name="chuyen_mon" rows="3" categoryIndex="3">
+      <header v="Chuyên môn" e="Speciality"></header>
+    </field>
+
+    <field name="ky_nang" rows="3" categoryIndex="4">
+      <header v="Kỹ năng" e="Skill"></header>
+    </field>
+
+    <field name="quyen_loi" rows="8" categoryIndex="5">
+      <header v="Quyền lợi" e="Rights"></header>
+    </field>
+
+    <field name="nghia_vu" rows="8" categoryIndex="6">
+      <header v="Nghĩa vụ" e="Responsibilites"></header>
+    </field>
+
+    <field name="cookie" external="true" hidden="true" readOnly="true" defaultValue="''" allowContain="true" categoryIndex="-1">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="184" anchor="6">
+      <item value="120, 30, 70, 100, 100, 130, 0"/>
+      <item value="110: [ma_vtr].Label, [ma_vtr]"/>
+      <item value="110000: [ten_vtr].Label, [ten_vtr]"/>
+      <item value="1100001: [ten_vtr2].Label, [ten_vtr2], [cookie]"/>
+
+      <item value="110100: [ma_bac].Label, [ma_bac], [ten_bac%l]"/>
+      <item value="110100: [nh_vtr1].Label, [nh_vtr1], [ten_nh1%l]"/>
+      <item value="110100: [nh_vtr2].Label, [nh_vtr2], [ten_nh2%l]"/>
+      <item value="110100: [nh_vtr3].Label, [nh_vtr3], [ten_nh3%l]"/>
+
+      <item value="110: [stt].Label, [stt]"/>
+
+      <item value="111000: [status].Label, [status], [status].Description"/>
+      <item value="110000: [ghi_chu].Label, [ghi_chu]"/>
+
+      <item value="1: [hrctvt]"/>
+
+      <item value="110000: [chuyen_mon].Label, [chuyen_mon]"/>
+      <item value="110000: [ky_nang].Label, [ky_nang]"/>
+      <item value="110000: [quyen_loi].Label, [quyen_loi]"/>
+      <item value="110000: [nghia_vu].Label, [nghia_vu]"/>
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 100, 100, 130, 0" anchor="6">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+        <category index="2" columns="566" anchor="1" >
+          <header v="Công việc" e="Job"/>
+        </category>
+        <category index="3" columns="120, 30, 70, 100, 100, 130" anchor="6">
+          <header v="Chuyên môn" e="Speciality"/>
+        </category>
+        <category index="4" columns="120, 30, 70, 100, 100, 130" anchor="6">
+          <header v="Kỹ năng" e="Skill"/>
+        </category>
+        <category index="5" columns="120, 30, 70, 100, 100, 130" anchor="6">
+          <header v="Quyền lợi" e="Rights"/>
+        </category>
+        <category index="6" columns="120, 30, 70, 100, 100, 130" anchor="6">
+          <header v="Nghĩa vụ" e="Responsibilites"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$FormPosition(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$FormPosition(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Declare">
+      <text>
+        <![CDATA[
+declare @$exists nvarchar(512), @$recordHasBeenChanged nvarchar(512)
+select @$exists = case when @@language = 'v' then N'Mã vị trí <span class="Highlight">%s</span> đã có hoặc lồng nhau trong danh mục vị trí công việc.' else N'The position <span class="Highlight">%s</span> is invalid or already exists.' end
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Mã vị trí <span class="Highlight">%s</span> đã được sửa hoặc xóa bởi người sử dụng khác.' else N'The position <span class="Highlight">%s</span> has been modified or deleted by another user.' end
+]]>
+      </text>
+    </command>
+
+    <command event="InitExternalFields">
+      <text>
+        <![CDATA[
+declare @cookie varchar(32)
+select @cookie = convert(varchar(19), datetime2, 121) from @@table where ma_vtr = @ma_vtr
+select @cookie as cookie
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if exists(select * from @@table where ((ma_vtr like rtrim(@ma_vtr) + '%') or rtrim(@ma_vtr) like rtrim(ma_vtr) + '%')) begin
+  select 'ma_vtr' as field, replace(@$exists, '%s', rtrim(@ma_vtr)) as message
+  return
+end
+select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
+update @hrctvt set ma_vtr = @ma_vtr
+]]>
+      </text>
+    </command>
+
+    <command event="Inserted">
+      <text>
+        <![CDATA[
+insert into hrctvt select * from @hrctvt
+]]>
+      </text>
+    </command>
+
+    <command event="Updating">
+      <text>
+        <![CDATA[
+if not exists(select * from @@table where ma_vtr = $ma_vtr.OldValue) begin
+  select 'ma_vtr' as field, replace(@$recordHasBeenChanged, '%s', rtrim($ma_vtr.OldValue)) as message
+  return
+end
+
+if @ma_vtr <> $ma_vtr.OldValue begin
+  if exists(select * from @@table where ((ma_vtr like rtrim(@ma_vtr) + '%') or rtrim(@ma_vtr) like rtrim(ma_vtr) + '%') and ma_vtr <> $ma_vtr.OldValue) begin
+    select 'ma_vtr' as field, replace(@$exists, '%s', rtrim(@ma_vtr)) as message
+    return
+  end
+end
+]]>&ListWhenBeforeUpdateLog;<![CDATA[
+if @ma_vtr <> $ma_vtr.OldValue begin
+  if $hrctvt.NewValue = $hrctvt.OldValue begin
+    update hrctvt set ma_vtr = @ma_vtr where ma_vtr = $ma_vtr.OldValue
+  end
+end
+update @hrctvt set ma_vtr = @ma_vtr
+if $hrctvt.NewValue <> $hrctvt.OldValue delete hrctvt where ma_vtr = $ma_vtr.OldValue
+]]>
+      </text>
+    </command>
+
+    <command event="Updated">
+      <text>
+        <![CDATA[
+if $hrctvt.NewValue <> $hrctvt.OldValue insert into hrctvt select * from @hrctvt
+update @@table set datetime2 = getdate(), user_id2 = @@userID where ma_vtr = @ma_vtr
+]]>
+      </text>
+    </command>
+
+    <command event="Deleting">
+      <text>
+        <![CDATA[
+delete hrctvt where ma_vtr = @ma_vtr
+]]>
+        &ListWhenBeforeDeleteLog;
+      </text>
+    </command>
+
+    <command event="Checking">
+      <text>
+        <![CDATA[
+var g = this.getItem('hrctvt')._controlBehavior, f = this, b = (f._language == 'v');
+if (g._rowCount > 0) {
+  var specialChar = '\'`~!@#$%^&*(),;"<>?/\\,_', l = g._getColumnOrder('ma_cv'), c = g._getColumnOrder('line_nbr');
+  var e1 = (b ? 'Mã công việc trùng nhau trong phần thông tin chi tiết.' : 'Invalid job code, it already exists.');
+  var e2 = String.format((b ? 'Trường <span class="Highlight">Mã công việc</span> không được phép có khoảng trắng ở đầu hoặc chứa các ký tự: <span class="Highlight">{0}</span>.' : 'Field <span class="Highlight">Job</span> can not contain blank at the beginning or any of the following characters: <span class="Highlight">{0}</span>.'), specialChar);
+
+  var a = query$Select(g, 'count$1 $groupBy ma_cv');
+  for (var i = 0; i < a.length; i++) {
+    if (a[i][1] > 1) {
+      g._errorObject = g._getItem(1, 1);
+      $message.show(e1, String.format('$find(\'{0}\')._errorObject.focus()', g.get_id()));
+      f._checked = false;
+      break;
+    }
+  }
+  if (f._checked) {
+    for (var i = 1; i <= g._rowCount; i++) {
+      var v = g._getItemValue(i, l);
+      g._errorObject = g._getItem(i, l);
+      if (!CheckGridIrregularCode(v)) {
+        $message.show(e2, String.format('$find(\'{0}\')._errorObject.focus()', g.get_id()));
+        f._checked = false;
+        break;
+      }
+      else g._setItemValue(i, c, i);
+    }
+  }
+}
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$FormPosition(a){a.add_onResponseComplete(on$FormPosition$ResponseComplete);a._tabContainer.add_activeTabChanged(onChange$FormPosition$Tab);a._tabContainer._loaded=true}function close$FormPosition(a){if(a._tabContainer)try{a._tabContainer.remove_activeTabChanged(onChange$FormPosition$Tab)}catch(b){}try{a.remove_onResponseComplete(on$FormPosition$ResponseComplete)}catch(b){}}function onChange$FormPosition$Tab(a){a.parentForm.focusWhenTabChanged(["ma_bac","hrctvt","chuyen_mon","ky_nang","quyen_loi","nghia_vu"])}function on$FormPosition$ResponseComplete(e,a){var c=a.object,b=a.type.Context,d=a.type.Result;switch(b){case"Checking":objectBehavior$Dir$Irregular.checkCode(c,"ma_vtr")}}]]>
+      &ScriptQueryData;
+      &ScriptIrregular;
+      &ScriptCheckGridIrregularCode;
+    </text>
+  </script>
+</dir>
