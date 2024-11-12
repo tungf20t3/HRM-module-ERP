@@ -1,0 +1,327 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="hrplhd" code="stt_rec, ngay_ky_plhd" order="stt_rec, ngay_ky_plhd" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="thông tin phụ lục hợp đồng" e="Appendix of Labor Contract"></title>
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_nv" allowNulls="false" external="true" defaultValue="''">
+      <header v="Mã nhân viên" e="Employee ID"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ho_ten" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)" information="ma_nv$vhrnv.ten"/>
+      <clientScript><![CDATA[onchange="onchange$AppendixOfLaborContract$IDNumber(this);"]]></clientScript>
+    </field>
+    <field name="ho_ten" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_bp%l" external="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_plhd" dataFormatString="@upperCaseFormat" allowNulls="false">
+      <header v="Mã số phụ lục" e="Contract Appendix No."></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_so_hdld" dataFormatString="@upperCaseFormat" allowNulls="false" onDemand="true">
+      <header v="Mã số hợp đồng" e="Labor Contract No."></header>
+      <items style="AutoComplete" controller="hrLaborContract" reference="so_hdld" key="stt_rec='{$%c[stt_rec]}'" check="stt_rec='{$%c[stt_rec]}'" information="so_hdld$vhrcthd.ma_nv"/>
+      <clientScript><![CDATA[onchange="onchange$AppendixOfLaborContract$LaborContract(this);"]]></clientScript>
+    </field>
+    <field name="so_hdld" readOnly="true" external="true" defaultValue="''" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_ky_hd" type="DateTime" dataFormatString="@datetimeFormat" align="left" external="true" defaultValue="null">
+      <header v="Ngày ký hợp đồng" e="Date Signed"></header>
+    </field>
+
+    <field name="ngay_ky_plhd" isPrimaryKey="true" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false" categoryIndex="1">
+      <header v="Ngày ký" e="Date Signed"></header>
+    </field>
+    <field name="so_ld" clientDefault="Default" categoryIndex="1" dataFormatString="@upperCaseFormat">
+      <header v="Số sổ lao động" e="Labor Book No."></header>
+      <items style="Mask"/>
+    </field>
+    <field name="so_ngay_cap" clientDefault="Default" type="DateTime" dataFormatString="@datetimeFormat" align="left" categoryIndex="1">
+      <header v="Ngày cấp sổ" e="Date of Issue"></header>
+    </field>
+    <field name="so_noi_cap" clientDefault="Default" categoryIndex="1">
+      <header v="Nơi cấp sổ" e="Place of Issue"></header>
+    </field>
+    <field name="noi_dung_td" clientDefault="Default" categoryIndex="1">
+      <header v="Nội dung thay đổi" e="New contents"></header>
+    </field>
+    <field name="noi_dung_td2" clientDefault="Default" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="thoi_gian_th" clientDefault="Default" categoryIndex="1">
+      <header v="Thời gian thực hiện" e="Effective Period"></header>
+    </field>
+    <field name="thoi_gian_th2" clientDefault="Default" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ngay_sinh" type="DateTime" dataFormatString="@datetimeFormat" align="left" external="true" defaultValue="null" categoryIndex="9">
+      <header v="Ngày sinh" e="Date of Birth"></header>
+    </field>
+    <field name="noi_sinh" external="true" defaultValue="''" categoryIndex="9">
+      <header v="Nơi sinh" e="Place of Birth"></header>
+    </field>
+    <field name="dia_chi_th_tru" categoryIndex="9">
+      <header v="Hộ khẩu" e="Permanent Residence"></header>
+    </field>
+    <field name="cmnd_so" categoryIndex="9">
+      <header v="Số CMND/Hộ chiếu" e="ID Card/ Passport No."></header>
+    </field>
+    <field name="cmnd_ngay_hl" type="DateTime" dataFormatString="@datetimeFormat" align="left" categoryIndex="9">
+      <header v="Ngày cấp" e="Date of Issue"></header>
+    </field>
+    <field name="cmnd_noi_cap" categoryIndex="9">
+      <header v="Nơi cấp" e="Place of Issue"></header>
+    </field>
+    <field name="nghe_nghiep" clientDefault="Default" categoryIndex="-1">
+      <header v="Nghề nghiệp" e="Occupation"></header>
+    </field>
+    <field name="nghe_nghiep2" clientDefault="Default" categoryIndex="-1">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="160">
+      <item value="120, 30, 70, 111, 8, 100, 111, 0, 0"/>
+      <item value="110100-1: [ma_nv].Label, [ma_nv], [ho_ten], [stt_rec]"/>
+      <item value="110-----: [so_plhd].Label, [so_plhd]"/>
+      <item value="110----1: [ma_so_hdld].Label, [ma_so_hdld], [so_hdld]"/>
+      <item value="110-----: [ngay_ky_hd].Label, [ngay_ky_hd]"/>
+
+      <item value="110-----: [ngay_ky_plhd].Label, [ngay_ky_plhd]"/>
+      <item value="110-----: [so_ld].Label, [so_ld]"/>
+      <item value="110-----: [so_ngay_cap].Label, [so_ngay_cap]"/>
+      <item value="11000000: [so_noi_cap].Label, [so_noi_cap]"/>
+      <item value="1100-10-: [noi_dung_td].Label, [noi_dung_td], [noi_dung_td2]"/>
+      <item value="1100-10-: [thoi_gian_th].Label, [thoi_gian_th], [thoi_gian_th2]"/>
+
+      <item value="110----1: [ngay_sinh].Label, [ngay_sinh], [ten_bp%l]"/>
+      <item value="11000000: [noi_sinh].Label, [noi_sinh]"/>
+      <item value="11000000: [dia_chi_th_tru].Label, [dia_chi_th_tru]"/>
+      <item value="110-----: [cmnd_so].Label, [cmnd_so]"/>
+      <item value="110-----: [cmnd_ngay_hl].Label, [cmnd_ngay_hl]"/>
+      <item value="11000000: [cmnd_noi_cap].Label, [cmnd_noi_cap]"/>
+
+      <item value="1100-10-: [nghe_nghiep].Label, [nghe_nghiep], [nghe_nghiep2]"/>
+
+      <categories>
+        <category index="1" columns="120, 30, 70, 111, 8, 100, 111, 0, 0">
+          <header v="Thông tin chung" e="General Information"/>
+        </category>
+        <category index="9" columns="120, 30, 70, 100, 100, 130, 0, 0">
+          <header v="Khác" e="Other"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$AppendixOfLaborContract(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Scattering">
+      <text>
+        <![CDATA[
+select 'scatter$AppendixOfLaborContract(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$AppendixOfLaborContract(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="InitExternalFields">
+      <text>
+        <![CDATA[
+declare @ho_ten nvarchar(256), @ma_nv varchar(32), @ngay_sinh smalldatetime, @noi_sinh nvarchar(512), @ten_bp nvarchar(512), @ngay_ky_hd smalldatetime
+select @ma_nv = rtrim(a.ma_nv), @ho_ten = rtrim(a.ho_nv) + space(1) + a.ten_nv, @ngay_sinh = a.ngay_sinh, @noi_sinh = a.noi_sinh    
+    , @ten_bp = case when @@language = 'v' then p.ten_bp else p.ten_bp2 end
+  from hrnv a left join hrbp p on a.bo_phan = p.ma_bp
+  where a.stt_rec = @stt_rec
+select @ngay_ky_hd = ngay_ky_hd from hrcthd where so_hdld in (select ma_so_hdld from @@table where stt_rec = @stt_rec and ngay_ky_plhd = @ngay_ky_plhd)
+select @ma_nv as ma_nv, @ho_ten as ho_ten, @ngay_sinh as ngay_sinh, isnull(@noi_sinh, '') as noi_sinh, @ten_bp as ten_bp%l, @ngay_ky_hd as ngay_ky_hd
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Declare">
+      <text>
+        <![CDATA[
+declare @$exists nvarchar(512), @$recordHasBeenChanged nvarchar(512)
+select @$exists = case when @@language = 'v' then N'<span class="Highlight">Thông tin phụ lục hợp đồng đang cập nhật đã được khai báo</span>, không lưu được.' else N'<span class="Highlight">This item already exists</span>, it can not be saved.' end
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Bản ghi hiện thời đã được sửa hoặc xóa bởi người sử dụng khác.' else N'This item has been modified or deleted by another user.' end
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if exists(select * from @@table where stt_rec = @stt_rec and ngay_ky_plhd = @ngay_ky_plhd) begin
+	select 'ma_nv' as field, @$exists as message
+  return
+end
+if exists(select 1 from @@table where so_plhd = @so_plhd) begin
+	select 'so_plhd' as field, @$exists as message
+  return
+end
+select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
+]]>
+      </text>
+    </command>
+
+    <command event="Updating">
+      <text>
+        <![CDATA[  
+if not exists(select * from @@table where stt_rec = $stt_rec.OldValue and ngay_ky_plhd = $ngay_ky_plhd.OldValue) begin
+  select 'ma_nv' as field, @$recordHasBeenChanged as message
+  return
+end
+if (@so_plhd <> (select so_plhd from @@table where stt_rec = $stt_rec.OldValue and ngay_ky_plhd = $ngay_ky_plhd.OldValue)) begin
+  if exists(select 1 from @@table where so_plhd = @so_plhd) begin
+    select 'so_plhd' as field, @$exists as message
+    return
+  end
+end
+if (@stt_rec <> $stt_rec.OldValue or @ngay_ky_plhd <> $ngay_ky_plhd.OldValue) begin
+  if exists(select * from @@table where (not (stt_rec = $stt_rec.OldValue and ngay_ky_plhd = $ngay_ky_plhd.OldValue)) and (stt_rec = @stt_rec and ngay_ky_plhd = @ngay_ky_plhd)) begin
+    select 'ma_nv' as field, @$exists as message
+    return
+  end
+end
+]]>
+      </text>
+    </command>
+
+    <command event="Updated">
+      <text>
+        <![CDATA[
+update @@table set datetime2 = getdate(), user_id2 = @@userID where stt_rec = @stt_rec and ngay_ky_plhd = @ngay_ky_plhd
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$AppendixOfLaborContract(f) {
+	f.add_onResponseComplete(on$AppendixOfLaborContract$ResponseComplete);
+	f._tabContainer.add_activeTabChanged(onChange$AppendixOfLaborContract$Tab);
+  f._tabContainer._loaded = true;
+  setDefault$AppendixOfLaborContract$Value(f);
+  f.setReferenceKeyFilter('ma_so_hdld');
+}
+function scatter$AppendixOfLaborContract(f) {setDefault$AppendixOfLaborContract$Value(f);}
+function setDefault$AppendixOfLaborContract$Value(f) {
+  if (f._action == 'New') {
+		var d = new Date();
+    f.setItemValue('ngay_ky_plhd', d);
+	}
+  f.setReadOnlyFields('ngay_ky_hd, ngay_sinh, noi_sinh');
+}
+function close$AppendixOfLaborContract(f) {
+  try {f.remove_onResponseComplete(on$AppendixOfLaborContract$ResponseComplete)} catch (ex) {}
+  if (f._tabContainer) try {f._tabContainer.remove_activeTabChanged(onChange$AppendixOfLaborContract$Tab);} catch (ex) {}
+}
+function onChange$AppendixOfLaborContract$Tab(sender, e) {sender.parentForm.focusWhenTabChanged(['ngay_ky_plhd', 'ngay_sinh']);}
+function onchange$AppendixOfLaborContract$IDNumber(o) {o.parentForm.request('IDNumber', 'IDNumber', ['ma_nv']);}
+function onchange$AppendixOfLaborContract$LaborContract(o) {o.parentForm.request('LaborContract', 'LaborContract', ['stt_rec', 'ma_so_hdld', 'ngay_ky_plhd']);}
+function on$AppendixOfLaborContract$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'IDNumber':
+      f.setItemControlBehavior('stt_rec', result[0].Value, true);
+      f.setItemValue('ngay_sinh', result[1].Value);
+      f.setItemControlBehavior('noi_sinh', result[2].Value, true);
+      f.setItemValue('cmnd_ngay_hl', result[3].Value);
+      f.setItemControlBehavior('cmnd_noi_cap', result[4].Value, true);
+      f.setItemControlBehavior('dia_chi_th_tru', result[5].Value, true);
+      f.setItemControlBehavior('cmnd_so', result[6].Value, true);
+      f.setItemControlBehavior('ten_bp%l', result[7].Value, true);
+      f.setReferenceKeyFilter('ma_so_hdld');
+      break;
+    case 'LaborContract':
+      f.setItemValue('ngay_ky_hd', result[0].Value);
+      f.setItemControlBehavior('nghe_nghiep', result[1].Value, true);
+      f.setItemControlBehavior('nghe_nghiep2', result[2].Value, true);
+      f.setItemControlBehavior('so_ld', result[3].Value, true);
+      f.setItemValue('so_ngay_cap', result[4].Value);
+      f.setItemControlBehavior('so_noi_cap', result[5].Value, true);
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="IDNumber">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrnv where ma_nv = @ma_nv) begin
+  select a.stt_rec, a.ngay_sinh, a.noi_sinh, 
+      cast(case when a.cmnd_so <> '' then a.cmnd_ngay_hl else case when a.ho_chieu_so <> '' then ho_chieu_ngay_hl else null end end as smalldatetime) as ngay_hl, 
+      case when a.cmnd_so <> '' then isnull(t.ten_tinh, '') else case when a.ho_chieu_so <> '' then isnull(y.ten_qt, '') else '' end end as noi_cap, 
+      case
+          when a.dia_chi_th_tru <> '' then 
+            rtrim(a.dia_chi_th_tru) + 
+              case 
+                when d.ten_quan <> '' then ' - ' + rtrim(d.ten_quan) + 
+                  case
+                    when p.ten_tinh <> '' then ' - ' + rtrim(p.ten_tinh)
+                    else ''
+                  end
+                else ''
+              end
+          else ''
+        end as dia_chi_th_tru,
+      case when a.cmnd_so <> '' then a.cmnd_so else a.ho_chieu_so end as cmnd_so,
+      case when @@language = 'v' then isnull(x.ten_bp, '') else isnull(x.ten_bp2, '') end as ten_bp
+    from hrnv a left join hrdmtinh t on a.cmnd_noi_cap = t.ma_tinh
+      left join hrdmtinh p on a.dia_chi_th_tru_tinh = p.ma_tinh
+      left join hrdmquan d on a.dia_chi_th_tru_quan = d.ma_quan and a.dia_chi_th_tru_tinh = d.ma_tinh
+      left join hrbp x on a.bo_phan = x.ma_bp
+      left join dmqt y on a.ho_chieu_noi_cap = y.ma_qt
+      left join hrvt z on a.vi_tri = z.ma_vtr
+    where a.ma_nv = @ma_nv
+  return
+end
+]]>
+      </text>
+    </action>
+
+    <action id="LaborContract">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrcthd where stt_rec = @stt_rec and so_hdld = @ma_so_hdld) begin
+  select ngay_ky_hd, nghe_nghiep, nghe_nghiep2, so_ld, so_ngay_cap, so_noi_cap from hrcthd where stt_rec = @stt_rec and so_hdld = @ma_so_hdld
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

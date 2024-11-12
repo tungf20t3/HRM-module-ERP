@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE grid [
+  <!ENTITY XMLStandardDetailToolbar SYSTEM "..\Include\XML\StandardDetailToolbar.xml">
+]>
+
+<grid table="hrrmkqpvct" code="stt_rec_" order="stt_rec, line_nbr" type="Detail" freezeColumns="3" xmlns="urn:schemas-ai-erp:data-grid">
+  <title v="" e=""></title>
+  <subTitle v="" e=""></subTitle>
+
+  <fields>
+    <field name="ma_pv" width="100" aliasName="a" allowNulls="false">
+      <header v="Loại phỏng vấn" e="Interview Code"></header>
+      <items style="AutoComplete" controller="hrRMInterview" reference="ten_pv%l" key="status = '1'" check="1 = 1" information="ma_pv$hrdmpv.ten_pv%l"/>
+    </field>
+    <field name="ten_pv%l" readOnly="true" external="true" defaultValue="''" inactivate="true" width="300" aliasName="b">
+      <header v="Nội dung phỏng vấn" e="Description"></header>
+    </field>
+    <field name="diem" width="100" type="Decimal" dataFormatString="@markInputFormat">
+      <header v="Điểm" e ="Score"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_kq" width="100" aliasName="a" allowNulls="false">
+      <header v="Kết quả" e="Result"></header>
+      <items style="AutoComplete" controller="hrRMResult" reference="ten_kq%l" key="status = '1'" check="1 = 1" information="ma_kq$hrdmkq.ten_kq%l"/>
+    </field>
+    <field name="ten_kq%l" readOnly="true" external="true" defaultValue="''" inactivate="true" width="0" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="trong_so" width="100" type="Decimal" dataFormatString="### ### ##0">
+      <header v="Trọng số (%)" e ="Weight (%)"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ghi_chu" width="300">
+      <header v="Ghi chú" e="Note"></header>
+    </field>
+
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec0" isPrimaryKey="true" width="0" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="line_nbr" type="Int32" width="0" align="right" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Grid">
+      <field name="ma_pv"/>
+      <field name="ten_pv%l"/>
+      <field name="diem"/>
+      <field name="ma_kq"/>
+      <field name="ten_kq%l"/>
+      <field name="trong_so"/>
+      <field name="ghi_chu"/>
+      <field name="stt_rec"/>
+      <field name="stt_rec0"/>
+      <field name="line_nbr"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[select 'load$GridVoucherDetail$(this);' as message
+return]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[select 'dispose$GridVoucherDetail$(this);' as message
+return]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$GridVoucherDetail$(g) {g.add_commandEvent(on$GridVoucherDetail$ExecuteCommand);}
+function dispose$GridVoucherDetail$(g) {try {g.remove_commandEvent(on$GridVoucherDetail$ExecuteCommand);} catch (ex) {}}
+function on$GridVoucherDetail$ExecuteCommand(sender, e) {
+  var action = e.type.Action, g = sender, f = g.get_element().parentForm;
+  switch (action) {
+    case 'AfterCloneRow':
+      g.setItemFieldValue('stt_rec0', e.type.Value, '');
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <queries>
+    <query event="Loading">
+      <text>
+        <![CDATA[
+select @@fieldExternal from @@table a left join hrdmpv b on a.ma_pv =  b.ma_pv where stt_rec = @stt_rec order by @@orderByClause
+]]>
+      </text>
+    </query>
+  </queries>
+
+  &XMLStandardDetailToolbar;
+</grid>

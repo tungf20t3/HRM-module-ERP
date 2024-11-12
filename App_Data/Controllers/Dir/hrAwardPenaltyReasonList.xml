@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE dir [
+  <!ENTITY ScriptIrregular SYSTEM "..\Include\Javascript\Irregular.txt">
+
+  <!ENTITY Controller "hrAwardPenaltyReasonList">
+  <!ENTITY PrimeField "'ma_loai'">
+  <!ENTITY PrimeFieldOldValue "$ma_loai.OldValue">
+  <!ENTITY PrimeFieldNewValue "@ma_loai">
+  <!ENTITY % ListEditLog SYSTEM "..\Include\ListEditLog.ent">
+  %ListEditLog;
+]>
+
+<dir table="hrdmloaitp" code="ma_loai" order="ma_loai" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="lý do thưởng, phạt" e="Award, Penalty Reason"></title>
+  <fields>
+    <field name="ma_loai" isPrimaryKey="true" dataFormatString="@upperCaseFormat" allowNulls="false">
+      <header v="Mã lý do" e="Reason"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ten_loai" allowNulls="false">
+      <header v="Tên lý do" e="Description"></header>
+    </field>
+    <field name="ten_loai2">
+      <header v="Tên khác" e="Other Name"></header>
+    </field>
+    <field name="ten_ngan">
+      <header v="Tên ngắn" e="Short Name"></header>
+    </field>
+    <field name="ten_ngan2">
+      <header v="Tên ngắn khác" e="Other Short Name"></header>
+    </field>
+    <field name="stt" type="Decimal" dataFormatString="###0" defaultValue="0">
+      <header v="Stt sắp xếp" e="Ordinal Number"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="loai" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Loại" e="Type"></header>
+      <footer v="1 - Thưởng, 2 - Phạt" e="1 - Award, 2 - Penalty"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="status" dataFormatString="0, 1" clientDefault="1" align="right" inactivate="true">
+      <header v="Trạng thái" e="Status"></header>
+      <footer v="1 - Còn sử dụng, 0 - Không còn sử dụng" e="1 - Active, 0 - Inactive"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 20, 50, 330"/>
+      <item value="1100: [ma_loai].Label, [ma_loai]"/>
+      <item value="11000: [ten_loai].Label, [ten_loai]"/>
+      <item value="11000: [ten_loai2].Label, [ten_loai2]"/>
+      <item value="1100: [ten_ngan].Label, [ten_ngan]"/>
+      <item value="1100: [ten_ngan2].Label, [ten_ngan2]"/>
+      <item value="1100: [stt].Label, [stt]"/>
+      <item value="11100: [loai].Label, [loai], [loai].Description"/>
+      <item value="11100: [status].Label, [status], [status].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$AwardsPenaltyReason(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$AwardsPenaltyReason(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Declare">
+      <text>
+        <![CDATA[
+declare @$exists nvarchar(512), @$recordHasBeenChanged nvarchar(512)
+select @$exists = case when @@language = 'v' then N'Lý do thưởng, phạt <span class="Highlight">%s</span> đã có hoặc lồng nhau trong danh mục.' else N'The award, violation <span class="Highlight">%s</span> is invalid or already exists.' end
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Lý do thưởng, phạt <span class="Highlight">%s</span> đã được sửa hoặc xóa bởi người sử dụng khác.' else N'The award, violation <span class="Highlight">%s</span> has been modified or deleted by another user.' end
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if exists(select * from @@table where ((ma_loai like rtrim(@ma_loai) + '%') or rtrim(@ma_loai) like rtrim(ma_loai) + '%')) begin
+  select 'ma_loai' as field, replace(@$exists, '%s', rtrim(@ma_loai)) as message
+  return
+end
+select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
+]]>
+      </text>
+    </command>
+
+    <command event="Updating">
+      <text>
+        <![CDATA[
+if not exists(select * from @@table where ma_loai = $ma_loai.OldValue) begin
+  select 'ma_loai' as field, replace(@$recordHasBeenChanged, '%s', rtrim($ma_loai.OldValue)) as message
+  return
+end
+if @ma_loai <> $ma_loai.OldValue begin
+  if exists(select * from @@table where ((ma_loai like rtrim(@ma_loai) + '%') or rtrim(@ma_loai) like rtrim(ma_loai) + '%') and ma_loai <> $ma_loai.OldValue) begin
+    select 'ma_loai' as field, replace(@$exists, '%s', rtrim(@ma_loai)) as message
+    return
+  end
+end
+]]>
+        &ListWhenBeforeUpdateLog;
+      </text>
+    </command>
+
+    <command event="Updated">
+      <text>
+        <![CDATA[
+update @@table set datetime2 = getdate(), user_id2 = @@userID where ma_loai = @ma_loai
+]]>
+      </text>
+    </command>
+
+    <command event="Deleting">
+      <text>
+        &ListWhenBeforeDeleteLog;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[function active$AwardsPenaltyReason(a){a.add_onResponseComplete(on$AwardsPenaltyReason$ResponseComplete)}function close$AwardsPenaltyReason(a){try{a.remove_onResponseComplete(on$AwardsPenaltyReason$ResponseComplete)}catch(b){}}function on$AwardsPenaltyReason$ResponseComplete(e,a){var c=a.object,b=a.type.Context,d=a.type.Result;switch(b){case"Checking":objectBehavior$Dir$Irregular.checkCode(c,"ma_loai")}}]]>
+      &ScriptIrregular;
+    </text>
+  </script>
+</dir>

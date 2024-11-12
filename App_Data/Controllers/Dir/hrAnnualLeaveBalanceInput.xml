@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="hrphepnam" code="nam, stt_rec" order="nam, stt_rec" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="cập nhật số dư phép" e="Annual Leave Balance Input"></title>
+
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="nam" isPrimaryKey="true" hidden="true" type="Decimal" dataFormatString="###0">
+      <header v="" e=""></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="ma_nv" allowNulls="false" external="true" defaultValue="''">
+      <header v="Mã nhân viên" e="Employee ID"></header>
+      <items style="AutoComplete" controller="hrEmployee" reference="ho_ten" key="(@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or bo_phan in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)" information="ma_nv$vhrnv.ten"/>
+      <clientScript><![CDATA[onchange="onchange$AnnualLeaveBalanceInput$IDNumber(this);"]]></clientScript>
+    </field>
+    <field name="ho_ten" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_phep" type="Decimal" dataFormatString="##0.00" align="right">
+      <header v="Số ngày" e="Annual Leave"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="da_nghi" type="Decimal" dataFormatString="##0.00" align="right">
+      <header v="Đã nghỉ" e="Used Annual Leave"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="loai" dataFormatString="0, 1" clientDefault="0" align="right" allowNulls="false">
+      <header v="Loại" e="Type"></header>
+      <footer v="1 - Ghi đè khi chuyển phép từ năm trước, 0 - Không" e="1 - Overwritten by Previous Year Balance, 0 - No"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 70, 100, 230, 0, 0"/>
+      <item value="1101011: [ma_nv].Label, [ma_nv], [ho_ten], [stt_rec], [nam]"/>
+      <item value="110---: [so_phep].Label, [so_phep]"/>
+      <item value="110---: [da_nghi].Label, [da_nghi]"/>
+      <item value="111000: [loai].Label, [loai], [loai].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$AnnualLeaveBalanceInput(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Scattering">
+      <text>
+        <![CDATA[
+select 'scatter$AnnualLeaveBalanceInput(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$AnnualLeaveBalanceInput(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="InitExternalFields">
+      <text>
+        <![CDATA[
+declare @ho_ten nvarchar(256), @ma_nv varchar(32)
+select @ma_nv = rtrim(ma_nv), @ho_ten = rtrim(ho_nv) + space(1) + ten_nv from hrnv where stt_rec = @stt_rec
+select @ma_nv as ma_nv, @ho_ten as ho_ten
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Declare">
+      <text>
+        <![CDATA[
+declare @$exists nvarchar(512), @$recordHasBeenChanged nvarchar(512)
+select @$exists = case when @@language = 'v' then N'<span class="Highlight">Thông tin số dư phép đang cập nhật đã được khai báo</span>, không lưu được.' else N'<span class="Highlight">This item already exists</span>, it can not be saved.' end
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Bản ghi hiện thời đã được sửa hoặc xóa bởi người sử dụng khác.' else N'This item has been modified or deleted by another user.' end
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if exists(select * from @@table where stt_rec = @stt_rec and nam = @nam) begin
+	select 'ma_nv' as field, @$exists as message
+  return
+end
+select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
+]]>
+      </text>
+    </command>
+
+    <command event="Updating">
+      <text>
+        <![CDATA[  
+if not exists(select * from @@table where nam = $nam.OldValue and stt_rec = $stt_rec.OldValue) begin
+  select 'ma_nv' as field, @$recordHasBeenChanged as message
+  return
+end
+
+if @nam <> $nam.OldValue or @stt_rec <> $stt_rec.OldValue
+  begin
+    if exists(select * from @@table where (not (nam = $nam.OldValue and stt_rec = $stt_rec.OldValue)) and (nam = @nam and stt_rec = @stt_rec)) begin
+      select 'ma_nv' as field, @$exists as message
+      return
+    end
+  end
+]]>
+      </text>
+    </command>
+
+    <command event="Updated">
+      <text>
+        <![CDATA[
+update @@table set datetime2 = getdate(), user_id2 = @@userID where nam = @nam and stt_rec = @stt_rec
+]]>
+      </text>
+    </command>
+
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$AnnualLeaveBalanceInput(f) {
+	f.add_onResponseComplete(on$AnnualLeaveBalanceInput$ResponseComplete);
+	f.setItemValue('nam', f.grid._year);
+}
+function scatter$AnnualLeaveBalanceInput(f) {f.setItemValue('nam', f.grid._year);}
+function onchange$AnnualLeaveBalanceInput$IDNumber(o) {o.parentForm.request('IDNumber', 'IDNumber', ['ma_nv']);}
+function close$AnnualLeaveBalanceInput(f) {try {f.remove_onResponseComplete(on$AnnualLeaveBalanceInput$ResponseComplete)} catch (ex) {}}
+function on$AnnualLeaveBalanceInput$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'IDNumber':
+      f.setItemControlBehavior('stt_rec', result[0].Value, true);
+      break;
+    default:
+      break;
+  }
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="IDNumber">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrnv where ma_nv = @ma_nv) begin
+  select stt_rec from hrnv where ma_nv = @ma_nv
+  return
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>

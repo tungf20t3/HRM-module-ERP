@@ -1,0 +1,436 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY CommandWhenVoucherBeforeEdit "
+  if @@action = 'Edit' begin
+    declare @$checkVoucherUnit varchar(32)
+    select @$checkVoucherUnit = ma_dvcs from hrrmkqpv where stt_rec = @stt_rec
+    if @@admin &lt;&gt; 1 begin
+        if not exists(select 1 from sysunitrights where user_id = @@userID and ma_dvcs = @$checkVoucherUnit and r_edit = 1) begin
+          select @message as script, '$NotAuthorized' as message
+          return
+        end
+      end
+  end
+  ">
+  <!ENTITY CommandWhenVoucherBeforeDelete "
+    declare @$checkVoucherUnit varchar(32)
+    select @$checkVoucherUnit = ma_dvcs from hrrmkqpv where stt_rec = @stt_rec
+    if @@admin &lt;&gt; 1 begin
+        if not exists(select 1 from sysunitrights where user_id = @@userID and ma_dvcs = @$checkVoucherUnit and r_del = 1) begin
+          select '' as script, '$NotAuthorized' as message
+          return
+        end
+      end
+  ">
+  <!ENTITY AfterVoucherUpdate "exec hs_RMResultInput$AfterUpdate @ma_hs, @@action, @@userID">
+]>
+
+<dir table="hrrmkqpv" code="stt_rec" order="stt_rec" name="cookie" check="true" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="cập nhật kết quả phỏng vấn" e="Interview Result Input"></title>
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" readOnly="true" hidden="true" allowNulls="false">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dot" allowNulls="false" clientDefault="Default" inactivate="true" readOnly="true" hidden="true">
+      <header v="Mã đợt" e="Period Code"></header>
+      <items style="AutoComplete" controller="hrRMPeriodInfoInput" reference="ten_dot" key="status = '1'" check="1 = 1" information="ma_dot$hrrmdot.ten_dot%l" />
+    </field>
+    <field name="ten_dot" readOnly="true" external="true" defaultValue="''" inactivate="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_hs" allowNulls="false">
+      <header v="Mã ứng viên" e="Candidate ID"></header>
+      <items style="AutoComplete" controller="hrRMApplicantProfileInput" reference="ho_va_ten" key="ma_dot = '{$%c[ma_dot]}'" check="ma_dot = '{$%c[ma_dot]}'" information="ma_hs$vhrrmhs.ten" />
+      <clientScript><![CDATA[onchange="onChange$ApplicantProfileInput(this);"]]></clientScript>
+    </field>
+    <field name="ho_va_ten" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vong" allowNulls="false">
+      <header v="Vòng thi tuyển" e="Recruitment Round"></header>
+      <items style="AutoComplete" controller="hrRMRoundExamination" reference="ten_vong%l" key="(ma_vong in (select a.ma_vong from hrrmhtttct a join hrrmdotct b on a.ma_ht = b.ma_ht join hrrmhs c on b.ma_vtr = c.ma_vtr and b.ma_bp = c.ma_bp where b.ma_dot = c.ma_dot and ma_hs = '{$%c[ma_hs]}' group by a.ma_vong) or '{$%c[ma_ht]}' = '') and status = '1'" check="ma_vong in (select a.ma_vong from hrrmhtttct a join hrrmdotct b on a.ma_ht = b.ma_ht join hrrmhs c on b.ma_vtr = c.ma_vtr and b.ma_bp = c.ma_bp where b.ma_dot = c.ma_dot and ma_hs = '{$%c[ma_hs]}' group by a.ma_vong) or '{$%c[ma_ht]}' = ''" information="ma_vong$hrdmvongtd.ten_vong%l" />
+      <clientScript><![CDATA[onchange="onChange$RMRoundExamination(this);"]]></clientScript>
+    </field>
+    <field name="ten_vong%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="noi_dung" allowNulls="false">
+      <header v="Nội dung" e="Content"></header>
+    </field>
+    <field name="ngay_pv" type="DateTime" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+      <header v="Ngày phỏng vấn" e="Date of Interview"></header>
+    </field>
+    <field name="diem" type="Decimal" dataFormatString="@markInputFormat">
+      <header v="Điểm" e="Score"/>
+      <items style="Numeric"></items>
+    </field>
+    <field name="ma_kq" allowNulls="false" clientDefault="1" categoryIndex="-1">
+      <header v="Kết quả" e="Result"></header>
+      <footer v="&lt;u&gt;K&lt;/u&gt;ết quả" e="&lt;u&gt;R&lt;/u&gt;esult"></footer>
+      <items style="AutoComplete" controller="hrRMResult" reference="ten_kq%l" key="status = '1'" check="1 = 1" information="ma_kq$hrdmkq.ten_kq%l"/>
+      <clientScript><![CDATA[onchange="onChange$AppFormStatus(this);"]]></clientScript>
+    </field>
+    <field name="ten_kq%l" readOnly="true" external="true" defaultValue="''" inactivate="true" categoryIndex="-1">
+      <header v="" e=""></header>
+    </field>
+    <field name="tt_hs" allowNulls="false" categoryIndex="-1">
+      <header v="Trạng thái hồ sơ" e="Status"></header>
+      <items style="AutoComplete" controller="hrRMAppFormStatus" reference="ten_tt%l" key="status = '1'" check="1 = 1" information="ma_tt$hrdmtths.ten_tt%l"/>
+    </field>
+    <field name="ten_tt%l" readOnly="true" external="true" defaultValue="''" inactivate="true" categoryIndex="-1">
+      <header v="" e=""></header>
+    </field>
+    <field name="ghi_chu">
+      <header v="Ghi chú" e="Note"></header>
+    </field>
+    <field name="d01" external="true" clientDefault="0" defaultValue="0" rows="218" filterSource="Tidy" categoryIndex="1">
+      <header v="" e=""></header>
+      <label v="Chi tiết" e="Detail"></label>
+      <items style="Grid" controller="hrRMInterviewResultInputDetail" row="1">
+        <item value="ForeignKey">
+          <text v="String: stt_rec, stt_rec" e="String: stt_rec, stt_rec"></text>
+        </item>
+      </items>
+    </field>
+    <field name="ma_ht" external="true" defaultValue="''" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_vong" external="true" defaultValue="''" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_dot_old" readOnly="true" external="true" defaultValue="''" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_hs_old" readOnly="true" external="true" defaultValue="''" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ma_vong_old" readOnly="true" external="true" defaultValue="''" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_pv_old" readOnly="true" external="true" defaultValue="''" allowContain="true" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="cookie" external="true" hidden="true" readOnly="true" defaultValue="''" allowContain="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="278" anchor="5" split="6">
+      <item value="100, 100, 100, 137, 100, 8, 58, 50, 100, 0, 0, 0" />
+      <item value="11100-101111: [ma_hs].Label, [ma_hs], [ho_va_ten], [ngay_pv].Label, [ngay_pv], [ma_hs_old], [ma_dot], [ngay_pv_old]" />
+      <item value="11100110111: [ma_vong].Label, [ma_vong], [ten_vong%l], [ma_ht], [diem].Label, [diem], [ma_vong_old], [ten_dot]" />
+      <item value="11000----11: [noi_dung].Label, [noi_dung], [stt_rec], [stt_vong]" />
+      <item value="11000----11: [ghi_chu].Label, [ghi_chu], [ma_dot_old], [cookie]" />
+
+      <item value="1: [d01]" />
+
+      <item value="111000000-: [ma_kq].Footer, [ma_kq], [ten_kq%l]" />
+      <item value="111000000-: [tt_hs].Label, [tt_hs], [ten_tt%l]" />
+      <categories>
+        <category index="1" columns="769" anchor="1">
+          <header v="Chi tiết" e="Detail" />
+        </category>
+        <category index="-1" columns="100, 100, 100, 117, 120, 8, 100, 8, 100" anchor="3">
+          <header v="" e="" />
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Showing">
+      <text>
+        <![CDATA[
+declare @resultName nvarchar(128)
+select @resultName = case when @@language = 'V' then ten_kq else ten_kq2 end from hrdmkq where ma_kq = 1
+select 'this._resultName = ''' + replace(replace(isnull(@resultName, ''), '\', '\\'), '''', '\''') + ''';initForm(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Loading">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select @message = 'active$RMInterviewResultInput(this);'
+]]>
+        &CommandWhenVoucherBeforeEdit;
+        <![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$RMInterviewResultInput(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Scattering">
+      <text>
+        <![CDATA[
+declare @message nvarchar(4000)
+select 'scatter$RMInterviewResultInput(this);' as message
+]]>
+        &CommandWhenVoucherBeforeEdit;
+        <![CDATA[
+select @message as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="InitExternalFields">
+      <text>
+        <![CDATA[
+declare @ho_va_ten nvarchar(128), @ten_vong nvarchar(128), @ma_dot varchar(32), @ma_hs varchar(32), @ma_vong varchar(32), @ngay_pv smalldatetime, @ma_ht varchar(32), @cookie varchar(32)
+select @ma_dot = rtrim(ma_dot), @ma_hs = rtrim(ma_hs), @ma_vong = rtrim(ma_vong), @ngay_pv = ngay_pv, @cookie = convert(varchar(19), datetime2, 121) from @@table where stt_rec = @stt_rec
+select @ho_va_ten = rtrim(ho_uv) + space(1) + ten_uv from hrrmhs where ma_hs = @ma_hs
+select @ten_vong = ten_vong%l from hrdmvongtd where ma_vong = @ma_vong
+select top 1 @ma_ht = a.ma_ht from hrrmhttt a join hrrmdotct b on a.ma_ht = b.ma_ht join hrrmhs c on b.ma_vtr = c.ma_vtr and b.ma_bp = c.ma_bp where b.ma_dot = c.ma_dot and ma_hs = @ma_hs
+select @ho_va_ten as ho_va_ten, @ten_vong as ten_vong%l, @ma_ht as ma_ht, @ma_dot as ma_dot_old, @ma_hs as ma_hs_old, @ma_vong as ma_vong_old, @ngay_pv as ngay_pv_old, @cookie as cookie
+return
+        ]]>
+      </text>
+    </command>
+
+    <command event="Declare">
+      <text>
+        <![CDATA[
+declare @$exists nvarchar(512), @$recordHasBeenChanged nvarchar(512)
+select @$exists = case when @@language = 'v' then N'Đợt tuyển dụng <span class="Highlight">%s1</span>, mã ứng viên <span class="Highlight">%s2</span>, mã vòng thi <span class="Highlight">%s3</span> và ngày phỏng vấn <span class="Highlight">%s4</span> đã có hoặc lồng nhau trong cập nhật kết quả phỏng vấn.' else N'The record consisting of period code <span class="Highlight">%s1</span>, candidate id <span class="Highlight">%s2</span>, recruitment round <span class="Highlight">%s3</span> and date <span class="Highlight">%s4</span> is invalid or already exists.' end
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Đợt tuyển dụng <span class="Highlight">%s1</span>, mã ứng viên <span class="Highlight">%s2</span>, mã vòng thi <span class="Highlight">%s3</span> và ngày phỏng vấn <span class="Highlight">%s4</span> đã được sửa hoặc xóa bởi người sử dụng khác.' else N'The record consisting of period code <span class="Highlight">%s1</span>, candidate id <span class="Highlight">%s2</span>, recruitment round <span class="Highlight">%s3</span> and date <span class="Highlight">%s4</span> has been modified or deleted by another user.' end
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if exists(select * from @@table where ma_dot = @ma_dot and ma_hs = @ma_hs and ma_vong = @ma_vong and ngay_pv = @ngay_pv)
+  begin
+  select 'ma_hs' as field, replace(replace(replace(replace(@$exists, '%s1', rtrim(@ma_dot)), '%s2', rtrim(@ma_hs)), '%s3', rtrim(@ma_vong)), '%s4', rtrim(convert(char(10), @ngay_pv, 103))) as message
+    return
+  end
+declare @wsID varchar(8)
+select @wsID = rtrim(val) from options where upper(name) = 'M_WS_ID'
+select @stt_rec = max(stt_rec) from @@table
+select @stt_rec = @wsID + case when @stt_rec is null then '000000001' else replace(str(cast(substring(@stt_rec, 2, 9) as bigint) + 1, 9), ' ', '0') end + 'HPV'
+select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
+
+update @d01 set stt_rec = @stt_rec
+]]>
+      </text>
+    </command>
+
+    <command event="Inserted">
+      <text>
+        <![CDATA[
+update hrrmkqpv set ma_dvcs = b.ma_dvcs from hrrmkqpv a left join hrrmdot b on a.ma_dot = b.ma_dot where b.ma_dot = @ma_dot and a.stt_rec = @stt_rec
+insert into hrrmkqpvct select * from @d01
+select @stt_rec as stt_rec
+]]>
+        &AfterVoucherUpdate;
+      </text>
+    </command>
+
+    <command event="Updating">
+      <text>
+        <![CDATA[
+if not exists(select * from @@table where ma_dot = @$ma_dot_old and ma_hs = @$ma_hs_old and ma_vong = @$ma_vong_old and ngay_pv = @$ngay_pv_old)
+begin
+  select 'ma_hs' as field, replace(replace(replace(replace(@$recordHasBeenChanged, '%s1', rtrim(@$ma_dot_old)), '%s2', rtrim(@$ma_hs_old)), '%s3', rtrim(@$ma_vong_old)), '%s4', rtrim(convert(char(10), @$ngay_pv_old, 103))) as message
+  return
+end
+
+if @ma_dot <> @$ma_dot_old or @ma_hs <> @$ma_hs_old or @ma_vong <> @$ma_vong_old or @ngay_pv <> @$ngay_pv_old begin
+ if exists(select * from @@table where (not (ma_dot = @$ma_dot_old and ma_hs = @$ma_hs_old and ma_vong = @$ma_vong_old and ngay_pv = @$ngay_pv_old)) and (ma_dot = @ma_dot and ma_hs = @ma_hs and ma_vong = @ma_vong and ngay_pv = @ngay_pv))
+	begin
+    select 'ma_hs' as field, replace(replace(replace(replace(@$exists, '%s1', rtrim(@ma_dot)), '%s2', rtrim(@ma_hs)), '%s3', rtrim(@ma_vong)), '%s4', rtrim(convert(char(10), @ngay_pv, 103))) as message
+		return
+	end
+end
+
+if $d01.NewValue <> $d01.OldValue begin
+  update @d01 set stt_rec = @stt_rec
+  delete hrrmkqpvct where stt_rec = @stt_rec
+end
+]]>
+      </text>
+    </command>
+
+    <command event="Updated">
+      <text>
+        <![CDATA[
+if $d01.NewValue <> $d01.OldValue insert into hrrmkqpvct select * from @d01
+update @@table set ma_dvcs = b.ma_dvcs from @@table a left join hrrmdot b on a.ma_dot = b.ma_dot where b.ma_dot = @ma_dot and a.stt_rec = @stt_rec
+update @@table set datetime2 = getdate(), user_id2 = @@userID where stt_rec = @stt_rec
+]]>
+        &AfterVoucherUpdate;
+      </text>
+    </command>
+
+    <command event="Deleting">
+      <text>
+        &CommandWhenVoucherBeforeDelete;
+        <![CDATA[
+declare @ma_hs varchar(33)
+select @ma_hs = ma_hs from hrrmkqpv where stt_rec = @stt_rec
+delete hrrmkqpvct where stt_rec = @stt_rec
+]]>
+      </text>
+    </command>
+
+    <command event="Deleted">
+      <text>
+        &AfterVoucherUpdate;
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function initForm(f) {
+  f._controlFocus = f.getItem('ma_hs');
+  set$Voucher$ReferenceKeyFilter(f);
+}
+function active$RMInterviewResultInput(f) {
+  f.add_onResponseComplete(on$RMInterviewResultInput$ResponseComplete);
+  f.add_commandEvent(on$Voucher$ExecuteCommand);
+}
+function scatter$RMInterviewResultInput(f) {set$Voucher$ReferenceKeyFilter(f);}
+function close$RMInterviewResultInput(f) {
+  try {f.remove_onResponseComplete(on$RMInterviewResultInput$ResponseComplete)} catch (ex) {}
+  try {f.remove_commandEvent(on$Voucher$ExecuteCommand);} catch (ex) {}
+}
+
+function on$Voucher$ExecuteCommand(sender, e) {
+  var action = e.type.Action, f = sender, g = f.getItem('d01')._controlBehavior;
+  switch (action) {
+    case 'Gather':
+      g.setSequenceNumber('line_nbr');
+      g.setContinuance('stt_rec0');
+      break;
+    default:
+      break;
+  }
+}
+
+function on$RMInterviewResultInput$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  var status, statusName, conclusion = f.getItemValue('ma_kq');
+  switch (context) {
+    case 'ApplicantProfileInput':
+      f.setItemControlBehavior('ma_ht', result[0].Value, true);
+      f.setItemControlBehavior('noi_dung', result[1].Value, true);
+      status = (conclusion == '1' ? result[2].Value : (conclusion == '2' ? result[3].Value : ''));
+      statusName = (conclusion == '1' ? result[4].Value : (conclusion == '2' ? result[5].Value : ''));
+      f.setItemControlBehavior('tt_hs', status, true);
+      f.setItemControlBehavior('ten_tt%l', statusName, true);
+      f.setReferenceKeyFilter('ma_vong');
+      break;
+    case 'RoundExamination':
+      f.setItemControlBehavior('noi_dung', result[0].Value, true);
+      status = (conclusion == '1' ? result[1].Value : (conclusion == '2' ? result[2].Value : ''));
+      statusName = (conclusion == '1' ? result[3].Value : (conclusion == '2' ? result[4].Value : ''));
+      f.setItemControlBehavior('tt_hs', status, true);
+      f.setItemControlBehavior('ten_tt%l', statusName, true);
+      break;
+    case 'AppFormStatus':
+      f.setItemControlBehavior('tt_hs', result[0].Value, false);
+      f.setItemControlBehavior('ten_tt%l', result[1].Value, false);
+      break;
+    default:
+      break;
+  }
+}
+
+function set$Voucher$ReferenceKeyFilter(f) {
+  if (f._action == 'New') f.setItemValues('ma_dot, ten_dot, ngay_pv, ten_kq%l', [f.grid._recruitmentPeriod, f.grid._recruitmentPeriodName, new Date(), f._resultName]);
+  f.setReadOnlyFields('ma_dot');
+}
+function onChange$ApplicantProfileInput(o) {
+  var f = o.parentForm;
+  f.request('ApplicantProfileInput', 'ApplicantProfileInput', [['ma_vong', 'String', f.getItemValue('ma_vong')], ['ma_hs', 'String', f.getItemValue('ma_hs')]]);
+}
+function onChange$RMRoundExamination(o) {
+  var f = o.parentForm;
+  f.request('RoundExamination', 'RoundExamination', [['ma_vong', 'String', f.getItemValue('ma_vong')], ['ma_ht', 'String', f.getItemValue('ma_ht')]]);
+}
+function onChange$AppFormStatus(o) {
+  var f = o.parentForm;
+  f.request('AppFormStatus', 'AppFormStatus', [['ma_kq', 'String', f.getItemValue('ma_kq')], ['ma_ht', 'String', f.getItemValue('ma_ht')], ['ma_vong', 'String', f.getItemValue('ma_vong')]]);
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="RoundExamination">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrrmhtttct where ma_ht = @ma_ht and ma_vong = @ma_vong) begin
+  select noi_dung as c1, tt_dat as c2, tt_k_dat as c3, b.ten_tt%l as c4, c.ten_tt%l as c5
+    from hrrmhtttct a left join hrdmtths b on a.tt_dat = b.ma_tt left join hrdmtths c on a.tt_k_dat = c.ma_tt
+    where ma_ht = @ma_ht and ma_vong = @ma_vong
+  return
+end
+]]>
+      </text>
+    </action>
+
+    <action id="ApplicantProfileInput">
+      <text>
+        <![CDATA[
+declare @ma_ht varchar(32)
+if exists(select 1 from hrrmhs where ma_hs = @ma_hs) begin
+  select @ma_ht = a.ma_ht from hrrmhtttct a join hrrmdotct b on a.ma_ht = b.ma_ht join hrrmhs c on b.ma_vtr = c.ma_vtr and b.ma_bp = c.ma_bp
+    where b.ma_dot = c.ma_dot and c.ma_hs = @ma_hs
+    group by a.ma_ht
+  if exists(select 1 from hrrmhtttct where ma_ht = @ma_ht and ma_vong = @ma_vong) begin
+    select isnull(@ma_ht, '') as c1, noi_dung, tt_dat, tt_k_dat, b.ten_tt%l as c4, c.ten_tt%l as c5
+      from hrrmhtttct a left join hrdmtths b on a.tt_dat = b.ma_tt left join hrdmtths c on a.tt_k_dat = c.ma_tt
+      where ma_ht = @ma_ht and ma_vong = @ma_vong
+    return
+  end
+  if @ma_ht is not null begin
+	  select @ma_ht as c1, '' as c2, '' as c3, '' as c4, '' as c5, '' as c6
+	  return
+  end
+end
+
+if @ma_ht is null begin
+  select '' as c1, '' as c2, '' as c3, '' as c4, '' as c5, '' as c6
+  return
+end
+]]>
+      </text>
+    </action>
+
+    <action id="AppFormStatus">
+      <text>
+        <![CDATA[
+if exists(select 1 from hrdmkq where ma_kq = @ma_kq) begin
+  if exists(select 1 from hrrmhtttct where ma_ht = @ma_ht and ma_vong = @ma_vong) begin
+    declare @status varchar(32)
+    select @status = case when @ma_kq = '1' then tt_dat when @ma_kq = '2' then tt_k_dat else '' end from hrrmhtttct where ma_ht = @ma_ht and ma_vong = @ma_vong
+    if exists (select 1 from hrdmtths where ma_tt = @status)
+      select ma_tt, ten_tt%l from hrdmtths where ma_tt = @status
+    return
+  end
+end
+]]>
+      </text>
+    </action>
+  </response>
+</dir>
