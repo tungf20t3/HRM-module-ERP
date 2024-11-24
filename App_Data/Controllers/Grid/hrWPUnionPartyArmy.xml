@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE grid [
+  <!ENTITY DowloadScript SYSTEM "..\Include\Javascript\DownloadScript.txt">
+  <!ENTITY TransferID "hrPIGeneralInformation">
+  <!ENTITY CreateTicket "declare @ticket varchar(32), @filename varchar(128), @description nvarchar(128)
+select @ticket = lower(replace(newid(),'-',''))
+if @@language = 'v' select @filename = 'hrWPUnionPartyArmy.xlsx', @description = N'Quá trình công tác Đảng, Đoàn, Quân đội'
+else select @filename = 'hrWPUnionPartyArmy2.xlsx', @description = N'Quá trình công tác Đảng, Đoàn, Quân đội'
+insert into @@sysDatabaseName..ticket values(@ticket, @@userID, '&TransferID;', @filename, @description, '@@appDatabaseName', getdate());">
+]>
+
+<grid table="vhreqtctddqd" code="stt_rec, stt_rec0" order="stt_rec0" xmlns="urn:schemas-ai-erp:data-grid">
+  <title v="" e=""></title>
+  <subTitle v="" e=""></subTitle>
+
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" width="0" hidden="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec0" isPrimaryKey="true" width="0" hidden="true">
+      <header v="" e=""></header>
+    </field>
+
+    <field name="ten_loai%l" width="100">
+      <header v="Loại" e="Type"></header>
+    </field>
+    <field name="ten_tc%l" width="100">
+      <header v="Tính chất" e="Nature"></header>
+    </field>
+    <field name="ten_cb" width="150">
+      <header v="Đảng ủy" e="Party Committee"></header>
+    </field>
+    <field name="don_vi" width="150">
+      <header v="Đơn vị" e="Unit"></header>
+    </field>
+    <field name="ten_cv%l" width="150">
+      <header v="Chức vụ" e="Position"></header>
+    </field>
+    <field name="ten_dt%l" width="150">
+      <header v="Đối tượng ATBV" e="Object ATBV"></header>
+    </field>
+    <field name="ten_nh%l" width="150">
+      <header v="Nhóm" e="Group"></header>
+    </field>
+    <field name="ngay_vao" type="DateTime" dataFormatString="@datetimeFormat" width="120">
+      <header v="Ngày vào" e="Date start"></header>
+    </field>
+    <field name="ngay_tu" type="DateTime" dataFormatString="@datetimeFormat" width="120">
+      <header v="Ngày bắt đầu" e="Date in"></header>
+    </field>
+    <field name="tg_lam_truoc_do" type="Int32" width="150">
+      <header v="Thời gian làm trước đó" e="Previous work time"></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Grid">
+      <field name="stt_rec"/>
+      <field name="stt_rec0"/>
+
+      <field name="ten_loai%l"/>
+      <field name="ten_tc%l"/>
+      <field name="ten_cb"/>
+      <field name="don_vi"/>
+      <field name="ten_cv%l"/>
+      <field name="ten_dt%l"/>
+      <field name="ten_nh%l"/>
+      <field name="ngay_vao"/>
+      <field name="ngay_tu"/>
+      <field name="tg_lam_truoc_do"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        &CreateTicket;
+        <![CDATA[
+select 'this._authorize = ' + rtrim(@@sysDatabaseName.dbo.AI_ERP$System$GetAuthorize(@@admin, @@userID, 'hrPIGeneralInformation', 'New')) + ';this._key = ''' + @ticket + ''';init$hrWPUnionPartyArmyGrid(this)' as message
+return
+]]>
+      </text>
+    </command>
+    <command event="Closing">
+      <text>
+        <![CDATA[select 'dispose$EmployeeGrid(this);' as message
+return]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function init$hrWPUnionPartyArmyGrid(g) { 
+  g.add_onResponseComplete(on$hrWPUnionPartyArmyGrid$ResponseComplete);
+  g.add_commandEvent(on$hrWPUnionPartyArmyGrid$ExecuteCommand);
+}
+function dispose$hrWPUnionPartyArmyGrid(g) {
+  try {g.remove_commandEvent(on$hrWPUnionPartyArmyGrid$ExecuteCommand);} catch (ex) {}
+  try {g.remove_onResponseComplete(on$hrWPUnionPartyArmyGrid$ResponseComplete);} catch (ex) {}  
+}
+function on$hrWPUnionPartyArmyGrid$ExecuteCommand(sender, e) {
+  var action = e.type.Action, g = sender, v = e.type.Value, view = g._view;
+
+  switch (action) {
+    case 'ImportData':
+      show$Form(g, 'hrWPUnionPartyArmyImport');
+      break;
+    case 'Download':
+      request$Download(g, action);
+      break;
+    default:
+      break;
+  }
+}
+function on$hrWPUnionPartyArmyGrid$ResponseComplete(sender, e) {
+  var g = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Download':
+      g._key = result[0].Value;
+      break;
+    default:
+      break;
+  }
+}
+function show$Form(g, c) {g._authorize == 1 ? g.showForm(c) : $message.show($df.getResources(g._language, "Message.NotAccess")) : $message.show(g._denyMessage);}
+]]>
+      &DowloadScript;
+    </text>
+  </script>
+
+  <response>
+    <action id="Download">
+      <text>
+        &CreateTicket;
+        <![CDATA[
+          select @ticket as value
+          return
+        ]]>
+      </text>
+    </action>
+  </response>
+
+  <css>
+    <text>
+      <![CDATA[
+div.TransferDept{background-image:url(../images/Shift.png);background-repeat:no-repeat;background-position:0px -1px;}
+div.TransferDeptOverGreen{background-color:#F9FAFB;}
+div.ImportData{background-image:url(../images/Upload.png);background-repeat:no-repeat;background-position:6px -1px;}
+div.ImportDataOverGreen{background-color:#F9FAFB;}
+div.Download{background-image:url(../Images/Download.png);background-repeat:no-repeat;background-position:6px -1px;}
+div.DownloadOverGreen{background-color:#F9FAFB;}
+]]>
+    </text>
+  </css>
+
+  <toolbar>
+    <button command="New">
+      <title v="Toolbar.New" e="Toolbar.New"/>
+    </button>
+    <button command="Edit">
+      <title v="Toolbar.Edit" e="Toolbar.Edit"/>
+    </button>
+    <button command="Delete">
+      <title v="Toolbar.Delete" e="Toolbar.Delete"/>
+    </button>
+    <button command="View">
+      <title v="Toolbar.View" e="Toolbar.View"/>
+    </button>
+    <button command="Export">
+      <title v="Toolbar.Export" e="Toolbar.Export"/>
+    </button>
+    <button command="ImportData">
+      <title v="Lấy dữ liệu từ tệp..." e="Import Data from File..."></title>
+    </button>
+    <button command="Download">
+      <title v="Tải tệp mẫu..." e="Download Template File..."/>
+    </button>
+    <button command="Separate">
+      <title v="-" e="-"/>
+    </button>
+    <button command="Freeze">
+      <title v="Toolbar.Freeze" e="Toolbar.Freeze"/>
+    </button>
+  </toolbar>
+</grid>

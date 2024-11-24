@@ -1,0 +1,225 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE grid [
+  <!ENTITY Controller "kbsdctnlsx">
+]>
+
+<grid table="vzcnl_freecolumns" code="ma_bp, col" order="ma_bp, stt" xmlns="urn:schemas-ai-erp:data-grid">
+  <title v="Khai báo sử dụng các trường cho nhật lệnh sản xuất" e="Declare fields for production orders"></title>
+  <subTitle v="Bộ phận: %s1..." e="Department: %s1..."></subTitle>
+
+  <fields>
+    <field name="ma_bp" isPrimaryKey="true" width="0" readOnly="true" hidden="true">
+      <header v="Bộ phận" e="Department"></header>
+    </field>
+
+    <field name="status" type="Boolean" width="80" allowFilter="true" allowSorting="true">
+      <header v="Sử dụng" e="Use"></header>
+      <clientScript><![CDATA[onclick="onChange$]]>&Controller;<![CDATA[$Status(this);"]]></clientScript>
+    </field>
+    
+    <field name="col" isPrimaryKey="true" width="100" readOnly="true">
+      <header v="Trường" e="Column"></header>
+    </field>
+    <field name="header%l" width="150" readOnly="true" allowSorting="true" allowFilter="true">
+      <header v="Tên trường" e="Field Name"></header>
+    </field>
+    <field name="style" width="150" readOnly="true" allowSorting="true" allowFilter="true">
+      <header v="Kiểu dữ liệu" e="Data Type"></header>
+    </field>
+    <field name="stt" type="Decimal" width="0" readOnly="true" hidden="true">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Grid">
+      <field name="ma_bp"/>
+      <field name="status"/>
+      <field name="col"/>
+      <field name="header%l"/>
+      <field name="style"/>
+      <field name="stt"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'load$]]>&Controller;<![CDATA[$Grid(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Scattering">
+      <text>
+        <![CDATA[
+select 'scatter$]]>&Controller;<![CDATA[$Grid(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'dispose$]]>&Controller;<![CDATA[$Grid(this);' as message
+return
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function load$]]>&Controller;<![CDATA[$Grid(g) {
+  g._$v = [];
+  g._$t = g._getColumnOrder('status');
+  g._$col = g._getColumnOrder('col');
+  g.add_onRender(on$]]>&Controller;<![CDATA[$Grid$Render);
+  g.add_onResponseComplete(on$]]>&Controller;<![CDATA[$Grid$ResponseComplete);
+  g.add_commandEvent(on$]]>&Controller;<![CDATA[$Grid$ExecuteCommand);
+}
+function scatter$]]>&Controller;<![CDATA[$Grid(g) {fill$Grid(g, true);}
+function dispose$]]>&Controller;<![CDATA[$Grid(g) {
+  try {g.remove_commandEvent(on$]]>&Controller;<![CDATA[$Grid$ExecuteCommand);} catch (ex) {}
+  try {g.remove_onResponseComplete(on$]]>&Controller;<![CDATA[$Grid$ResponseComplete);} catch (ex) {}
+  try {g.remove_onRender(on$]]>&Controller;<![CDATA[$Grid$Render);} catch (ex) {}
+}
+function onChange$]]>&Controller;<![CDATA[$Status(o) {
+  var g = $find(o.id.split('_inputCell_')[0]), r = $func.getLocationCell(o)[0];
+  var v =  get$RowValue(g, r), i = get$ValueIndex(g, v);
+  if (i == -1) Array.add(g._$v, v);
+  else Array.removeAt(g._$v, i);
+}
+function on$]]>&Controller;<![CDATA[$Grid$ExecuteCommand(sender, e) {
+  var g = sender, action = e.type.Action, id = g.get_id();
+  switch (action) {
+    case 'Save':
+      on$RequestUpdate(g, action);
+      break;
+    default:
+      break;
+  }
+}
+function on$]]>&Controller;<![CDATA[$Grid$ResponseComplete(sender, e) {
+  var g = e.object, context = e.type.Context;
+  switch (context) {
+    case 'Save':
+      on$RequestCompleted(g);
+      break;
+    default:
+      break;
+  }
+}
+function on$RequestUpdate(g, c) {
+  if (g._$v.length == 0) return;
+  var v = g._$v.join(',');     
+  g.request(g, c, c, [['ma_bp', 'String', g._$dept], ['v', 'String', v]]);
+}
+function on$RequestCompleted(g) {
+  g._$v = [];
+  $message.show((g._language == 'v' ? 'Chương trình đã thực hiện xong.' : 'The process was completed successfully.'), String.format('$find(\'{0}\')._focusWhenTabChanged();', g.get_id()));
+}
+
+function fill$Grid(a) {
+	if (a._$v.length == 0) return;
+	for (var b = 1; b <= a._rowCount; b++) {
+		var d = a._getItemValue(b, a._$col),
+			c = get$ValueIndex(a, d);
+		if (c > -1) {
+			var e = a._$v[c].split(String.fromCharCode(253));
+			a._setItemValue(b, a._$t, e[1] == "1")
+		}
+	}
+}
+
+function get$RowValue(a, b) {
+	var d = a._getItemValue(b, a._$col), c = a._getItemValue(b, a._$t);
+	return String.format("{0}{1}{2}", d, String.fromCharCode(253), c ? "1" : "0")
+}
+
+function get$ValueIndex(c, d) {
+	for (var a = 0; a < c._$v.length; a++) {
+		var b = String.fromCharCode(253);
+		if (c._$v[a].split(b)[0] == d.split(b)[0]) return a
+	}
+	return -1
+}
+
+function on$]]>&Controller;<![CDATA[$Grid$Render(sender, eventArgs) {
+  var g = eventArgs.grid;
+  if (g._hiddenFields) {
+    var a = g._hiddenFields, h = '';
+    for (var i = 0; i < a.length; i++) {
+      setGridHiddenFields(g, a[i].Fields, a[i].Value);
+      if (a[i].Value) h += (h == '' ? '' : ',') + a[i].Fields;
+    }
+    g._externalHiddenFields = h;
+  }
+}
+function setGridHiddenFields(c,d,e){for(var b=d.split(","),a=0;a<b.length;a++)c._setColumnVisible(c._getColumnOrder($func.trim(b[a])),!e)}]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Save">
+      <text>
+        <![CDATA[
+declare @t table(ma_bp varchar(128), col varchar(128), status bit)
+declare @k varchar(128), @c varchar(128), @d varchar(1), @i int
+
+select @v = @v + ',', @c = '', @d = char(253)
+while charindex(',', @v) > 0 begin
+  select @k = left(@v, charindex(',', @v)), @v = right(@v, len(@v) - len(@k))
+  select @k = replace(rtrim(@k), ',', '')
+  select @i = charindex(@d, @k)
+  insert into @t select @ma_bp, left(@k, @i - 1), cast(right(@k, 1) as bit)
+end
+
+if exists(select 1 from @t) begin
+  update zcnl_freecolumns set status = b.status from zcnl_freecolumns a join @t b on a.ma_bp = b.ma_bp and a.col = b.col 
+  select '' as value
+  return
+end
+
+select '' as value
+return
+]]>
+      </text>
+    </action>
+  </response>
+
+  <css>
+    <text>
+      <![CDATA[
+div.TextSave{background-image:url(../images/TextStorage.png);background-repeat:no-repeat,repeat-x;background-position:0px -1px;}
+]]>
+    </text>
+  </css>
+
+  <toolbar>
+    <button command="Save">
+      <title v="Lưu$" e="Save$"></title>
+    </button>
+    <button command="Edit">
+      <title v="Toolbar.Edit" e="Toolbar.Edit"/>
+    </button>
+    <button command="Search">
+      <title v="Toolbar.Search" e="Toolbar.Search"/>
+    </button>
+    <button command="Export">
+      <title v="Toolbar.Export" e="Toolbar.Export"></title>
+    </button>
+    <button command="Seprate">
+      <title v="-" e="-"></title>
+    </button>
+    <button command="Freeze">
+      <title v="Toolbar.Freeze" e="Toolbar.Freeze"></title>
+    </button>
+  </toolbar>
+
+</grid>
