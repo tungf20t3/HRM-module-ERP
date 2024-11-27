@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE dir [
+  <!ENTITY ScriptIrregular SYSTEM "..\Include\Javascript\Irregular.txt">
+]>
+
+<dir table="hrdmloaicong" code="ma_loai" order="ma_loai" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="loại công" e="Workday Type"></title>
+  <fields>
+    <field name="ma_loai" isPrimaryKey="true" dataFormatString="@upperCaseFormat" allowNulls="false">
+      <header v="Mã loại công" e="Code"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ten_loai" allowNulls="false">
+      <header v="Tên loại công" e="Description"></header>
+    </field>
+    <field name="ten_loai2">
+      <header v="Tên khác" e="Other Name"></header>
+    </field>
+    <field name="tinh_chat" dataFormatString="1, 2" clientDefault="1" align="right">
+      <header v="Tính chất" e="Category"></header>
+      <footer v="1 - Trong giờ quy định, 2 - Tăng ca" e="1 - Regular, 2 - Overtime"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="stt" type="Decimal" dataFormatString="###0">
+      <header v="Stt sắp xếp" e="Ordinal Number"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="status" dataFormatString="0, 1" clientDefault="1" align="right" inactivate="true">
+      <header v="Trạng thái" e="Status"></header>
+      <footer v="1 - Còn sử dụng, 0 - Không còn sử dụng" e="1 - Active, 0 - Inactive"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 10, 60, 330"/>
+      <item value="1100: [ma_loai].Label, [ma_loai]"/>
+      <item value="11000: [ten_loai].Label, [ten_loai]"/>
+      <item value="11000: [ten_loai2].Label, [ten_loai2]"/>
+      <item value="11100: [tinh_chat].Label, [tinh_chat], [tinh_chat].Description"/>
+      <item value="1100: [stt].Label, [stt]"/>
+      <item value="11100: [status].Label, [status], [status].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$WorkdayType(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$WorkdayType(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Declare">
+      <text>
+        <![CDATA[
+declare @$exists nvarchar(512), @$recordHasBeenChanged nvarchar(512)
+select @$exists = case when @@language = 'v' then N'Loại công <span class="Highlight">%s</span> đã có hoặc lồng nhau trong danh mục.' else N'The workday type <span class="Highlight">%s</span> is invalid or already exists.' end
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Loại công <span class="Highlight">%s</span> đã được sửa hoặc xóa bởi người sử dụng khác.' else N'The workday type <span class="Highlight">%s</span> has been modified or deleted by another user.' end
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if exists(select * from @@table where ((ma_loai like rtrim(@ma_loai) + '%') or rtrim(@ma_loai) like rtrim(ma_loai) + '%')) begin
+	select 'ma_loai' as field, replace(@$exists, '%s', rtrim(@ma_loai)) as message
+  return
+end
+select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
+]]>
+      </text>
+    </command>
+
+    <command event="Updating">
+      <text>
+        <![CDATA[
+if not exists(select * from @@table where ma_loai = $ma_loai.OldValue) begin
+	select 'ma_loai' as field, replace(@$recordHasBeenChanged, '%s', rtrim($ma_loai.OldValue)) as message
+  return
+end  
+if @ma_loai <> $ma_loai.OldValue begin
+	if exists(select * from @@table where ((ma_loai like rtrim(@ma_loai) + '%') or rtrim(@ma_loai) like rtrim(ma_loai) + '%') and ma_loai <> $ma_loai.OldValue) begin
+		select 'ma_loai' as field, replace(@$exists, '%s', rtrim(@ma_loai)) as message
+		return
+	end
+end
+]]>
+      </text>
+    </command>
+
+    <command event="Updated">
+      <text>
+        <![CDATA[
+update @@table set datetime2 = getdate(), user_id2 = @@userID where ma_loai = @ma_loai
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$WorkdayType(f) {f.add_onResponseComplete(on$WorkdayType$ResponseComplete);}
+function close$WorkdayType(f) {try {f.remove_onResponseComplete(on$WorkdayType$ResponseComplete)} catch (ex) {}}
+function on$WorkdayType$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      objectBehavior$Dir$Irregular.checkCode(f, 'ma_loai');
+      break;
+    default:
+      break;
+  }
+}
+]]>
+      &ScriptIrregular;
+    </text>
+  </script>
+</dir>

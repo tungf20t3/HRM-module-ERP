@@ -1,0 +1,654 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE dir [
+  <!ENTITY OutlineCss SYSTEM "..\Include\Javascript\OutlineCss.txt">
+  <!ENTITY OutlineEntry SYSTEM "..\Include\Javascript\OutlineEntry.txt">
+  <!ENTITY OnSelectionOutline SYSTEM "..\Include\Javascript\OnSelectionOutline.txt">
+]>
+
+<dir table="hreqtctddqd" code="stt_rec, stt_rec0" order="stt_rec, stt_rec0" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="thông tin quá trình công tác Đảng, đoàn, quân đội" e="Work process Party, Union, Army"></title>
+
+  <fields>
+    <field name="stt_rec" isPrimaryKey="true" hidden="true" readOnly="true" allowNulls="false">
+      <header v="" e=""></header>
+    </field>
+    <field name="stt_rec0" isPrimaryKey="true" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+    </field>
+    <field name="line_nbr" type="Int32" hidden="true" readOnly="true">
+      <header v="" e=""></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="loai" dataFormatString="1, 2, 3, 4, 5" clientDefault="1" align="right" allowNulls="false">
+      <header v="Loại" e="Type"></header>
+      <footer v="1 - Đảng, 2 - Đoàn, 3 - Công đoàn, 4 - Quân đội, 5 - ATBV" e="1 - Party, 2 - Union, 3 - Syndicate, 4 - Army, 5 - ATBV"></footer>
+      <clientScript>&OnSelectionOutline;<![CDATA[onchange="onChange$Type(this);"]]></clientScript>
+      <items style="Mask"/>
+    </field>
+    <field name="tinh_chat" dataFormatString="1, 0" clientDefault="1" align="right" allowNulls="false">
+      <header v="Tính chất" e="Nature"></header>
+      <footer v="1 - Hiện tại, 0 - Trước đây" e="1 - Current, 0 - Previous"></footer>
+      <clientScript>&OnSelectionOutline;<![CDATA[onchange="onChange$Nature(this);"]]></clientScript>
+      <items style="Mask"/>
+    </field>
+
+    <field name="dang_uy" allowNulls="false">
+      <header v="Đảng ủy" e="Party Committee"></header>
+      <items style="AutoComplete" controller="zchrdmcb" reference="ten_cb%l" key="status = '1'" check="1 = 1" information="ma_cb$zchrdmcb.ten_cb%l"/>
+    </field>
+    <field name="ten_cb%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="don_vi">
+      <header v="Đơn vị" e="Unit"></header>
+    </field>
+    <field name="ma_vtr" allowNulls="false">
+      <header v="Chức vụ" e="Position"></header>
+      <items style="AutoComplete" controller="zchrdmcvddcdqdatbv" reference="ten_cv%l" key="loai = '{$%c[loai]}'" check="1 = 1" information="ma_cv$vhrlookupdmcv.ten_cv%l" new="Default"/>
+    </field>
+    <field name="ten_cv%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="doi_tuong_ATBV">
+      <header v="Đối tượng ATBV" e="Object ATBV"></header>
+      <items style="AutoComplete" controller="zchrdmdt_atbs_qsqp" reference="ten_dt%l" key="status = '1'" check="1 = 1" information="ma_dt$zchrdmdt_atbs_qsqp.ten_dt%l"/>
+    </field>
+    <field name="ten_dt%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="nhom">
+      <header v="Nhóm" e="Group"></header>
+      <items style="AutoComplete" controller="zchrdmnh_atbs_qsqp" reference="ten_nh%l" key="status = '1'" check="1 = 1" information="ma_nh$zchrdmnh_atbs_qsqp.ten_nh%l"/>
+    </field>
+    <field name="ten_nh%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ngay_vao" type="DateTime" dataFormatString="@datetimeFormat">
+      <header v="Ngày vào" e="Date in"></header>
+    </field>
+    <field name="tg_lam_truoc_do" type="Decimal" dataFormatString="####">
+      <header v="T.Gian làm trước đó" e="Previous work time"></header>
+      <items style="Numeric"></items>
+    </field>
+
+    <field name="ngay_tu" allowNulls="false" type="DateTime" dataFormatString="@datetimeFormat" categoryIndex="1">
+      <header v="Ngày bắt đầu" e="Start Date"></header>
+    </field>
+    <field name="ly_do" categoryIndex="1">
+      <header v="Lý do" e="Reason"></header>
+      <items style="AutoComplete" controller="zchrdmldtdcv" reference="ten_ld%l" key="status = '1'" check="1 = 1" information="ma_ld$zchrdmldtdcv.ten_ld%l"/>
+      <clientScript><![CDATA[ onchange="onChange$WorkingHistory$ChangeReason(this);"]]></clientScript>
+    </field>
+    <field name="ten_ld%l" readOnly="true" external="true" defaultValue="''" categoryIndex="1">
+      <header v="" e=""></header>
+    </field>
+    <field name="so_quyet_dinh" categoryIndex="1">
+      <header v="Số quyết định" e="Decision No."></header>
+    </field>
+    <field name="ngay_quyet_dinh" type="DateTime" dataFormatString="@datetimeFormat" categoryIndex="1">
+      <header v="Ngày quyết định" e="Date of Decision"></header>
+    </field>
+    <field name="cap_quyet_dinh" categoryIndex="1">
+      <header v="Cấp quyết định" e="Decision Level"></header>
+    </field>
+    <field name="nguoi_quyet_dinh" categoryIndex="1">
+      <header v="Người quyết định" e="Decision Maker"></header>
+    </field>
+    <field name="ghi_chu" rows="2" categoryIndex="1">
+      <header v="Ghi chú" e="Note"></header>
+    </field>
+    <field name="ten_loai%l" external="true" disabled="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+    <field name="ten_tc%l" external="true" disabled="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir" height="190" split="7">
+      <item value="135, 30, 70, 130, 130, 70, 0"/>
+      <item value="1110001: [loai].Label, [loai], [loai].Description, [stt_rec]"/>
+      <item value="11100-1: [tinh_chat].Label, [tinh_chat], [tinh_chat].Description, [stt_rec0]"/>
+      <item value="110100-: [dang_uy].Label, [dang_uy], [ten_cb%l]"/>
+      <item value="110----: [don_vi].Label, [don_vi]"/>
+      <item value="110100-: [ma_vtr].Label, [ma_vtr], [ten_cv%l]"/>
+      <item value="1101---: [doi_tuong_ATBV].Label, [doi_tuong_ATBV], [ten_dt%l]"/>
+      <item value="110----: [ngay_vao].Label, [ngay_vao]"/>
+      <item value="1101---: [nhom].Label, [nhom], [ten_nh%l]"/>
+      <item value="110----: [tg_lam_truoc_do].Label, [tg_lam_truoc_do]"/>
+
+      <item value="110----: [ngay_tu].Label, [ngay_tu]"/>
+      <item value="110100-: [ly_do].Label, [ly_do], [ten_ld%l]"/>
+      <item value="110----: [so_quyet_dinh].Label, [so_quyet_dinh]"/>
+      <item value="110----: [ngay_quyet_dinh].Label, [ngay_quyet_dinh]"/>
+      <item value="110----: [cap_quyet_dinh].Label, [cap_quyet_dinh]"/>
+      <item value="1100--11: [nguoi_quyet_dinh].Label, [nguoi_quyet_dinh], [ten_loai%l], [ten_tc%l]"/>
+      <item value="11000--: [ghi_chu].Label, [ghi_chu]"/>
+
+      <categories>
+        <category index="1" columns="140, 30, 70, 100, 100, 130, 0">
+          <header v="Thông tin chung" e="General"/>
+        </category>
+      </categories>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+if @@view = 0 begin
+	if @@action = 'Edit' begin
+		declare @bp_ref_me char(3), @bo_phan char(33), @lockDate nvarchar(4000)
+		select @lockDate = case when @@language = 'v' then N'Nhân viên thuộc bộ phận đã được khóa số liệu, không được sửa.' else N'Nhân viên thuộc bộ phận đã được khóa số liệu, không được sửa.' end
+	end
+end
+select 'set$ViewPanelEmployeeID(this);active$FormWorkingHistory(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+        select 'close$FormWorkingHistory(this);' as message
+        return
+        ]]>
+      </text>
+    </command>
+
+    <command event="Declare">
+      <text>
+        <![CDATA[
+        declare @$warning nvarchar(512) = '', @script nvarchar(1000) = '', @$checkLessDate nvarchar(512)
+        select @$checkLessDate = case when @@language = 'v' then N'Ngày bắt đầu nhỏ hơn ngày bắt đầu đã có.' else N'Start date is less than existing start date.' end
+        ]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+        IF EXISTS(select 1 from @@table where stt_rec = @stt_rec) 
+          select @stt_rec0 = max(stt_rec0), @line_nbr = max(line_nbr) from @@table where stt_rec = @stt_rec
+	      ELSE 
+          select @stt_rec0 = '000', @line_nbr = 0
+          
+        exec dbo.AI_ERP$HRM$GetRowID @stt_rec0 output, @line_nbr output
+        
+        -- Kiểm tra xem có bản ghi nào trước đó có ngày bắt đầu lớn hơn ngày bắt đầu mới
+        If @tinh_chat = '1' BEGIN
+          IF EXISTS(SELECT 1 FROM hreqtctddqd WHERE stt_rec = @stt_rec AND ngay_tu >= @ngay_tu)
+          BEGIN
+              -- Hiển thị cảnh báo nhưng vẫn cho phép lưu
+              SELECT @$warning = @$checkLessDate
+          END
+        END
+        
+        select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID        
+        ]]>
+      </text>
+    </command>
+
+    <command event="Inserted">
+      <text>
+        <![CDATA[
+        IF @tinh_chat = '1' Begin
+          IF EXISTS(SELECT * FROM @@table WHERE stt_rec = @stt_rec AND stt_rec0 <> @stt_rec0 AND loai = @loai)
+            UPDATE @@table SET tinh_chat = 0 WHERE stt_rec = @stt_rec AND loai = @loai AND stt_rec0 <> @stt_rec0   
+            
+          -- Kiểm tra loại và cập nhật các trường tương ứng theo từng loại
+          IF @loai = '1' -- Đảng
+          BEGIN
+            UPDATE hrnv
+            SET dang_vien_yn = 1,
+                chuc_vu_dang = @ma_vtr,
+                ngay_vd_chinh_thuc = @ngay_tu,
+                ngay_quyet_dinh = @ngay_quyet_dinh,
+                so_quyet_dinh = @so_quyet_dinh,
+                cap_quyet_dinh = @cap_quyet_dinh
+            WHERE stt_rec = @stt_rec;
+          END
+          ELSE IF @loai = '2' -- Đoàn
+          BEGIN
+            UPDATE hrnv
+            SET doan_vien_yn = 1,
+                ngay_vao_doan = @ngay_tu,
+                chuc_vu_doan = @ma_vtr,
+                ngay_quyet_dinh = @ngay_quyet_dinh,
+                so_quyet_dinh = @so_quyet_dinh,
+                cap_quyet_dinh = @cap_quyet_dinh
+            WHERE stt_rec = @stt_rec;
+          END
+          ELSE IF @loai = '3' -- Công đoàn
+          BEGIN
+            UPDATE hrnv
+            SET ngay_tgcm = @ngay_tu,
+                ma_cvcd = @ma_vtr
+            WHERE stt_rec = @stt_rec;
+          END
+          ELSE IF @loai = '4' -- Quân đội
+          BEGIN
+            UPDATE hrnv
+            SET nhap_ngu_yn = 1,
+                ngay_nhap_ngu = @ngay_tu
+            WHERE stt_rec = @stt_rec;
+          END
+        End
+        
+if @$warning <> '' select @script = @script + '$message.show(''' + replace(replace(@$warning, '\', '\\'), '''', '\''') + ''');'
+if @script <> '' select '' as message, '' as field, @script as script
+]]>
+      </text>
+    </command>
+
+    <command event="Updating">
+      <text>
+      <![CDATA[
+        DECLARE @loai_cu CHAR(1), @tc_cu CHAR(1)
+        SELECT @loai_cu = loai, @tc_cu = tinh_chat FROM hreqtctddqd WHERE stt_rec = @stt_rec AND stt_rec0 = @stt_rec0
+        
+        -- Kiểm tra xem có bản ghi nào trước đó có ngày bắt đầu lớn hơn ngày bắt đầu mới
+        If @tinh_chat = '1' BEGIN
+          IF EXISTS(SELECT 1 FROM hreqtctddqd WHERE stt_rec = @stt_rec AND loai = @loai AND stt_rec0 <> @stt_rec0 AND ngay_tu >= @ngay_tu)
+          BEGIN
+              -- Hiển thị cảnh báo nhưng vẫn cho phép lưu
+              SELECT @$warning = @$checkLessDate
+          END
+        END
+      ]]>
+      </text>
+    </command>
+
+    <command event="Updated">
+      <text>
+      <![CDATA[     
+        If @tinh_chat = '1' BEGIN
+          If Exists(SELECT * FROM @@table WHERE stt_rec = @stt_rec AND stt_rec0 <> @stt_rec0 AND loai = @loai)
+            UPDATE @@table SET tinh_chat = 0 WHERE stt_rec = @stt_rec AND stt_rec0 <> @stt_rec0 AND loai = @loai         
+          
+          -- Kiểm tra loại và cập nhật các trường tương ứng theo từng loại
+          IF @loai = '1' -- Đảng
+          BEGIN
+            UPDATE hrnv
+            SET dang_vien_yn = 1,
+                chuc_vu_dang = @ma_vtr,
+                ngay_vd_chinh_thuc = @ngay_tu,
+                ngay_quyet_dinh = @ngay_quyet_dinh,
+                so_quyet_dinh = @so_quyet_dinh,
+                cap_quyet_dinh = @cap_quyet_dinh
+            WHERE stt_rec = @stt_rec;
+          END
+          ELSE IF @loai = '2' -- Đoàn
+          BEGIN
+            UPDATE hrnv
+            SET doan_vien_yn = 1,
+                ngay_vao_doan = @ngay_tu,
+                chuc_vu_doan = @ma_vtr,
+                ngay_quyet_dinh = @ngay_quyet_dinh,
+                so_quyet_dinh = @so_quyet_dinh,
+                cap_quyet_dinh = @cap_quyet_dinh
+            WHERE stt_rec = @stt_rec;
+          END
+          ELSE IF @loai = '3' -- Công đoàn
+          BEGIN
+            UPDATE hrnv
+            SET ngay_tgcm = @ngay_tu,
+                ma_cvcd = @ma_vtr
+            WHERE stt_rec = @stt_rec;
+          END
+          ELSE IF @loai = '4' -- Quân đội
+          BEGIN
+            UPDATE hrnv
+            SET nhap_ngu_yn = 1,
+                ngay_nhap_ngu = @ngay_tu
+            WHERE stt_rec = @stt_rec;
+          END
+        END
+        
+        -- Cập nhật lại cho loại cũ
+        If @loai_cu <> @loai AND @tc_cu = '1'
+          IF EXISTS (SELECT 1 FROM hreqtctddqd WHERE stt_rec = @stt_rec AND loai = @loai_cu) BEGIN
+          SELECT stt_rec, stt_rec0, ma_vtr, ngay_tu, ngay_quyet_dinh, so_quyet_dinh, cap_quyet_dinh into #tmp 
+          FROM hreqtctddqd WHERE stt_rec = @stt_rec AND loai = @loai_cu 
+                            AND ngay_tu = (SELECT MAX(ngay_tu) FROM hreqtctddqd WHERE stt_rec = @stt_rec AND loai = @loai_cu)
+          
+            IF EXISTS (SELECT 1 FROM #tmp) 
+            BEGIN  
+                IF @loai_cu = '1' -- Đảng
+                BEGIN
+                  -- cập nhật tính chất thành 'Hiện tại' TH nhiều dòng
+                  UPDATE hreqtctddqd SET tinh_chat = '1' 
+                  FROM hreqtctddqd a JOIN #tmp b ON a.stt_rec = b.stt_rec AND a.stt_rec0 = b.stt_rec0  
+                  WHERE a.stt_rec = @stt_rec AND loai = @loai_cu
+                  
+                  UPDATE hrnv
+                  SET dang_vien_yn = 1,
+                      chuc_vu_dang = b.ma_vtr,
+                      ngay_vd_chinh_thuc = b.ngay_tu,
+                      ngay_quyet_dinh = b.ngay_quyet_dinh,
+                      so_quyet_dinh = b.so_quyet_dinh,
+                      cap_quyet_dinh = b.cap_quyet_dinh
+                  FROM hrnv a JOIN #tmp b ON a.stt_rec = b.stt_rec
+                  WHERE a.stt_rec = @stt_rec
+                END
+                ELSE IF @loai_cu = '2' -- Đoàn
+                BEGIN
+                  -- cập nhật tính chất thành 'Hiện tại' TH nhiều dòng
+                  UPDATE hreqtctddqd SET tinh_chat = '1' 
+                  FROM hreqtctddqd a JOIN #tmp b ON a.stt_rec = b.stt_rec AND a.stt_rec0 = b.stt_rec0  
+                  WHERE a.stt_rec = @stt_rec AND loai = @loai_cu
+                  
+                  UPDATE hrnv
+                  SET doan_vien_yn = 1,
+                      ngay_vao_doan = b.ngay_tu,
+                      chuc_vu_doan = b.ma_vtr,
+                      ngay_quyet_dinh = b.ngay_quyet_dinh,
+                      so_quyet_dinh = b.so_quyet_dinh,
+                      cap_quyet_dinh = b.cap_quyet_dinh
+                  FROM hrnv a
+                  JOIN #tmp b ON a.stt_rec = b.stt_rec
+                  WHERE a.stt_rec = @stt_rec
+                END
+                ELSE IF @loai_cu = '3' -- Công đoàn
+                BEGIN
+                  -- cập nhật tính chất thành 'Hiện tại' TH nhiều dòng
+                  UPDATE hreqtctddqd SET tinh_chat = '1' 
+                  FROM hreqtctddqd a JOIN #tmp b ON a.stt_rec = b.stt_rec AND a.stt_rec0 = b.stt_rec0  
+                  WHERE a.stt_rec = @stt_rec AND loai = @loai_cu
+                  
+                  UPDATE hrnv
+                  SET ngay_tgcm = b.ngay_tu,
+                      ma_cvcd = b.ma_vtr
+                  FROM hrnv a JOIN #tmp b ON a.stt_rec = b.stt_rec
+                  WHERE a.stt_rec = @stt_rec
+                END
+                ELSE IF @loai_cu = '4' -- Quân đội
+                BEGIN
+                  -- cập nhật tính chất thành 'Hiện tại' TH nhiều dòng
+                  UPDATE hreqtctddqd SET tinh_chat = '1' 
+                  FROM hreqtctddqd a JOIN #tmp b ON a.stt_rec = b.stt_rec AND a.stt_rec0 = b.stt_rec0  
+                  WHERE a.stt_rec = @stt_rec AND loai = @loai_cu
+                  
+                  UPDATE hrnv
+                  SET nhap_ngu_yn = 1,
+                      ngay_nhap_ngu = b.ngay_tu
+                  FROM hrnv a JOIN #tmp b ON a.stt_rec = b.stt_rec
+                  WHERE a.stt_rec = @stt_rec
+                END
+            END
+          END 
+        
+        UPDATE @@table SET datetime2 = getdate(), user_id2 = @@userID where ma_vtr = @ma_vtr
+        
+if @$warning <> '' select @script = @script + '$message.show(''' + replace(replace(@$warning, '\', '\\'), '''', '\''') + ''');'
+if @script <> '' select '' as message, '' as field, @script as script
+]]>
+      </text>
+    </command>
+
+    <command event="Deleting">
+      <text>
+      <![CDATA[
+        DECLARE @loai_cu CHAR(1), @tc_cu CHAR(1)
+        SELECT @loai_cu = loai, @tc_cu = tinh_chat FROM hreqtctddqd WHERE stt_rec = @stt_rec AND stt_rec0 = @stt_rec0
+      ]]>
+      </text>
+    </command>
+
+    <command event="Deleted">
+      <text>
+      <![CDATA[
+        IF @tc_cu = '1'
+          IF EXISTS (SELECT 1 FROM hreqtctddqd WHERE stt_rec = @stt_rec AND loai = @loai_cu) BEGIN
+            SELECT stt_rec, stt_rec0, ma_vtr, ngay_tu, ngay_quyet_dinh, so_quyet_dinh, cap_quyet_dinh into #tmp 
+            FROM hreqtctddqd 
+            WHERE stt_rec = @stt_rec AND ngay_tu = (SELECT MAX(ngay_tu) FROM hreqtctddqd WHERE stt_rec = @stt_rec AND loai = @loai_cu)
+          
+            IF EXISTS (SELECT 1 FROM #tmp) BEGIN  
+                IF @loai_cu = '1' BEGIN-- Đảng
+                  -- cập nhật tính chất thành 'Hiện tại' TH nhiều dòng
+                  UPDATE hreqtctddqd SET tinh_chat = '1' 
+                  FROM hreqtctddqd a JOIN #tmp b ON a.stt_rec = b.stt_rec AND a.stt_rec0 = b.stt_rec0  
+                  WHERE a.stt_rec = @stt_rec AND loai = @loai_cu
+                    
+                  UPDATE hrnv
+                  SET dang_vien_yn = 1,
+                      chuc_vu_dang = b.ma_vtr,
+                      ngay_vd_chinh_thuc = b.ngay_tu,
+                      ngay_quyet_dinh = b.ngay_quyet_dinh,
+                      so_quyet_dinh = b.so_quyet_dinh,
+                      cap_quyet_dinh = b.cap_quyet_dinh
+                  FROM hrnv a JOIN #tmp b ON a.stt_rec = b.stt_rec
+                  WHERE a.stt_rec = @stt_rec
+                END
+                ELSE IF @loai_cu = '2' BEGIN  -- Đoàn
+                  -- cập nhật tính chất thành 'Hiện tại' TH nhiều dòng
+                  UPDATE hreqtctddqd SET tinh_chat = '1' 
+                  FROM hreqtctddqd a JOIN #tmp b ON a.stt_rec = b.stt_rec AND a.stt_rec0 = b.stt_rec0  
+                  WHERE a.stt_rec = @stt_rec AND loai = @loai_cu
+                    
+                  UPDATE hrnv
+                  SET doan_vien_yn = 1,
+                      ngay_vao_doan = b.ngay_tu,
+                      chuc_vu_doan = b.ma_vtr,
+                      ngay_quyet_dinh = b.ngay_quyet_dinh,
+                      so_quyet_dinh = b.so_quyet_dinh,
+                      cap_quyet_dinh = b.cap_quyet_dinh
+                  FROM hrnv a
+                  JOIN #tmp b ON a.stt_rec = b.stt_rec
+                  WHERE a.stt_rec = @stt_rec
+                END
+                ELSE IF @loai_cu = '3' BEGIN-- Công đoàn
+                  -- cập nhật tính chất thành 'Hiện tại' TH nhiều dòng
+                  UPDATE hreqtctddqd SET tinh_chat = '1' 
+                  FROM hreqtctddqd a JOIN #tmp b ON a.stt_rec = b.stt_rec AND a.stt_rec0 = b.stt_rec0  
+                  WHERE a.stt_rec = @stt_rec AND loai = @loai_cu
+                    
+                  UPDATE hrnv
+                  SET ngay_tgcm = b.ngay_tu,
+                      ma_cvcd = b.ma_vtr
+                  FROM hrnv a JOIN #tmp b ON a.stt_rec = b.stt_rec
+                  WHERE a.stt_rec = @stt_rec
+                END
+                ELSE IF @loai_cu = '4' BEGIN-- Quân đội
+                  -- cập nhật tính chất thành 'Hiện tại' TH nhiều dòng
+                  UPDATE hreqtctddqd SET tinh_chat = '1' 
+                  FROM hreqtctddqd a JOIN #tmp b ON a.stt_rec = b.stt_rec AND a.stt_rec0 = b.stt_rec0  
+                  WHERE a.stt_rec = @stt_rec AND loai = @loai_cu
+                    
+                  UPDATE hrnv
+                  SET nhap_ngu_yn = 1,
+                      ngay_nhap_ngu = b.ngay_tu
+                  FROM hrnv a JOIN #tmp b ON a.stt_rec = b.stt_rec
+                  WHERE a.stt_rec = @stt_rec
+                END
+            END
+          END
+            ELSE BEGIN  
+                IF @loai_cu = '1' -- Đảng
+                BEGIN
+                  UPDATE hrnv
+                  SET dang_vien_yn = 0,
+                      chuc_vu_dang = '',
+                      ngay_vd_chinh_thuc = null,
+                      ngay_quyet_dinh = '',
+                      so_quyet_dinh = '',
+                      cap_quyet_dinh = ''
+                  WHERE stt_rec = @stt_rec
+                END
+                ELSE IF @loai_cu = '2' -- Đoàn
+                BEGIN              
+                  UPDATE hrnv
+                  SET doan_vien_yn = 0,
+                      ngay_vao_doan = null,
+                      chuc_vu_doan = '',
+                      ngay_quyet_dinh = '',
+                      so_quyet_dinh = '',
+                      cap_quyet_dinh = ''
+                  WHERE stt_rec = @stt_rec
+                END
+                ELSE IF @loai_cu = '3' -- Công đoàn
+                BEGIN
+                  UPDATE hrnv
+                  SET ngay_tgcm = '',
+                      ma_cvcd = ''
+                  WHERE stt_rec = @stt_rec
+                END
+                ELSE IF @loai_cu = '4' -- Quân đội
+                BEGIN
+                  UPDATE hrnv
+                  SET nhap_ngu_yn = 0,
+                      ngay_nhap_ngu = null
+                  WHERE stt_rec = @stt_rec
+                END
+            END             
+      ]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      &OutlineEntry;
+      <![CDATA[
+function active$FormWorkingHistory(f) {
+	var id = f.getItemValue('stt_rec');
+	f.add_onResponseComplete(on$FormWorkingHistory$ResponseComplete);
+	f._tabContainer.add_activeTabChanged(onChange$FormWorkingHistory$Tab);
+	f._tabContainer._loaded = true;
+	if (f._action == 'New') f.request('DefautFormValue', 'DefautFormValue', [['stt_rec', 'String', id]]);
+	f.add_commandEvent(on$FormDepartmentGroup$ExecuteCommand);
+  onChange$Type(f.getItem('loai'));
+  onChange$Nature(f.getItem('tinh_chat'));
+}
+function scatter$FormWorkingHistory(f) {
+	var id = f.getItemValue('stt_rec');
+	if (f._action == 'New') f.request('DefautFormValue', 'DefautFormValue', [['stt_rec', 'String', id]]);
+}
+function close$FormWorkingHistory(f) {
+	try {f.remove_onResponseComplete(on$FormWorkingHistory$ResponseComplete)} catch (ex) {}
+	if (f._tabContainer) try {f._tabContainer.remove_activeTabChanged(onChange$FormWorkingHistory$Tab);} catch (ex) {}
+		try {f.remove_commandEvent(on$FormDepartmentGroup$ExecuteCommand);} catch (ex) {}
+}
+function onChange$FormWorkingHistory$Tab(sender, e) {sender.parentForm.focusWhenTabChanged(['ngay_tu','ngay_den']);}
+
+function on$FormWorkingHistory$ResponseComplete(sender, e) {
+  var g = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Download':
+      g._key = result[0].Value;
+      break;
+    default:
+      break;
+  }
+}
+
+function onChange$WorkingHistory$ChangeDate2(o) {
+	var f = o.parentForm, t = f.getItemValue('ngay_den');
+	var grandNode = f.getItem('ly_do2').parentNode.parentNode;
+	var d = $func.findField('ly_do2', f.grid._dirInfor.Fields);
+	f.getItem('ly_do2').focus();
+	if (t == null) {           
+		if(d) d.AllowNulls = true;
+		Sys.UI.DomElement.removeCssClass(grandNode, 'Required');
+		Sys.UI.DomElement.removeCssClass(grandNode, f.get_id());    
+	} else {
+		if(d) d.AllowNulls = false;
+		Sys.UI.DomElement.addCssClass(grandNode, 'Required');
+		Sys.UI.DomElement.addCssClass(grandNode, f.get_id());         
+	}
+}
+
+function onChange$WorkingHistory$ChangeReason(o) {
+	var f = o.parentForm, t = f.getItemValue('ly_do');
+	if (t != '') {f.request('Reason', 'Reason', ['ly_do'], o);}
+}
+
+function on$FormDepartmentGroup$ExecuteCommand(sender, e) {
+	var action = e.type.Action, v = e.type.Value, f = sender;
+	switch (action) {
+		case 'Close':
+			break;
+		default:
+			break;
+	}
+}
+
+function setItemAllowNulls(f, c, v) {
+	var a = c.split(','), o, grandNode;
+	for (var i = 0; i < a.length; i++) {
+		if ($func.trim(a[i]) != '') {
+			o = f.getItem($func.trim(a[i]));
+			o.field.AllowNulls = !v;
+			grandNode = o.parentNode.parentNode;
+			if (v) {
+				Sys.UI.DomElement.addCssClass(grandNode, 'Required');
+				Sys.UI.DomElement.addCssClass(grandNode, f._id);
+			}
+			else {Sys.UI.DomElement.removeCssClass(grandNode, 'Required');
+			
+			}
+		}
+	}
+}
+
+function setItemDisable(f, c, v) {
+	var a = c.split(',');
+	for (var i = 0; i < a.length; i++) {
+		if ($func.trim(a[i]) != '') {
+			var o = f.getItem($func.trim(a[i]));
+			if (o.a) $common.setVisible(o.a, !v);
+			o.disabled = v;
+		}
+	}
+}
+function setItemHidden(f, c, b) {
+	var a = c.split(','), o;
+	for (var i = 0; i < a.length; i++) {
+		if ($func.trim(a[i]) != '') {
+			o = f.getItem($func.trim(a[i]));
+			if (b) o.field.AllowNulls = b;
+			$common.setVisible(o.parentNode.parentNode.parentNode, !b);
+		}
+	}
+}
+
+function onChange$Type(o){
+  var f = o.parentForm, var x = o.value;
+  var ten_loai = '';
+  ten_loai = x == '1' ? 'Đảng' : x == '2' ? 'Đoàn' : x == '3' ? 'Công đoàn' : x == '4' ? 'Quân đội' : 'ATBV'
+  f.setItemValue('ten_loai', ten_loai);
+  f.setReferenceKeyFilter('ma_vtr');
+}
+function onChange$Nature(o){
+  var f = o.parentForm, var x = o.value;
+  var ten_tc = '';
+  ten_tc = x == '1' ? 'Hiện tại' : 'Trước đây'
+  f.setItemValue('ten_tc', ten_tc) ;
+}
+]]>
+    </text>
+  </script>
+
+  <response>
+    <action id="Reason">
+      <text>
+        <![CDATA[
+				declare @bn_moi varchar(1024), @bn_lai varchar(1024)
+				select @bn_moi = bn_moi, @bn_lai=bn_lai from zchrkbctbcbn
+			  if dbo.ff_ExactInlist(@ly_do, @bn_moi) = 1 or dbo.ff_ExactInlist(@ly_do, @bn_lai) = 1
+				  select 1 as value
+				else
+				  select 0 as value
+      ]]>
+      </text>
+    </action>
+  </response>
+
+  &OutlineCss;
+</dir>

@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE dir [
+  <!ENTITY ScriptIrregular SYSTEM "..\Include\Javascript\Irregular.txt">
+]>
+
+<dir table="hrdmnhca" code="ma_nh" order="ma_nh" xmlns="urn:schemas-ai-erp:data-dir">
+  <title v="nhóm ca làm việc" e="Shift Group"></title>
+  <fields>
+    <field name="ma_nh" isPrimaryKey="true" dataFormatString="@upperCaseFormat" allowNulls="false">
+      <header v="Mã nhóm" e="Group Code"></header>
+      <items style="Mask"/>
+    </field>
+    <field name="ten_nh" allowNulls="false">
+      <header v="Tên nhóm" e="Description"></header>
+    </field>
+    <field name="ten_nh2">
+      <header v="Tên khác" e="Other Name"></header>
+    </field>
+    <field name="stt" type="Decimal" dataFormatString="###0">
+      <header v="Stt sắp xếp" e="Ordinal Number"></header>
+      <items style="Numeric"/>
+    </field>
+    <field name="status" dataFormatString="0, 1" clientDefault="1" align="right" inactivate="true">
+      <header v="Trạng thái" e="Status"></header>
+      <footer v="1 - Còn sử dụng, 0 - Không còn sử dụng" e="1 - Active, 0 - Inactive"></footer>
+      <items style="Mask"/>
+    </field>
+  </fields>
+
+  <views>
+    <view id="Dir">
+      <item value="120, 30, 10, 60, 330"/>
+      <item value="1100: [ma_nh].Label, [ma_nh]"/>
+      <item value="11000: [ten_nh].Label, [ten_nh]"/>
+      <item value="11000: [ten_nh2].Label, [ten_nh2]"/>
+      <item value="1100: [stt].Label, [stt]"/>
+      <item value="11100: [status].Label, [status], [status].Description"/>
+    </view>
+  </views>
+
+  <commands>
+    <command event="Loading">
+      <text>
+        <![CDATA[
+select 'active$WorkdayGroup(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Closing">
+      <text>
+        <![CDATA[
+select 'close$WorkdayGroup(this);' as message
+return
+]]>
+      </text>
+    </command>
+
+    <command event="Declare">
+      <text>
+        <![CDATA[
+declare @$exists nvarchar(512), @$recordHasBeenChanged nvarchar(512)
+select @$exists = case when @@language = 'v' then N'Nhóm công <span class="Highlight">%s</span> đã có hoặc lồng nhau trong danh mục nhóm công.' else N'The shift group <span class="Highlight">%s</span> is invalid or already exists.' end
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Mã nhóm công <span class="Highlight">%s</span> đã được sửa hoặc xóa bởi người sử dụng khác.' else N'The shift group <span class="Highlight">%s</span> has been modified or deleted by another user.' end
+]]>
+      </text>
+    </command>
+
+    <command event="Inserting">
+      <text>
+        <![CDATA[
+if exists(select * from @@table where ((ma_nh like rtrim(@ma_nh) + '%') or rtrim(@ma_nh) like rtrim(ma_nh) + '%')) begin
+	select 'ma_nh' as field, replace(@$exists, '%s', rtrim(@ma_nh)) as message
+  return
+end
+select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
+]]>
+      </text>
+    </command>
+
+    <command event="Updating">
+      <text>
+        <![CDATA[
+if not exists(select * from @@table where ma_nh = $ma_nh.OldValue) begin
+	select 'ma_nh' as field, replace(@$recordHasBeenChanged, '%s', rtrim($ma_nh.OldValue)) as message
+  return
+end  
+if @ma_nh <> $ma_nh.OldValue begin
+	if exists(select * from @@table where ((ma_nh like rtrim(@ma_nh) + '%') or rtrim(@ma_nh) like rtrim(ma_nh) + '%') and ma_nh <> $ma_nh.OldValue) begin
+		select 'ma_nh' as field, replace(@$exists, '%s', rtrim(@ma_nh)) as message
+		return
+	end
+end
+]]>
+      </text>
+    </command>
+
+    <command event="Updated">
+      <text>
+        <![CDATA[
+update @@table set datetime2 = getdate(), user_id2 = @@userID where ma_nh = @ma_nh
+]]>
+      </text>
+    </command>
+  </commands>
+
+  <script>
+    <text>
+      <![CDATA[
+function active$WorkdayGroup(f) {f.add_onResponseComplete(on$WorkdayGroup$ResponseComplete);}
+function close$WorkdayGroup(f) {try {f.remove_onResponseComplete(on$WorkdayGroup$ResponseComplete)} catch (ex) {}}
+function on$WorkdayGroup$ResponseComplete(sender, e) {
+  var f = e.object, context = e.type.Context, result = e.type.Result;
+  switch (context) {
+    case 'Checking':
+      objectBehavior$Dir$Irregular.checkCode(f, 'ma_nh');
+      break;
+    default:
+      break;
+  }
+}
+]]>
+      &ScriptIrregular;
+    </text>
+  </script>
+</dir>

@@ -70,6 +70,31 @@
       <footer v="1 - Nhà máy hoạt động, 0 - Nhà máy dừng, * - Cả hai" e="1 - Operating plant, 0 - Stopped plant, * - Both"></footer>
       <items style="Mask"/>
     </field>
+    <field name="cong_le" dataFormatString="1, 2, *" clientDefault="1" align="right" inactivate="true">
+      <header v="Công lễ tết" e="Holidays Work"></header>
+      <footer v="1 - Công thường, 2 - Công lễ tết, * - Cả hai" e="1 - Regular work, 2 - Holidays work, * - Both"></footer>
+      <items style="Mask"/>
+    </field>
+    <field name="ma_ca" clientDefault="Default">
+      <header v="Ca làm việc" e="Shift"></header>
+      <items style="AutoComplete" controller="hrWorkingShift" reference="ten_ca%l" key="status = '1'" check="1 = 1" information="ma_ca$hrdmca.ten_ca%l"/>
+    </field>
+    <field name="ten_ca%l" readOnly="true" external="true" defaultValue="''" clientDefault="Default">
+      <header v="" e=""></header>
+    </field>
+    <field name="gio_vao" dataFormatString="HH:ss" align="right">
+      <header v="Giờ vào" e="Time In"></header>
+    </field>
+    <field name="gio_ra" dataFormatString="HH:ss" align="right">
+      <header v="Giờ ra" e="Time Out"></header>
+    </field>
+    <field name="ma_dvcs" clientDefault="Default">
+      <header v="Đơn vị" e="Unit"></header>
+      <items style="AutoComplete" controller="Unit" reference="ten_dvcs%l" key="status='1'" check="1=1" information="ma_dvcs$dmdvcs.ten_dvcs%l" />
+    </field>
+    <field name="ten_dvcs%l" readOnly="true" external="true" defaultValue="''">
+      <header v="" e=""></header>
+    </field>
     <field name="stt" type="Decimal" dataFormatString="###0">
       <header v="Stt sắp xếp" e="Ordinal Number"></header>
       <items style="Numeric"/>
@@ -98,6 +123,11 @@
       <item value="1100: [luong_vung].Label, [luong_vung]"/>
       <item value="11100: [luong_BH].Label, [luong_BH], [luong_BH].Description"/>
       <item value="11100: [loai_cong].Label, [loai_cong], [loai_cong].Description"/>
+      <item value="11100: [cong_le].Label, [cong_le], [cong_le].Description"/>
+      <item value="11001: [ma_ca].Label, [ma_ca], [ten_ca%l]"/>
+      <item value="1100: [gio_vao].Label, [gio_vao]"/>
+      <item value="1100: [gio_ra].Label, [gio_ra]"/>
+      <item value="11001: [ma_dvcs].Label, [ma_dvcs], [ten_dvcs%l]"/>
       <item value="1100: [stt].Label, [stt]"/>
       <item value="11100: [status].Label, [status], [status].Description"/>
     </view>
@@ -107,7 +137,11 @@
     <command event="Loading">
       <text>
         <![CDATA[
-select 'active$TimekeepingSign(this);' as message
+declare @message nvarchar(4000), @unitName nvarchar(1023)
+select @unitName = case when @@language = 'V' then ten_dvcs else ten_dvcs2 end from dmdvcs where ma_dvcs = @@unit
+select @message = 'this._unitCode=''' + @@unit + ''';this._unitName=''' + replace(replace(isnull(@unitName, ''), '\', '\\'), '''', '\''') + ''';active$TimekeepingSign(this);'
+
+select @message as message
 return
 ]]>
       </text>
@@ -125,7 +159,8 @@ return
     <command event="Declare">
       <text>
         <![CDATA[
-declare @$exists nvarchar(512), @$recordHasBeenChanged nvarchar(512)
+declare @$exists nvarchar(512), @$recordHasBeenChanged nvarchar(512), @$warningSimilar nvarchar(512) = '', @script nvarchar(1000) = '', @$existsSimilar nvarchar(512)
+select @$existsSimilar = case when @@language = 'v' then N'Tồn tại ký hiệu chấm công <span class="Highlight">%s</span> có tính chất tương tự' else N'Timekeeping code <span class="Highlight">%s</span> with similar attributes already exists' end
 select @$exists = case when @@language = 'v' then N'Ký hiệu chấm công <span class="Highlight">%s</span> đã có hoặc lồng nhau trong danh mục.' else N'The timekeeping sign <span class="Highlight">%s</span> is invalid or already exists.' end
 select @$recordHasBeenChanged = case when @@language = 'v' then N'Ký hiệu chấm công <span class="Highlight">%s</span> đã được sửa hoặc xóa bởi người sử dụng khác.' else N'The timekeeping sign <span class="Highlight">%s</span> has been modified or deleted by another user.' end
 ]]>
@@ -139,8 +174,33 @@ if exists(select * from @@table where ((ma_cong like rtrim(@ma_cong) + '%') or r
 	select 'ma_cong' as field, replace(@$exists, '%s', rtrim(@ma_cong)) as message
   return
 end
+
+-- Kiểm tra mã công có giá trị tương tự trong bảng
+if exists(
+    select * from @@table 
+    where ma_cong <> @ma_cong 
+          and cong_tuong_duong = @cong_tuong_duong
+          and cong_bd_hien_vat = @cong_bd_hien_vat
+          and luong_don_gia = @luong_don_gia
+          and luong_vung = @luong_vung
+          and luong_BH = @luong_BH
+) 
+begin
+    -- Hiển thị cảnh báo nhưng vẫn cho phép lưu
+    select @$warningSimilar = replace(@$existsSimilar, '%s', rtrim(@ma_cong))
+end
+
 select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
 ]]>
+      </text>
+    </command>
+
+    <command event="Inserted">
+      <text>
+        <![CDATA[
+if @$warningSimilar <> '' select @script = @script + '$message.show(''' + replace(replace(@$warningSimilar, '\', '\\'), '''', '\''') + ''');'
+if @script <> '' select '' as message, '' as field, @script as script
+      ]]>
       </text>
     </command>
 
@@ -157,6 +217,21 @@ if @ma_cong <> $ma_cong.OldValue begin
 		return
 	end
 end
+
+-- Kiểm tra mã công có giá trị tương tự trong bảng
+if exists(
+    select * from @@table 
+    where ma_cong <> @ma_cong 
+          and cong_tuong_duong = @cong_tuong_duong
+          and cong_bd_hien_vat = @cong_bd_hien_vat
+          and luong_don_gia = @luong_don_gia
+          and luong_vung = @luong_vung
+          and luong_BH = @luong_BH
+) 
+begin
+    -- Hiển thị cảnh báo nhưng vẫn cho phép lưu
+    select @$warningSimilar = replace(@$existsSimilar, '%s', rtrim(@ma_cong))
+end
 ]]>
       </text>
     </command>
@@ -165,6 +240,8 @@ end
       <text>
         <![CDATA[
 update @@table set datetime2 = getdate(), user_id2 = @@userID where ma_cong = @ma_cong
+if @$warningSimilar <> '' select @script = @script + '$message.show(''' + replace(replace(@$warningSimilar, '\', '\\'), '''', '\''') + ''');'
+if @script <> '' select '' as message, '' as field, @script as script
 ]]>
       </text>
     </command>
@@ -173,7 +250,10 @@ update @@table set datetime2 = getdate(), user_id2 = @@userID where ma_cong = @m
   <script>
     <text>
       <![CDATA[
-function active$TimekeepingSign(f) {f.add_onResponseComplete(on$TimekeepingSign$ResponseComplete);}
+function active$TimekeepingSign(f) {
+  f.add_onResponseComplete(on$TimekeepingSign$ResponseComplete);
+  initTimekeepingSign(f);
+}
 function close$TimekeepingSign(f) {try {f.remove_onResponseComplete(on$TimekeepingSign$ResponseComplete)} catch (ex) {}}
 function on$TimekeepingSign$ResponseComplete(sender, e) {
   var f = e.object, context = e.type.Context, result = e.type.Result;
@@ -183,6 +263,13 @@ function on$TimekeepingSign$ResponseComplete(sender, e) {
       break;
     default:
       break;
+  }
+}
+function initTimekeepingSign(f) {
+  if (f._action == 'New') {
+    var o = f.getItem('ma_dvcs');
+    o.value = f._unitCode;
+    f.getItem('ten_dvcs%l').value = f._unitName;
   }
 }
 ]]>

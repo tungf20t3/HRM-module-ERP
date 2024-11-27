@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<dir table="hrdgcong" code="ma_bp, ma_cong, ngay_hl" order="ma_bp, ma_cong, ngay_hl" xmlns="urn:schemas-ai-erp:data-dir">
+	<title v="đơn giá giờ công" e="Working Hour Unit Cost"></title>
+	<fields>
+		<field name="ma_bp" isPrimaryKey="true" allowNulls="false">
+			<header v="Bộ phận" e="Department"></header>
+			<items style="AutoComplete" controller="hrDepartment" reference="ten_bp%l" key="(@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)) and status = '1'" check="@@admin = 1 or ma_bp in (select a.ma_bp from hrbp a, @@sysDatabaseName..hrquyenbp b where dbo.ff_Inlist(a.bp_ref, b.r_access2) = 1 and b.user_id = @@userID)" information="ma_bp$hrbp.ten_bp%l"/>
+		</field>
+		<field name="ten_bp%l" readOnly="true" external="true" defaultValue="''">
+			<header v="" e=""></header>
+		</field>
+		<field name="ma_cong" isPrimaryKey="true" allowNulls="false">
+			<header v="Mã công" e="Workday"></header>
+			<items style="AutoComplete" controller="hrWorkday" reference="ten_cong%l" key="status = '1'" check="1 = 1" information="ma_cong$hrdmcong.ten_cong%l"/>
+		</field>
+		<field name="ten_cong%l" readOnly="true" external="true" defaultValue="''">
+			<header v="" e=""></header>
+		</field>
+		<field name="ma_cd" >
+			<header v="Chức danh" e="Position"></header>
+			<items style="AutoComplete" controller="zchrdmcd" reference="ten_cd%l" key="status = '1'" check="1 = 1" information="ma_cd$zchrdmcd.ten_cd%l"/>
+		</field>
+		<field name="ten_cd%l" readOnly="true" external="true" defaultValue="''">
+			<header v="" e=""></header>
+		</field>
+		<field name="ngay_hl" type="DateTime" isPrimaryKey="true" dataFormatString="@datetimeFormat" align="left" allowNulls="false">
+			<header v="Ngày hiệu lực" e="Effective Date"></header>
+		</field>
+		<field name="don_gia" type="Decimal" dataFormatString="@generalCurrencyPriceInputFormat" clientDefault="0" allowNulls="false">
+			<header v="Đơn giá" e="Unit Cost"></header>
+			<items style="Numeric"/>
+		</field>
+	</fields>
+
+	<views>
+		<view id="Dir">
+			<item value="120, 30, 70, 100, 230"/>
+			<item value="11010: [ma_bp].Label, [ma_bp], [ten_bp%l]"/>
+			<item value="11010: [ma_cong].Label, [ma_cong], [ten_cong%l]"/>
+			<item value="11010: [ma_cd].Label, [ma_cd], [ten_cd%l]"/>
+			<item value="110: [ngay_hl].Label, [ngay_hl]"/>
+			<item value="110: [don_gia].Label, [don_gia]"/>
+		</view>
+	</views>
+
+	<commands>
+		<command event="Loading">
+			<text>
+				<![CDATA[
+if (@@action = 'New') begin
+	select 'var d = new Date();this.getItem(''ngay_hl'').value=d.format(''dd/MM/yyyy'');' as message
+	return
+end
+]]>
+			</text>
+		</command>
+
+		<command event="Scattering">
+			<text>
+				<![CDATA[
+if (@@action = 'New') begin
+	select 'var d = new Date();this.getItem(''ngay_hl'').value=d.format(''dd/MM/yyyy'');' as message
+	return
+end
+]]>
+			</text>
+		</command>
+
+		<command event="Declare">
+			<text>
+				<![CDATA[
+declare @$exists nvarchar(512), @$recordHasBeenChanged nvarchar(512)
+select @$exists = case when @@language = 'v' then N'Bộ phận <span class="Highlight">%s1</span>, mã công <span class="Highlight">%s2</span> và ngày hiệu lực <span class="Highlight">%s3</span> đã có trong cập nhật đơn giá giờ công.' else N'The department <span class="Highlight">%s1</span>, product <span class="Highlight">%s2</span> on date <span class="Highlight">%s3</span> already exists.' end
+select @$recordHasBeenChanged = case when @@language = 'v' then N'Bộ phận <span class="Highlight">%s1</span>, mã công <span class="Highlight">%s2</span> và ngày hiệu lực <span class="Highlight">%s3</span> đã được sửa hoặc xóa bởi người sử dụng khác.' else N'The department <span class="Highlight">%s1</span>, product <span class="Highlight">%s2</span> on date <span class="Highlight">%s3</span> has been modified or deleted by another user.' end
+]]>
+			</text>
+		</command>
+
+		<command event="Inserting">
+			<text>
+				<![CDATA[
+if exists(select * from @@table where ma_bp = @ma_bp and ma_cong = @ma_cong and ngay_hl = @ngay_hl)
+	begin
+		select 'ma_bp' as field, replace(replace(replace(@$exists, '%s1', rtrim(@ma_bp)), '%s2', rtrim(@ma_cong)), '%s3', convert(varchar(10), @ngay_hl, 103)) as message
+		return
+	end
+select @datetime0 = getdate(), @datetime2 = getdate(), @user_id0 = @@userID, @user_id2 = @@userID
+]]>
+			</text>
+		</command>
+
+		<command event="Updating">
+			<text>
+				<![CDATA[
+if not exists(select * from @@table where ma_bp = $ma_bp.OldValue and ma_cong = $ma_cong.OldValue and ngay_hl = $ngay_hl.OldValue)
+	begin
+		select 'ma_bp' as field, replace(replace(replace(@$recordHasBeenChanged, '%s1', rtrim($ma_bp.OldValue)), '%s2', rtrim(@ma_cong)), '%s3', convert(varchar(10), $ngay_hl.OldValue, 103)) as message
+		return
+	end
+	
+if @ma_bp <> $ma_bp.OldValue or @ma_cong <> $ma_cong.OldValue or @ngay_hl <> $ngay_hl.OldValue
+	begin
+		if exists(select * from @@table where (not (ma_bp = $ma_bp.OldValue and ma_cong = $ma_cong.OldValue and ngay_hl = $ngay_hl.OldValue)) and (ma_bp = @ma_bp and ma_cong = @ma_cong and ngay_hl = @ngay_hl))
+			begin
+				select 'ma_bp' as field, replace(replace(replace(@$exists, '%s1', rtrim(@ma_bp)), '%s2',  rtrim(@ma_cong)), '%s3', convert(varchar(10), @ngay_hl, 103)) as message
+				return
+			end
+	end
+]]>
+			</text>
+		</command>
+
+		<command event="Updated">
+			<text>
+				<![CDATA[
+update @@table set datetime2 = getdate(), user_id2 = @@userID where ma_bp = @ma_bp and ma_cong = @ma_cong and ngay_hl = @ngay_hl
+]]>
+			</text>
+		</command>
+
+	</commands>
+
+</dir>
